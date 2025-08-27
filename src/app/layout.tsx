@@ -9,7 +9,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "CJ",
+  title: "NORSU Calendar",
   description:
     "Personal portfolio of CJ, a passionate Software Engineer based in Philippines specializing in modern web development.",
   keywords: ["Software Engineer", "Web Developer", "React", "Next.js", "TypeScript", "Portfolio"],
