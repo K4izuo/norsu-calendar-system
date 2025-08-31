@@ -65,35 +65,48 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col overflow-x-hidden">
-      <div className="w-full max-w-[1400px] flex flex-col flex-1 mx-auto">
-        {/* Navbar */}
-        <div className="bg-white px-4 sm:px-8 md:px-16 lg:px-24 xl:px-36 py-4 shadow-sm grid grid-cols-1 md:grid-cols-3 items-center gap-4">
-          <div className="flex items-center justify-center md:justify-start">
-            <Image 
-              src="/images/norsu.png" 
-              alt="Negros Oriental State University" 
-              className="h-12 w-12 object-contain"
-              width={64}
-              height={64}
-            />
-          </div>
-          <div className="flex flex-col items-center">
-            <h1 className="font-semibold text-lg sm:text-xl text-gray-800 text-center">
+      {/* Navbar: full width */}
+      <div className="relative bg-white px-2 sm:px-4 md:px-8 lg:px-16 xl:px-36 py-4 shadow-sm flex flex-col sm:flex-row items-center sm:items-center justify-between w-full gap-y-2">
+        {/* Logo (left, or with title on mobile) */}
+        <div className="flex flex-row items-center justify-center sm:justify-start w-full sm:w-auto gap-2 sm:gap-0">
+          <Image 
+            src="/images/norsu.png" 
+            alt="Negros Oriental State University" 
+            className="h-10 w-10 sm:h-12 sm:w-12 object-contain"
+            width={48}
+            height={48}
+          />
+          {/* Title (side by side on mobile, hidden on sm+) */}
+          <div className="flex flex-col items-center min-w-0 sm:hidden ml-2">
+            <h1 className="font-semibold text-base text-gray-800 text-center truncate">
               NORSU Calendar System
             </h1>
-            <p className="text-xs sm:text-sm text-gray-500 text-center">
+            <p className="text-[10px] text-gray-500 text-center truncate">
               Negros Oriental State University
             </p>
           </div>
-          <div className="flex items-center justify-center md:justify-end space-x-1 mt-4 md:mt-0">
-            <Button variant="ghost" className="cursor-pointer text-xs sm:text-sm md:text-base">LOGIN</Button>
-            <span className="text-gray-300 text-lg select-none">|</span>
-            <Button variant="ghost" className="cursor-pointer text-xs sm:text-sm md:text-base">REGISTER</Button>
-          </div>
         </div>
+        {/* Title (centered on sm+ only) */}
+        <div className="hidden sm:flex flex-col items-center absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 min-w-0">
+          <h1 className="font-semibold text-lg md:text-xl text-gray-800 text-center truncate">
+            NORSU Calendar System
+          </h1>
+          <p className="text-xs md:text-sm text-gray-500 text-center truncate">
+            Negros Oriental State University
+          </p>
+        </div>
+        {/* Auth buttons */}
+        <div className="flex items-center space-x-1 flex-shrink-0 mt-2 sm:mt-0 w-full sm:w-auto justify-center sm:justify-end">
+          <Button variant="ghost" className="cursor-pointer text-xs sm:text-sm md:text-base px-2">LOGIN</Button>
+          <span className="text-gray-300 text-lg select-none hidden xs:inline">|</span>
+          <Button variant="ghost" className="cursor-pointer text-xs sm:text-sm md:text-base px-2">REGISTER</Button>
+        </div>
+      </div>
+      {/* Main container */}
+      <div className="w-full flex flex-col flex-1">
         {/* Content area */}
         <div className="flex-1 flex justify-center p-4 sm:p-6 md:p-8">
-          <div className="w-full max-w-full sm:max-w-[98vw] md:max-w-[1306px] flex flex-col lg:flex-row gap-4 lg:gap-8">
+          <div className="w-full flex flex-col lg:flex-row gap-4 lg:gap-8 flex-1">
             {/* Sidebar */}
             <div className="w-full lg:w-[320px] h-[400px] lg:h-[502px] bg-white rounded-md shadow-md flex flex-col p-4 sm:p-6">
               <h2 className="text-lg font-semibold mb-4 text-gray-700 text-center">Upcoming Events</h2>
@@ -107,8 +120,8 @@ export default function Home() {
               </ul>
             </div>
             {/* Main content */}
-            <div className="flex-1 flex items-start justify-center">
-              <div className="w-full bg-white rounded-md shadow-md flex flex-col items-start self-stretch p-6 gap-8 relative">
+            <div className="flex-1 flex flex-col items-start justify-center min-h-0">
+              <div className="w-full bg-white rounded-md shadow-md flex flex-col items-start self-stretch p-6 gap-8 relative flex-1 min-h-0">
                 {/* Calendar header */}
                 <div className="w-full grid grid-cols-3 items-center mb-1.5 relative">
                   {/* Left: arrow, today, select */}
@@ -174,14 +187,14 @@ export default function Home() {
                   </div>
                 </div>
                 {/* Calendar table */}
-                <div className="flex flex-col items-start gap-[0.5px]">
+                <div className="flex flex-col gap-[0.5px] w-full flex-1 h-full min-h-0">
                   {/* Calendar table header */}
-                  <div className="w-full pt-[22px] pb-[18px]">
+                  <div className="w-full px-[1px] sm:px-0 pt-[22px] pb-[18px]">
                     <div className="grid grid-cols-7 w-full">
                       {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map((day) => (
                         <div
                           key={day}
-                          className="flex-1 w-32 text-[10px] font-bold uppercase tracking-[1px] text-[#A8B2B9] text-right font-manrope pr-2"
+                          className="flex-1 text-[10px] font-bold uppercase tracking-[1px] text-[#A8B2B9] text-right font-manrope pr-2"
                         >
                           {day}
                         </div>
@@ -189,13 +202,13 @@ export default function Home() {
                     </div>
                   </div>
                   {/* Calendar table days */}
-                  <div className="flex flex-col items-start px-[1px] py-[0.5px] self-stretch">
-                    <div className="grid grid-rows-6 grid-cols-7 w-full gap-0.5 sm:gap-1 bg-white">
+                  <div className="flex flex-col px-[1px] sm:px-0 py-[0.5px] w-full flex-1 h-full min-h-0">
+                    <div className="grid grid-rows-6 grid-cols-7 w-full h-full gap-0.5 sm:gap-1 bg-white flex-1">
                       {calendarDays.map((day, idx) => (
                         <div
                           key={day.key}
                           data-idx={idx}
-                          className={`border rounded-sm border-[#e5e7eb] h-16 flex items-start justify-end px-2 pt-2 text-xs font-bold cursor-pointer transition-colors hover:bg-gray-100 active:bg-gray-200 hover:shadow-sm
+                          className={`border rounded-sm border-[#e5e7eb] flex items-start justify-end px-2 pt-2 text-xs font-bold cursor-pointer transition-colors hover:bg-gray-100 active:bg-gray-200 hover:shadow-sm
                             ${day.currentMonth ? "text-black" : "text-gray-300"}
                           `}
                           onClick={() => alert(`Show modal for ${day.currentMonth ? "current" : "other"} month day: ${day.date}`)}
