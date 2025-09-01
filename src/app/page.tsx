@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { useMemo } from "react";
+// import Link from "next/link";
 
 export default function Home() {
   const upcomingEvents = [
@@ -97,7 +98,16 @@ export default function Home() {
         </div>
         {/* Auth buttons */}
         <div className="flex items-center space-x-1 flex-shrink-0 mt-2 sm:mt-0 w-full sm:w-auto justify-center sm:justify-end">
-          <Button variant="ghost" className="cursor-pointer text-xs sm:text-sm md:text-base px-2">LOGIN</Button>
+          {/* <Link href="/auth/student/studentLogin"> */}
+            <Button
+              variant="link"
+              className="cursor-pointer text-xs sm:text-sm md:text-base px-2"
+              type="button"
+              onClick={() => (window.location.href = "/auth/student/login")}
+            >
+              LOGIN
+            </Button>
+          {/* </Link> */}
           <span className="text-gray-300 text-lg select-none hidden xs:inline">|</span>
           <Button variant="ghost" className="cursor-pointer text-xs sm:text-sm md:text-base px-2">REGISTER</Button>
         </div>
