@@ -100,7 +100,7 @@ export default function Home() {
         <div className="flex items-center space-x-1 flex-shrink-0 mt-2 sm:mt-0 w-full sm:w-auto justify-center sm:justify-end">
           {/* <Link href="/auth/student/studentLogin"> */}
             <Button
-              variant="link"
+              variant="ghost"
               className="cursor-pointer text-xs sm:text-sm md:text-base px-2"
               type="button"
               onClick={() => (window.location.href = "/auth/student/login")}
@@ -108,7 +108,7 @@ export default function Home() {
               LOGIN
             </Button>
           {/* </Link> */}
-          <span className="text-gray-300 text-lg select-none hidden xs:inline">|</span>
+          <span className="text-gray-500 text-lg select-none hidden xs:inline">|</span>
           <Button variant="ghost" className="cursor-pointer text-xs sm:text-sm md:text-base px-2">REGISTER</Button>
         </div>
       </div>

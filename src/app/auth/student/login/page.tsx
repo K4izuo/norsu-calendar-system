@@ -118,7 +118,7 @@ export default function StudentLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 font-['Poppins'] flex items-center justify-center p-2 sm:p-4 lg:p-6 relative overflow-hidden">
+    <div className="h-screen w-screen bg-gradient-to-br from-green-50 to-emerald-50 font-['Poppins'] flex items-center justify-center p-2 sm:p-4 lg:p-6 relative overflow-hidden">
       {/* Background decorative elements */}
       <div className="absolute top-0 left-0 w-32 h-32 bg-green-600 rounded-full opacity-10 -translate-x-16 -translate-y-16"></div>
       <div className="absolute bottom-0 right-0 w-48 h-48 bg-emerald-500 rounded-full opacity-10 translate-x-24 translate-y-24"></div>
@@ -127,9 +127,9 @@ export default function StudentLoginPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden w-full max-w-lg sm:max-w-xl md:max-w-3xl lg:max-w-[1000px] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 relative min-h-[460px]"
+        className="bg-white rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden w-full max-w-[350px] sm:max-w-xl md:max-w-3xl lg:max-w-[1000px] grid grid-cols-1 md:grid-cols-2 relative p-2 sm:p-0"
       >
-        {/* Left Side - BikeRider Branding - Hidden on mobile */}
+        {/* Left Side - Hidden on mobile */}
         <div className="hidden md:flex bg-gradient-to-br from-green-600 to-emerald-700 p-4 sm:p-6 lg:p-8 text-white flex-col items-center justify-center relative min-h-[400px]">
           {/* Decorative circles */}
           <div className="absolute top-2 right-2 sm:top-4 sm:right-4 w-8 h-8 sm:w-12 sm:h-12 lg:w-16 lg:h-16 bg-white/10 rounded-full"></div>
@@ -173,101 +173,97 @@ export default function StudentLoginPage() {
         </div>
 
         {/* Right Side - Login Form */}
-        <div className="p-8 w-full flex flex-col h-full">
-          {/* Heading at the top, closer to the top */}
-          <div className="mt-3 text-center">
-            <h1 className="text-2xl font-bold text-gray-800">Student Panel</h1>
-            <p className="text-gray-600 text-sm">Please enter your student credentials</p>
+        <div className="p-4 sm:p-8 w-full flex flex-col justify-center">
+          {/* Heading at the top */}
+          <div className="mt-1 mb-3 text-center">
+            <h1 className="text-2xl font-bold text-gray-800">Welcome Student</h1>
+            <p className="text-gray-600 text-sm">Please enter your login credentials</p>
           </div>
-
-          {/* Form centered vertically */}
-          <div className="flex-1 flex flex-col justify-center">
-            <form onSubmit={handleLogin} className="space-y-8 max-w-md mx-auto w-full">
-              <div className="w-full sm:w-[98%] md:w-[94%] space-y-3 mx-auto mt-5">
-                {/* Username Field */}
-                <div className="space-y-2">
-                  <div className="relative">
-                    <Input
-                      type="text"
-                      placeholder="Username"
-                      value={formData.username}
-                      onChange={handleInputChange("username")}
-                      className="h-[50px] sm:h-[54px] text-base sm:text-lg pl-11 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:ring-green-500/20 transition-colors"
-                    />
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  </div>
-                  {errors.username && <p className="text-red-500 text-sm ml-1">{errors.username}</p>}
+          <form onSubmit={handleLogin} className="space-y-8 max-w-md mx-auto w-full mt-5">
+            <div className="w-full sm:w-[98%] md:w-[94%] space-y-3 mx-auto">
+              {/* Username Field */}
+              <div className="space-y-2">
+                <div className="relative">
+                  <Input
+                    type="text"
+                    placeholder="Username"
+                    value={formData.username}
+                    onChange={handleInputChange("username")}
+                    className="h-[50px] sm:h-[54px] text-base sm:text-lg pl-11 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:ring-green-500/20 transition-colors"
+                  />
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 </div>
+                {errors.username && <p className="text-red-500 text-sm ml-1">{errors.username}</p>}
+              </div>
 
-                {/* Password Field */}
-                <div className="space-y-2">
-                  <div className="relative">
-                    <Input
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Password"
-                      value={formData.password}
-                      onChange={handleInputChange("password")}
-                      className="h-[50px] sm:h-[54px] text-base sm:text-lg pl-11 pr-9 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:ring-green-500/20 transition-colors"
-                    />
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <button
-                      type="button"
-                      onClick={togglePasswordVisibility}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
-                    >
-                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                    </button>
-                  </div>
-                  {errors.password && <p className="text-red-500 text-sm ml-1">{errors.password}</p>}
+              {/* Password Field */}
+              <div className="space-y-2">
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Password"
+                    value={formData.password}
+                    onChange={handleInputChange("password")}
+                    className="h-[50px] sm:h-[54px] text-base sm:text-lg pl-11 pr-9 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:ring-green-500/20 transition-colors"
+                  />
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <button
+                    type="button"
+                    onClick={togglePasswordVisibility}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+                  >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
                 </div>
+                {errors.password && <p className="text-red-500 text-sm ml-1">{errors.password}</p>}
+              </div>
 
-                {/* Remember Me & Forgot Password */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="remember"
-                      checked={rememberMe}
-                      onCheckedChange={(checked) => setRememberMe(checked === true)}
-                      className="border-2 border-gray-300 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
-                    />
-                    <label htmlFor="remember" className="text-sm text-gray-600 cursor-pointer">
-                      Remember Me
-                    </label>
-                  </div>
+              {/* Remember Me & Forgot Password */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="remember"
+                    checked={rememberMe}
+                    onCheckedChange={(checked) => setRememberMe(checked === true)}
+                    className="border-2 border-gray-300 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                  />
+                  <label htmlFor="remember" className="text-sm text-gray-600 cursor-pointer">
+                    Remember Me
+                  </label>
+                </div>
+                <Button
+                  variant="link"
+                  className="text-green-600 hover:text-green-700 p-0 text-sm font-medium"
+                  type="button"
+                >
+                  Forgot Password?
+                </Button>
+              </div>
+
+              {/* Login Button */}
+              <Button
+                type="submit"
+                className="w-full cursor-pointer h-[50px] sm:h-[54px] font-semibold text-sm sm:text-base bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] mt-2"
+              >
+                LOGIN
+              </Button>
+
+              {/* Sign up link */}
+              {/* <div className="text-center pt-4">
+                <p className="text-sm text-gray-600">
+                  New to CycleTrack?{" "}
                   <Button
                     variant="link"
-                    className="text-green-600 hover:text-green-700 p-0 text-sm font-medium"
+                    className="text-green-600 cursor-pointer hover:text-green-700 p-0 text-sm font-medium"
                     type="button"
+                    onClick={() => (window.location.href = "/auth/register")}
                   >
-                    Forgot Password?
+                    Join the Community
                   </Button>
-                </div>
-
-                {/* Login Button */}
-                <Button
-                  type="submit"
-                  className="w-full cursor-pointer h-[50px] sm:h-[54px] font-semibold text-sm sm:text-base bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] mt-2"
-                >
-                  LOGIN
-                </Button>
-
-                {/* Sign up link */}
-                {/* <div className="text-center pt-4">
-                  <p className="text-sm text-gray-600">
-                    New to CycleTrack?{" "}
-                    <Button
-                      variant="link"
-                      className="text-green-600 cursor-pointer hover:text-green-700 p-0 text-sm font-medium"
-                      type="button"
-                      onClick={() => (window.location.href = "/auth/register")}
-                    >
-                      Join the Community
-                    </Button>
-                  </p>
-                </div> */}
-              </div>
-            </form>
-          </div>
+                </p>
+              </div> */}
+            </div>
+          </form>
         </div>
       </motion.div>
     </div>
