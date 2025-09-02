@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { motion } from "framer-motion"
-import { Lock, Bike, Route, MapPin, Trophy, Timer, User, Eye, EyeOff } from "lucide-react"
+import { Lock, GraduationCap, BookOpen, Users, Award, Clock, User, Eye, EyeOff } from "lucide-react"
 // import Link from "next/link"
 
 interface FormData {
@@ -19,7 +19,7 @@ interface FormErrors {
   password: string
 }
 
-export default function StudentLoginPage() {
+export default function FacultyStaffLoginPage() {
   const [formData, setFormData] = useState<FormData>({
     username: "",
     password: "",
@@ -111,18 +111,18 @@ export default function StudentLoginPage() {
     }
     setErrors(newErrors)
     if (formData.username && formData.password && validateUsername(formData.username)) {
-      console.log("Rider logging in with:", { ...formData, rememberMe })
+      console.log("Faculty/Staff logging in with:", { ...formData, rememberMe })
       // Redirect to dashboard after successful login
       // window.location.href = "/dashboard"
     }
   }
 
   return (
-    <div className="h-screen w-screen bg-gradient-to-br from-green-50 to-emerald-50 font-['Poppins'] flex items-center justify-center p-2 sm:p-4 lg:p-6 relative overflow-hidden">
+    <div className="h-screen w-screen bg-gradient-to-br from-blue-50 to-indigo-50 font-['Poppins'] flex items-center justify-center p-2 sm:p-4 lg:p-6 relative overflow-hidden">
       {/* Background decorative elements */}
-      <div className="absolute top-0 left-0 w-32 h-32 bg-green-600 rounded-full opacity-10 -translate-x-16 -translate-y-16"></div>
-      <div className="absolute bottom-0 right-0 w-48 h-48 bg-emerald-500 rounded-full opacity-10 translate-x-24 translate-y-24"></div>
-      <div className="absolute top-1/2 left-0 w-24 h-24 bg-green-500 rounded-full opacity-10 -translate-x-12"></div>
+      <div className="absolute top-0 left-0 w-32 h-32 bg-blue-600 rounded-full opacity-10 -translate-x-16 -translate-y-16"></div>
+      <div className="absolute bottom-0 right-0 w-48 h-48 bg-indigo-500 rounded-full opacity-10 translate-x-24 translate-y-24"></div>
+      <div className="absolute top-1/2 left-0 w-24 h-24 bg-blue-500 rounded-full opacity-10 -translate-x-12"></div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -130,42 +130,42 @@ export default function StudentLoginPage() {
         className="bg-white rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden w-full max-w-[375px] sm:max-w-xl md:max-w-3xl lg:max-w-[1000px] grid grid-cols-1 md:grid-cols-2 relative p-2 sm:p-0"
       >
         {/* Left Side - Hidden on mobile */}
-        <div className="hidden md:flex bg-gradient-to-br from-green-600 to-emerald-700 p-4 sm:p-6 lg:p-8 text-white flex-col items-center justify-center relative min-h-[400px]">
+        <div className="hidden md:flex bg-gradient-to-br from-blue-600 to-indigo-700 p-4 sm:p-6 lg:p-8 text-white flex-col items-center justify-center relative min-h-[400px]">
           {/* Decorative circles */}
           <div className="absolute top-2 right-2 sm:top-4 sm:right-4 w-8 h-8 sm:w-12 sm:h-12 lg:w-16 lg:h-16 bg-white/10 rounded-full"></div>
           <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 lg:bottom-8 lg:left-8 w-6 h-6 sm:w-8 sm:h-8 lg:w-12 lg:h-12 bg-white/10 rounded-full"></div>
 
           <div className="space-y-6 text-center z-10 flex flex-col items-center justify-center h-full">
-            {/* Logo/Icon with BikeRider branding */}
+            {/* Logo/Icon with Academic branding */}
             <div className="bg-white/20 p-3 sm:p-4 lg:p-6 rounded-xl sm:rounded-2xl inline-block backdrop-blur-sm">
               <div className="flex items-center justify-center space-x-2">
-                <Bike className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-white" />
-                <Route className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-white" />
+                <GraduationCap className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-white" />
+                <BookOpen className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-white" />
               </div>
             </div>
 
             <div className="space-y-3">
-              <h2 className="text-2xl sm:text-3xl font-bold">BikeRider Pro</h2>
-              <p className="text-green-100 text-lg">Cycling Tracking System</p>
-              <p className="text-green-200 text-sm max-w-xs">
-                Track your rides, monitor performance, and connect with the cycling community
+              <h2 className="text-2xl sm:text-3xl font-bold">EduPortal Pro</h2>
+              <p className="text-blue-100 text-lg">Faculty & Staff Portal</p>
+              <p className="text-blue-200 text-sm max-w-xs">
+                Manage courses, track student progress, and collaborate with colleagues
               </p>
             </div>
 
-            {/* Cycling-related features */}
+            {/* Academic-related features */}
             <div className="mt-6 space-y-3">
-              <div className="flex items-center justify-center space-x-4 text-green-100">
+              <div className="flex items-center justify-center space-x-4 text-blue-100">
                 <div className="flex items-center space-x-2">
-                  <MapPin className="w-4 h-4" />
-                  <span className="text-xs">Routes</span>
+                  <Users className="w-4 h-4" />
+                  <span className="text-xs">Classes</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Timer className="w-4 h-4" />
-                  <span className="text-xs">Tracking</span>
+                  <Clock className="w-4 h-4" />
+                  <span className="text-xs">Schedule</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Trophy className="w-4 h-4" />
-                  <span className="text-xs">Achievements</span>
+                  <Award className="w-4 h-4" />
+                  <span className="text-xs">Grades</span>
                 </div>
               </div>
             </div>
@@ -176,7 +176,7 @@ export default function StudentLoginPage() {
         <div className="p-4 sm:p-8 w-full flex flex-col justify-center">
           {/* Heading at the top */}
           <div className="flex flex-col items-center mt-4 mb-6 gap-y-2">
-            <h1 className="text-2xl font-bold text-gray-800">Welcome Student</h1>
+            <h1 className="text-2xl font-bold text-gray-800">Welcome</h1>
             <p className="text-gray-600 text-sm">Please enter your login credentials</p>
           </div>
           <form onSubmit={handleLogin} className="flex flex-col gap-y-6 max-w-md mx-auto w-full">
@@ -189,7 +189,7 @@ export default function StudentLoginPage() {
                     placeholder="Username"
                     value={formData.username}
                     onChange={handleInputChange("username")}
-                    className="h-[50px] sm:h-[54px] text-base sm:text-lg pl-11 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:ring-green-500/20 transition-colors"
+                    className="h-[50px] sm:h-[54px] text-base sm:text-lg pl-11 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue-500/20 transition-colors"
                   />
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 </div>
@@ -204,7 +204,7 @@ export default function StudentLoginPage() {
                     placeholder="Password"
                     value={formData.password}
                     onChange={handleInputChange("password")}
-                    className="h-[50px] sm:h-[54px] text-base sm:text-lg pl-11 pr-9 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:ring-green-500/20 transition-colors"
+                    className="h-[50px] sm:h-[54px] text-base sm:text-lg pl-11 pr-9 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue-500/20 transition-colors"
                   />
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <button
@@ -225,7 +225,7 @@ export default function StudentLoginPage() {
                     id="remember"
                     checked={rememberMe}
                     onCheckedChange={(checked) => setRememberMe(checked === true)}
-                    className="border-2 border-gray-300 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                    className="border-2 border-gray-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
                   />
                   <label htmlFor="remember" className="text-sm text-gray-600 cursor-pointer">
                     Remember Me
@@ -233,7 +233,7 @@ export default function StudentLoginPage() {
                 </div>
                 <Button
                   variant="link"
-                  className="text-green-600 hover:text-green-700 p-0 text-sm font-medium"
+                  className="text-blue-600 hover:text-blue-700 p-0 text-sm font-medium"
                   type="button"
                 >
                   Forgot Password?
@@ -243,7 +243,7 @@ export default function StudentLoginPage() {
               {/* Login Button */}
               <Button
                 type="submit"
-                className="w-full cursor-pointer h-[50px] sm:h-[54px] font-semibold text-sm sm:text-base bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] mb-6"
+                className="w-full cursor-pointer h-[50px] sm:h-[54px] font-semibold text-sm sm:text-base bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] mb-6"
               >
                 LOGIN
               </Button>
@@ -254,7 +254,7 @@ export default function StudentLoginPage() {
                   New to CycleTrack?{" "}
                   <Button
                     variant="link"
-                    className="text-green-600 cursor-pointer hover:text-green-700 p-0 text-sm font-medium"
+                    className="text-blue-600 cursor-pointer hover:text-blue-700 p-0 text-sm font-medium"
                     type="button"
                     onClick={() => (window.location.href = "/auth/register")}
                   >
