@@ -28,7 +28,7 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-100">
       {/* Sidebar with overflow-y-auto to handle its own scrolling if needed */}
-      <div className="flex-none w-[300px] bg-blue-900 text-white flex flex-col overflow-y-auto">
+      <div className="flex-none w-72 bg-blue-900 text-white flex flex-col overflow-y-auto">
         <div className="flex-none h-[80px] py-2 px-4 items-center justify-center flex">
           <div className="flex items-center justify-center w-full">
             <Image
