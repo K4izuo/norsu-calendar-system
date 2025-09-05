@@ -11,6 +11,25 @@ import {
 import { CalendarClock, Clock } from "lucide-react";
 import { useMemo, useState } from "react";
 import { EventsListModal } from "@/components/modal/public-events/EventsListModal";
+import { EventInfoModal } from "@/components/modal/EventInfoModal";
+
+// Define EventDetails interface for consistency
+interface EventDetails {
+  id: string
+  title: string
+  date: string
+  time: string
+  organizer: string
+  location: string
+  capacity: string
+  facilities?: string[]
+  registrationStatus: string
+  attendeeCount: string
+  registrationDeadline: string
+  description: string
+  requirements?: string
+  category?: string
+}
 
 export default function FacultyEventsTab() {
   // Calendar grid generation logic remains the same
@@ -21,8 +40,10 @@ export default function FacultyEventsTab() {
   const lastDateOfMonth = new Date(year, month + 1, 0).getDate();
   const lastDateOfPrevMonth = new Date(year, month, 0).getDate();
 
-  // Modal state
+  // Modal states
   const [modalOpen, setModalOpen] = useState(false);
+  const [eventInfoModalOpen, setEventInfoModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<EventDetails | undefined>(undefined);
   const [selectedDay, setSelectedDay] = useState<{
     date: number;
     currentMonth: boolean;
@@ -99,7 +120,7 @@ export default function FacultyEventsTab() {
   ];
   const currentMonthYear = `${monthNames[month]} ${year}`;
 
-  // Generate events for the selected day
+  // Generate enhanced events for the selected day
   const getEventsForSelectedDay = () => {
     if (!selectedDay || !selectedDay.hasEvent || !selectedDay.currentMonth) {
       return [];
@@ -109,12 +130,27 @@ export default function FacultyEventsTab() {
     if (!dayEvents) return [];
     
     return Array.from({ length: dayEvents.count }, (_, i) => ({
-      id: i,
+      id: `event-${selectedDay.date}-${i}`,
       title: dayEvents.count > 1 ? `${dayEvents.title} ${i + 1}` : dayEvents.title,
+      date: `${monthNames[month]} ${selectedDay.date}, ${year}`,
       time: "10:00 AM",
-      location: "Main Hall",
-      description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam euismod, nisl eget aliquam ultricies."
+      location: "Main Building, Room 101",
+      description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam euismod, nisl eget aliquam ultricies, nisl nisl aliquam nisl, eget aliquam nisl nisl eget.",
+      organizer: "Faculty of Science",
+      capacity: "120 seats",
+      facilities: ["Wi-Fi", "Projector", "Air Conditioning"],
+      registrationStatus: i % 3 === 0 ? "Closed" : "Open",
+      attendeeCount: `${30 + i * 5}/120`,
+      registrationDeadline: `${monthNames[month]} ${selectedDay.date - 2}, ${year}`,
+      requirements: i % 2 === 0 ? "Please bring your student ID and laptop" : undefined,
+      category: i % 4 === 0 ? "Academic" : i % 3 === 0 ? "Social" : "Workshop"
     }));
+  };
+
+  // Open event info modal with the selected event
+  const handleEventClick = (event: EventDetails) => {
+    setSelectedEvent(event);
+    setEventInfoModalOpen(true);
   };
 
   // Format selected date for display
@@ -288,73 +324,77 @@ export default function FacultyEventsTab() {
             </Button>
           </div>
         </div>
-      </div>
 
-      {/* Events List Modal */}
-      <EventsListModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onReserve={() => console.log("Reserve event clicked")}
-        title={selectedDay ? 
-          selectedDay.currentMonth 
-            ? `Events on ${monthNames[month]} ${selectedDay.date}, ${year}` 
-            : `${selectedDay.date} ${monthNames[month]}, ${year} (Outside current month)` 
-          : ""
-        }
-      >
-        {selectedDay && (
-          <div className="space-y-6">
-            {selectedDay.isToday && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                Today
-              </span>
-            )}
-            
-            {/* Event cards */}
-            {selectedDay.hasEvent && selectedDay.currentMonth ? (
-              <div className="space-y-4">
-                {getEventsForSelectedDay().map((event) => (
-                  <div 
-                    key={event.id} 
-                    className="p-4 rounded-lg border border-gray-200 bg-gray-50 hover:bg-white hover:shadow-md transition-all duration-200"
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <h3 className="font-medium text-lg text-gray-800">{event.title}</h3>
-                      <div className="flex items-center text-gray-600">
-                        <Clock className="h-4 w-4 mr-1.5" />
-                        <span>{event.time}</span>
+        {/* Events List Modal */}
+        <EventsListModal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          onReserve={() => console.log("Reserve event clicked")}
+          title={selectedDay ? 
+            selectedDay.currentMonth 
+              ? `Events on ${monthNames[month]} ${selectedDay.date}, ${year}` 
+              : `${selectedDay.date} ${monthNames[month]}, ${year} (Outside current month)` 
+            : ""
+          }
+        >
+          {selectedDay && (
+            <div className="space-y-6">
+              {selectedDay.isToday && (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  Today
+                </span>
+              )}
+              
+              {/* Clickable Event cards */}
+              {selectedDay.hasEvent && selectedDay.currentMonth ? (
+                <div className="space-y-4">
+                  {getEventsForSelectedDay().map((event) => (
+                    <div 
+                      key={event.id} 
+                      className="p-4 rounded-md border border-gray-200 bg-gray-50 hover:bg-white hover:shadow-md transition-all duration-200 cursor-pointer"
+                      onClick={() => handleEventClick(event)}
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <h3 className="font-medium text-lg text-gray-800">{event.title}</h3>
+                        <div className="flex items-center text-gray-600">
+                          <Clock className="h-4 w-4 mr-1.5" />
+                          <span>{event.time}</span>
+                        </div>
+                      </div>
+                      <p className="text-gray-600 mt-1.5">
+                        <span className="font-medium">Location:</span> {event.location}
+                      </p>
+                      <p className="text-gray-600 mt-3 text-sm line-clamp-2">
+                        {event.description}
+                      </p>
+                      <div className="mt-2 text-right">
+                        <span className="text-blue-600 text-sm hover:text-blue-800 hover:underline">
+                          Tap to see →
+                        </span>
                       </div>
                     </div>
-                    <p className="text-gray-600 mt-1.5">
-                      <span className="font-medium">Location:</span> {event.location}
-                    </p>
-                    <p className="text-gray-600 mt-3 text-sm">
-                      {event.description}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="py-8 text-center">
-                <CalendarClock className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-                <p className="text-gray-500 text-lg">No events scheduled for this date.</p>
-                {!selectedDay.currentMonth && (
-                  <p className="text-gray-400 text-sm mt-1">This date is outside the current month.</p>
-                )}
-              </div>
-            )}
+                  ))}
+                </div>
+              ) : (
+                <div className="py-8 text-center">
+                  <CalendarClock className="h-12 w-12 mx-auto text-gray-400 mb-3" />
+                  <p className="text-gray-500 text-lg">No events scheduled for this date.</p>
+                  {!selectedDay.currentMonth && (
+                    <p className="text-gray-400 text-sm mt-1">This date is outside the current month.</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </EventsListModal>
 
-            {/* <div className="flex sticky bottom-0 z-10 justify-end border-b border-gray-200 bg-white">
-              <Button 
-                className="px-4"
-                onClick={() => setModalOpen(false)}
-              >
-                Close
-              </Button>
-            </div> */}
-          </div>
-        )}
-      </EventsListModal>
+        {/* Event Info Modal */}
+        <EventInfoModal
+          isOpen={eventInfoModalOpen}
+          onClose={() => setEventInfoModalOpen(false)}
+          event={selectedEvent}
+        />
+      </div>
     </div>
   );
 }

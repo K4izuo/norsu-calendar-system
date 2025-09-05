@@ -438,15 +438,6 @@ export default function Home() {
                 )}
               </div>
             )}
-
-            <div className="flex justify-end pt-2">
-              <Button 
-                className="px-4"
-                onClick={() => setModalOpen(false)}
-              >
-                Close
-              </Button>
-            </div>
           </div>
         )}
       </EventsListModal>
