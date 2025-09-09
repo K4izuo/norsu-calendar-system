@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Label } from "@/components/ui/label"
+import toast from "react-hot-toast" // Import toast
 
 // Sample venues for the select component
 const venues = [
@@ -44,6 +45,7 @@ interface ModalProps {
 export function ReserveEventModal({ isOpen, onClose, onSubmit }: ModalProps) {
   const contentRef = useRef<HTMLDivElement>(null)
   const [activeTab, setActiveTab] = useState<string>("form")
+  const [isSubmitting, setIsSubmitting] = useState(false)
   
   // Form state
   const [formData, setFormData] = useState<ReservationFormData>({
@@ -74,6 +76,14 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit }: ModalProps) {
     return () => document.removeEventListener("keydown", handleEscape)
   }, [isOpen, onClose])
 
+  // Add this effect to reset the activeTab when the modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      // Reset to form tab whenever the modal opens
+      setActiveTab("form")
+    }
+  }, [isOpen])
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
@@ -83,13 +93,51 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit }: ModalProps) {
     setFormData(prev => ({ ...prev, venue: value }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (onSubmit && isFormValid()) {
-      onSubmit(formData)
-    } else {
-      // If form isn't valid, don't submit but show summary
-      setActiveTab("summary")
+    
+    if (!isFormValid()) {
+      toast.error("Please complete all required fields");
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Show loading toast while submitting
+      const toastId = toast.loading("Submitting reservation...");
+      
+      // Simulate API call delay (remove this in production)
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      if (onSubmit) {
+        // Pass the toast ID to the parent component so it can update the toast if needed
+        // or just call onSubmit without showing our own success toast
+        onSubmit(formData);
+      }
+      
+      // Update toast to success
+      toast.success("Event reserved successfully!", { id: toastId });
+      
+      // Reset form and close modal
+      setFormData({
+        title: "",
+        venue: null,
+        timeStart: "",
+        timeEnd: "",
+        description: "",
+      });
+      
+      // Wait a bit to show success message before closing
+      setTimeout(() => {
+        onClose();
+      }, 1000);
+      
+    } catch (error) {
+      // Show error toast
+      toast.error("Failed to reserve event. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -100,6 +148,42 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit }: ModalProps) {
       formData.timeStart !== "" && 
       formData.timeEnd !== ""
     )
+  }
+
+  // Function to validate time range
+  const validateTimeRange = () => {
+    if (formData.timeStart && formData.timeEnd) {
+      if (formData.timeStart >= formData.timeEnd) {
+        toast.error("End time must be after start time");
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // Function to show form validation toast
+  const checkFormFields = () => {
+    if (!formData.title.trim()) {
+      toast.error("Please enter an event title");
+      return false;
+    }
+    
+    if (!formData.venue) {
+      toast.error("Please select a venue");
+      return false;
+    }
+    
+    if (!formData.timeStart) {
+      toast.error("Please enter a start time");
+      return false;
+    }
+    
+    if (!formData.timeEnd) {
+      toast.error("Please enter an end time");
+      return false;
+    }
+    
+    return validateTimeRange();
   }
 
   return (
@@ -244,6 +328,11 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit }: ModalProps) {
                             value={formData.timeEnd}
                             onChange={handleInputChange}
                             className="mt-1.5 text-base"
+                            onBlur={() => {
+                              if (formData.timeStart && formData.timeEnd && formData.timeStart >= formData.timeEnd) {
+                                toast.error("End time must be after start time");
+                              }
+                            }}
                           />
                         </div>
                       </div>
@@ -366,7 +455,12 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit }: ModalProps) {
               {activeTab === "form" ? (
                 <Button 
                   type="button"
-                  onClick={() => setActiveTab("summary")}
+                  onClick={() => {
+                    // Validate form when moving to summary
+                    if (checkFormFields()) {
+                      setActiveTab("summary");
+                    }
+                  }}
                   variant="default"
                   className="text-base py-2.5"
                 >
@@ -379,6 +473,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit }: ModalProps) {
                     onClick={() => setActiveTab("form")}
                     variant="outline"
                     className="text-base py-2.5"
+                    disabled={isSubmitting}
                   >
                     Edit Details
                   </Button>
@@ -386,10 +481,34 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit }: ModalProps) {
                     type="button"
                     onClick={handleSubmit}
                     variant="default"
-                    disabled={!isFormValid()}
+                    disabled={!isFormValid() || isSubmitting}
                     className="text-base py-2.5"
                   >
-                    Submit Reservation
+                    {isSubmitting ? (
+                      <div className="flex items-center">
+                        <span className="animate-spin mr-2">
+                          <svg className="h-5 w-5" viewBox="0 0 24 24">
+                            <circle 
+                              className="opacity-25" 
+                              cx="12" 
+                              cy="12" 
+                              r="10" 
+                              stroke="currentColor" 
+                              strokeWidth="4" 
+                              fill="none" 
+                            />
+                            <path 
+                              className="opacity-75" 
+                              fill="currentColor" 
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" 
+                            />
+                          </svg>
+                        </span>
+                        Processing...
+                      </div>
+                    ) : (
+                      "Submit Reservation"
+                    )}
                   </Button>
                 </div>
               )}

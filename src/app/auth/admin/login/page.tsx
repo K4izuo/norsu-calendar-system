@@ -172,7 +172,7 @@ export default function AdminLoginPage() {
         {/* Right Side - Login Form */}
         <div className="p-4 sm:p-8 w-full flex flex-col justify-center bg-gray-800">
           {/* Heading at the top */}
-          <div className="flex flex-col items-center mt-4 mb-6 gap-y-2">
+          <div className="flex flex-col items-center mt-4 mb-7 gap-y-1">
             <h1 className="text-2xl font-bold text-white">Administrator Access</h1>
             <p className="text-gray-300 text-sm">Please enter your admin credentials</p>
           </div>
@@ -216,7 +216,7 @@ export default function AdminLoginPage() {
               </div>
 
               {/* Remember Me & Forgot Password */}
-              <div className="flex mb-2 items-center justify-between">
+              <div className="flex mb-3 items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="remember"

@@ -3,7 +3,7 @@
 import React, { useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Calendar, Clock, MapPin, Users, Info, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
+// import { Button } from "@/components/ui/button"
 
 interface EventDetails {
   id: string
@@ -52,7 +52,7 @@ export function EventInfoModal({ isOpen, onClose, event }: ModalProps) {
     <AnimatePresence>
       {isOpen && !!event && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 overscroll-none"
+          className="fixed inset-0 z-50 flex items-center justify-center p-1.5 sm:p-4 overscroll-none"
           onClick={onClose}
         >
           {/* Animated backdrop with extra smooth fade */}
@@ -78,7 +78,7 @@ export function EventInfoModal({ isOpen, onClose, event }: ModalProps) {
               duration: 0.25,
               ease: [0.22, 1, 0.36, 1]
             }}
-            className="relative max-w-[900px] max-h-[89vh] bg-white rounded-lg shadow-xl w-full mx-4 overflow-hidden"
+            className="relative max-w-[900px] max-h-[92vh] bg-white rounded-lg shadow-xl w-[96%] sm:w-full sm:mx-4 overflow-hidden"
             style={{
               transform: "translateZ(0)",
               backfaceVisibility: "hidden",
@@ -88,9 +88,9 @@ export function EventInfoModal({ isOpen, onClose, event }: ModalProps) {
             onClick={e => e.stopPropagation()}
           >
             {/* Sticky header with title and X button */}
-            <div className="sticky top-0 bg-white z-10 p-6 pb-6 border-b border-gray-200">
+            <div className="sticky top-0 bg-white z-10 p-4 sm:p-6 pb-4 sm:pb-6 border-b border-gray-200">
               <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-semibold text-gray-800">
+                <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">
                   Event Information
                 </h2>
                 <button
@@ -107,7 +107,7 @@ export function EventInfoModal({ isOpen, onClose, event }: ModalProps) {
             </div>
 
             {/* Scrollable content area - adjusted maxHeight since we no longer have footer */}
-            <div className="overflow-y-auto custom-scrollbar p-6 pt-6" style={{ maxHeight: "calc(90vh - 85px)" }}>
+            <div className="overflow-y-auto custom-scrollbar p-4 sm:p-6 pt-4 sm:pt-6" style={{ maxHeight: "calc(80vh - 85px)" }}>
               <div className="space-y-6">
                 {/* Basic Information Section */}
                 <div className="bg-gray-50 rounded-lg p-4">

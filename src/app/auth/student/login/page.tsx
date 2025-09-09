@@ -175,7 +175,7 @@ export default function StudentLoginPage() {
         {/* Right Side - Login Form */}
         <div className="p-4 sm:p-8 w-full flex flex-col justify-center">
           {/* Heading at the top */}
-          <div className="flex flex-col items-center mt-4 mb-6 gap-y-2">
+          <div className="flex flex-col items-center mt-4 mb-7 gap-y-1">
             <h1 className="text-2xl font-bold text-gray-800">Welcome Student</h1>
             <p className="text-gray-600 text-sm">Please enter your login credentials</p>
           </div>
@@ -219,7 +219,7 @@ export default function StudentLoginPage() {
               </div>
 
               {/* Remember Me & Forgot Password */}
-              <div className="flex mb-2 items-center justify-between">
+              <div className="flex mb-3 items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="remember"
