@@ -282,6 +282,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit }: ModalProps) {
                           value={formData.title}
                           onChange={handleInputChange}
                           className="mt-1.5 text-base"
+                          required
                         />
                       </div>
                       
@@ -317,6 +318,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit }: ModalProps) {
                             value={formData.timeStart}
                             onChange={handleInputChange}
                             className="mt-1.5 text-base"
+                            required
                           />
                         </div>
                         <div>
@@ -333,6 +335,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit }: ModalProps) {
                                 toast.error("End time must be after start time");
                               }
                             }}
+                            required
                           />
                         </div>
                       </div>
@@ -346,6 +349,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit }: ModalProps) {
                           value={formData.description}
                           onChange={handleInputChange}
                           className="mt-1.5 min-h-[120px] text-base"
+                          required
                         />
                       </div>
                     </div>
