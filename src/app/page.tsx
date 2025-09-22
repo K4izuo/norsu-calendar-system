@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { CalendarIcon, Clock, Bell, CalendarClock, ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
-import { EventsListModal } from "@/components/modal/public-events/EventsListModal";
+import { EventsListModal } from "@/components/modal/EventsListModal";
 import { EventInfoModal } from "@/components/modal/EventInfoModal";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";

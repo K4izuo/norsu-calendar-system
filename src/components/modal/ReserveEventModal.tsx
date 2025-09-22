@@ -28,21 +28,42 @@ const venues = [
   { id: "v5", name: "Computer Lab", capacity: "60 seats" },
 ]
 
+// Add these sample options above your component
+const infoTypes = [
+  { value: "public", label: "Public" },
+  { value: "private", label: "Private" },
+  { value: "restricted", label: "Restricted" },
+]
+
+const categories = [
+  { value: "academic", label: "Academic" },
+  { value: "social", label: "Social" },
+  { value: "sports", label: "Sports" },
+  { value: "other", label: "Other" },
+]
+
+// Extend ReservationFormData
 interface ReservationFormData {
   title: string
   venue: string | null
   timeStart: string
   timeEnd: string
   description: string
+  range: number
+  people: string // comma-separated names
+  infoType: string
+  category: string
+  date?: string // <-- Add optional date field
 }
 
 interface ModalProps {
   isOpen: boolean
   onClose: () => void
   onSubmit?: (data: ReservationFormData) => void
+  eventDate?: string | undefined // <-- should be string | undefined
 }
 
-export function ReserveEventModal({ isOpen, onClose, onSubmit }: ModalProps) {
+export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: ModalProps) {
   const contentRef = useRef<HTMLDivElement>(null)
   const [activeTab, setActiveTab] = useState<string>("form")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -54,8 +75,23 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit }: ModalProps) {
     timeStart: "",
     timeEnd: "",
     description: "",
+    range: 1,
+    people: "",
+    infoType: "",
+    category: "",
+    // No date field yet
   })
-  
+
+  // Add date to formData when eventDate changes
+  useEffect(() => {
+    if (eventDate) {
+      setFormData(prev => ({
+        ...prev,
+        date: eventDate // Add date to formData
+      }))
+    }
+  }, [eventDate])
+
   // Get venue details
   const selectedVenue = venues.find(venue => venue.id === formData.venue)
 
@@ -93,6 +129,22 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit }: ModalProps) {
     setFormData(prev => ({ ...prev, venue: value }))
   }
 
+  const handleRangeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({ ...prev, range: Number(e.target.value) }))
+  }
+
+  const handlePeopleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({ ...prev, people: e.target.value }))
+  }
+
+  const handleInfoTypeChange = (value: string) => {
+    setFormData(prev => ({ ...prev, infoType: value }))
+  }
+
+  const handleCategoryChange = (value: string) => {
+    setFormData(prev => ({ ...prev, category: value }))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -126,6 +178,10 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit }: ModalProps) {
         timeStart: "",
         timeEnd: "",
         description: "",
+        range: 1, // Reset range to default
+        people: "",
+        infoType: "",
+        category: "",
       });
       
       // Wait a bit to show success message before closing
@@ -163,28 +219,45 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit }: ModalProps) {
 
   // Function to show form validation toast
   const checkFormFields = () => {
-    if (!formData.title.trim()) {
-      toast.error("Please enter an event title");
+    const missing: string[] = [];
+    if (!formData.title.trim()) missing.push("Event title");
+    if (!formData.venue) missing.push("Venue");
+    if (!formData.timeStart) missing.push("Start time");
+    if (!formData.timeEnd) missing.push("End time");
+    if (
+      formData.timeStart &&
+      formData.timeEnd &&
+      formData.timeStart >= formData.timeEnd
+    )
+      missing.push("End time must be after start time");
+
+    if (missing.length > 0) {
+      // Show all toasts at once, but dismiss them one by one
+      const toastIds: string[] = [];
+      missing.forEach((field) => {
+        const id = toast.error(field, { duration: 5000 }); // Show all at once
+        toastIds.push(id);
+      });
+
+      // Dismiss each toast one by one with a delay
+      toastIds.forEach((id, i) => {
+        setTimeout(() => {
+          toast.dismiss(id);
+        }, i * 900 + 900); // First disappears after 900ms, next after 1800ms, etc.
+      });
+
       return false;
     }
-    
-    if (!formData.venue) {
-      toast.error("Please select a venue");
-      return false;
-    }
-    
-    if (!formData.timeStart) {
-      toast.error("Please enter a start time");
-      return false;
-    }
-    
-    if (!formData.timeEnd) {
-      toast.error("Please enter an end time");
-      return false;
-    }
-    
-    return validateTimeRange();
+    return true;
   }
+
+  // Define tab order and labels
+  const tabOrder = ["form", "additional", "summary"];
+  const tabLabels: Record<string, string> = {
+    form: "Event Details",
+    additional: "Additional Info",
+    summary: "Summary",
+  };
 
   return (
     <AnimatePresence>
@@ -248,25 +321,20 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit }: ModalProps) {
             <div className="overflow-y-auto custom-scrollbar p-6 pt-4 flex-1" style={{ maxHeight: "calc(90vh - 155px)" }}>
               <Tabs value={activeTab} className="w-full">
                 {/* Non-clickable tabs that look like TabsList/TabsTrigger */}
-                <div className="grid w-full grid-cols-2 mb-6 bg-muted rounded-lg p-1">
-                  <div 
-                    className={`flex items-center justify-center py-2.5 px-4 rounded-md text-base font-medium transition-colors ${
-                      activeTab === "form" 
-                        ? "bg-background text-foreground shadow-sm" 
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    Event Details
-                  </div>
-                  <div 
-                    className={`flex items-center justify-center py-2.5 px-4 rounded-md text-base font-medium transition-colors ${
-                      activeTab === "summary" 
-                        ? "bg-background text-foreground shadow-sm" 
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    Summary
-                  </div>
+                <div className="grid w-full grid-cols-3 mb-6 bg-muted rounded-lg p-1">
+                  {tabOrder.map(tab => (
+                    <div
+                      key={tab}
+                      className={`flex items-center justify-center py-2.5 px-4 rounded-md text-base font-medium transition-colors ${
+                        activeTab === tab
+                          ? "bg-background text-foreground shadow-sm"
+                          : "text-muted-foreground"
+                      }`}
+                      style={{ cursor: "default" }}
+                    >
+                      {tabLabels[tab]}
+                    </div>
+                  ))}
                 </div>
                 
                 {/* Form Tab - removed buttons from content */}
@@ -281,31 +349,47 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit }: ModalProps) {
                           placeholder="Enter event title"
                           value={formData.title}
                           onChange={handleInputChange}
-                          className="mt-1.5 text-base"
+                          className="mt-1 text-base h-12"
                           required
                         />
                       </div>
                       
-                      <div>
-                        <Label htmlFor="venue" className="text-base font-medium">Venue</Label>
-                        <Select 
-                          value={formData.venue || ""} 
-                          onValueChange={handleVenueChange}
-                        >
-                          <SelectTrigger id="venue" className="mt-1.5 text-base">
-                            <SelectValue placeholder="Select a venue" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectGroup>
-                              <SelectLabel className="text-base">Available Venues</SelectLabel>
-                              {venues.map(venue => (
-                                <SelectItem key={venue.id} value={venue.id} className="text-base">
-                                  {venue.name} ({venue.capacity})
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
+                      <div className="flex flex-col md:flex-row gap-4 items-end">
+                        <div className="flex-1 min-w-0">
+                          <Label htmlFor="venue" className="text-base font-medium">Venue</Label>
+                          <Select 
+                            value={formData.venue || ""} 
+                            onValueChange={handleVenueChange}
+                          >
+                            <SelectTrigger id="venue" className="mt-1 text-base w-full h-12">
+                              <SelectValue placeholder="Select a venue" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                <SelectLabel className="text-base">Available Venues</SelectLabel>
+                                {venues.map(venue => (
+                                  <SelectItem key={venue.id} value={venue.id} className="text-base">
+                                    {venue.name} ({venue.capacity})
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <Label htmlFor="range" className="text-base font-medium">Range</Label>
+                          <Input
+                            type="number"
+                            id="range"
+                            name="range"
+                            min={1}
+                            max={30}
+                            value={formData.range}
+                            onChange={handleRangeChange}
+                            className="mt-1 h-12 text-base w-full"
+                            required
+                          />
+                        </div>
                       </div>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -317,7 +401,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit }: ModalProps) {
                             type="time"
                             value={formData.timeStart}
                             onChange={handleInputChange}
-                            className="mt-1.5 text-base"
+                            className="mt-1 text-base h-12"
                             required
                           />
                         </div>
@@ -329,7 +413,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit }: ModalProps) {
                             type="time"
                             value={formData.timeEnd}
                             onChange={handleInputChange}
-                            className="mt-1.5 text-base"
+                            className="mt-1 text-base h-12"
                             onBlur={() => {
                               if (formData.timeStart && formData.timeEnd && formData.timeStart >= formData.timeEnd) {
                                 toast.error("End time must be after start time");
@@ -348,9 +432,70 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit }: ModalProps) {
                           placeholder="Enter event description"
                           value={formData.description}
                           onChange={handleInputChange}
-                          className="mt-1.5 min-h-[120px] text-base"
+                          className="mt-1 min-h-[120px] text-base h-12"
                           required
                         />
+                      </div>
+                    </div>
+                  </form>
+                </TabsContent>
+                
+                {/* Additional Info Tab - new tab content */}
+                <TabsContent value="additional" className="space-y-6">
+                  <form className="space-y-6">
+                    <div className="space-y-5">
+                      <div>
+                        <Label htmlFor="people" className="text-base font-medium">People (comma separated)</Label>
+                        <Input
+                          id="people"
+                          name="people"
+                          placeholder="Add people tags, e.g. John Doe, Jane Smith"
+                          value={formData.people}
+                          onChange={handlePeopleChange}
+                          className="mt-1 text-base"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="infoType" className="text-base font-medium">Information Type</Label>
+                        <Select
+                          value={formData.infoType}
+                          onValueChange={handleInfoTypeChange}
+                        >
+                          <SelectTrigger id="infoType" className="mt-1 text-base">
+                            <SelectValue placeholder="Select information type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectLabel className="text-base">Types</SelectLabel>
+                              {infoTypes.map(type => (
+                                <SelectItem key={type.value} value={type.value} className="text-base">
+                                  {type.label}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="category" className="text-base font-medium">Category</Label>
+                        <Select
+                          value={formData.category}
+                          onValueChange={handleCategoryChange}
+                        >
+                          <SelectTrigger id="category" className="mt-1 text-base">
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectLabel className="text-base">Categories</SelectLabel>
+                              {categories.map(cat => (
+                                <SelectItem key={cat.value} value={cat.value} className="text-base">
+                                  {cat.label}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                   </form>
@@ -390,6 +535,10 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit }: ModalProps) {
                       <div>
                         <p className="text-base text-gray-500">Capacity</p>
                         <p className="font-medium text-base">{selectedVenue?.capacity || "N/A"}</p>
+                      </div>
+                      <div>
+                        <p className="text-base text-gray-500">Reservation Range</p>
+                        <p className="font-medium text-base">{formData.range} day{formData.range > 1 ? "s" : ""}</p>
                       </div>
                     </div>
                   </div>
@@ -454,34 +603,53 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit }: ModalProps) {
               </Tabs>
             </div>
 
-            {/* Sticky footer with buttons */}
+            {/* Sticky footer navigation */}
             <div className="sticky bottom-0 bg-white z-10 p-5 border-t border-gray-100 flex justify-end">
-              {activeTab === "form" ? (
-                <Button 
+              {activeTab === "form" && (
+                <Button
                   type="button"
                   onClick={() => {
-                    // Validate form when moving to summary
-                    if (checkFormFields()) {
-                      setActiveTab("summary");
-                    }
+                    if (checkFormFields()) setActiveTab("additional");
                   }}
                   variant="default"
                   className="text-base py-2.5"
                 >
-                  Review Summary
+                  Next
                 </Button>
-              ) : (
+              )}
+              {activeTab === "additional" && (
                 <div className="flex gap-3">
-                  <Button 
+                  <Button
                     type="button"
                     onClick={() => setActiveTab("form")}
                     variant="outline"
                     className="text-base py-2.5"
                     disabled={isSubmitting}
                   >
-                    Edit Details
+                    Back
                   </Button>
-                  <Button 
+                  <Button
+                    type="button"
+                    onClick={() => setActiveTab("summary")}
+                    variant="default"
+                    className="text-base py-2.5"
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
+              {activeTab === "summary" && (
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    onClick={() => setActiveTab("additional")}
+                    variant="outline"
+                    className="text-base py-2.5"
+                    disabled={isSubmitting}
+                  >
+                    Back
+                  </Button>
+                  <Button
                     type="button"
                     onClick={handleSubmit}
                     variant="default"
@@ -492,19 +660,19 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit }: ModalProps) {
                       <div className="flex items-center">
                         <span className="animate-spin mr-2">
                           <svg className="h-5 w-5" viewBox="0 0 24 24">
-                            <circle 
-                              className="opacity-25" 
-                              cx="12" 
-                              cy="12" 
-                              r="10" 
-                              stroke="currentColor" 
-                              strokeWidth="4" 
-                              fill="none" 
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                              fill="none"
                             />
-                            <path 
-                              className="opacity-75" 
-                              fill="currentColor" 
-                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" 
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                             />
                           </svg>
                         </span>

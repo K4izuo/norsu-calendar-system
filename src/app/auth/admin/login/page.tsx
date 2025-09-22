@@ -216,7 +216,7 @@ export default function AdminLoginPage() {
               </div>
 
               {/* Remember Me & Forgot Password */}
-              <div className="flex mb-3 items-center justify-between">
+              <div className="flex mb-4 items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="remember"

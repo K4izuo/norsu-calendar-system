@@ -10,39 +10,45 @@ import {
 } from "@/components/ui/select";
 import { CalendarClock, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { EventsListModal } from "@/components/modal/public-events/EventsListModal";
+import { EventsListModal } from "@/components/modal/EventsListModal";
 import { EventInfoModal } from "@/components/modal/EventInfoModal";
 import { AnimatePresence, motion } from "framer-motion";
-import { EventDetails } from "@/types/faculty-events-details";
+import { EventDetails } from "@/interface/faculty-events-details";
 import toast from "react-hot-toast";
+import { fetchFacultyEvents } from "@/api/facultyEventsApi";
 
 export default function FacultyEventsTab() {
   const today = new Date();
-  
+
   // State for current month and year - initialized with today's date
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
-  
+
   // Animation direction state
   const [direction, setDirection] = useState(0); // -1 for previous, 1 for next, 0 for initial/reset
-  
+
   // Calculate calendar data based on current month and year
-  const firstDayOfMonth = useMemo(() => 
-    new Date(currentYear, currentMonth, 1).getDay(),
-  [currentMonth, currentYear]);
-  
-  const lastDateOfMonth = useMemo(() => 
-    new Date(currentYear, currentMonth + 1, 0).getDate(),
-  [currentMonth, currentYear]);
-  
-  const lastDateOfPrevMonth = useMemo(() => 
-    new Date(currentYear, currentMonth, 0).getDate(),
-  [currentMonth, currentYear]);
+  const firstDayOfMonth = useMemo(
+    () => new Date(currentYear, currentMonth, 1).getDay(),
+    [currentMonth, currentYear]
+  );
+
+  const lastDateOfMonth = useMemo(
+    () => new Date(currentYear, currentMonth + 1, 0).getDate(),
+    [currentMonth, currentYear]
+  );
+
+  const lastDateOfPrevMonth = useMemo(
+    () => new Date(currentYear, currentMonth, 0).getDate(),
+    [currentMonth, currentYear]
+  );
 
   // Modal states
   const [modalOpen, setModalOpen] = useState(false);
   const [eventInfoModalOpen, setEventInfoModalOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<EventDetails | undefined>(undefined);
+  const [selectedEvent, setSelectedEvent] = useState<EventDetails | undefined>(
+    undefined
+  );
   const [selectedDay, setSelectedDay] = useState<{
     date: number;
     currentMonth: boolean;
@@ -55,14 +61,33 @@ export default function FacultyEventsTab() {
   // Window width state for responsive rendering
   const [windowWidth, setWindowWidth] = useState(0);
 
+  // Events state
+  const [events, setEvents] = useState<EventDetails[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [eventInfoLoading, setEventInfoLoading] = useState(false);
+
+  // Show recent events state
+  const [showRecent, setShowRecent] = useState(false);
+
+  // Fetch events when modal opens
+  useEffect(() => {
+    if (modalOpen) {
+      setLoading(true);
+      fetchFacultyEvents()
+        .then((data) => setEvents(data))
+        .catch(() => setEvents([]))
+        .finally(() => setLoading(false));
+    }
+  }, [modalOpen]);
+
   // Navigation functions
   const goToPreviousMonth = () => {
     setDirection(-1); // Set direction for animation
     if (currentMonth === 0) {
       setCurrentMonth(11);
-      setCurrentYear(prev => prev - 1);
+      setCurrentYear((prev) => prev - 1);
     } else {
-      setCurrentMonth(prev => prev - 1);
+      setCurrentMonth((prev) => prev - 1);
     }
   };
 
@@ -70,9 +95,9 @@ export default function FacultyEventsTab() {
     setDirection(1); // Set direction for animation
     if (currentMonth === 11) {
       setCurrentMonth(0);
-      setCurrentYear(prev => prev + 1);
+      setCurrentYear((prev) => prev + 1);
     } else {
-      setCurrentMonth(prev => prev + 1);
+      setCurrentMonth((prev) => prev + 1);
     }
   };
 
@@ -80,9 +105,18 @@ export default function FacultyEventsTab() {
     // If going to past, use negative direction, if going to future, use positive
     const currentDate = new Date();
     const currentMonthYear = new Date(currentYear, currentMonth);
-    const targetMonthYear = new Date(currentDate.getFullYear(), currentDate.getMonth());
-    setDirection(targetMonthYear > currentMonthYear ? 1 : targetMonthYear < currentMonthYear ? -1 : 0);
-    
+    const targetMonthYear = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth()
+    );
+    setDirection(
+      targetMonthYear > currentMonthYear
+        ? 1
+        : targetMonthYear < currentMonthYear
+        ? -1
+        : 0
+    );
+
     // Set the current month and year to today's date
     setCurrentMonth(today.getMonth());
     setCurrentYear(today.getFullYear());
@@ -115,10 +149,13 @@ export default function FacultyEventsTab() {
         hasEvent: false,
       });
     }
-    
+
     // Current month's days
     for (let i = 1; i <= lastDateOfMonth; i++) {
-      const isToday = i === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear();
+      const isToday =
+        i === today.getDate() &&
+        currentMonth === today.getMonth() &&
+        currentYear === today.getFullYear();
       days.push({
         date: i,
         currentMonth: true,
@@ -128,7 +165,7 @@ export default function FacultyEventsTab() {
         isToday,
       });
     }
-    
+
     // Next month's days
     for (let i = 1; days.length < 42; i++) {
       days.push({
@@ -138,29 +175,47 @@ export default function FacultyEventsTab() {
         hasEvent: false,
       });
     }
-    
+
     return days;
-  }, [firstDayOfMonth, lastDateOfMonth, lastDateOfPrevMonth, currentMonth, currentYear, today]);
+  }, [
+    firstDayOfMonth,
+    lastDateOfMonth,
+    lastDateOfPrevMonth,
+    currentMonth,
+    currentYear,
+    today,
+  ]);
 
   const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
-  
+
   // Get current month name and year as a formatted string
-  const currentMonthYear = useMemo(() => 
-    `${monthNames[currentMonth]} ${currentYear}`,
-  [currentMonth, currentYear, monthNames]);
+  const currentMonthYear = useMemo(
+    () => `${monthNames[currentMonth]} ${currentYear}`,
+    [currentMonth, currentYear, monthNames]
+  );
 
   // Generate enhanced events for the selected day
   const getEventsForSelectedDay = () => {
     if (!selectedDay || !selectedDay.hasEvent || !selectedDay.currentMonth) {
       return [];
     }
-    
+
     const dayEvents = eventsMap[selectedDay.date as keyof typeof eventsMap];
     if (!dayEvents) return [];
-    
+
     // Enhanced event generation with more variety and realistic data
     const eventTypes = [
       { category: "Academic", title: "Faculty Meeting" },
@@ -168,18 +223,18 @@ export default function FacultyEventsTab() {
       { category: "Social", title: "Campus Social Event" },
       { category: "Academic", title: "Department Conference" },
       { category: "Workshop", title: "Professional Development" },
-      { category: "Social", title: "Student Organization Event" }
+      { category: "Social", title: "Student Organization Event" },
     ];
-    
+
     const locations = [
       "Main Building, Room 101",
       "Science Building, Room 203",
       "Library Conference Room",
       "Auditorium",
       "Computer Lab, Room 405",
-      "Student Center"
+      "Student Center",
     ];
-    
+
     return Array.from({ length: dayEvents.count }, (_, i) => {
       // Get a consistent but pseudo-random event type and location
       const eventTypeIndex = (selectedDay.date + i) % eventTypes.length;
@@ -187,34 +242,52 @@ export default function FacultyEventsTab() {
       const eventType = eventTypes[eventTypeIndex];
       const startHour = 8 + Math.floor(i / 2);
       const endHour = startHour + 1 + (i % 2);
-      
+
       // Format times with AM/PM
-      const startTime = `${startHour > 12 ? startHour - 12 : startHour}:${i % 2 === 0 ? '00' : '30'} ${startHour >= 12 ? 'PM' : 'AM'}`;
-      const endTime = `${endHour > 12 ? endHour - 12 : endHour}:${i % 2 === 0 ? '30' : '00'} ${endHour >= 12 ? 'PM' : 'AM'}`;
-      
+      const startTime = `${startHour > 12 ? startHour - 12 : startHour}:${
+        i % 2 === 0 ? "00" : "30"
+      } ${startHour >= 12 ? "PM" : "AM"}`;
+      const endTime = `${endHour > 12 ? endHour - 12 : endHour}:${
+        i % 2 === 0 ? "30" : "00"
+      } ${endHour >= 12 ? "PM" : "AM"}`;
+
       return {
         id: `event-${selectedDay.date}-${i}`,
-        title: dayEvents.count > 1 ? `${eventType.title} ${i + 1}` : dayEvents.title,
+        title:
+          dayEvents.count > 1
+            ? `${eventType.title} ${i + 1}`
+            : dayEvents.title,
         date: `${monthNames[currentMonth]} ${selectedDay.date}, ${currentYear}`,
         time: `${startTime} - ${endTime}`,
         location: locations[locationIndex],
-        description: "This event provides an opportunity for faculty and staff to engage with important university matters, share ideas, and collaborate on academic initiatives.",
+        description:
+          "This event provides an opportunity for faculty and staff to engage with important university matters, share ideas, and collaborate on academic initiatives.",
         organizer: i % 2 === 0 ? "Faculty of Science" : "Department of Education",
-        capacity: `${60 + (i * 20)} seats`,
+        capacity: `${60 + i * 20} seats`,
         facilities: ["Wi-Fi", "Projector", "Air Conditioning"],
         registrationStatus: i % 3 === 0 ? "Closed" : "Open",
-        attendeeCount: `${30 + i * 5}/${60 + (i * 20)}`,
-        registrationDeadline: `${monthNames[currentMonth]} ${Math.max(1, selectedDay.date - 2)}, ${currentYear}`,
-        requirements: i % 2 === 0 ? "Please bring your university ID and laptop" : undefined,
-        category: eventType.category
+        attendeeCount: `${30 + i * 5}/${60 + i * 20}`,
+        registrationDeadline: `${monthNames[currentMonth]} ${Math.max(
+          1,
+          selectedDay.date - 2
+        )}, ${currentYear}`,
+        requirements:
+          i % 2 === 0 ? "Please bring your university ID and laptop" : undefined,
+        category: eventType.category,
       };
     });
   };
 
   // Open event info modal with the selected event
   const handleEventClick = useCallback((event: EventDetails) => {
-    setSelectedEvent(event);
+    setEventInfoLoading(true);
     setEventInfoModalOpen(true);
+
+    // Simulate async loading (replace with real fetch if needed)
+    setTimeout(() => {
+      setSelectedEvent(event);
+      setEventInfoLoading(false);
+    }, 600); // 600ms for demo
   }, []);
 
   // Format selected date for display
@@ -275,20 +348,39 @@ export default function FacultyEventsTab() {
   useEffect(() => {
     // Update the window width state with the initial size
     setWindowWidth(window.innerWidth);
-    
+
     // Create handler to update state on window resize
     const handleResize = () => {
       setWindowWidth(window.innerWidth);
     };
-    
+
     // Add event listener
-    window.addEventListener('resize', handleResize);
-    
+    window.addEventListener("resize", handleResize);
+
     // Remove event listener on cleanup
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
     };
   }, []); // Empty array ensures effect runs only once on mount
+
+  // Memoize the modal open handler
+  const openEventsListModal = useCallback((day: {
+    date: number;
+    currentMonth: boolean;
+    key: string;
+    hasEvent: boolean;
+    eventCount?: number;
+    isToday?: boolean;
+  }) => {
+    // Only update if the day is different
+    if (!selectedDay || selectedDay.key !== day.key) {
+      setSelectedDay(day);
+    }
+    // Only open modal if not already open
+    if (!modalOpen) {
+      setModalOpen(true);
+    }
+  }, [selectedDay, modalOpen]);
 
   // Only generate events when modal is actually open
   const eventsForSelectedDay = useMemo(() => {
@@ -298,7 +390,9 @@ export default function FacultyEventsTab() {
 
   return (
     <div className="h-full flex flex-col max-w-full overflow-hidden p-2 sm:p-2">
-      <h1 className="text-2xl sm:text-3xl font-normal leading-tight mb-4 sm:mb-6 px-2 sm:px-0">Events</h1>
+      <h1 className="text-2xl sm:text-3xl font-normal leading-tight mb-4 sm:mb-6 px-2 sm:px-0">
+        Events
+      </h1>
 
       {/* Calendar - improved height and proportions with better responsiveness */}
       <div className="bg-white rounded-md shadow-md flex flex-col flex-1 p-3 sm:p-6 md:p-8">
@@ -354,9 +448,15 @@ export default function FacultyEventsTab() {
                       placeholder="Type here..."
                     />
                   </div>
-                  <SelectItem value="option1" className="text-base">Option 1</SelectItem>
-                  <SelectItem value="option2" className="text-base">Option 2</SelectItem>
-                  <SelectItem value="option3" className="text-base">Option 3</SelectItem>
+                  <SelectItem value="option1" className="text-base">
+                    Option 1
+                  </SelectItem>
+                  <SelectItem value="option2" className="text-base">
+                    Option 2
+                  </SelectItem>
+                  <SelectItem value="option3" className="text-base">
+                    Option 3
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -380,7 +480,7 @@ export default function FacultyEventsTab() {
           {/* Right: month/week/day */}
           <div className="flex items-center justify-end">
             <div className="flex items-center bg-white border border-gray-300 rounded-sm overflow-hidden">
-              <motion.button 
+              <motion.button
                 className="px-2 sm:px-4 rounded-sm min-w-[50px] sm:min-w-[64px] py-1 sm:py-2 text-sm sm:text-lg font-semibold text-gray-700 bg-white focus:outline-none hover:bg-gray-100 transition-colors"
                 whileHover={{ backgroundColor: "#f3f4f6" }}
               >
@@ -400,15 +500,22 @@ export default function FacultyEventsTab() {
                   key={day}
                   className="flex-1 text-xs xs:text-sm sm:text-base font-bold uppercase tracking-[1px] text-[#A8B2B9] text-center"
                 >
-                  {windowWidth === 0 ? day : // Initial render check
-                    windowWidth < 400 ? day.charAt(0) : windowWidth < 640 ? day.slice(0, 1) : day}
+                  {windowWidth === 0 ? (
+                    day // Initial render check
+                  ) : windowWidth < 400 ? (
+                    day.charAt(0)
+                  ) : windowWidth < 640 ? (
+                    day.slice(0, 1)
+                  ) : (
+                    day
+                  )}
                 </div>
               ))}
             </div>
           </div>
 
           {/* Calendar table days with animation */}
-          <div className="flex-1 flex flex-col w-full overflow-hidden">
+          <div className="flex-1 flex flex-col w-full overflow-visible relative">
             <AnimatePresence mode="wait" custom={direction}>
               <motion.div
                 key={`${currentMonth}-${currentYear}`}
@@ -424,27 +531,26 @@ export default function FacultyEventsTab() {
                     key={day.key}
                     data-idx={idx}
                     className={`relative border rounded-md flex flex-col p-1 xs:p-1.5 sm:p-2 md:p-3 text-sm xs:text-base sm:text-lg md:text-xl font-medium cursor-pointer transition-colors hover:bg-blue-50 active:bg-blue-100 hover:shadow-sm min-h-[40px] xs:min-h-[50px] sm:min-h-[60px] md:min-h-[75px]
-                      ${day.currentMonth ? "text-gray-900 border-gray-200" : "text-gray-400 border-gray-100 bg-gray-50"}
+                      ${
+                        day.currentMonth ? "text-gray-900 border-gray-200" : "text-gray-400 border-gray-100 bg-gray-50"
+                      }
                       ${day.isToday ? "border-blue-500 border-2" : ""}
                       ${day.hasEvent && day.currentMonth ? "bg-blue-50" : ""}
                     `}
-                    onClick={() => {
-                      setSelectedDay(day);
-                      setModalOpen(true);
-                    }}
+                    onClick={() => openEventsListModal(day)}
                     initial={{ scale: 0.97, opacity: 0 }}
-                    animate={{ 
-                      scale: 1, 
+                    animate={{
+                      scale: 1,
                       opacity: 1,
-                      transition: { 
+                      transition: {
                         delay: Math.min(0.01 * idx, 0.3), // Cap maximum delay
-                        duration: 0.12
-                      }
+                        duration: 0.12,
+                      },
                     }}
-                    whileHover={{ 
+                    whileHover={{
                       scale: 1.02,
                       boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-                      transition: { duration: 0.2 }
+                      transition: { duration: 0.2 },
                     }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -460,66 +566,71 @@ export default function FacultyEventsTab() {
                     </div>
 
                     {/* Event indicators - ONLY SHOWN WHEN there are events */}
-                    {day.hasEvent && day.currentMonth && day.eventCount && day.eventCount > 0 && (
-                      <>
-                        {/* Desktop/Tablet: Top-left calendar icon and count */}
-                        <motion.div 
-                          className="hidden sm:inline-flex items-center bg-blue-100 text-blue-700 px-1 sm:px-1.5 py-0.5 rounded-xl text-xs sm:text-sm md:text-base font-semibold absolute top-1 sm:top-2 left-1 sm:left-2"
-                          initial={{ scale: 0, opacity: 0 }}
-                          animate={{ 
-                            scale: 1, 
-                            opacity: 1,
-                            transition: { 
-                              delay: Math.min(0.01 * idx + 0.1, 0.4),
-                              type: "spring",
-                              stiffness: 500,
-                              damping: 15
-                            }
-                          }}
-                        >
-                          <CalendarClock size={14} className="mr-0.5 sm:mr-1" />
-                          <span>{day.eventCount}</span>
-                        </motion.div>
-                        
-                        {/* Mobile: Centered calendar icon */}
-                        <motion.div 
-                          className="sm:hidden flex-grow flex items-center justify-center"
-                          initial={{ scale: 0, opacity: 0 }}
-                          animate={{ 
-                            scale: 1, 
-                            opacity: 1,
-                            transition: { 
-                              delay: Math.min(0.01 * idx + 0.1, 0.4),
-                              type: "spring",
-                              stiffness: 500,
-                              damping: 15
-                            }
-                          }}
-                        >
-                          <div className="inline-flex items-center bg-blue-100 text-blue-700 px-1 py-0.5 rounded-xl text-xs xs:text-sm font-semibold w-min">
-                            <CalendarClock size={12} className="mr-0.5" />
+                    {day.hasEvent &&
+                      day.currentMonth &&
+                      day.eventCount &&
+                      day.eventCount > 0 && (
+                        <>
+                          {/* Desktop/Tablet: Top-left calendar icon and count */}
+                          <motion.div
+                            className="hidden sm:inline-flex items-center bg-blue-100 text-blue-700 px-1 sm:px-1.5 py-0.5 rounded-xl text-xs sm:text-sm md:text-base font-semibold absolute top-1 sm:top-2 left-1 sm:left-2"
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{
+                              scale: 1,
+                              opacity: 1,
+                              transition: {
+                                delay: Math.min(0.01 * idx + 0.1, 0.4),
+                                type: "spring",
+                                stiffness: 500,
+                                damping: 15,
+                              },
+                            }}
+                          >
+                            <CalendarClock size={14} className="mr-0.5 sm:mr-1" />
                             <span>{day.eventCount}</span>
-                          </div>
-                        </motion.div>
+                          </motion.div>
 
-                        {/* Desktop: "See event" text - hidden on mobile */}
-                        <motion.div 
-                          className="absolute inset-0 hidden md:flex items-center justify-center pointer-events-none"
-                          initial={{ opacity: 0 }}
-                          animate={{ 
-                            opacity: 1,
-                            transition: { 
-                              delay: Math.min(0.01 * idx + 0.2, 0.5),
-                              duration: 0.3
-                            }
-                          }}
-                        >
-                          <span className="text-blue-600 text-xs sm:text-sm md:text-base font-medium px-2 py-0.5 rounded pointer-events-auto translate-y-3">
-                            {day.eventCount === 1 ? "See event" : "See events..."}
-                          </span>
-                        </motion.div>
-                      </>
-                    )}
+                          {/* Mobile: Centered calendar icon */}
+                          <motion.div
+                            className="sm:hidden flex-grow flex items-center justify-center"
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{
+                              scale: 1,
+                              opacity: 1,
+                              transition: {
+                                delay: Math.min(0.01 * idx + 0.1, 0.4),
+                                type: "spring",
+                                stiffness: 500,
+                                damping: 15,
+                              },
+                            }}
+                          >
+                            <div className="inline-flex items-center bg-blue-100 text-blue-700 px-1 py-0.5 rounded-xl text-xs xs:text-sm font-semibold w-min">
+                              <CalendarClock size={12} className="mr-0.5" />
+                              <span>{day.eventCount}</span>
+                            </div>
+                          </motion.div>
+
+                          {/* Desktop: "See event" text - hidden on mobile */}
+                          <motion.div
+                            className="absolute inset-0 hidden md:flex items-center justify-center pointer-events-none"
+                            initial={{ opacity: 0 }}
+                            animate={{
+                              opacity: 1,
+                              transition: {
+                                delay: Math.min(0.01 * idx + 0.2, 0.5),
+                                duration: 0.3,
+                              },
+                            }}
+                          >
+                            <span className="text-blue-600 text-xs sm:text-sm md:text-base font-medium px-2 py-0.5 rounded pointer-events-auto translate-y-3">
+                              {day.eventCount === 1
+                                ? "See event"
+                                : "See events..."}
+                            </span>
+                          </motion.div>
+                        </>
+                      )}
                   </motion.div>
                 ))}
               </motion.div>
@@ -557,15 +668,17 @@ export default function FacultyEventsTab() {
         {/* Events List Modal with proper events data */}
         <EventsListModal
           isOpen={modalOpen}
-          onClose={() => setModalOpen(false)}
-          title={selectedDay ? 
-            selectedDay.currentMonth 
-              ? `Events on ${monthNames[currentMonth]} ${selectedDay.date}, ${currentYear}` 
-              : `${selectedDay.date} ${monthNames[currentMonth]}, ${currentYear} (Outside current month)` 
-            : ""
-          }
+          onClose={useCallback(() => setModalOpen(false), [])}
+          title={selectedDay
+            ? selectedDay.currentMonth
+              ? `Events on ${monthNames[currentMonth]} ${selectedDay.date}, ${currentYear}`
+              : `${selectedDay.date} ${monthNames[currentMonth]}, ${currentYear} (Outside current month)`
+            : ""}
           events={eventsForSelectedDay}
           onEventClick={handleEventClick}
+          isLoading={loading}
+          showRecent={showRecent} // <-- Add this
+          setShowRecent={setShowRecent} // <-- Add this
         />
 
         {/* Event Info Modal */}
@@ -573,6 +686,7 @@ export default function FacultyEventsTab() {
           isOpen={eventInfoModalOpen}
           onClose={() => setEventInfoModalOpen(false)}
           event={selectedEvent}
+          loading={eventInfoLoading}
         />
       </div>
     </div>
