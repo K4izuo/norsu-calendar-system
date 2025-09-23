@@ -33,39 +33,17 @@ function SelectTrigger({
 }: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
   size?: "sm" | "default"
 }) {
-  const [showInput, setShowInput] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
-
   return (
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
-      data-size={size}
       className={cn(
-        "border-input data-[placeholder]:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 dark:hover:bg-input/50 flex w-fit items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "flex items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors gap-2", // add gap-2 for spacing
         className
       )}
       {...props}
-      onClick={(e) => {
-        setShowInput(true)
-        setTimeout(() => inputRef.current?.focus(), 0)
-        if (props.onClick) props.onClick(e)
-      }}
     >
-      {showInput ? (
-        <input
-          ref={inputRef}
-          className="flex-1 bg-transparent outline-none border-none text-sm"
-          onBlur={() => setShowInput(false)}
-          placeholder="Type here..."
-        />
-      ) : (
-        <>
-          {children}
-          <SelectPrimitive.Icon asChild>
-            <ChevronDownIcon className="size-4 opacity-50" />
-          </SelectPrimitive.Icon>
-        </>
-      )}
+      <span className="flex-1 flex items-center">{children}</span>
+      <ChevronDownIcon className="w-5 h-5 text-muted-foreground" />
     </SelectPrimitive.Trigger>
   )
 }

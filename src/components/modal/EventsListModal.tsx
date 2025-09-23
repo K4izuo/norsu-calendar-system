@@ -33,13 +33,29 @@ export function EventsListModal({
   const [recentLoading, setRecentLoading] = useState(false)
   const recentLoadingTimeout = useRef<NodeJS.Timeout | null>(null)
 
-  // Filter events by search term
+  // Filter events by search term and mode
   const filteredEvents = React.useMemo(() => {
-    return events.filter((event) => {
-      const titleMatch = event.title?.toLowerCase().includes(searchTerm.toLowerCase())
-      const peopleTagMatch = event.peopleTag?.some((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-      return !showRecent ? titleMatch || peopleTagMatch : event.finishedOn === eventDate
-    })
+    if (showRecent) {
+      // Show only past events (finishedOn matches eventDate)
+      return events.filter(
+        event =>
+          event.finishedOn === eventDate &&
+          (
+            event.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            event.peopleTag?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+          )
+      )
+    } else {
+      // Show current events (date matches eventDate), filtered by search
+      return events.filter(
+        event =>
+          event.date === eventDate &&
+          (
+            event.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            event.peopleTag?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+          )
+      )
+    }
   }, [events, searchTerm, showRecent, eventDate])
 
   const getStatusColor = (status: EventStatus) => {
@@ -83,6 +99,7 @@ export function EventsListModal({
 
   useEffect(() => {
     if (isOpen) {
+      setShowRecent(false) // Always show current events when modal opens
       document.body.style.overflow = "hidden"
     } else {
       document.body.style.overflow = ""
@@ -91,7 +108,7 @@ export function EventsListModal({
       document.body.style.overflow = ""
       if (recentLoadingTimeout.current) clearTimeout(recentLoadingTimeout.current)
     }
-  }, [isOpen])
+  }, [isOpen, setShowRecent])
 
   const getLoadingColor = () => {
     switch (role) {
@@ -133,7 +150,7 @@ export function EventsListModal({
                 duration: 0.4,
                 bounce: 0.1,
               }}
-              className="relative max-w-[900px] bg-background rounded-2xl shadow-2xl w-[99%] sm:w-full sm:mx-4 overflow-hidden flex flex-col max-h-[82vh] border border-border/50"
+              className="relative max-w-[900px] bg-background rounded-2xl shadow-2xl w-[99%] sm:w-full sm:mx-4 overflow-hidden flex flex-col max-h-[88vh] border border-border/50"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="bg-card border-b border-border/100 p-4 sm:p-6">
@@ -143,7 +160,7 @@ export function EventsListModal({
                     variant="ghost"
                     size="sm"
                     onClick={onClose}
-                    className="h-8 w-8 p-0 rounded-full hover:bg-muted"
+                    className="h-8 cursor-pointer w-8 p-0 rounded-full hover:bg-muted"
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -163,19 +180,19 @@ export function EventsListModal({
                   <div className="flex gap-3">
                     <Button
                       onClick={handleReserve}
-                      className="h-11 px-6 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+                      className="h-11 cursor-pointer px-6 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
                     >
-                      <CalendarPlus className="w-4 h-4 mr-2" />
+                      <CalendarPlus className="w-4 h-4" />
                       Reserve Event
                     </Button>
                     <Button
                       variant="outline"
                       onClick={handleRecentClick}
                       disabled={recentLoading}
-                      className="h-11 px-6 border-border hover:bg-muted bg-transparent"
+                      className="h-11 cursor-pointer px-6 border-border hover:bg-muted bg-transparent"
                     >
-                      <Clock className="w-4 h-4 mr-2" />
-                      {showRecent ? "Current Events" : "Recent Events"}
+                      <Clock className="w-4 h-4" />
+                      {showRecent ? "Past Events" : "Current Events"}
                     </Button>
                   </div>
                 </div>
@@ -184,29 +201,20 @@ export function EventsListModal({
               <div className="flex-1 overflow-y-auto custom-scrollbar">
                 {recentLoading || isLoading ? (
                   <motion.div
-                    className="flex items-center justify-center py-24"
+                    className="flex items-center justify-center py-20"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
                   >
-                    <div className="relative flex flex-col items-center justify-center">
-                      <div className="relative">
-                        <motion.div
-                          className={`h-20 w-20 rounded-full border-4 ${loadingColor.spinner} border-t-transparent animate-spin`}
-                          style={{
-                            boxShadow: "0 0 24px 4px rgba(0,0,0,0.07)",
-                            borderBottomColor: "rgba(0,0,0,0.04)",
-                          }}
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 1, ease: "linear", repeat: Number.POSITIVE_INFINITY }}
-                        />
-                        <CalendarClock
-                          className={`absolute inset-0 m-auto h-10 w-10 ${loadingColor.icon}`}
-                          style={{ top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}
-                        />
-                      </div>
-                      <span className="mt-6 text-lg font-semibold text-muted-foreground tracking-wide">
-                        Loading events...
-                      </span>
+                    <div className="relative h-16 w-16 flex items-center justify-center">
+                      {/* Spinner rotates */}
+                      <motion.div
+                        className="absolute inset-0 h-16 w-16 rounded-full border-t-4 border-b-4 border-blue-500"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1.5, ease: "linear", repeat: Infinity }}
+                      />
+                      {/* Icon stays still */}
+                      <CalendarClock className="absolute inset-0 m-auto h-7 w-7 text-blue-500" />
                     </div>
                   </motion.div>
                 ) : filteredEvents.length > 0 ? (
@@ -319,10 +327,14 @@ export function EventsListModal({
                 ) : (
                   <div className="flex flex-col items-center justify-center py-24 text-center">
                     <CalendarClock className="h-16 w-16 text-muted-foreground/50 mb-4" />
-                    <h3 className="text-lg font-semibold text-foreground mb-2">No events found</h3>
+                    <h3 className="text-lg font-semibold text-foreground mb-2">
+                      {showRecent
+                        ? "There are no past events on this day"
+                        : "No events found"}
+                    </h3>
                     <p className="text-muted-foreground max-w-md">
                       {showRecent
-                        ? "No recent events have finished on this date."
+                        ? "No past events have finished on this date."
                         : searchTerm
                           ? "Try adjusting your search terms or browse all events."
                           : "No current events scheduled for this date."}

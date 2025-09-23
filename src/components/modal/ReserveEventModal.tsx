@@ -2,22 +2,14 @@
 
 import React, { useEffect, useRef, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { CalendarPlus, Clock, X, User, Building, CalendarClock, FileText, CheckCircle2 } from "lucide-react"
+import { CalendarPlus, CalendarPlus2, Clock, X, User, Building, CalendarClock, FileText, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { 
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Label } from "@/components/ui/label"
 import toast from "react-hot-toast" // Import toast
+import { ReserveEventFormTab } from "@/components/modal/reserve-event-tab/event-form-tab"
+import { ReserveEventAdditionalTab } from "@/components/modal/reserve-event-tab/event-additional-tab"
+import { ReserveEventSummaryTab } from "@/components/modal/reserve-event-tab/event-summary-tab"
 
 // Sample venues for the select component
 const venues = [
@@ -259,6 +251,36 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
     summary: "Summary",
   };
 
+  // Sample people suggestions
+  const peopleSuggestions = [
+    { id: "1", name: "John Doe" },
+    { id: "2", name: "Jane Smith" },
+    { id: "3", name: "Alice Johnson" },
+    { id: "4", name: "Bob Lee" },
+    { id: "5", name: "Maria Garcia" },
+  ];
+
+  const [tagInput, setTagInput] = useState("");
+  const [taggedPeople, setTaggedPeople] = useState<{ id: string; name: string }[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTagInput(e.target.value);
+    setShowDropdown(e.target.value.length > 0);
+  };
+
+  const handleTagSelect = (person: { id: string; name: string }) => {
+    if (!taggedPeople.some(p => p.id === person.id)) {
+      setTaggedPeople([...taggedPeople, person]);
+      setTagInput("");
+      setShowDropdown(false);
+    }
+  };
+
+  const handleRemoveTag = (id: string) => {
+    setTaggedPeople(taggedPeople.filter(p => p.id !== id));
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -289,7 +311,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
               duration: 0.28,
               ease: [0.22, 1, 0.36, 1]
             }}
-            className="relative max-w-[900px] max-h-[89vh] bg-white rounded-lg shadow-xl w-full mx-4 overflow-hidden flex flex-col"
+            className="relative w-full max-w-[900px] sm:mx-4 mx-[1px] max-h-[92vh] bg-white rounded-lg shadow-xl overflow-hidden flex flex-col"
             style={{
               transform: "translateZ(0)",
               backfaceVisibility: "hidden",
@@ -299,312 +321,90 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
             onClick={e => e.stopPropagation()}
           >
             {/* Header with title and close button */}
-            <div className="sticky top-0 bg-white z-10 p-6 pb-6 border-b border-gray-200">
+            <div className="sticky top-0 bg-white z-10 p-4 sm:p-6 pb-4 sm:pb-6 border-b border-gray-200">
               <div className="flex justify-between items-center">
-                <h2 className="text-3xl font-semibold text-gray-800">
+                <h2 className="text-2xl sm:text-3xl font-semibold text-gray-800">
                   Reserve Event
                 </h2>
-                <button
+                <Button
                   onClick={e => {
                     e.stopPropagation();
                     onClose();
                   }}
-                  className="p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-200"
+                  className="p-2 bg-white cursor-pointer rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-200"
                   aria-label="Close"
                 >
                   <X className="w-6 h-6 text-gray-500" />
-                </button>
+                </Button>
               </div>
             </div>
 
-            {/* Tabs and content - with adjusted height */}
-            <div className="overflow-y-auto custom-scrollbar p-6 pt-4 flex-1" style={{ maxHeight: "calc(90vh - 155px)" }}>
+            {/* Tabs and content */}
+            <div className="overflow-y-auto custom-scrollbar p-4 sm:p-6 pt-2 sm:pt-4 flex-1" style={{ maxHeight: "calc(90vh - 155px)" }}>
               <Tabs value={activeTab} className="w-full">
-                {/* Non-clickable tabs that look like TabsList/TabsTrigger */}
-                <div className="grid w-full grid-cols-3 mb-6 bg-muted rounded-lg p-1">
+                {/* Tabs header: allow horizontal scroll on mobile */}
+                <div className="grid grid-cols-3 mb-4 sm:mb-6 bg-muted rounded-lg p-1 overflow-x-auto">
                   {tabOrder.map(tab => (
                     <div
                       key={tab}
-                      className={`flex items-center justify-center py-2.5 px-4 rounded-md text-base font-medium transition-colors ${
+                      className={`flex items-center justify-center py-2 px-2 sm:py-2.5 sm:px-4 rounded-md text-base font-medium transition-colors ${
                         activeTab === tab
                           ? "bg-background text-foreground shadow-sm"
                           : "text-muted-foreground"
                       }`}
-                      style={{ cursor: "default" }}
+                      style={{ cursor: "default", minWidth: "100px" }}
                     >
                       {tabLabels[tab]}
                     </div>
                   ))}
                 </div>
-                
-                {/* Form Tab - removed buttons from content */}
-                <TabsContent value="form" className="space-y-6">
-                  <form className="space-y-6">
-                    <div className="space-y-5">
-                      <div>
-                        <Label htmlFor="title" className="text-base font-medium">Event Title</Label>
-                        <Input 
-                          id="title"
-                          name="title"
-                          placeholder="Enter event title"
-                          value={formData.title}
-                          onChange={handleInputChange}
-                          className="mt-1 text-base h-12"
-                          required
-                        />
-                      </div>
-                      
-                      <div className="flex flex-col md:flex-row gap-4 items-end">
-                        <div className="flex-1 min-w-0">
-                          <Label htmlFor="venue" className="text-base font-medium">Venue</Label>
-                          <Select 
-                            value={formData.venue || ""} 
-                            onValueChange={handleVenueChange}
-                          >
-                            <SelectTrigger id="venue" className="mt-1 text-base w-full h-12">
-                              <SelectValue placeholder="Select a venue" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectGroup>
-                                <SelectLabel className="text-base">Available Venues</SelectLabel>
-                                {venues.map(venue => (
-                                  <SelectItem key={venue.id} value={venue.id} className="text-base">
-                                    {venue.name} ({venue.capacity})
-                                  </SelectItem>
-                                ))}
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <Label htmlFor="range" className="text-base font-medium">Range</Label>
-                          <Input
-                            type="number"
-                            id="range"
-                            name="range"
-                            min={1}
-                            max={30}
-                            value={formData.range}
-                            onChange={handleRangeChange}
-                            className="mt-1 h-12 text-base w-full"
-                            required
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="timeStart" className="text-base font-medium">Start Time</Label>
-                          <Input 
-                            id="timeStart"
-                            name="timeStart"
-                            type="time"
-                            value={formData.timeStart}
-                            onChange={handleInputChange}
-                            className="mt-1 text-base h-12"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="timeEnd" className="text-base font-medium">End Time</Label>
-                          <Input 
-                            id="timeEnd"
-                            name="timeEnd"
-                            type="time"
-                            value={formData.timeEnd}
-                            onChange={handleInputChange}
-                            className="mt-1 text-base h-12"
-                            onBlur={() => {
-                              if (formData.timeStart && formData.timeEnd && formData.timeStart >= formData.timeEnd) {
-                                toast.error("End time must be after start time");
-                              }
-                            }}
-                            required
-                          />
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="description" className="text-base font-medium">Description</Label>
-                        <Textarea 
-                          id="description"
-                          name="description"
-                          placeholder="Enter event description"
-                          value={formData.description}
-                          onChange={handleInputChange}
-                          className="mt-1 min-h-[120px] text-base h-12"
-                          required
-                        />
-                      </div>
-                    </div>
-                  </form>
+
+                {/* Form Tab */}
+                <TabsContent value="form" className="space-y-4 sm:space-y-6">
+                  <ReserveEventFormTab
+                    formData={formData}
+                    venues={venues}
+                    handleInputChange={handleInputChange}
+                    handleVenueChange={handleVenueChange}
+                    handleRangeChange={handleRangeChange}
+                  />
                 </TabsContent>
-                
-                {/* Additional Info Tab - new tab content */}
-                <TabsContent value="additional" className="space-y-6">
-                  <form className="space-y-6">
-                    <div className="space-y-5">
-                      <div>
-                        <Label htmlFor="people" className="text-base font-medium">People (comma separated)</Label>
-                        <Input
-                          id="people"
-                          name="people"
-                          placeholder="Add people tags, e.g. John Doe, Jane Smith"
-                          value={formData.people}
-                          onChange={handlePeopleChange}
-                          className="mt-1 text-base"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="infoType" className="text-base font-medium">Information Type</Label>
-                        <Select
-                          value={formData.infoType}
-                          onValueChange={handleInfoTypeChange}
-                        >
-                          <SelectTrigger id="infoType" className="mt-1 text-base">
-                            <SelectValue placeholder="Select information type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectGroup>
-                              <SelectLabel className="text-base">Types</SelectLabel>
-                              {infoTypes.map(type => (
-                                <SelectItem key={type.value} value={type.value} className="text-base">
-                                  {type.label}
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label htmlFor="category" className="text-base font-medium">Category</Label>
-                        <Select
-                          value={formData.category}
-                          onValueChange={handleCategoryChange}
-                        >
-                          <SelectTrigger id="category" className="mt-1 text-base">
-                            <SelectValue placeholder="Select category" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectGroup>
-                              <SelectLabel className="text-base">Categories</SelectLabel>
-                              {categories.map(cat => (
-                                <SelectItem key={cat.value} value={cat.value} className="text-base">
-                                  {cat.label}
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  </form>
+
+                {/* Additional Info Tab */}
+                <TabsContent value="additional" className="space-y-4 sm:space-y-6">
+                  <ReserveEventAdditionalTab
+                    formData={formData}
+                    infoTypes={infoTypes}
+                    categories={categories}
+                    tagInput={tagInput}
+                    taggedPeople={taggedPeople}
+                    peopleSuggestions={peopleSuggestions}
+                    showDropdown={showDropdown}
+                    handleTagInputChange={handleTagInputChange}
+                    handleTagSelect={handleTagSelect}
+                    handleRemoveTag={handleRemoveTag}
+                    handleInfoTypeChange={handleInfoTypeChange}
+                    handleCategoryChange={handleCategoryChange}
+                    setShowDropdown={setShowDropdown}
+                  />
                 </TabsContent>
-                
-                {/* Summary Tab - removed buttons from content */}
-                <TabsContent value="summary" className="space-y-6 pb-4">
-                  {/* Basic Information Section */}
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="flex items-center mb-3">
-                      <User className="text-gray-500 mr-2 h-6 w-6" />
-                      <h3 className="text-lg font-medium text-gray-700">Basic Information</h3>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-base text-gray-500">Event Title</p>
-                        <p className="font-medium text-base">{formData.title || "Not provided"}</p>
-                      </div>
-                      <div>
-                        <p className="text-base text-gray-500">Description</p>
-                        <p className="font-medium text-base line-clamp-2">{formData.description || "Not provided"}</p>
-                      </div>
-                    </div>
-                  </div>
 
-                  {/* Venue Information */}
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="flex items-center mb-3">
-                      <Building className="text-gray-500 mr-2 h-6 w-6" />
-                      <h3 className="text-lg font-medium text-gray-700">Venue Information</h3>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-base text-gray-500">Location</p>
-                        <p className="font-medium text-base">{selectedVenue?.name || "Not selected"}</p>
-                      </div>
-                      <div>
-                        <p className="text-base text-gray-500">Capacity</p>
-                        <p className="font-medium text-base">{selectedVenue?.capacity || "N/A"}</p>
-                      </div>
-                      <div>
-                        <p className="text-base text-gray-500">Reservation Range</p>
-                        <p className="font-medium text-base">{formData.range} day{formData.range > 1 ? "s" : ""}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Time Information */}
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="flex items-center mb-3">
-                      <CalendarClock className="text-gray-500 mr-2 h-6 w-6" />
-                      <h3 className="text-lg font-medium text-gray-700">Time Details</h3>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-base text-gray-500">Start Time</p>
-                        <div className="flex items-center">
-                          <Clock className="h-4 w-4 mr-1.5 text-gray-500" />
-                          <p className="font-medium text-base">{formData.timeStart || "Not specified"}</p>
-                        </div>
-                      </div>
-                      <div>
-                        <p className="text-base text-gray-500">End Time</p>
-                        <div className="flex items-center">
-                          <Clock className="h-4 w-4 mr-1.5 text-gray-500" />
-                          <p className="font-medium text-base">{formData.timeEnd || "Not specified"}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Additional Details */}
-                  {formData.description && (
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <div className="flex items-center mb-3">
-                        <FileText className="text-gray-500 mr-2 h-6 w-6" />
-                        <h3 className="text-lg font-medium text-gray-700">Additional Details</h3>
-                      </div>
-                      <div>
-                        <p className="text-base text-gray-500">Full Description</p>
-                        <p className="mt-1 text-base">{formData.description}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Ready for submission indicator */}
-                  <div className={`mt-6 p-3 rounded-md flex items-center justify-center ${
-                    isFormValid() 
-                      ? 'bg-green-50 text-green-800' 
-                      : 'bg-yellow-50 text-yellow-800'
-                  }`}>
-                    {isFormValid() ? (
-                      <>
-                        <CheckCircle2 className="h-5 w-5 mr-2" />
-                        <span className="text-base">Ready for submission</span>
-                      </>
-                    ) : (
-                      <>
-                        <Clock className="h-5 w-5 mr-2" />
-                        <span className="text-base">Please complete all required fields</span>
-                      </>
-                    )}
-                  </div>
+                {/* Summary Tab */}
+                <TabsContent value="summary" className="space-y-4 sm:space-y-6 pb-4">
+                  <ReserveEventSummaryTab
+                    formData={formData}
+                    categories={categories}
+                    infoTypes={infoTypes}
+                    taggedPeople={taggedPeople}
+                    selectedVenue={selectedVenue}
+                    isFormValid={isFormValid}
+                  />
                 </TabsContent>
               </Tabs>
             </div>
 
             {/* Sticky footer navigation */}
-            <div className="sticky bottom-0 bg-white z-10 p-5 border-t border-gray-100 flex justify-end">
+            <div className="sticky bottom-0 bg-white z-10 p-4 sm:p-5 border-t border-gray-100 flex justify-end">
               {activeTab === "form" && (
                 <Button
                   type="button"
@@ -612,7 +412,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                     if (checkFormFields()) setActiveTab("additional");
                   }}
                   variant="default"
-                  className="text-base py-2.5"
+                  className="text-base cursor-pointer py-2.5"
                 >
                   Next
                 </Button>
@@ -623,7 +423,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                     type="button"
                     onClick={() => setActiveTab("form")}
                     variant="outline"
-                    className="text-base py-2.5"
+                    className="text-base cursor-pointer py-2.5"
                     disabled={isSubmitting}
                   >
                     Back
@@ -632,7 +432,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                     type="button"
                     onClick={() => setActiveTab("summary")}
                     variant="default"
-                    className="text-base py-2.5"
+                    className="text-base cursor-pointer py-2.5"
                   >
                     Next
                   </Button>
@@ -644,7 +444,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                     type="button"
                     onClick={() => setActiveTab("additional")}
                     variant="outline"
-                    className="text-base py-2.5"
+                    className="text-base cursor-pointer py-2.5"
                     disabled={isSubmitting}
                   >
                     Back
@@ -654,7 +454,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                     onClick={handleSubmit}
                     variant="default"
                     disabled={!isFormValid() || isSubmitting}
-                    className="text-base py-2.5"
+                    className="text-base cursor-pointer py-2.5"
                   >
                     {isSubmitting ? (
                       <div className="flex items-center">

@@ -2,7 +2,8 @@
 
 import React, { useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Calendar, Clock, MapPin, Users, Info, X, CalendarDays } from "lucide-react"
+import { Calendar,CalendarClock, Clock, MapPin, Users, Info, X, CalendarDays } from "lucide-react"
+import { Button } from "../ui/button"
 
 interface EventDetails {
   id: string
@@ -93,73 +94,38 @@ export const EventInfoModal = React.memo(function EventInfoModal({ isOpen, onClo
                 <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">
                   Event Information
                 </h2>
-                <button
+                <Button
                   onClick={e => {
                     e.stopPropagation();
                     onClose();
                   }}
-                  className="p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-200"
+                  className="p-2 bg-white cursor-pointer rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-200"
                   aria-label="Close"
                 >
                   <X className="w-5 h-5 text-gray-500" />
-                </button>
+                </Button>
               </div>
             </div>
 
             {/* Loading animation */}
             {loading || !event ? (
               <motion.div
-                key="loading"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                className="flex flex-col items-center justify-center h-[60vh] w-full"
-              >
-                <motion.div
-                  initial={{ scale: 0.8, opacity: 0.7 }}
-                  animate={{
-                    scale: [0.8, 1.1, 0.95, 1],
-                    opacity: [0.7, 1, 0.9, 1],
-                    rotate: [0, 8, -8, 0],
-                    boxShadow: [
-                      "0 0 0px #3b82f6",
-                      "0 0 24px #3b82f6",
-                      "0 0 12px #3b82f6",
-                      "0 0 0px #3b82f6"
-                    ]
-                  }}
-                  transition={{
-                    repeat: Infinity,
-                    duration: 1.6,
-                    ease: "easeInOut"
-                  }}
-                  className="flex items-center justify-center rounded-full bg-blue-50 shadow-lg"
-                  style={{ width: 90, height: 90 }}
-                >
-                  <CalendarDays className="h-16 w-16 text-blue-600 drop-shadow-lg" />
-                </motion.div>
-                <motion.div
-                  initial={{ opacity: 0.3, scale: 1 }}
-                  animate={{
-                    opacity: [0.3, 0.6, 0.3],
-                    scale: [1, 1.25, 1]
-                  }}
-                  transition={{
-                    repeat: Infinity,
-                    duration: 1.8,
-                    ease: "easeInOut"
-                  }}
-                  className="absolute"
-                  style={{
-                    width: 120,
-                    height: 120,
-                    borderRadius: "50%",
-                    border: "4px solid #3b82f6",
-                    filter: "blur(2px)"
-                  }}
-                />
-              </motion.div>
+                    className="flex items-center justify-center py-20"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <div className="relative h-16 w-16 flex items-center justify-center">
+                      {/* Spinner rotates */}
+                      <motion.div
+                        className="absolute inset-0 h-16 w-16 rounded-full border-t-4 border-b-4 border-blue-500"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1.5, ease: "linear", repeat: Infinity }}
+                      />
+                      {/* Icon stays still */}
+                      <CalendarClock className="absolute inset-0 m-auto h-7 w-7 text-blue-500" />
+                    </div>
+                  </motion.div>
             ) : (
               <div className="overflow-y-auto custom-scrollbar p-4 sm:p-6 pt-4 sm:pt-6" style={{ maxHeight: "calc(80vh - 85px)" }}>
                 <div className="space-y-6">
