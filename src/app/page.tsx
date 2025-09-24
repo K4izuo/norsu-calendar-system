@@ -86,6 +86,9 @@ export default function Home() {
     isToday?: boolean;
   } | null>(null);
 
+  // New state to control recent events visibility
+  const [showRecent, setShowRecent] = useState(false);
+
   // Navigation functions
   const goToPreviousMonth = () => {
     setDirection(-1); // Set direction for animation
@@ -137,18 +140,28 @@ export default function Home() {
       isToday?: boolean;
     }[] = [];
 
-    // Previous month's days
+    // Get info for previous, current, and next month
+    const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay(); // 0=Sun
+    const lastDateOfMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const lastDateOfPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
+
+    // 1. Fill in previous month's days
     for (let i = firstDayOfMonth - 1; i >= 0; i--) {
+      const prevDate = lastDateOfPrevMonth - i;
       days.push({
-        date: lastDateOfPrevMonth - i,
+        date: prevDate,
         currentMonth: false,
-        key: `prev-${lastDateOfPrevMonth - i}-${currentMonth}-${currentYear}`,
+        key: `prev-${prevDate}-${currentMonth}-${currentYear}`,
         hasEvent: false,
       });
     }
-    // Current month's days
+
+    // 2. Fill in current month's days
     for (let i = 1; i <= lastDateOfMonth; i++) {
-      const isToday = i === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear();
+      const isToday =
+        i === today.getDate() &&
+        currentMonth === today.getMonth() &&
+        currentYear === today.getFullYear();
       days.push({
         date: i,
         currentMonth: true,
@@ -158,17 +171,21 @@ export default function Home() {
         isToday,
       });
     }
-    // Next month's days
-    for (let i = 1; days.length < 42; i++) {
+
+    // 3. Fill in next month's days to reach 35 cells
+    let nextMonthDay = 1;
+    while (days.length < 35) {
       days.push({
-        date: i,
+        date: nextMonthDay,
         currentMonth: false,
-        key: `next-${i}-${currentMonth}-${currentYear}`,
+        key: `next-${nextMonthDay}-${currentMonth}-${currentYear}`,
         hasEvent: false,
       });
+      nextMonthDay++;
     }
+
     return days;
-  }, [firstDayOfMonth, lastDateOfMonth, lastDateOfPrevMonth, currentMonth, currentYear, today]);
+  }, [currentMonth, currentYear, today, eventsMap]);
 
   // Format month and year
   const monthNames = [
@@ -519,7 +536,7 @@ export default function Home() {
                         initial="initial"
                         animate="animate"
                         exit="exit"
-                        className="grid grid-rows-6 grid-cols-7 w-full h-full gap-1.5 sm:gap-2 md:gap-2.5 bg-white flex-1"
+                        className="grid grid-rows-5 grid-cols-7 w-full h-full gap-1.5 sm:gap-2 md:gap-2.5 bg-white flex-1"
                       >
                         {calendarDays.map((day, idx) => (
                           <motion.div
@@ -554,7 +571,11 @@ export default function Home() {
                             <div className="flex justify-end items-start w-full mb-2">
                               <span
                                 className={`text-lg md:text-xl ${
-                                  day.isToday ? "text-blue-600 font-bold" : ""
+                                  day.isToday
+                                    ? "text-blue-600 font-bold"
+                                    : day.currentMonth
+                                    ? ""
+                                    : "text-gray-400"
                                 }`}
                               >
                                 {day.date}
@@ -678,6 +699,13 @@ export default function Home() {
         }
         events={getEventsForSelectedDay()}
         onEventClick={handleEventClick}
+        showRecent={showRecent}
+        setShowRecent={setShowRecent}
+        eventDate={
+          selectedDay && selectedDay.currentMonth
+            ? `${monthNames[currentMonth]} ${selectedDay.date}, ${currentYear}`
+            : ""
+        }
       />
 
       {/* Event Info Modal */}
