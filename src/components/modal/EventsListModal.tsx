@@ -192,7 +192,7 @@ export function EventsListModal({
                       className="h-11 cursor-pointer px-6 border-border hover:bg-muted bg-transparent"
                     >
                       <Clock className="w-4 h-4" />
-                      {showRecent ? "Past Events" : "Current Events"}
+                      {showRecent ? "Current Events" : "Past Events"}
                     </Button>
                   </div>
                 </div>

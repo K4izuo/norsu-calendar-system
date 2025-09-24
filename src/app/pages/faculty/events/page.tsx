@@ -372,6 +372,8 @@ export default function FacultyEventsTab() {
     eventCount?: number;
     isToday?: boolean;
   }) => {
+    // Always reset to current events before opening modal!
+    setShowRecent(false);
     // Only update if the day is different
     if (!selectedDay || selectedDay.key !== day.key) {
       setSelectedDay(day);
@@ -677,8 +679,13 @@ export default function FacultyEventsTab() {
           events={eventsForSelectedDay}
           onEventClick={handleEventClick}
           isLoading={loading}
-          showRecent={showRecent} // <-- Add this
-          setShowRecent={setShowRecent} // <-- Add this
+          showRecent={showRecent}
+          setShowRecent={setShowRecent}
+          eventDate={
+            selectedDay && selectedDay.currentMonth
+              ? `${monthNames[currentMonth]} ${selectedDay.date}, ${currentYear}`
+              : ""
+          }
         />
 
         {/* Event Info Modal */}
