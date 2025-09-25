@@ -1,9 +1,10 @@
-import React from "react"
+import React, { useEffect, useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import toast from "react-hot-toast"
 
 interface Venue {
   id: string
@@ -17,6 +18,7 @@ interface Props {
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void
   handleVenueChange: (value: string) => void
   handleRangeChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  missingFields?: Record<string, boolean>
 }
 
 export function ReserveEventFormTab({
@@ -25,30 +27,95 @@ export function ReserveEventFormTab({
   handleInputChange,
   handleVenueChange,
   handleRangeChange,
+  missingFields = {},
 }: Props) {
+  // Local state for current time in "HH:mm" format
+  const [currentTime, setCurrentTime] = useState(() => {
+    const now = new Date();
+    return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  });
+
+  // Update currentTime every second, but do NOT update formData unless empty
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date();
+      setCurrentTime(`${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Set timeStart and timeEnd to current time only if empty
+  useEffect(() => {
+    if (!formData.timeStart) {
+      handleInputChange({
+        target: { name: "timeStart", value: currentTime }
+      } as React.ChangeEvent<HTMLInputElement>);
+    }
+    if (!formData.timeEnd) {
+      handleInputChange({
+        target: { name: "timeEnd", value: currentTime }
+      } as React.ChangeEvent<HTMLInputElement>);
+    }
+    // Only run when currentTime changes and fields are empty
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentTime]);
+
+  // Rename local function to avoid conflict
+  const handleRangeInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/[^0-9]/g, "");
+    handleRangeChange({
+      ...e,
+      target: { ...e.target, value }
+    } as React.ChangeEvent<HTMLInputElement>);
+  };
+
+  const handleRangeBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (!value || value === "0") {
+      toast.error("Range must be at least 1 day.");
+      handleRangeChange({
+        ...e,
+        target: { ...e.target, value: "1" }
+      } as React.ChangeEvent<HTMLInputElement>);
+    }
+  };
+
+  const getTimeValue = (time: string) => {
+    // If empty, return empty string
+    if (!time) return "";
+    // If already "HH:mm", return as is
+    if (/^\d{2}:\d{2}$/.test(time)) return time;
+    // If ISO or other, convert to local "HH:mm"
+    const date = new Date(time);
+    if (isNaN(date.getTime())) return "";
+    const hh = String(date.getHours()).padStart(2, "0");
+    const mm = String(date.getMinutes()).padStart(2, "0");
+    return `${hh}:${mm}`;
+  };
+
   return (
     <form className="space-y-4 sm:space-y-6">
       <div className="space-y-4 sm:space-y-5">
         <div>
-          <Label htmlFor="title" className="text-base font-medium">Event Title</Label>
+          <Label htmlFor="title" className="text-base inline-block font-medium">Event Title</Label>
           <Input 
             id="title"
             name="title"
             placeholder="Enter event title"
             value={formData.title}
             onChange={handleInputChange}
-            className="mt-1 text-base h-12 w-full"
+            className={`mt-1 text-base h-12 w-full ${missingFields.title ? "border-red-500 focus:border-red-500" : ""}`}
             required
           />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex-1 min-w-0">
-            <Label htmlFor="venue" className="text-base font-medium">Venue</Label>
+            <Label htmlFor="venue" className="text-base inline-block font-medium">Venue</Label>
             <Select 
               value={formData.venue || ""} 
               onValueChange={handleVenueChange}
             >
-              <SelectTrigger id="venue" className="mt-1 text-base w-full h-12">
+              <SelectTrigger id="venue" className={`mt-1 text-base w-full h-12 ${missingFields.venue ? "border-red-500 focus:border-red-500" : ""}`}>
                 <SelectValue placeholder="Select a venue" />
               </SelectTrigger>
               <SelectContent>
@@ -65,7 +132,7 @@ export function ReserveEventFormTab({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <Label htmlFor="range" className="text-base font-medium">Range</Label>
+              <Label htmlFor="range" className="text-base inline-flex font-medium">Range</Label>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -83,51 +150,50 @@ export function ReserveEventFormTab({
               </TooltipProvider>
             </div>
             <Input
-              type="number"
+              type="text"
               id="range"
               name="range"
-              min={1}
-              max={30}
               value={formData.range}
-              onChange={handleRangeChange}
-              className="mt-1 h-12 text-base w-full"
+              onChange={handleRangeInputChange}
+              onBlur={handleRangeBlur}
+              className={`mt-1 h-12 text-base w-full ${missingFields.range ? "border-red-500 focus:border-red-500" : ""}`}
               required
             />
           </div>
           <div>
-            <Label htmlFor="timeStart" className="text-base font-medium">Start Time</Label>
+            <Label htmlFor="timeStart" className="text-base inline-block font-medium">Start Time</Label>
             <Input 
               id="timeStart"
               name="timeStart"
               type="time"
-              value={formData.timeStart}
+              value={formData.timeStart || currentTime}
               onChange={handleInputChange}
-              className="mt-1 text-base h-12 w-full"
+              className={`mt-1 text-base h-12 w-full ${missingFields.timeStart ? "border-red-500 focus:border-red-500" : ""}`}
               required
             />
           </div>
           <div>
-            <Label htmlFor="timeEnd" className="text-base font-medium">End Time</Label>
+            <Label htmlFor="timeEnd" className="text-base inline-block font-medium">End Time</Label>
             <Input 
               id="timeEnd"
               name="timeEnd"
               type="time"
-              value={formData.timeEnd}
+              value={formData.timeEnd || currentTime}
               onChange={handleInputChange}
-              className="mt-1 text-base h-12 w-full"
+              className={`mt-1 text-base h-12 w-full ${missingFields.timeEnd ? "border-red-500 focus:border-red-500" : ""}`}
               required
             />
           </div>
         </div>
         <div>
-          <Label htmlFor="description" className="text-base font-medium">Description</Label>
+          <Label htmlFor="description" className="text-base inline-block font-medium">Description</Label>
           <Textarea 
             id="description"
             name="description"
             placeholder="Enter event description"
             value={formData.description}
             onChange={handleInputChange}
-            className="mt-1 min-h-[120px] text-base h-12 w-full"
+            className={`mt-1 min-h-[120px] text-base h-12 w-full ${missingFields.description ? "border-red-500 focus:border-red-500" : ""}`}
             required
           />
         </div>

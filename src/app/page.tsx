@@ -341,7 +341,7 @@ export default function Home() {
   }, []); // Empty array ensures effect runs only once on mount
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col overflow-x-hidden">
+    <div className="min-h-screen bg-gray-100 flex flex-col overflow-x-hidden">
       {/* Navbar: full width */}
       <div className="relative bg-white px-2 sm:px-4 md:px-8 lg:px-16 xl:px-36 py-4 shadow-sm flex flex-col sm:flex-row items-center sm:items-center justify-between w-full gap-y-2">
         {/* Logo (left, or with title on mobile) */}

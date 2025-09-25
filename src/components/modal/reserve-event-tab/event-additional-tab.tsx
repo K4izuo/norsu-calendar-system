@@ -18,6 +18,7 @@ interface Props {
   handleInfoTypeChange: (value: string) => void
   handleCategoryChange: (value: string) => void
   setShowDropdown: (show: boolean) => void
+  missingFields?: Record<string, boolean>
 }
 
 export function ReserveEventAdditionalTab({
@@ -34,6 +35,7 @@ export function ReserveEventAdditionalTab({
   handleInfoTypeChange,
   handleCategoryChange,
   setShowDropdown,
+  missingFields = {},
 }: Props) {
   return (
     <form className="space-y-4 sm:space-y-6">
@@ -47,7 +49,7 @@ export function ReserveEventAdditionalTab({
               placeholder="Type a name to tag..."
               value={tagInput}
               onChange={handleTagInputChange}
-              className="h-12 text-base w-full"
+              className={`h-12 text-base w-full ${missingFields.people ? "border-red-500 focus:border-red-500" : ""}`}
               autoComplete="off"
               onFocus={() => setShowDropdown(tagInput.length > 0)}
               onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
@@ -104,7 +106,7 @@ export function ReserveEventAdditionalTab({
             value={formData.infoType}
             onValueChange={handleInfoTypeChange}
           >
-            <SelectTrigger id="infoType" className="mt-1 text-base w-full h-12">
+            <SelectTrigger id="infoType" className={`mt-1 text-base w-full h-12 ${missingFields.infoType ? "border-red-500 focus:border-red-500" : ""}`}>
               <SelectValue placeholder="Select information type" />
             </SelectTrigger>
             <SelectContent>
@@ -125,7 +127,7 @@ export function ReserveEventAdditionalTab({
             value={formData.category}
             onValueChange={handleCategoryChange}
           >
-            <SelectTrigger id="category" className="mt-1 text-base w-full h-12">
+            <SelectTrigger id="category" className={`mt-1 text-base w-full h-12 ${missingFields.category ? "border-red-500 focus:border-red-500" : ""}`}>
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>

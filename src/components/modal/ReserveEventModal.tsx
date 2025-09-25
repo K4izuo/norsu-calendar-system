@@ -10,6 +10,7 @@ import toast from "react-hot-toast" // Import toast
 import { ReserveEventFormTab } from "@/components/modal/reserve-event-tab/event-form-tab"
 import { ReserveEventAdditionalTab } from "@/components/modal/reserve-event-tab/event-additional-tab"
 import { ReserveEventSummaryTab } from "@/components/modal/reserve-event-tab/event-summary-tab"
+import { ReservationFormData } from "@/interface/faculty-events-props"
 
 // Sample venues for the select component
 const venues = [
@@ -33,20 +34,6 @@ const categories = [
   { value: "sports", label: "Sports" },
   { value: "other", label: "Other" },
 ]
-
-// Extend ReservationFormData
-interface ReservationFormData {
-  title: string
-  venue: string | null
-  timeStart: string
-  timeEnd: string
-  description: string
-  range: number
-  people: string // comma-separated names
-  infoType: string
-  category: string
-  date?: string // <-- Add optional date field
-}
 
 interface ModalProps {
   isOpen: boolean
@@ -113,28 +100,64 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
   }, [isOpen])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    setMissingFields(prev => {
+      if (prev[name]) {
+        const updated = { ...prev };
+        delete updated[name];
+        return updated;
+      }
+      return prev;
+    });
   }
 
   const handleVenueChange = (value: string) => {
     setFormData(prev => ({ ...prev, venue: value }))
+    setMissingFields(prev => {
+      if (prev.venue) {
+        const updated = { ...prev };
+        delete updated.venue;
+        return updated;
+      }
+      return prev;
+    });
   }
 
   const handleRangeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({ ...prev, range: Number(e.target.value) }))
-  }
-
-  const handlePeopleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, people: e.target.value }))
+    setMissingFields(prev => {
+      if (prev.range) {
+        const updated = { ...prev };
+        delete updated.range;
+        return updated;
+      }
+      return prev;
+    });
   }
 
   const handleInfoTypeChange = (value: string) => {
     setFormData(prev => ({ ...prev, infoType: value }))
+    setMissingFields(prev => {
+      if (prev.infoType) {
+        const updated = { ...prev };
+        delete updated.infoType;
+        return updated;
+      }
+      return prev;
+    });
   }
 
   const handleCategoryChange = (value: string) => {
     setFormData(prev => ({ ...prev, category: value }))
+    setMissingFields(prev => {
+      if (prev.category) {
+        const updated = { ...prev };
+        delete updated.category;
+        return updated;
+      }
+      return prev;
+    });
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -211,37 +234,47 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
 
   // Function to show form validation toast
   const checkFormFields = () => {
-    const missing: string[] = [];
-    if (!formData.title.trim()) missing.push("Event title");
-    if (!formData.venue) missing.push("Venue");
-    if (!formData.timeStart) missing.push("Start time");
-    if (!formData.timeEnd) missing.push("End time");
-    if (
-      formData.timeStart &&
-      formData.timeEnd &&
-      formData.timeStart >= formData.timeEnd
-    )
-      missing.push("End time must be after start time");
+    const missingObj: Record<string, boolean> = {};
+    if (!formData.title.trim()) missingObj.title = true;
+    if (!formData.venue) missingObj.venue = true;
+    if (!formData.timeStart) missingObj.timeStart = true;
+    if (!formData.timeEnd) missingObj.timeEnd = true;
+    if (formData.timeStart && formData.timeEnd && formData.timeStart >= formData.timeEnd) missingObj.timeEnd = true;
+    if (!formData.description.trim()) missingObj.description = true;
+    if (!formData.range) missingObj.range = true;
 
-    if (missing.length > 0) {
-      // Show all toasts at once, but dismiss them one by one
-      const toastIds: string[] = [];
-      missing.forEach((field) => {
-        const id = toast.error(field, { duration: 5000 }); // Show all at once
-        toastIds.push(id);
-      });
+    setMissingFields(missingObj); // <-- set immediately
 
-      // Dismiss each toast one by one with a delay
-      toastIds.forEach((id, i) => {
+    if (Object.keys(missingObj).length > 0) {
+      Object.keys(missingObj).forEach((field, i) => {
         setTimeout(() => {
-          toast.dismiss(id);
-        }, i * 900 + 900); // First disappears after 900ms, next after 1800ms, etc.
+          toast.error(`Missing: ${field}`);
+        }, i * 200);
       });
-
       return false;
     }
     return true;
-  }
+  };
+
+  // Validate additional tab fields
+  const validateAdditionalTab = () => {
+    const missingObj: Record<string, boolean> = {};
+    if (taggedPeople.length === 0) missingObj.people = true; // <-- use taggedPeople
+    if (!formData.infoType) missingObj.infoType = true;
+    if (!formData.category) missingObj.category = true;
+
+    setMissingFields(prev => ({ ...prev, ...missingObj }));
+
+    if (Object.keys(missingObj).length > 0) {
+      Object.keys(missingObj).forEach((field, i) => {
+        setTimeout(() => {
+          toast.error(`Missing: ${field}`);
+        }, i * 200);
+      });
+      return false;
+    }
+    return true;
+  };
 
   // Define tab order and labels
   const tabOrder = ["form", "additional", "summary"];
@@ -263,6 +296,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
   const [tagInput, setTagInput] = useState("");
   const [taggedPeople, setTaggedPeople] = useState<{ id: string; name: string }[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [missingFields, setMissingFields] = useState<Record<string, boolean>>({});
 
   const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTagInput(e.target.value);
@@ -280,6 +314,16 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
   const handleRemoveTag = (id: string) => {
     setTaggedPeople(taggedPeople.filter(p => p.id !== id));
   };
+
+  useEffect(() => {
+    if (taggedPeople.length > 0 && missingFields.people) {
+      setMissingFields(prev => {
+        const updated = { ...prev };
+        delete updated.people;
+        return updated;
+      });
+    }
+  }, [taggedPeople, missingFields.people]);
 
   return (
     <AnimatePresence>
@@ -340,7 +384,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
             </div>
 
             {/* Tabs and content */}
-            <div className="overflow-y-auto custom-scrollbar p-4 sm:p-6 pt-2 sm:pt-4 flex-1" style={{ maxHeight: "calc(90vh - 155px)" }}>
+            <div className="overflow-y-auto custom-scrollbar p-4 sm:p-6 pt-2 sm:pt-4 flex-1 max-h-[calc(91vh-155px)]">
               <Tabs value={activeTab} className="w-full">
                 {/* Tabs header: allow horizontal scroll on mobile */}
                 <div className="grid grid-cols-3 mb-4 sm:mb-6 bg-muted rounded-lg p-1 overflow-x-auto">
@@ -367,6 +411,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                     handleInputChange={handleInputChange}
                     handleVenueChange={handleVenueChange}
                     handleRangeChange={handleRangeChange}
+                    missingFields={missingFields}
                   />
                 </TabsContent>
 
@@ -386,6 +431,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                     handleInfoTypeChange={handleInfoTypeChange}
                     handleCategoryChange={handleCategoryChange}
                     setShowDropdown={setShowDropdown}
+                    missingFields={missingFields} // <-- add this line
                   />
                 </TabsContent>
 
@@ -430,7 +476,9 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                   </Button>
                   <Button
                     type="button"
-                    onClick={() => setActiveTab("summary")}
+                    onClick={async () => {
+                      if (await validateAdditionalTab()) setActiveTab("summary");
+                    }}
                     variant="default"
                     className="text-base cursor-pointer py-2.5"
                   >
