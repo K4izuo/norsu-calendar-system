@@ -378,7 +378,7 @@ export default function Home() {
             variant="ghost"
             className="cursor-pointer text-base sm:text-lg md:text-xl px-2"
             type="button"
-            onClick={() => (window.location.href = "/auth/student/login")}
+            onClick={() => (window.location.href = "/auth/login")}
           >
             LOGIN
           </Button>
@@ -386,6 +386,8 @@ export default function Home() {
           <Button
             variant="ghost"
             className="cursor-pointer text-base sm:text-lg md:text-xl px-2"
+            type="button"
+            onClick={() => (window.location.href = "/auth/register")}
           >
             REGISTER
           </Button>

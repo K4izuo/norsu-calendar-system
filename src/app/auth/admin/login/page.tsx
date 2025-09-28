@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { motion } from "framer-motion"
-import { Lock, Shield, Users, Settings, BarChart3, Database, User, Eye, EyeOff } from "lucide-react"
+import { Lock, Shield, Users, Settings, BarChart3, Database, User, Eye, EyeOff, Loader2 } from "lucide-react"
+import toast from "react-hot-toast"
 
 interface FormData {
   username: string
@@ -30,6 +31,7 @@ export default function AdminLoginPage() {
     username: "",
     password: "",
   })
+  const [isLoading, setIsLoading] = useState(false)
 
   // Debounce username validation
   useEffect(() => {
@@ -99,21 +101,41 @@ export default function AdminLoginPage() {
     setShowPassword(!showPassword)
   }
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    const newErrors = { username: "", password: "" }
-    if (!formData.username) {
-      newErrors.username = "Username is required"
-    }
+    let hasError = false
+
+    // if (!formData.username) {
+    //   toast.error("Username is required", { position: "top-center" })
+    //   hasError = true
+    // }
     if (!formData.password) {
-      newErrors.password = "Password is required"
+      toast.error("Password is required", { position: "top-center" })
+      hasError = true
     }
-    setErrors(newErrors)
-    if (formData.username && formData.password && validateUsername(formData.username)) {
-      console.log("Admin logging in with:", { ...formData, rememberMe })
-      // Redirect to admin dashboard after successful login
+    if (!formData.username) {
+      toast.error("Username is required", { position: "top-center" })
+      hasError = true
+    }
+    if (formData.username && !validateUsername(formData.username)) {
+      toast.error("Username must be at least 3 characters long", { position: "top-center" })
+      hasError = true
+    }
+    if (formData.password && !validatePassword(formData.password)) {
+      toast.error("Password must be at least 8 characters long", { position: "top-center" })
+      hasError = true
+    }
+    if (hasError) return
+
+    setIsLoading(true)
+    const loadingToastId = toast.loading("Logging in...", { position: "top-center" })
+
+    setTimeout(() => {
+      setIsLoading(false)
+      toast.dismiss(loadingToastId)
+      toast.success("Login successful!", { position: "top-center" })
       // window.location.href = "/admin/dashboard"
-    }
+    }, 2000)
   }
 
   return (
@@ -126,7 +148,7 @@ export default function AdminLoginPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gray-800 rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden w-full max-w-[375px] sm:max-w-xl md:max-w-3xl lg:max-w-[1000px] grid grid-cols-1 md:grid-cols-2 relative p-2 sm:p-0 border border-gray-700"
+        className="bg-gray-800 rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden w-[96%] max-w-4xl grid grid-cols-1 md:grid-cols-2 relative p-2 sm:p-0 border border-gray-700"
       >
         {/* Left Side - Hidden on mobile - Admin themed */}
         <div className="hidden md:flex bg-gradient-to-br from-gray-700 to-gray-800 p-4 sm:p-6 lg:p-8 text-white flex-col items-center justify-center relative min-h-[400px]">
@@ -172,7 +194,7 @@ export default function AdminLoginPage() {
         {/* Right Side - Login Form */}
         <div className="p-4 sm:p-8 w-full flex flex-col justify-center bg-gray-800">
           {/* Heading at the top */}
-          <div className="flex flex-col items-center mt-4 mb-7 gap-y-1">
+          <div className="flex flex-col items-center mt-1.5 mb-7 gap-y-0.5">
             <h1 className="text-2xl font-bold text-white">Administrator Access</h1>
             <p className="text-gray-300 text-sm">Please enter your admin credentials</p>
           </div>
@@ -186,9 +208,9 @@ export default function AdminLoginPage() {
                     placeholder="Admin Username"
                     value={formData.username}
                     onChange={handleInputChange("username")}
-                    className="h-[50px] sm:h-[54px] text-base sm:text-lg pl-11 border-2 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400 rounded-lg focus:border-gray-500 focus:ring-gray-500/20 transition-colors"
+                    className="h-12 text-base sm:text-lg pl-[42px] border-2 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400 rounded-lg focus:border-gray-500 focus:ring-gray-500/20 transition-colors"
                   />
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 </div>
                 {errors.username && <p className="text-red-400 text-sm ml-1">{errors.username}</p>}
               </div>
@@ -201,9 +223,9 @@ export default function AdminLoginPage() {
                     placeholder="Admin Password"
                     value={formData.password}
                     onChange={handleInputChange("password")}
-                    className="h-[50px] sm:h-[54px] text-base sm:text-lg pl-11 pr-9 border-2 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400 rounded-lg focus:border-gray-500 focus:ring-gray-500/20 transition-colors"
+                    className="h-12 text-base sm:text-lg pl-[42px] pr-9 border-2 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400 rounded-lg focus:border-gray-500 focus:ring-gray-500/20 transition-colors"
                   />
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <button
                     type="button"
                     onClick={togglePasswordVisibility}
@@ -236,9 +258,17 @@ export default function AdminLoginPage() {
               {/* Login Button */}
               <Button
                 type="submit"
-                className="w-full cursor-pointer h-[50px] sm:h-[54px] font-semibold text-sm sm:text-base bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] mb-6"
+                className="w-full cursor-pointer h-[50px] sm:h-[54px] font-semibold text-sm sm:text-base bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] mb-4 flex items-center justify-center gap-x-2"
+                disabled={isLoading}
               >
-                ACCESS ADMIN DASHBOARD
+                {isLoading ? (
+                  <>
+                    <Loader2 className="animate-spin h-5 w-5" />
+                    Logging in...
+                  </>
+                ) : (
+                  "ACCESS ADMIN DASHBOARD"
+                )}
               </Button>
             </div>
           </form>
