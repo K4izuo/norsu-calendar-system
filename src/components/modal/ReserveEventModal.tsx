@@ -2,10 +2,10 @@
 
 import React, { useEffect, useRef, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { CalendarPlus, CalendarPlus2, Clock, X, User, Building, CalendarClock, FileText, CheckCircle2 } from "lucide-react"
+import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Label } from "@/components/ui/label"
+import { Tabs, TabsContent } from "@/components/ui/tabs"
+// import { Label } from "@/components/ui/label"
 import toast from "react-hot-toast" // Import toast
 import { ReserveEventFormTab } from "@/components/modal/reserve-event-tab/event-form-tab"
 import { ReserveEventAdditionalTab } from "@/components/modal/reserve-event-tab/event-additional-tab"
@@ -204,7 +204,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
         onClose();
       }, 1000);
       
-    } catch (error) {
+    } catch {
       // Show error toast
       toast.error("Failed to reserve event. Please try again.");
     } finally {
@@ -219,17 +219,6 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
       formData.timeStart !== "" && 
       formData.timeEnd !== ""
     )
-  }
-
-  // Function to validate time range
-  const validateTimeRange = () => {
-    if (formData.timeStart && formData.timeEnd) {
-      if (formData.timeStart >= formData.timeEnd) {
-        toast.error("End time must be after start time");
-        return false;
-      }
-    }
-    return true;
   }
 
   // Function to show form validation toast

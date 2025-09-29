@@ -9,12 +9,11 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
-import { CalendarIcon, Clock, Bell, CalendarClock, ChevronLeft, ChevronRight } from "lucide-react";
+import { CalendarClock, ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
 import { EventsListModal } from "@/components/modal/EventsListModal";
 import { EventInfoModal } from "@/components/modal/EventInfoModal";
 import { motion, AnimatePresence } from "framer-motion";
-import toast from "react-hot-toast";
 
 // Define the EventDetails interface if not imported
 interface EventDetails {
@@ -45,33 +44,18 @@ export default function Home() {
     { title: "Final Exams", date: "2026-01-15" },
   ];
 
-  const today = new Date();
+  const today = useMemo(() => new Date(), []);
   
   // State for current month and year - initialized with today's date
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
+  const [loading, setLoading] = useState(false);
   
   // Animation direction state
   const [direction, setDirection] = useState(0); // -1 for previous, 1 for next, 0 for initial/reset
   
   // Window width state for responsive rendering
   const [windowWidth, setWindowWidth] = useState(0);
-
-  // Calendar grid generation
-  // Get first day of the month (0=Sun, 6=Sat)
-  const firstDayOfMonth = useMemo(() => 
-    new Date(currentYear, currentMonth, 1).getDay(),
-  [currentMonth, currentYear]);
-  
-  // Get last date of the month
-  const lastDateOfMonth = useMemo(() => 
-    new Date(currentYear, currentMonth + 1, 0).getDate(),
-  [currentMonth, currentYear]);
-  
-  // Get last date of previous month
-  const lastDateOfPrevMonth = useMemo(() => 
-    new Date(currentYear, currentMonth, 0).getDate(),
-  [currentMonth, currentYear]);
 
   // Modal states
   const [modalOpen, setModalOpen] = useState(false);
@@ -123,11 +107,11 @@ export default function Home() {
   };
 
   // Sample events for demonstration (assuming events on day 15, 20, and 25)
-  const eventsMap = {
+  const eventsMap = useMemo(() => ({
     15: { title: "University Meeting", count: 1 },
     20: { title: "Faculty Conference", count: 3 },
     25: { title: "Deadline for Submissions", count: 2 },
-  };
+  }), []);
 
   // Build calendar days (6 rows x 7 columns = 42 cells)
   const calendarDays = useMemo(() => {
@@ -188,7 +172,7 @@ export default function Home() {
   }, [currentMonth, currentYear, today, eventsMap]);
 
   // Format month and year
-  const monthNames = [
+  const monthNames = useMemo(() => [
     "January",
     "February",
     "March",
@@ -201,7 +185,7 @@ export default function Home() {
     "October",
     "November",
     "December",
-  ];
+  ], []);
   
   // Get current month name and year as a formatted string
   const currentMonthYear = useMemo(() => 
@@ -339,6 +323,16 @@ export default function Home() {
       window.removeEventListener('resize', handleResize);
     };
   }, []); // Empty array ensures effect runs only once on mount
+
+  // Calendar day click handler: open modal, show loading in modal
+  const handleDayClick = (day: typeof calendarDays[number]) => {
+    setSelectedDay(day);
+    setModalOpen(true);      // Open modal immediately
+    setLoading(true);        // Start loading animation in modal
+    setTimeout(() => {
+      setLoading(false);     // Stop loading after 700ms
+    }, 700);
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col overflow-x-hidden">
@@ -529,7 +523,7 @@ export default function Home() {
                   </div>
 
                   {/* Calendar table days with animation */}
-                  <div className="flex flex-col px-[1px] sm:px-0 py-[0.5px] w-full flex-1 h-full min-h-0">
+                  <div className="flex flex-col px-[1px] sm:px-0 py-[0.5px] w-full flex-1 h-full min-h-0 relative">
                     <AnimatePresence mode="wait" custom={direction}>
                       <motion.div
                         key={`${currentMonth}-${currentYear}`}
@@ -549,16 +543,13 @@ export default function Home() {
                               ${day.isToday ? "border-blue-500 border-2" : ""}
                               ${day.hasEvent && day.currentMonth ? "bg-blue-50" : ""}
                             `}
-                            onClick={() => {
-                              setSelectedDay(day);
-                              setModalOpen(true);
-                            }}
+                            onClick={() => handleDayClick(day)}
                             initial={{ scale: 0.97, opacity: 0 }}
                             animate={{ 
                               scale: 1, 
                               opacity: 1,
                               transition: { 
-                                delay: Math.min(0.01 * idx, 0.3), // Cap maximum delay
+                                delay: Math.min(0.01 * idx, 0.3),
                                 duration: 0.12
                               }
                             }}
@@ -701,6 +692,7 @@ export default function Home() {
         }
         events={getEventsForSelectedDay()}
         onEventClick={handleEventClick}
+        isLoading={loading} // <-- Use the dedicated modal loading state
         showRecent={showRecent}
         setShowRecent={setShowRecent}
         eventDate={

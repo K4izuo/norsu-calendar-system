@@ -6,7 +6,7 @@ import { CalendarPlus, Clock, MapPin, User, CalendarClock, Layers, FileText, Sea
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ReserveEventModal } from "@/components/modal/ReserveEventModal"
-import type { EventsListModalProps, EventDetails } from "@/interface/faculty-events-props"
+import type { EventsListModalProps, EventDetails, ReservationFormData } from "@/interface/faculty-events-props"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Input } from "../ui/input"
 
@@ -26,7 +26,7 @@ export function EventsListModal({
   eventDate,
   showRecent,
   setShowRecent,
-  role,
+  // role,
 }: EventsListModalProps & { showRecent: boolean; setShowRecent: React.Dispatch<React.SetStateAction<boolean>>; role?: Role }) {
   const [reserveModalOpen, setReserveModalOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
@@ -78,7 +78,7 @@ export function EventsListModal({
   }
 
   const handleReserve = useCallback(() => setReserveModalOpen(true), [])
-  const handleSubmitReservation = useCallback((formData: any) => {
+  const handleSubmitReservation = useCallback((formData: ReservationFormData) => {
     setReserveModalOpen(false)
     onReserve?.(formData)
   }, [onReserve])
@@ -109,21 +109,6 @@ export function EventsListModal({
       if (recentLoadingTimeout.current) clearTimeout(recentLoadingTimeout.current)
     }
   }, [isOpen, setShowRecent])
-
-  const getLoadingColor = () => {
-    switch (role) {
-      case "student":
-        return { spinner: "border-green-400", icon: "text-green-600" }
-      case "faculty":
-      case "staff":
-        return { spinner: "border-blue-400", icon: "text-blue-600" }
-      case "admin":
-        return { spinner: "border-neutral-700", icon: "text-neutral-900" }
-      default:
-        return { spinner: "border-primary", icon: "text-primary" }
-    }
-  }
-  const loadingColor = getLoadingColor()
 
   return (
     <>
@@ -236,9 +221,10 @@ export function EventsListModal({
 
                       return (
                         <div
-                          key={event.id}
+                          key={event.id || index} // Use index as fallback if event.id is missing
                           className="group bg-card border border-border/100 rounded-xl p-4 sm:p-6 cursor-pointer transition-all duration-200 hover:shadow-lg hover:border-primary/30 hover:bg-card/80"
                           onClick={() => handleEventClick(event)}
+                          data-index={index} // Example usage: add as a data attribute for debugging or testing
                         >
                           <div className="flex items-start justify-between mb-4">
                             <h3 className="text-xl font-semibold text-card-foreground group-hover:text-primary transition-colors text-pretty">

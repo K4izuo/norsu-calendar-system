@@ -1,4 +1,4 @@
-import { EventDetails } from "@/interface/faculty-events-details"
+import { EventDetails } from "@/interface/faculty-events-props"
 
 export async function fetchFacultyEvents(date?: string): Promise<EventDetails[]> {
   // Replace with your actual API endpoint

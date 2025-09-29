@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { motion } from "framer-motion"
 import { Lock, Bike, Route, MapPin, Trophy, Timer, User, Eye, EyeOff, Loader2 } from "lucide-react"
-import toast, { Toaster } from "react-hot-toast"
+import toast from "react-hot-toast"
 // import Link from "next/link"
 
 interface FormData {

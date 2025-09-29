@@ -46,10 +46,10 @@ export default function AuthRegisterPage() {
               tabIndex={0}
               role="button"
               className="bg-white border border-gray-200 rounded-xl shadow-md flex flex-col items-center px-6 py-6 sm:px-10 sm:py-8 w-full sm:w-72 transition-all duration-200 hover:shadow-xl hover:-translate-y-1 hover:border-green-400 group cursor-pointer outline-none"
-              onClick={() => router.push("/auth/student/login")}
+              onClick={() => router.push("/auth/student/register")}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
-                  router.push("/auth/student/login");
+                  router.push("/auth/student/register");
                 }
               }}
             >
@@ -66,10 +66,10 @@ export default function AuthRegisterPage() {
               tabIndex={0}
               role="button"
               className="bg-white border border-gray-200 rounded-xl shadow-md flex flex-col items-center px-6 py-6 sm:px-10 sm:py-8 w-full sm:w-72 transition-all duration-200 hover:shadow-xl hover:-translate-y-1 hover:border-blue-400 group cursor-pointer outline-none"
-              onClick={() => router.push("/auth/faculty/login")}
+              onClick={() => router.push("/auth/faculty/register")}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
-                  router.push("/auth/faculty/login");
+                  router.push("/auth/faculty/register");
                 }
               }}
             >

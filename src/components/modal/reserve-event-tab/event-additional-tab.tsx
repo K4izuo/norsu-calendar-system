@@ -3,9 +3,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { X, User } from "lucide-react"
+import { ReservationFormData } from "@/interface/faculty-events-props"
 
 interface Props {
-  formData: any
+  formData: ReservationFormData
   infoTypes: { value: string; label: string }[]
   categories: { value: string; label: string }[]
   tagInput: string

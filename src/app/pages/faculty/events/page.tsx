@@ -7,7 +7,7 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
-import { CalendarClock, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import { CalendarClock, ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { EventsListModal } from "@/components/modal/EventsListModal";
 import { EventInfoModal } from "@/components/modal/EventInfoModal";
@@ -17,7 +17,7 @@ import { FacultyPageEventDetails } from "@/interface/faculty-events-props";
 import { fetchFacultyEvents } from "@/api/facultyEventsApi";
 
 export default function FacultyEventsTab() {
-  const today = new Date();
+  const today = useMemo(() => new Date(), []);
 
   // State for current month and year - initialized with today's date
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
@@ -25,22 +25,6 @@ export default function FacultyEventsTab() {
 
   // Animation direction state
   const [direction, setDirection] = useState(0); // -1 for previous, 1 for next, 0 for initial/reset
-
-  // Calculate calendar data based on current month and year
-  const firstDayOfMonth = useMemo(
-    () => new Date(currentYear, currentMonth, 1).getDay(),
-    [currentMonth, currentYear]
-  );
-
-  const lastDateOfMonth = useMemo(
-    () => new Date(currentYear, currentMonth + 1, 0).getDate(),
-    [currentMonth, currentYear]
-  );
-
-  const lastDateOfPrevMonth = useMemo(
-    () => new Date(currentYear, currentMonth, 0).getDate(),
-    [currentMonth, currentYear]
-  );
 
   // Modal states
   const [modalOpen, setModalOpen] = useState(false);
@@ -132,11 +116,11 @@ export default function FacultyEventsTab() {
   };
 
   // Sample events for demonstration (assuming events on day 15, 20, and 25)
-  const eventsMap = {
+  const eventsMap = useMemo(() => ({
     15: { title: "University Meeting", count: 1 },
     20: { title: "Faculty Conference", count: 6 },
     25: { title: "Deadline for Submissions", count: 2 },
-  };
+  }), []);
 
   // Build calendar days (6 rows x 7 columns = 42 cells)
   const calendarDays = useMemo(() => {
@@ -204,98 +188,16 @@ export default function FacultyEventsTab() {
     return days;
   }, [currentMonth, currentYear, today, eventsMap]);
 
-  const monthNames = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
+  const monthNames = useMemo(() => [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+  ], []);
 
   // Get current month name and year as a formatted string
   const currentMonthYear = useMemo(
     () => `${monthNames[currentMonth]} ${currentYear}`,
     [currentMonth, currentYear, monthNames]
   );
-
-  // Generate enhanced events for the selected day
-  const getEventsForSelectedDay = () => {
-    if (!selectedDay || !selectedDay.hasEvent || !selectedDay.currentMonth) {
-      return [];
-    }
-
-    const dayEvents = eventsMap[selectedDay.date as keyof typeof eventsMap];
-    if (!dayEvents) return [];
-
-    // Enhanced event generation with more variety and realistic data
-    const eventTypes = [
-      { category: "Academic", title: "Faculty Meeting" },
-      { category: "Workshop", title: "Research Workshop" },
-      { category: "Social", title: "Campus Social Event" },
-      { category: "Academic", title: "Department Conference" },
-      { category: "Workshop", title: "Professional Development" },
-      { category: "Social", title: "Student Organization Event" },
-    ];
-
-    const locations = [
-      "Main Building, Room 101",
-      "Science Building, Room 203",
-      "Library Conference Room",
-      "Auditorium",
-      "Computer Lab, Room 405",
-      "Student Center",
-    ];
-
-    return Array.from({ length: dayEvents.count }, (_, i) => {
-      // Get a consistent but pseudo-random event type and location
-      const eventTypeIndex = (selectedDay.date + i) % eventTypes.length;
-      const locationIndex = (i + selectedDay.date * 2) % locations.length;
-      const eventType = eventTypes[eventTypeIndex];
-      const startHour = 8 + Math.floor(i / 2);
-      const endHour = startHour + 1 + (i % 2);
-
-      // Format times with AM/PM
-      const startTime = `${startHour > 12 ? startHour - 12 : startHour}:${
-        i % 2 === 0 ? "00" : "30"
-      } ${startHour >= 12 ? "PM" : "AM"}`;
-      const endTime = `${endHour > 12 ? endHour - 12 : endHour}:${
-        i % 2 === 0 ? "30" : "00"
-      } ${endHour >= 12 ? "PM" : "AM"}`;
-
-      return {
-        id: `event-${selectedDay.date}-${i}`,
-        title:
-          dayEvents.count > 1 ? `${eventType.title} ${i + 1}` : dayEvents.title,
-        date: `${monthNames[currentMonth]} ${selectedDay.date}, ${currentYear}`,
-        time: `${startTime} - ${endTime}`,
-        location: locations[locationIndex],
-        description:
-          "This event provides an opportunity for faculty and staff to engage with important university matters, share ideas, and collaborate on academic initiatives.",
-        organizer:
-          i % 2 === 0 ? "Faculty of Science" : "Department of Education",
-        capacity: `${60 + i * 20} seats`,
-        facilities: ["Wi-Fi", "Projector", "Air Conditioning"],
-        registrationStatus: i % 3 === 0 ? "Closed" : "Open",
-        attendeeCount: `${30 + i * 5}/${60 + i * 20}`,
-        registrationDeadline: `${monthNames[currentMonth]} ${Math.max(
-          1,
-          selectedDay.date - 2
-        )}, ${currentYear}`,
-        requirements:
-          i % 2 === 0
-            ? "Please bring your university ID and laptop"
-            : undefined,
-        category: eventType.category,
-      };
-    });
-  };
 
   // Open event info modal with the selected event
   const handleEventClick = useCallback((event: FacultyPageEventDetails) => {
@@ -308,12 +210,6 @@ export default function FacultyEventsTab() {
       setEventInfoLoading(false);
     }, 600); // 600ms for demo
   }, []);
-
-  // Format selected date for display
-  const selectedDateLabel = useMemo(() => {
-    if (!selectedDay) return "";
-    return `${monthNames[currentMonth]} ${selectedDay.date}, ${currentYear}`;
-  }, [selectedDay, currentMonth, currentYear]);
 
   // Animation variants
   const calendarVariants = {
@@ -405,12 +301,6 @@ export default function FacultyEventsTab() {
     },
     [selectedDay, modalOpen]
   );
-
-  // Only generate events when modal is actually open
-  const eventsForSelectedDay = useMemo(() => {
-    if (!modalOpen || !selectedDay) return [];
-    return getEventsForSelectedDay();
-  }, [modalOpen, selectedDay]);
 
   useEffect(() => {
     setLoading(true);
@@ -745,9 +635,9 @@ export default function FacultyEventsTab() {
                 : `${selectedDay.date} ${monthNames[currentMonth]}, ${currentYear} (Outside current month)`
               : ""
           }
-          events={eventsForSelectedDay}
+          events={events} // <-- Use the fetched events here
           onEventClick={handleEventClick}
-          isLoading={eventsListLoading} // Pass to EventsListModal
+          isLoading={eventsListLoading}
           showRecent={showRecent}
           setShowRecent={setShowRecent}
           eventDate={

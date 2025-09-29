@@ -25,7 +25,7 @@ export interface EventsListModalProps {
   isOpen: boolean
   onClose: () => void
   children?: React.ReactNode
-  onReserve?: (formData: any) => void
+  onReserve?: (formData: ReservationFormData) => void
   title?: string
   events?: EventDetails[]
   onEventClick?: (event: EventDetails) => void

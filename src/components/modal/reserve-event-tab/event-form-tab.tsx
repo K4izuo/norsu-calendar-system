@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import toast from "react-hot-toast"
+import { ReservationFormData } from "@/interface/faculty-events-props"
 
 interface Venue {
   id: string
@@ -13,7 +14,7 @@ interface Venue {
 }
 
 interface Props {
-  formData: any
+  formData: ReservationFormData
   venues: Venue[]
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void
   handleVenueChange: (value: string) => void
@@ -80,19 +81,6 @@ export function ReserveEventFormTab({
     }
   };
 
-  const getTimeValue = (time: string) => {
-    // If empty, return empty string
-    if (!time) return "";
-    // If already "HH:mm", return as is
-    if (/^\d{2}:\d{2}$/.test(time)) return time;
-    // If ISO or other, convert to local "HH:mm"
-    const date = new Date(time);
-    if (isNaN(date.getTime())) return "";
-    const hh = String(date.getHours()).padStart(2, "0");
-    const mm = String(date.getMinutes()).padStart(2, "0");
-    return `${hh}:${mm}`;
-  };
-
   return (
     <form className="space-y-4 sm:space-y-6">
       <div className="space-y-4 sm:space-y-5">
@@ -144,7 +132,7 @@ export function ReserveEventFormTab({
                     </span>
                   </TooltipTrigger>
                   <TooltipContent side="top" className="bg-white text-gray-700 border border-gray-200 shadow-md px-3 py-2 rounded-md text-sm max-w-xs">
-                    Specify how many days you want to reserve this event for. For example, enter "3" to reserve for 3 days.
+                    Specify how many days you want to reserve this event for. For example, enter &quot;3&quot; to reserve for 3 days.
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>

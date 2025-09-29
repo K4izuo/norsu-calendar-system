@@ -10,7 +10,6 @@ import {
   Users,
   Info,
   X,
-  CalendarDays,
 } from "lucide-react";
 import { Button } from "../ui/button";
 
@@ -50,7 +49,7 @@ const getStatus = (
   if (status === "open") return "approved";
   if (status === "closed") return "rejected";
   return status === "pending" || status === "approved" || status === "rejected"
-    ? (status as any)
+    ? (status as "pending" | "approved" | "rejected")
     : "pending";
 };
 
