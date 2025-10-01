@@ -45,6 +45,17 @@ interface FormData {
   degree_course_id: string
 }
 
+const fieldLabelMap: Record<string, string> = {
+  first_name: "first name",
+  middle_name: "middle name",
+  last_name: "last name",
+  email: "email",
+  studentId: "student ID",
+  campus_id: "campus",
+  college_id: "college",
+  degree_course_id: "course",
+}
+
 export default function StudentRegisterPage() {
   const [activeTab, setActiveTab] = useState("details")
   const [formData, setFormData] = useState<FormData>({
@@ -87,7 +98,8 @@ export default function StudentRegisterPage() {
     setMissingFields(missing)
     if (Object.keys(missing).length > 0) {
       Object.keys(missing).forEach((field, i) => {
-        setTimeout(() => toast.error(`Missing or invalid: ${field}`), i * 200)
+        const label = fieldLabelMap[field] || field
+        setTimeout(() => toast.error(`Missing or invalid: ${label}`), i * 200)
       })
       return false
     }
