@@ -35,27 +35,27 @@ const courseOptions = [
 ]
 
 interface FormData {
-  firstName: string
-  middleName: string
-  lastName: string
+  first_name: string
+  middle_name: string
+  last_name: string
   email: string
   facultyId: string
-  campus: string
-  college: string
-  course: string
+  campus_id: string
+  college_id: string
+  degree_course_id: string
 }
 
 export default function FacultyRegisterPage() {
   const [activeTab, setActiveTab] = useState("details")
   const [formData, setFormData] = useState<FormData>({
-    firstName: "",
-    middleName: "",
-    lastName: "",
+    first_name: "",
+    middle_name: "",
+    last_name: "",
     email: "",
     facultyId: "",
-    campus: "",
-    college: "",
-    course: "",
+    campus_id: "",
+    college_id: "",
+    degree_course_id: "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [missingFields, setMissingFields] = useState<Record<string, boolean>>({})
@@ -75,14 +75,14 @@ export default function FacultyRegisterPage() {
 
   const checkFormFields = () => {
     const missing: Record<string, boolean> = {}
-    if (!formData.firstName.trim()) missing.firstName = true
-    if (!formData.middleName.trim()) missing.middleName = true
-    if (!formData.lastName.trim()) missing.lastName = true
+    if (!formData.first_name.trim()) missing.first_name = true
+    if (!formData.middle_name.trim()) missing.middle_name = true
+    if (!formData.last_name.trim()) missing.last_name = true
     if (!formData.email.trim() || !formData.email.includes("@")) missing.email = true
-    if (!formData.facultyId.trim()) missing.studentId = true
-    if (!formData.campus) missing.campus = true
-    if (!formData.college) missing.college = true
-    if (!formData.course) missing.course = true
+    if (!formData.facultyId.trim()) missing.facultyId = true
+    if (!formData.campus_id) missing.campus_id = true
+    if (!formData.college_id) missing.college_id = true
+    if (!formData.degree_course_id) missing.degree_course_id = true
 
     setMissingFields(missing)
     if (Object.keys(missing).length > 0) {
@@ -103,28 +103,28 @@ export default function FacultyRegisterPage() {
     toast.success("Registration successful!", { id: toastId })
     setIsSubmitting(false)
     setFormData({
-      firstName: "",
-      middleName: "",
-      lastName: "",
+      first_name: "",
+      middle_name: "",
+      last_name: "",
       email: "",
       facultyId: "",
-      campus: "",
-      college: "",
-      course: "",
+      campus_id: "",
+      college_id: "",
+      degree_course_id: "",
     })
     setTimeout(() => setActiveTab("details"), 1000)
   }
 
   const isFormValid = () =>
-    formData.firstName.trim() &&
-    formData.middleName.trim() &&
-    formData.lastName.trim() &&
+    formData.first_name.trim() &&
+    formData.middle_name.trim() &&
+    formData.last_name.trim() &&
     formData.email.trim() &&
     formData.email.includes("@") &&
     formData.facultyId.trim() &&
-    formData.campus &&
-    formData.college &&
-    formData.course
+    formData.campus_id &&
+    formData.college_id &&
+    formData.degree_course_id
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4 relative overflow-hidden">
@@ -171,55 +171,55 @@ export default function FacultyRegisterPage() {
                 {/* Name row */}
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <div className="flex-1 flex flex-col gap-1">
-                    <Label htmlFor="firstName" className="inline-flex pointer-events-none">
+                    <Label htmlFor="first_name" className="inline-flex pointer-events-none">
                       <span className="pointer-events-auto">
                         First Name <span className="text-red-500">*</span>
                       </span>
                     </Label>
                     <Input
-                      id="firstName"
-                      name="firstName"
+                      id="first_name"
+                      name="first_name"
                       autoComplete="given-name"
                       placeholder="Enter first name"
-                      value={formData.firstName}
+                      value={formData.first_name}
                       onChange={handleInputChange}
-                      className={`h-11 text-base border-2 rounded-lg ${missingFields.firstName ? "border-red-400" : "border-gray-200"} focus:border-ring`}
+                      className={`h-11 text-base border-2 rounded-lg ${missingFields.first_name ? "border-red-400" : "border-gray-200"} focus:border-ring`}
                     />
                   </div>
                   <div className="flex-1 flex flex-col gap-1">
-                    <Label htmlFor="middleName" className="inline-flex pointer-events-none">
+                    <Label htmlFor="middle_name" className="inline-flex pointer-events-none">
                       <span className="pointer-events-auto">
                         Middle Name <span className="text-red-500">*</span>
                       </span>
                     </Label>
                     <Input
-                      id="middleName"
-                      name="middleName"
+                      id="middle_name"
+                      name="middle_name"
                       autoComplete="additional-name"
                       placeholder="Enter middle name"
-                      value={formData.middleName}
+                      value={formData.middle_name}
                       onChange={handleInputChange}
-                      className={`h-11 text-base border-2 rounded-lg ${missingFields.middleName ? "border-red-400" : "border-gray-200"} focus:border-ring`}
+                      className={`h-11 text-base border-2 rounded-lg ${missingFields.middle_name ? "border-red-400" : "border-gray-200"} focus:border-ring`}
                     />
                   </div>
                   <div className="flex-1 flex flex-col gap-1">
-                    <Label htmlFor="lastName" className="inline-flex pointer-events-none">
+                    <Label htmlFor="last_name" className="inline-flex pointer-events-none">
                       <span className="pointer-events-auto">
                         Last Name <span className="text-red-500">*</span>
                       </span>
                     </Label>
                     <Input
-                      id="lastName"
-                      name="lastName"
+                      id="last_name"
+                      name="last_name"
                       autoComplete="family-name"
                       placeholder="Enter last name"
-                      value={formData.lastName}
+                      value={formData.last_name}
                       onChange={handleInputChange}
-                      className={`h-11 text-base border-2 rounded-lg ${missingFields.lastName ? "border-red-400" : "border-gray-200"} focus:border-ring`}
+                      className={`h-11 text-base border-2 rounded-lg ${missingFields.last_name ? "border-red-400" : "border-gray-200"} focus:border-ring`}
                     />
                   </div>
                 </div>
-                {/* Email & Student ID row */}
+                {/* Email & Faculty ID row */}
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <div className="flex-1 flex flex-col gap-1">
                     <Label htmlFor="email" className="inline-flex pointer-events-none">
@@ -251,26 +251,28 @@ export default function FacultyRegisterPage() {
                       placeholder="Enter faculty ID"
                       value={formData.facultyId}
                       onChange={handleInputChange}
-                      className={`h-11 text-base border-2 rounded-lg ${missingFields.studentId ? "border-red-400" : "border-gray-200"} focus:border-ring`}
+                      className={`h-11 text-base border-2 rounded-lg ${missingFields.facultyId ? "border-red-400" : "border-gray-200"} focus:border-ring`}
                     />
                   </div>
                 </div>
                 {/* Campus & College row */}
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <div className="flex-1 flex flex-col gap-1">
-                    <Label htmlFor="campus" className="inline-flex pointer-events-none">
+                    <Label htmlFor="campus_id" className="inline-flex pointer-events-none">
                       <span className="pointer-events-auto">
                         Campus <span className="text-red-500">*</span>
                       </span>
                     </Label>
                     <Select
-                      value={formData.campus}
-                      onValueChange={value => handleInputChange({ target: { name: "campus", value } } as any)}
-                      name="campus"
+                      value={formData.campus_id}
+                      onValueChange={value =>
+                        setFormData(prev => ({ ...prev, campus_id: value }))
+                      }
+                      name="campus_id"
                     >
                       <SelectTrigger
-                        id="campus"
-                        className={`h-11 cursor-pointer text-base border-2 rounded-lg w-full ${missingFields.campus ? "border-red-400" : "border-gray-200"}`}
+                        id="campus_id"
+                        className={`h-11 cursor-pointer text-base border-2 rounded-lg w-full ${missingFields.campus_id ? "border-red-400" : "border-gray-200"}`}
                       >
                         <SelectValue placeholder="Select campus" />
                       </SelectTrigger>
@@ -282,20 +284,21 @@ export default function FacultyRegisterPage() {
                     </Select>
                   </div>
                   <div className="flex-1 flex flex-col gap-1">
-                    <Label htmlFor="college" className="inline-flex pointer-events-none">
+                    <Label htmlFor="college_id" className="inline-flex pointer-events-none">
                       <span className="pointer-events-auto">
                         College <span className="text-red-500">*</span>
                       </span>
                     </Label>
                     <Select
-                      value={formData.college}
-                      onValueChange={value => handleInputChange({ target: { name: "college", value } } as any)}
-                      name="college"
+                      value={formData.college_id}
+                      onValueChange={value =>
+                        setFormData(prev => ({ ...prev, college_id: value }))
+                      }
+                      name="college_id"
                     >
                       <SelectTrigger
-                        id="college"
-                        // autoComplete="off"
-                        className={`h-11 cursor-pointer text-base border-2 rounded-lg w-full ${missingFields.college ? "border-red-400" : "border-gray-200"}`}
+                        id="college_id"
+                        className={`h-11 cursor-pointer text-base border-2 rounded-lg w-full ${missingFields.college_id ? "border-red-400" : "border-gray-200"}`}
                       >
                         <SelectValue placeholder="Select college" />
                       </SelectTrigger>
@@ -309,20 +312,21 @@ export default function FacultyRegisterPage() {
                 </div>
                 {/* Course row (below) */}
                 <div className="flex flex-col gap-1">
-                  <Label htmlFor="course" className="inline-flex pointer-events-none">
+                  <Label htmlFor="degree_course_id" className="inline-flex pointer-events-none">
                     <span className="pointer-events-auto">
                       Course <span className="text-red-500">*</span>
                     </span>
                   </Label>
                   <Select
-                    value={formData.course}
-                    onValueChange={value => handleInputChange({ target: { name: "course", value } } as any)}
-                    name="course"
+                    value={formData.degree_course_id}
+                    onValueChange={value =>
+                        setFormData(prev => ({ ...prev, degree_course_id: value }))
+                      }
+                    name="degree_course_id"
                   >
                     <SelectTrigger
-                      id="course"
-                      // autoComplete="off"
-                      className={`h-11 cursor-pointer text-base border-2 rounded-lg w-full ${missingFields.course ? "border-red-400" : "border-gray-200"}`}
+                      id="degree_course_id"
+                      className={`h-11 cursor-pointer text-base border-2 rounded-lg w-full ${missingFields.degree_course_id ? "border-red-400" : "border-gray-200"}`}
                     >
                       <SelectValue placeholder="Select course" />
                     </SelectTrigger>
@@ -357,7 +361,7 @@ export default function FacultyRegisterPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <p className="text-base text-gray-500">Full Name</p>
-                    <p className="font-medium text-base">{`${formData.firstName} ${formData.middleName} ${formData.lastName}`.trim() || "Not provided"}</p>
+                    <p className="font-medium text-base">{`${formData.first_name} ${formData.middle_name} ${formData.last_name}`.trim() || "Not provided"}</p>
                   </div>
                   <div>
                     <p className="text-base text-gray-500">Email</p>
@@ -369,15 +373,15 @@ export default function FacultyRegisterPage() {
                   </div>
                   <div>
                     <p className="text-base text-gray-500">Campus</p>
-                    <p className="font-medium text-base">{campusOptions.find(c => c.value === formData.campus)?.label || "Not selected"}</p>
+                    <p className="font-medium text-base">{campusOptions.find(c => c.value === formData.campus_id)?.label || "Not selected"}</p>
                   </div>
                   <div>
                     <p className="text-base text-gray-500">College</p>
-                    <p className="font-medium text-base">{collegeOptions.find(c => c.value === formData.college)?.label || "Not selected"}</p>
+                    <p className="font-medium text-base">{collegeOptions.find(c => c.value === formData.college_id)?.label || "Not selected"}</p>
                   </div>
                   <div>
                     <p className="text-base text-gray-500">Course</p>
-                    <p className="font-medium text-base">{courseOptions.find(c => c.value === formData.course)?.label || "Not selected"}</p>
+                    <p className="font-medium text-base">{courseOptions.find(c => c.value === formData.degree_course_id)?.label || "Not selected"}</p>
                   </div>
                 </div>
               </div>
@@ -387,13 +391,9 @@ export default function FacultyRegisterPage() {
                   : 'bg-yellow-50 text-yellow-800'
               }`}>
                 {isFormValid() ? (
-                  <>
-                    <span className="text-base">Ready for submission</span>
-                  </>
+                  <span className="text-base">Ready for submission</span>
                 ) : (
-                  <>
-                    <span className="text-base">Please complete all required fields</span>
-                  </>
+                  <span className="text-base">Please complete all required fields</span>
                 )}
               </div>
               <div className="flex justify-end gap-3">
