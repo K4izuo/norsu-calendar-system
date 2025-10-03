@@ -1,5 +1,7 @@
+type EventStatus = "pending" | "approved" | "rejected"
+
 export interface EventDetails {
-  id: string
+  id: number // Changed from string to number
   title: string
   date: string
   time: string
@@ -8,7 +10,7 @@ export interface EventDetails {
   capacity: string
   facilities?: string[]
   registrationStatus: string
-  attendeeCount: string
+  attendeeCount: number // Changed from string to number
   registrationDeadline: string
   description: string
   requirements?: string
@@ -26,15 +28,23 @@ export interface EventsListModalProps {
   onClose: () => void
   children?: React.ReactNode
   onReserve?: (formData: ReservationFormData) => void
-  title?: string
+  title: string
   events?: EventDetails[]
   onEventClick?: (event: EventDetails) => void
   isLoading?: boolean
   eventDate?: string | undefined
 }
 
+export interface EventCardsListProps {
+  events: EventDetails[]
+  onEventClick?: (event: EventDetails) => void
+  getStartedAgo: (eventDate: string, eventTime: string) => string | null
+  getStatus: (event: EventDetails) => EventStatus
+  getStatusColor: (status: EventStatus) => string
+}
+
 export interface FacultyPageEventDetails {
-  id: string;
+  id: number; // Changed from string to number
   title: string;
   date: string;
   time: string;
@@ -43,11 +53,13 @@ export interface FacultyPageEventDetails {
   capacity: string;
   facilities?: string[];
   registrationStatus: string;
-  attendeeCount: string;
+  attendeeCount: number; // Changed from string to number
   registrationDeadline: string;
   description: string;
   requirements?: string;
   category?: string;
+  infoType?: string;
+  peopleTag?: string[];
 }
 
 export interface ReservationFormData {

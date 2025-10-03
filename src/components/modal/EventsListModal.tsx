@@ -2,17 +2,43 @@
 
 import React, { useRef, useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { CalendarPlus, Clock, MapPin, User, CalendarClock, Layers, FileText, Search, X } from "lucide-react"
+import { CalendarPlus, Clock, MapPin, User, CalendarClock, Search, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+// import { Badge } from "@/components/ui/badge"
 import { ReserveEventModal } from "@/components/modal/ReserveEventModal"
 import type { EventsListModalProps, EventDetails, ReservationFormData } from "@/interface/faculty-events-props"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+// import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Input } from "../ui/input"
+import { EventCardsList } from "@/components/events-ui/EventsCard"
 
 // Simplified status types
 type EventStatus = "pending" | "approved" | "rejected"
 type Role = "student" | "faculty" | "staff" | "admin" | undefined
+
+// Make this a regular function instead of using useCallback at module level
+const getStartedAgo = (eventDate: string, eventTime: string): string | null => {
+  if (!eventDate || !eventTime) return null;
+  try {
+    const [startTimeRaw] = eventTime.split("-");
+    const startTime = startTimeRaw.trim();
+    const eventStart = new Date(`${eventDate} ${startTime}`);
+    if (isNaN(eventStart.getTime())) return null;
+
+    const now = new Date();
+    if (eventStart > now) return "Upcoming";
+
+    const diffMs = now.getTime() - eventStart.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return "Started just now";
+    if (diffMins < 60) return `Started ${diffMins} minute${diffMins === 1 ? "" : "s"} ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `Started ${diffHours} hour${diffHours === 1 ? "" : "s"} ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `Started ${diffDays} day${diffDays === 1 ? "" : "s"} ago`;
+  } catch {
+    return null;
+  }
+};
 
 export function EventsListModal({
   isOpen,
@@ -121,7 +147,7 @@ export function EventsListModal({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{
-                duration: 0.3,
+                duration: 0.2,
                 ease: [0.22, 1, 0.36, 1],
               }}
             />
@@ -132,7 +158,7 @@ export function EventsListModal({
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               transition={{
                 type: "spring",
-                duration: 0.4,
+                duration: 0.3,
                 bounce: 0.1,
               }}
               className="relative max-w-[900px] bg-background rounded-2xl shadow-2xl w-[99%] sm:w-full sm:mx-4 overflow-hidden flex flex-col max-h-[88vh] border border-border/50"
@@ -203,113 +229,13 @@ export function EventsListModal({
                     </div>
                   </motion.div>
                 ) : filteredEvents.length > 0 ? (
-                  <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
-                    {filteredEvents.map((event, index) => {
-                      const status = getStatus(event)
-                      const reservedBy = event.reservedBy || "Unknown"
-                      const approvedBy = event.approvedBy || "Unknown"
-                      const rejectedBy = event.rejectedBy || "Unknown"
-
-                      let tooltipText = ""
-                      if (status === "pending") {
-                        tooltipText = `Reserved by: ${reservedBy}`
-                      } else if (status === "approved") {
-                        tooltipText = `Approved by: ${approvedBy}`
-                      } else if (status === "rejected") {
-                        tooltipText = `Rejected by: ${rejectedBy}`
-                      }
-
-                      return (
-                        <div
-                          key={event.id || index} // Use index as fallback if event.id is missing
-                          className="group bg-card border border-border/100 rounded-xl p-4 sm:p-6 cursor-pointer transition-all duration-200 hover:shadow-lg hover:border-primary/30 hover:bg-card/80"
-                          onClick={() => handleEventClick(event)}
-                          data-index={index} // Example usage: add as a data attribute for debugging or testing
-                        >
-                          <div className="flex items-start justify-between mb-4">
-                            <h3 className="text-xl font-semibold text-card-foreground group-hover:text-primary transition-colors text-pretty">
-                              {event.title}
-                            </h3>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Badge
-                                    variant="outline"
-                                    className={`${getStatusColor(status)} font-medium px-3 py-1 text-xs uppercase tracking-wide`}
-                                  >
-                                    {status}
-                                  </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent
-                                  side="top"
-                                  className="bg-popover text-popover-foreground border border-border"
-                                >
-                                  {tooltipText}
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                            <div className="flex items-center text-muted-foreground">
-                              <CalendarClock className="h-4 w-4 mr-3 text-primary" />
-                              <span className="text-base font-medium">{event.date}</span>
-                            </div>
-                            <div className="flex items-center text-muted-foreground">
-                              <Clock className="h-4 w-4 mr-3 text-primary" />
-                              <span className="text-base font-medium">{event.time}</span>
-                            </div>
-                            <div className="flex items-center text-muted-foreground">
-                              <MapPin className="h-4 w-4 mr-3 text-primary" />
-                              <span className="text-base font-medium truncate">{event.location}</span>
-                            </div>
-                            <div className="flex items-center text-muted-foreground">
-                              <User className="h-4 w-4 mr-3 text-primary" />
-                              <span className="text-base font-medium">
-                                {event.attendeeCount || event.capacity} attendees
-                              </span>
-                            </div>
-                            <div className="flex items-center text-muted-foreground">
-                              <Layers className="h-4 w-4 mr-3 text-primary" />
-                              <span className="text-sm font-medium">
-                                {event.category || "General"}
-                              </span>
-                            </div>
-                            <div className="flex items-center text-muted-foreground">
-                              <FileText className="h-4 w-4 mr-3 text-primary" />
-                              <span className="text-base font-medium">{event.infoType || "—"}</span>
-                            </div>
-                          </div>
-
-                          {event.peopleTag && event.peopleTag.length > 0 && (
-                            <div className="mb-4">
-                              <div className="flex flex-wrap gap-2">
-                                {event.peopleTag.map((tag, tagIndex) => (
-                                  <Badge
-                                    key={tagIndex}
-                                    variant="secondary"
-                                    className="text-sm bg-muted text-muted-foreground"
-                                  >
-                                    {tag}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          <p className="text-muted-foreground text-base leading-relaxed mb-4 line-clamp-2">
-                            {event.description}
-                          </p>
-
-                          <div className="flex justify-end">
-                            <span className="text-primary text-sm font-medium group-hover:underline">
-                              View details →
-                            </span>
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
+                  <EventCardsList
+                    events={filteredEvents}
+                    onEventClick={handleEventClick}
+                    getStartedAgo={getStartedAgo}
+                    getStatus={getStatus}
+                    getStatusColor={getStatusColor}
+                  />
                 ) : (
                   <div className="flex flex-col items-center justify-center py-24 text-center">
                     <CalendarClock className="h-16 w-16 text-muted-foreground/50 mb-4" />

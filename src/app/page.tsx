@@ -10,28 +10,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CalendarClock, ChevronLeft, ChevronRight } from "lucide-react";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { EventsListModal } from "@/components/modal/EventsListModal";
 import { EventInfoModal } from "@/components/modal/EventInfoModal";
 import { motion, AnimatePresence } from "framer-motion";
-
-// Define the EventDetails interface if not imported
-interface EventDetails {
-  id: string
-  title: string
-  date: string
-  time: string
-  organizer: string
-  location: string
-  capacity: string
-  facilities?: string[]
-  registrationStatus: string
-  attendeeCount: string
-  registrationDeadline: string
-  description: string
-  requirements?: string
-  category?: string
-}
+import type { EventDetails } from "@/interface/faculty-events-props";
 
 export default function Home() {
   const upcomingEvents = [
@@ -45,22 +28,24 @@ export default function Home() {
   ];
 
   const today = useMemo(() => new Date(), []);
-  
+
   // State for current month and year - initialized with today's date
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [loading, setLoading] = useState(false);
-  
+
   // Animation direction state
   const [direction, setDirection] = useState(0); // -1 for previous, 1 for next, 0 for initial/reset
-  
+
   // Window width state for responsive rendering
   const [windowWidth, setWindowWidth] = useState(0);
 
   // Modal states
   const [modalOpen, setModalOpen] = useState(false);
   const [eventInfoModalOpen, setEventInfoModalOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<EventDetails | undefined>(undefined);
+  const [selectedEvent, setSelectedEvent] = useState<EventDetails | undefined>(
+    undefined
+  );
   const [selectedDay, setSelectedDay] = useState<{
     date: number;
     currentMonth: boolean;
@@ -74,44 +59,65 @@ export default function Home() {
   const [showRecent, setShowRecent] = useState(false);
 
   // Navigation functions
-  const goToPreviousMonth = () => {
-    setDirection(-1); // Set direction for animation
-    if (currentMonth === 0) {
-      setCurrentMonth(11);
-      setCurrentYear(prev => prev - 1);
-    } else {
-      setCurrentMonth(prev => prev - 1);
-    }
-  };
+  const goToPreviousMonth = useCallback(() => {
+    setDirection(-1);
+    setLoading(true);
+    setTimeout(() => {
+      if (currentMonth === 0) {
+        setCurrentMonth(11);
+        setCurrentYear((prev) => prev - 1);
+      } else {
+        setCurrentMonth((prev) => prev - 1);
+      }
+      setLoading(false);
+    }, 700); // Adjust delay as needed
+  }, [currentMonth]);
 
-  const goToNextMonth = () => {
-    setDirection(1); // Set direction for animation
-    if (currentMonth === 11) {
-      setCurrentMonth(0);
-      setCurrentYear(prev => prev + 1);
-    } else {
-      setCurrentMonth(prev => prev + 1);
-    }
-  };
+  const goToNextMonth = useCallback(() => {
+    setDirection(1);
+    setLoading(true);
+    setTimeout(() => {
+      if (currentMonth === 11) {
+        setCurrentMonth(0);
+        setCurrentYear((prev) => prev + 1);
+      } else {
+        setCurrentMonth((prev) => prev + 1);
+      }
+      setLoading(false);
+    }, 700); // Adjust delay as needed
+  }, [currentMonth]);
 
-  const goToToday = () => {
-    // If going to past, use negative direction, if going to future, use positive
+  const goToToday = useCallback(() => {
     const currentDate = new Date();
     const currentMonthYear = new Date(currentYear, currentMonth);
-    const targetMonthYear = new Date(currentDate.getFullYear(), currentDate.getMonth());
-    setDirection(targetMonthYear > currentMonthYear ? 1 : targetMonthYear < currentMonthYear ? -1 : 0);
-    
-    // Set the current month and year to today's date
-    setCurrentMonth(today.getMonth());
-    setCurrentYear(today.getFullYear());
-  };
+    const targetMonthYear = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth()
+    );
+    setDirection(
+      targetMonthYear > currentMonthYear
+        ? 1
+        : targetMonthYear < currentMonthYear
+        ? -1
+        : 0
+    );
+    setLoading(true);
+    setTimeout(() => {
+      setCurrentMonth(today.getMonth());
+      setCurrentYear(today.getFullYear());
+      setLoading(false);
+    }, 700); // Adjust delay as needed
+  }, [currentMonth, currentYear, today]);
 
   // Sample events for demonstration (assuming events on day 15, 20, and 25)
-  const eventsMap = useMemo(() => ({
-    15: { title: "University Meeting", count: 1 },
-    20: { title: "Faculty Conference", count: 3 },
-    25: { title: "Deadline for Submissions", count: 2 },
-  }), []);
+  const eventsMap = useMemo(
+    () => ({
+      15: { title: "University Meeting", count: 1 },
+      20: { title: "Faculty Conference", count: 3 },
+      25: { title: "Deadline for Submissions", count: 2 },
+    }),
+    []
+  );
 
   // Build calendar days (6 rows x 7 columns = 42 cells)
   const calendarDays = useMemo(() => {
@@ -126,8 +132,16 @@ export default function Home() {
 
     // Get info for previous, current, and next month
     const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay(); // 0=Sun
-    const lastDateOfMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-    const lastDateOfPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
+    const lastDateOfMonth = new Date(
+      currentYear,
+      currentMonth + 1,
+      0
+    ).getDate();
+    const lastDateOfPrevMonth = new Date(
+      currentYear,
+      currentMonth,
+      0
+    ).getDate();
 
     // 1. Fill in previous month's days
     for (let i = firstDayOfMonth - 1; i >= 0; i--) {
@@ -172,84 +186,114 @@ export default function Home() {
   }, [currentMonth, currentYear, today, eventsMap]);
 
   // Format month and year
-  const monthNames = useMemo(() => [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ], []);
-  
-  // Get current month name and year as a formatted string
-  const currentMonthYear = useMemo(() => 
-    `${monthNames[currentMonth]} ${currentYear}`,
-  [currentMonth, currentYear, monthNames]);
+  const monthNames = useMemo(
+    () => [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ],
+    []
+  );
 
-  // Generate enhanced events for the selected day
-  const getEventsForSelectedDay = () => {
+  // Get current month name and year as a formatted string
+  const currentMonthYear = useMemo(
+    () => `${monthNames[currentMonth]} ${currentYear}`,
+    [currentMonth, currentYear, monthNames]
+  );
+
+  // Memoize selected day events
+  const selectedDayEvents = useMemo(() => {
     if (!selectedDay || !selectedDay.hasEvent || !selectedDay.currentMonth) {
       return [];
     }
-    
+
     const dayEvents = eventsMap[selectedDay.date as keyof typeof eventsMap];
     if (!dayEvents) return [];
-    
-    // Enhanced event generation with more variety and realistic data
+
     const eventTypes = [
       { category: "Academic", title: "Faculty Meeting" },
       { category: "Workshop", title: "Research Workshop" },
       { category: "Social", title: "Campus Social Event" },
       { category: "Academic", title: "Department Conference" },
       { category: "Workshop", title: "Professional Development" },
-      { category: "Social", title: "Student Organization Event" }
+      { category: "Social", title: "Student Organization Event" },
     ];
-    
+
     const locations = [
       "Main Building, Room 101",
       "Science Building, Room 203",
       "Library Conference Room",
       "Auditorium",
       "Computer Lab, Room 405",
-      "Student Center"
+      "Student Center",
     ];
-    
+
     return Array.from({ length: dayEvents.count }, (_, i) => {
-      // Get a consistent but pseudo-random event type and location
       const eventTypeIndex = (selectedDay.date + i) % eventTypes.length;
       const locationIndex = (i + selectedDay.date * 2) % locations.length;
       const eventType = eventTypes[eventTypeIndex];
-      const startHour = 8 + Math.floor(i / 2);
-      const endHour = startHour + 1 + (i % 2);
-      
-      // Format times with AM/PM
-      const startTime = `${startHour > 12 ? startHour - 12 : startHour}:${i % 2 === 0 ? '00' : '30'} ${startHour >= 12 ? 'PM' : 'AM'}`;
-      const endTime = `${endHour > 12 ? endHour - 12 : endHour}:${i % 2 === 0 ? '30' : '00'} ${endHour >= 12 ? 'PM' : 'AM'}`;
-      
+      const now = new Date();
+      const startHour = now.getHours() - 1;
+      const endHour = now.getHours();
+
+      const startTime = `${startHour > 12 ? startHour - 12 : startHour}:${
+        i % 2 === 0 ? "00" : "30"
+      } ${startHour >= 12 ? "PM" : "AM"}`;
+      const endTime = `${endHour > 12 ? endHour - 12 : endHour}:${
+        i % 2 === 0 ? "30" : "00"
+      } ${endHour >= 12 ? "PM" : "AM"}`;
+
       return {
-        id: `event-${selectedDay.date}-${i}`,
-        title: dayEvents.count > 1 ? `${eventType.title} ${i + 1}` : dayEvents.title,
-        date: `${monthNames[currentMonth]} ${selectedDay.date}, ${currentYear}`,
+        id: selectedDay.date * 100 + i,
+        title:
+          dayEvents.count > 1 ? `${eventType.title} ${i + 1}` : dayEvents.title,
+        date: `${currentYear}-${String(currentMonth + 1).padStart(
+          2,
+          "0"
+        )}-${String(selectedDay.date).padStart(2, "0")}`,
         time: `${startTime} - ${endTime}`,
         location: locations[locationIndex],
-        description: "This event provides an opportunity for faculty and staff to engage with important university matters, share ideas, and collaborate on academic initiatives.",
-        organizer: i % 2 === 0 ? "Faculty of Science" : "Department of Education",
-        capacity: `${60 + (i * 20)} seats`,
+        description:
+          "This event provides an opportunity for faculty and staff to engage with important university matters, share ideas, and collaborate on academic initiatives.",
+        organizer:
+          i % 2 === 0 ? "Faculty of Science" : "Department of Education",
+        capacity: `${60 + i * 20} seats`,
         facilities: ["Wi-Fi", "Projector", "Air Conditioning"],
         registrationStatus: i % 3 === 0 ? "Closed" : "Open",
-        attendeeCount: `${30 + i * 5}/${60 + (i * 20)}`,
-        registrationDeadline: `${monthNames[currentMonth]} ${Math.max(1, selectedDay.date - 2)}, ${currentYear}`,
-        requirements: i % 2 === 0 ? "Please bring your university ID and laptop" : undefined,
-        category: eventType.category
-      };
+        attendeeCount: 30 + i * 5,
+        registrationDeadline: `${monthNames[currentMonth]} ${Math.max(
+          1,
+          selectedDay.date - 2
+        )}, ${currentYear}`,
+        requirements:
+          i % 2 === 0
+            ? "Please bring your university ID and laptop"
+            : undefined,
+        category: eventType.category,
+        // Use only names for peopleTag
+        peopleTag: [
+          i % 2 === 0 ? "John Doe" : "Jane Smith",
+          i % 3 === 0 ? "Alice Johnson" : "Bob Lee",
+        ],
+        finishedOn:
+          i % 3 === 0
+            ? `${currentYear}-${String(currentMonth + 1).padStart(
+                2,
+                "0"
+              )}-${String(selectedDay.date).padStart(2, "0")}`
+            : undefined,
+      } as EventDetails;
     });
-  };
+  }, [eventsMap, currentMonth, currentYear, selectedDay, monthNames]);
 
   // Open event info modal with the selected event
   const handleEventClick = (event: EventDetails) => {
@@ -309,28 +353,28 @@ export default function Home() {
   useEffect(() => {
     // Update the window width state with the initial size
     setWindowWidth(window.innerWidth);
-    
+
     // Create handler to update state on window resize
     const handleResize = () => {
       setWindowWidth(window.innerWidth);
     };
-    
+
     // Add event listener
-    window.addEventListener('resize', handleResize);
-    
+    window.addEventListener("resize", handleResize);
+
     // Remove event listener on cleanup
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
     };
   }, []); // Empty array ensures effect runs only once on mount
 
   // Calendar day click handler: open modal, show loading in modal
-  const handleDayClick = (day: typeof calendarDays[number]) => {
+  const handleDayClick = (day: (typeof calendarDays)[number]) => {
     setSelectedDay(day);
-    setModalOpen(true);      // Open modal immediately
-    setLoading(true);        // Start loading animation in modal
+    setModalOpen(true); // Open modal immediately
+    setLoading(true); // Start loading animation in modal
     setTimeout(() => {
-      setLoading(false);     // Stop loading after 700ms
+      setLoading(false); // Stop loading after 700ms
     }, 700);
   };
 
@@ -387,7 +431,7 @@ export default function Home() {
           </Button>
         </div>
       </div>
-      
+
       {/* Main container */}
       <div className="w-full flex flex-col flex-1">
         {/* Content area */}
@@ -412,7 +456,7 @@ export default function Home() {
                 ))}
               </ul>
             </div>
-            
+
             {/* Main content */}
             <div className="flex-1 flex flex-col items-start justify-center">
               <div className="w-full bg-white rounded-md shadow-md flex flex-col items-start self-stretch p-6 gap-6 relative flex-1 min-h-0">
@@ -468,9 +512,15 @@ export default function Home() {
                             placeholder="Type here..."
                           />
                         </div>
-                        <SelectItem value="option1" className="text-base">Option 1</SelectItem>
-                        <SelectItem value="option2" className="text-base">Option 2</SelectItem>
-                        <SelectItem value="option3" className="text-base">Option 3</SelectItem>
+                        <SelectItem value="option1" className="text-base">
+                          Option 1
+                        </SelectItem>
+                        <SelectItem value="option2" className="text-base">
+                          Option 2
+                        </SelectItem>
+                        <SelectItem value="option3" className="text-base">
+                          Option 3
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -493,7 +543,7 @@ export default function Home() {
                   {/* Right: month/week/day */}
                   <div className="flex items-center justify-end">
                     <div className="flex items-center bg-white border border-gray-300 rounded-sm overflow-hidden">
-                      <motion.button 
+                      <motion.button
                         className="px-4 rounded-sm min-w-[64px] py-2 text-lg font-semibold text-gray-700 bg-white focus:outline-none hover:bg-gray-100 transition-colors"
                         whileHover={{ backgroundColor: "#f3f4f6" }}
                       >
@@ -502,7 +552,7 @@ export default function Home() {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Calendar table */}
                 <div className="flex flex-col w-full flex-1 h-full min-h-0">
                   {/* Calendar table header */}
@@ -514,8 +564,13 @@ export default function Home() {
                             key={day}
                             className="flex-1 text-base font-bold uppercase tracking-[1px] text-[#A8B2B9] text-center"
                           >
-                            {windowWidth === 0 ? day : // Initial render check
-                              windowWidth < 400 ? day.charAt(0) : windowWidth < 640 ? day.slice(0, 1) : day}
+                            {windowWidth === 0
+                              ? day // Initial render check
+                              : windowWidth < 400
+                              ? day.charAt(0)
+                              : windowWidth < 640
+                              ? day.slice(0, 1)
+                              : day}
                           </div>
                         )
                       )}
@@ -539,24 +594,32 @@ export default function Home() {
                             key={day.key}
                             data-idx={idx}
                             className={`relative border rounded-md flex flex-col p-2 md:p-3 text-lg md:text-xl font-medium cursor-pointer transition-colors hover:bg-blue-50 active:bg-blue-100 hover:shadow-sm min-h-[60px] sm:min-h-[70px] md:min-h-[80px]
-                              ${day.currentMonth ? "text-gray-900 border-gray-200" : "text-gray-400 border-gray-100 bg-gray-50"}
+                              ${
+                                day.currentMonth
+                                  ? "text-gray-900 border-gray-200"
+                                  : "text-gray-400 border-gray-100 bg-gray-50"
+                              }
                               ${day.isToday ? "border-blue-500 border-2" : ""}
-                              ${day.hasEvent && day.currentMonth ? "bg-blue-50" : ""}
+                              ${
+                                day.hasEvent && day.currentMonth
+                                  ? "bg-blue-50"
+                                  : ""
+                              }
                             `}
                             onClick={() => handleDayClick(day)}
                             initial={{ scale: 0.97, opacity: 0 }}
-                            animate={{ 
-                              scale: 1, 
+                            animate={{
+                              scale: 1,
                               opacity: 1,
-                              transition: { 
+                              transition: {
                                 delay: Math.min(0.01 * idx, 0.3),
-                                duration: 0.12
-                              }
+                                duration: 0.12,
+                              },
                             }}
-                            whileHover={{ 
+                            whileHover={{
                               scale: 1.02,
                               boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-                              transition: { duration: 0.2 }
+                              transition: { duration: 0.2 },
                             }}
                             whileTap={{ scale: 0.98 }}
                           >
@@ -581,66 +644,74 @@ export default function Home() {
                               2. Day is in current month (day.currentMonth is true)
                               3. Event count is greater than 0 (additional check for API safety)
                             */}
-                            {day.hasEvent && day.currentMonth && day.eventCount && day.eventCount > 0 && (
-                              <>
-                                {/* Desktop/Laptop: Top-left calendar icon and count */}
-                                <motion.div 
-                                  className="hidden md:inline-flex items-center bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-xl text-lg md:text-xl font-semibold absolute top-2 left-2"
-                                  initial={{ scale: 0, opacity: 0 }}
-                                  animate={{ 
-                                    scale: 1, 
-                                    opacity: 1,
-                                    transition: { 
-                                      delay: Math.min(0.01 * idx + 0.1, 0.4),
-                                      type: "spring",
-                                      stiffness: 500,
-                                      damping: 15
-                                    }
-                                  }}
-                                >
-                                  <CalendarClock size={18} className="mr-1" />
-                                  <span>{day.eventCount}</span>
-                                </motion.div>
-                                
-                                {/* Mobile: Centered calendar icon */}
-                                <motion.div 
-                                  className="md:hidden flex-grow flex items-center justify-center"
-                                  initial={{ scale: 0, opacity: 0 }}
-                                  animate={{ 
-                                    scale: 1, 
-                                    opacity: 1,
-                                    transition: { 
-                                      delay: Math.min(0.01 * idx + 0.1, 0.4),
-                                      type: "spring",
-                                      stiffness: 500,
-                                      damping: 15
-                                    }
-                                  }}
-                                >
-                                  <div className="inline-flex items-center bg-blue-100 text-blue-700 px-1 py-1 rounded-xl text-base font-semibold w-min">
-                                    <CalendarClock size={14} className="mr-0.5" />
+                            {day.hasEvent &&
+                              day.currentMonth &&
+                              day.eventCount &&
+                              day.eventCount > 0 && (
+                                <>
+                                  {/* Desktop/Laptop: Top-left calendar icon and count */}
+                                  <motion.div
+                                    className="hidden md:inline-flex items-center bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-xl text-lg md:text-xl font-semibold absolute top-2 left-2"
+                                    initial={{ scale: 0, opacity: 0 }}
+                                    animate={{
+                                      scale: 1,
+                                      opacity: 1,
+                                      transition: {
+                                        delay: Math.min(0.01 * idx + 0.1, 0.4),
+                                        type: "spring",
+                                        stiffness: 500,
+                                        damping: 15,
+                                      },
+                                    }}
+                                  >
+                                    <CalendarClock size={18} className="mr-1" />
                                     <span>{day.eventCount}</span>
-                                  </div>
-                                </motion.div>
+                                  </motion.div>
 
-                                {/* Desktop/Laptop: "See event" or "See events..." text */}
-                                <motion.div 
-                                  className="absolute inset-0 hidden md:flex items-center justify-center pointer-events-none"
-                                  initial={{ opacity: 0 }}
-                                  animate={{ 
-                                    opacity: 1,
-                                    transition: { 
-                                      delay: Math.min(0.01 * idx + 0.2, 0.5),
-                                      duration: 0.3
-                                    }
-                                  }}
-                                >
-                                  <span className="text-blue-600 text-sm md:text-base font-medium px-2 py-0.5 rounded pointer-events-auto translate-y-3">
-                                    {day.eventCount === 1 ? "See event" : "See events..."}
-                                  </span>
-                                </motion.div>
-                              </>
-                            )}
+                                  {/* Mobile: Centered calendar icon */}
+                                  <motion.div
+                                    className="md:hidden flex-grow flex items-center justify-center"
+                                    initial={{ scale: 0, opacity: 0 }}
+                                    animate={{
+                                      scale: 1,
+                                      opacity: 1,
+                                      transition: {
+                                        delay: Math.min(0.01 * idx + 0.1, 0.4),
+                                        type: "spring",
+                                        stiffness: 500,
+                                        damping: 15,
+                                      },
+                                    }}
+                                  >
+                                    <div className="inline-flex items-center bg-blue-100 text-blue-700 px-1 py-1 rounded-xl text-base font-semibold w-min">
+                                      <CalendarClock
+                                        size={14}
+                                        className="mr-0.5"
+                                      />
+                                      <span>{day.eventCount}</span>
+                                    </div>
+                                  </motion.div>
+
+                                  {/* Desktop/Laptop: "See event" or "See events..." text */}
+                                  <motion.div
+                                    className="absolute inset-0 hidden md:flex items-center justify-center pointer-events-none"
+                                    initial={{ opacity: 0 }}
+                                    animate={{
+                                      opacity: 1,
+                                      transition: {
+                                        delay: Math.min(0.01 * idx + 0.2, 0.5),
+                                        duration: 0.3,
+                                      },
+                                    }}
+                                  >
+                                    <span className="text-blue-600 text-sm md:text-base font-medium px-2 py-0.5 rounded pointer-events-auto translate-y-3">
+                                      {day.eventCount === 1
+                                        ? "See event"
+                                        : "See events..."}
+                                    </span>
+                                  </motion.div>
+                                </>
+                              )}
                           </motion.div>
                         ))}
                       </motion.div>
@@ -684,20 +755,24 @@ export default function Home() {
       <EventsListModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={selectedDay ? 
-          selectedDay.currentMonth 
-            ? `Events on ${monthNames[currentMonth]} ${selectedDay.date}, ${currentYear}` 
-            : `${selectedDay.date} ${monthNames[currentMonth]}, ${currentYear} (Outside current month)` 
-          : ""
+        title={
+          selectedDay
+            ? selectedDay.currentMonth
+              ? `Events on ${monthNames[currentMonth]} ${selectedDay.date}, ${currentYear}`
+              : `${selectedDay.date} ${monthNames[currentMonth]}, ${currentYear} (Outside current month)`
+            : ""
         }
-        events={getEventsForSelectedDay()}
+        events={selectedDayEvents}
         onEventClick={handleEventClick}
-        isLoading={loading} // <-- Use the dedicated modal loading state
+        isLoading={loading}
         showRecent={showRecent}
         setShowRecent={setShowRecent}
         eventDate={
           selectedDay && selectedDay.currentMonth
-            ? `${monthNames[currentMonth]} ${selectedDay.date}, ${currentYear}`
+            ? `${currentYear}-${String(currentMonth + 1).padStart(
+                2,
+                "0"
+              )}-${String(selectedDay.date).padStart(2, "0")}`
             : ""
         }
       />

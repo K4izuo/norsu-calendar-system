@@ -1,5 +1,7 @@
 "use client";
 
+import React, { useEffect, useMemo, useState, useCallback } from "react";
+import { fetchFacultyEvents } from "@/api/facultyEventsApi";
 import {
   Select,
   SelectTrigger,
@@ -8,13 +10,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CalendarClock, ChevronLeft, ChevronRight } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
 import { EventsListModal } from "@/components/modal/EventsListModal";
 import { EventInfoModal } from "@/components/modal/EventInfoModal";
 import { AnimatePresence, motion } from "framer-motion";
 import { FacultyPageEventDetails } from "@/interface/faculty-events-props";
-// import toast from "react-hot-toast";
-import { fetchFacultyEvents } from "@/api/facultyEventsApi";
 
 export default function FacultyEventsTab() {
   const today = useMemo(() => new Date(), []);
@@ -64,8 +63,41 @@ export default function FacultyEventsTab() {
     }
   }, [modalOpen]);
 
+  // Fetch events ONCE on mount - no duplicate fetches
+  useEffect(() => {
+    setEventsListLoading(true);
+    fetchFacultyEvents()
+      .then((data) => {
+        if (data.length === 0) {
+          // Add mock events for testing
+          setEvents([
+            {
+              id: 1,
+              title: "Sample Event",
+              date: "2025-10-03",
+              time: "10:00-12:00",
+              location: "Room 101",
+              attendeeCount: 20,
+              category: "Seminar",
+              infoType: "Info",
+              description: "This is a mock event.",
+              peopleTag: ["faculty"],
+              registrationStatus: "open",
+              organizer: "John Doe",
+              capacity: "50",
+              registrationDeadline: "2025-09-30"
+            },
+          ]);
+        } else {
+          setEvents(data);
+        }
+      })
+      .catch(() => setEvents([]))
+      .finally(() => setEventsListLoading(false));
+  }, []); // <-- Only fetch once on mount
+
   // Navigation functions
-  const goToPreviousMonth = () => {
+  const goToPreviousMonth = useCallback(() => {
     setDirection(-1);
     setLoading(true);
     setTimeout(() => {
@@ -77,9 +109,9 @@ export default function FacultyEventsTab() {
       }
       setLoading(false);
     }, 700); // Adjust delay as needed
-  };
+  }, [currentMonth]);
 
-  const goToNextMonth = () => {
+  const goToNextMonth = useCallback(() => {
     setDirection(1);
     setLoading(true);
     setTimeout(() => {
@@ -91,9 +123,9 @@ export default function FacultyEventsTab() {
       }
       setLoading(false);
     }, 700); // Adjust delay as needed
-  };
+  }, [currentMonth]);
 
-  const goToToday = () => {
+  const goToToday = useCallback(() => {
     const currentDate = new Date();
     const currentMonthYear = new Date(currentYear, currentMonth);
     const targetMonthYear = new Date(
@@ -113,14 +145,25 @@ export default function FacultyEventsTab() {
       setCurrentYear(today.getFullYear());
       setLoading(false);
     }, 700); // Adjust delay as needed
-  };
+  }, [currentMonth, currentYear, today]);
 
-  // Sample events for demonstration (assuming events on day 15, 20, and 25)
-  const eventsMap = useMemo(() => ({
-    15: { title: "University Meeting", count: 1 },
-    20: { title: "Faculty Conference", count: 6 },
-    25: { title: "Deadline for Submissions", count: 2 },
-  }), []);
+  // Build a map of events by date for the current month
+  const eventsMap = useMemo(() => {
+    const map: Record<number, { count: number }> = {};
+    events.forEach((event) => {
+      const eventDate = new Date(event.date);
+      if (
+        eventDate.getFullYear() === currentYear &&
+        eventDate.getMonth() === currentMonth
+      ) {
+        const day = eventDate.getDate();
+        map[day] = map[day]
+          ? { count: map[day].count + 1 }
+          : { count: 1 };
+      }
+    });
+    return map;
+  }, [events, currentMonth, currentYear]);
 
   // Build calendar days (6 rows x 7 columns = 42 cells)
   const calendarDays = useMemo(() => {
@@ -199,18 +242,32 @@ export default function FacultyEventsTab() {
     [currentMonth, currentYear, monthNames]
   );
 
-  // Open event info modal with the selected event
+  // Properly memoized selectedDayEvents - only recalculates when dependencies change
+  const selectedDayEvents = useMemo(() => {
+    if (!selectedDay || !selectedDay.currentMonth) return [];
+    
+    const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(selectedDay.date).padStart(2, "0")}`;
+    
+    return events.filter((event) => event.date === dateStr);
+  }, [events, selectedDay, currentMonth, currentYear]);
+  
+  // Stable event handler with useCallback
   const handleEventClick = useCallback((event: FacultyPageEventDetails) => {
     setEventInfoLoading(true);
     setEventInfoModalOpen(true);
-
+    
     // Simulate async loading (replace with real fetch if needed)
     setTimeout(() => {
       setSelectedEvent(event);
       setEventInfoLoading(false);
-    }, 600); // 600ms for demo
+    }, 600);
   }, []);
 
+  // Stable close handler
+  const handleCloseModal = useCallback(() => {
+    setModalOpen(false);
+  }, []);
+  
   // Animation variants
   const calendarVariants = {
     initial: (direction: number) => ({
@@ -627,7 +684,7 @@ export default function FacultyEventsTab() {
         {/* Events List Modal with proper events data */}
         <EventsListModal
           isOpen={modalOpen}
-          onClose={useCallback(() => setModalOpen(false), [])}
+          onClose={handleCloseModal}
           title={
             selectedDay
               ? selectedDay.currentMonth
@@ -635,14 +692,14 @@ export default function FacultyEventsTab() {
                 : `${selectedDay.date} ${monthNames[currentMonth]}, ${currentYear} (Outside current month)`
               : ""
           }
-          events={events} // <-- Use the fetched events here
+          events={selectedDayEvents}
           onEventClick={handleEventClick}
           isLoading={eventsListLoading}
           showRecent={showRecent}
           setShowRecent={setShowRecent}
           eventDate={
             selectedDay && selectedDay.currentMonth
-              ? `${monthNames[currentMonth]} ${selectedDay.date}, ${currentYear}`
+              ? `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(selectedDay.date).padStart(2, "0")}`
               : ""
           }
         />

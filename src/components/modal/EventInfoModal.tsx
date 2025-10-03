@@ -13,8 +13,9 @@ import {
 } from "lucide-react";
 import { Button } from "../ui/button";
 
+// Make the interface flexible to accept both number and string
 interface EventDetails {
-  id: string;
+  id: number;
   title: string;
   date: string;
   time: string;
@@ -23,7 +24,7 @@ interface EventDetails {
   capacity: string;
   facilities?: string[];
   registrationStatus: string;
-  attendeeCount: string;
+  attendeeCount: number;
   registrationDeadline: string;
   description: string;
   requirements?: string;
@@ -38,12 +39,11 @@ interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   event?: EventDetails;
-  loading?: boolean; // Add loading prop
+  loading?: boolean;
 }
 
-const getStatus = (
-  event: EventDetails
-): "pending" | "approved" | "rejected" => {
+// Convert to pure functions (not hooks)
+const getStatus = (event: EventDetails): "pending" | "approved" | "rejected" => {
   if (!event.registrationStatus) return "pending";
   const status = event.registrationStatus.toLowerCase();
   if (status === "open") return "approved";
@@ -60,6 +60,7 @@ const getStatusColor = (status: "pending" | "approved" | "rejected") => {
   return "bg-gray-100 text-gray-800";
 };
 
+// The component is already memoized with React.memo
 export const EventInfoModal = React.memo(function EventInfoModal({
   isOpen,
   onClose,
