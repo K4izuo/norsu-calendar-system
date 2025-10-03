@@ -110,21 +110,35 @@ export default function FacultyRegisterPage() {
     e.preventDefault()
     if (!checkFormFields()) return
     setIsSubmitting(true)
-    const toastId = toast.loading("Registering student...")
-    await new Promise(r => setTimeout(r, 1500))
-    toast.success("Registration successful!", { id: toastId })
-    setIsSubmitting(false)
-    setFormData({
-      first_name: "",
-      middle_name: "",
-      last_name: "",
-      email: "",
-      facultyId: "",
-      campus_id: "",
-      college_id: "",
-      degree_course_id: "",
-    })
-    setTimeout(() => setActiveTab("details"), 1000)
+    const toastId = toast.loading("Registering faculty...")
+
+    try {
+      await fetch("/api/student/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      })
+
+      await new Promise(r => setTimeout(r, 1500))
+
+      toast.success("Registration successful!", { id: toastId })
+      setIsSubmitting(false)
+      setFormData({
+        first_name: "",
+        middle_name: "",
+        last_name: "",
+        email: "",
+        facultyId: "",
+        campus_id: "",
+        college_id: "",
+        degree_course_id: "",
+      })
+      setTimeout(() => setActiveTab("details"), 700)
+
+    } catch (error) {
+      toast.error("Registration failed!", { id: toastId })
+      setIsSubmitting(false)
+    }
   }
 
   const isFormValid = () =>

@@ -298,7 +298,9 @@ export default function Home() {
   // Open event info modal with the selected event
   const handleEventClick = (event: EventDetails) => {
     setSelectedEvent(event);
+    setEventInfoLoading(true);
     setEventInfoModalOpen(true);
+    setTimeout(() => setEventInfoLoading(false), 700); // match your other loading
   };
 
   // Animation variants
@@ -377,6 +379,14 @@ export default function Home() {
       setLoading(false); // Stop loading after 700ms
     }, 700);
   };
+
+  const [eventInfoLoading, setEventInfoLoading] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    const timer = setTimeout(() => setLoading(false), 700);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col overflow-x-hidden">
@@ -579,143 +589,163 @@ export default function Home() {
 
                   {/* Calendar table days with animation */}
                   <div className="flex flex-col px-[1px] sm:px-0 py-[0.5px] w-full flex-1 h-full min-h-0 relative">
-                    <AnimatePresence mode="wait" custom={direction}>
+                    {loading ? (
                       <motion.div
-                        key={`${currentMonth}-${currentYear}`}
-                        custom={direction}
-                        variants={calendarVariants}
-                        initial="initial"
-                        animate="animate"
-                        exit="exit"
-                        className="grid grid-rows-5 grid-cols-7 w-full h-full gap-1.5 sm:gap-2 md:gap-2.5 bg-white flex-1"
+                        className="absolute inset-0 flex items-center justify-center z-10 bg-white bg-opacity-70"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.3 }}
                       >
-                        {calendarDays.map((day, idx) => (
+                        <div className="relative h-16 w-16 flex items-center justify-center">
+                          {/* Spinner rotates */}
                           <motion.div
-                            key={day.key}
-                            data-idx={idx}
-                            className={`relative border rounded-md flex flex-col p-2 md:p-3 text-lg md:text-xl font-medium cursor-pointer transition-colors hover:bg-blue-50 active:bg-blue-100 hover:shadow-sm min-h-[60px] sm:min-h-[70px] md:min-h-[80px]
-                              ${
-                                day.currentMonth
-                                  ? "text-gray-900 border-gray-200"
-                                  : "text-gray-400 border-gray-100 bg-gray-50"
-                              }
-                              ${day.isToday ? "border-blue-500 border-2" : ""}
-                              ${
-                                day.hasEvent && day.currentMonth
-                                  ? "bg-blue-50"
-                                  : ""
-                              }
-                            `}
-                            onClick={() => handleDayClick(day)}
-                            initial={{ scale: 0.97, opacity: 0 }}
-                            animate={{
-                              scale: 1,
-                              opacity: 1,
-                              transition: {
-                                delay: Math.min(0.01 * idx, 0.3),
-                                duration: 0.12,
-                              },
-                            }}
-                            whileHover={{
-                              scale: 1.02,
-                              boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-                              transition: { duration: 0.2 },
-                            }}
-                            whileTap={{ scale: 0.98 }}
-                          >
-                            {/* Date number (always shown) */}
-                            <div className="flex justify-end items-start w-full mb-2">
-                              <span
-                                className={`text-lg md:text-xl ${
-                                  day.isToday
-                                    ? "text-blue-600 font-bold"
-                                    : day.currentMonth
-                                    ? ""
-                                    : "text-gray-400"
-                                }`}
-                              >
-                                {day.date}
-                              </span>
-                            </div>
-
-                            {/* 
-                              Event indicators - ONLY SHOWN WHEN:
-                              1. Day has events (day.hasEvent is true)
-                              2. Day is in current month (day.currentMonth is true)
-                              3. Event count is greater than 0 (additional check for API safety)
-                            */}
-                            {day.hasEvent &&
-                              day.currentMonth &&
-                              day.eventCount &&
-                              day.eventCount > 0 && (
-                                <>
-                                  {/* Desktop/Laptop: Top-left calendar icon and count */}
-                                  <motion.div
-                                    className="hidden md:inline-flex items-center bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-xl text-lg md:text-xl font-semibold absolute top-2 left-2"
-                                    initial={{ scale: 0, opacity: 0 }}
-                                    animate={{
-                                      scale: 1,
-                                      opacity: 1,
-                                      transition: {
-                                        delay: Math.min(0.01 * idx + 0.1, 0.4),
-                                        type: "spring",
-                                        stiffness: 500,
-                                        damping: 15,
-                                      },
-                                    }}
-                                  >
-                                    <CalendarClock size={18} className="mr-1" />
-                                    <span>{day.eventCount}</span>
-                                  </motion.div>
-
-                                  {/* Mobile: Centered calendar icon */}
-                                  <motion.div
-                                    className="md:hidden flex-grow flex items-center justify-center"
-                                    initial={{ scale: 0, opacity: 0 }}
-                                    animate={{
-                                      scale: 1,
-                                      opacity: 1,
-                                      transition: {
-                                        delay: Math.min(0.01 * idx + 0.1, 0.4),
-                                        type: "spring",
-                                        stiffness: 500,
-                                        damping: 15,
-                                      },
-                                    }}
-                                  >
-                                    <div className="inline-flex items-center bg-blue-100 text-blue-700 px-1 py-1 rounded-xl text-base font-semibold w-min">
-                                      <CalendarClock
-                                        size={14}
-                                        className="mr-0.5"
-                                      />
-                                      <span>{day.eventCount}</span>
-                                    </div>
-                                  </motion.div>
-
-                                  {/* Desktop/Laptop: "See event" or "See events..." text */}
-                                  <motion.div
-                                    className="absolute inset-0 hidden md:flex items-center justify-center pointer-events-none"
-                                    initial={{ opacity: 0 }}
-                                    animate={{
-                                      opacity: 1,
-                                      transition: {
-                                        delay: Math.min(0.01 * idx + 0.2, 0.5),
-                                        duration: 0.3,
-                                      },
-                                    }}
-                                  >
-                                    <span className="text-blue-600 text-sm md:text-base font-medium px-2 py-0.5 rounded pointer-events-auto translate-y-3">
-                                      {day.eventCount === 1
-                                        ? "See event"
-                                        : "See events..."}
-                                    </span>
-                                  </motion.div>
-                                </>
-                              )}
-                          </motion.div>
-                        ))}
+                            className="absolute inset-0 h-16 w-16 rounded-full border-t-4 border-b-4 border-blue-500"
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1.5, ease: "linear", repeat: Infinity }}
+                          />
+                          {/* Icon stays still */}
+                          <CalendarClock className="absolute inset-0 m-auto h-7 w-7 text-blue-500" />
+                        </div>
                       </motion.div>
-                    </AnimatePresence>
+                    ) : (
+                      <AnimatePresence mode="wait" custom={direction}>
+                        <motion.div
+                          key={`${currentMonth}-${currentYear}`}
+                          custom={direction}
+                          variants={calendarVariants}
+                          initial="initial"
+                          animate="animate"
+                          exit="exit"
+                          className="grid grid-rows-5 grid-cols-7 w-full h-full gap-1.5 sm:gap-2 md:gap-2.5 bg-white flex-1"
+                        >
+                          {calendarDays.map((day, idx) => (
+                            <motion.div
+                              key={day.key}
+                              data-idx={idx}
+                              className={`relative border rounded-md flex flex-col p-2 md:p-3 text-lg md:text-xl font-medium cursor-pointer transition-colors hover:bg-blue-50 active:bg-blue-100 hover:shadow-sm min-h-[60px] sm:min-h-[70px] md:min-h-[80px]
+                                ${
+                                  day.currentMonth
+                                    ? "text-gray-900 border-gray-200"
+                                    : "text-gray-400 border-gray-100 bg-gray-50"
+                                }
+                                ${day.isToday ? "border-blue-500 border-2" : ""}
+                                ${
+                                  day.hasEvent && day.currentMonth
+                                    ? "bg-blue-50"
+                                    : ""
+                                }
+                              `}
+                              onClick={() => handleDayClick(day)}
+                              initial={{ scale: 0.97, opacity: 0 }}
+                              animate={{
+                                scale: 1,
+                                opacity: 1,
+                                transition: {
+                                  delay: Math.min(0.01 * idx, 0.3),
+                                  duration: 0.12,
+                                },
+                              }}
+                              whileHover={{
+                                scale: 1.02,
+                                boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+                                transition: { duration: 0.2 },
+                              }}
+                              whileTap={{ scale: 0.98 }}
+                            >
+                              {/* Date number (always shown) */}
+                              <div className="flex justify-end items-start w-full mb-2">
+                                <span
+                                  className={`text-lg md:text-xl ${
+                                    day.isToday
+                                      ? "text-blue-600 font-bold"
+                                      : day.currentMonth
+                                      ? ""
+                                      : "text-gray-400"
+                                  }`}
+                                >
+                                  {day.date}
+                                </span>
+                              </div>
+
+                              {/* 
+                                Event indicators - ONLY SHOWN WHEN:
+                                1. Day has events (day.hasEvent is true)
+                                2. Day is in current month (day.currentMonth is true)
+                                3. Event count is greater than 0 (additional check for API safety)
+                              */}
+                              {day.hasEvent &&
+                                day.currentMonth &&
+                                day.eventCount &&
+                                day.eventCount > 0 && (
+                                  <>
+                                    {/* Desktop/Laptop: Top-left calendar icon and count */}
+                                    <motion.div
+                                      className="hidden md:inline-flex items-center bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-xl text-lg md:text-xl font-semibold absolute top-2 left-2"
+                                      initial={{ scale: 0, opacity: 0 }}
+                                      animate={{
+                                        scale: 1,
+                                        opacity: 1,
+                                        transition: {
+                                          delay: Math.min(0.01 * idx + 0.1, 0.4),
+                                          type: "spring",
+                                          stiffness: 500,
+                                          damping: 15,
+                                        },
+                                      }}
+                                    >
+                                      <CalendarClock size={18} className="mr-1" />
+                                      <span>{day.eventCount}</span>
+                                    </motion.div>
+
+                                    {/* Mobile: Centered calendar icon */}
+                                    <motion.div
+                                      className="md:hidden flex-grow flex items-center justify-center"
+                                      initial={{ scale: 0, opacity: 0 }}
+                                      animate={{
+                                        scale: 1,
+                                        opacity: 1,
+                                        transition: {
+                                          delay: Math.min(0.01 * idx + 0.1, 0.4),
+                                          type: "spring",
+                                          stiffness: 500,
+                                          damping: 15,
+                                        },
+                                      }}
+                                    >
+                                      <div className="inline-flex items-center bg-blue-100 text-blue-700 px-1 py-1 rounded-xl text-base font-semibold w-min">
+                                        <CalendarClock
+                                          size={14}
+                                          className="mr-0.5"
+                                        />
+                                        <span>{day.eventCount}</span>
+                                      </div>
+                                    </motion.div>
+
+                                    {/* Desktop/Laptop: "See event" or "See events..." text */}
+                                    <motion.div
+                                      className="absolute inset-0 hidden md:flex items-center justify-center pointer-events-none"
+                                      initial={{ opacity: 0 }}
+                                      animate={{
+                                        opacity: 1,
+                                        transition: {
+                                          delay: Math.min(0.01 * idx + 0.2, 0.5),
+                                          duration: 0.3,
+                                        },
+                                      }}
+                                    >
+                                      <span className="text-blue-600 text-sm md:text-base font-medium px-2 py-0.5 rounded pointer-events-auto translate-y-3">
+                                        {day.eventCount === 1
+                                          ? "See event"
+                                          : "See events..."}
+                                      </span>
+                                    </motion.div>
+                                  </>
+                                )}
+                            </motion.div>
+                          ))}
+                        </motion.div>
+                      </AnimatePresence>
+                    )}
                   </div>
                 </div>
 
@@ -782,6 +812,7 @@ export default function Home() {
         isOpen={eventInfoModalOpen}
         onClose={() => setEventInfoModalOpen(false)}
         event={selectedEvent}
+        loading={eventInfoLoading}
       />
     </div>
   );

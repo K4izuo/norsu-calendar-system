@@ -112,16 +112,20 @@ export default function StudentRegisterPage() {
     setIsSubmitting(true)
     const toastId = toast.loading("Registering student...")
 
-    // --- Place your API call here ---
     try {
-      // Example using fetch:
+      // --- Place your API call here ---
       await fetch("/api/student/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       })
       // --- End API call ---
+
+      // Add artificial delay for smoothness
+      await new Promise(r => setTimeout(r, 1500))
+
       toast.success("Registration successful!", { id: toastId })
+      setIsSubmitting(false)
       setFormData({
         first_name: "",
         middle_name: "",
@@ -132,11 +136,12 @@ export default function StudentRegisterPage() {
         college_id: "",
         degree_course_id: "",
       })
-      setTimeout(() => setActiveTab("details"), 300)
+      setTimeout(() => setActiveTab("details"), 700)
+      
     } catch (error) {
       toast.error("Registration failed!", { id: toastId })
+      setIsSubmitting(false)
     }
-    setIsSubmitting(false)
   }
 
   const isFormValid = () =>

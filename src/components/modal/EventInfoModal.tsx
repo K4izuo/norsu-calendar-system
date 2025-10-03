@@ -60,6 +60,31 @@ const getStatusColor = (status: "pending" | "approved" | "rejected") => {
   return "bg-gray-100 text-gray-800";
 };
 
+// Added getStartedAgo function
+const getStartedAgo = (eventDate: string, eventTime: string): string | null => {
+  if (!eventDate || !eventTime) return null;
+  try {
+    const [startTimeRaw] = eventTime.split("-");
+    const startTime = startTimeRaw.trim();
+    const eventStart = new Date(`${eventDate} ${startTime}`);
+    if (isNaN(eventStart.getTime())) return null;
+
+    const now = new Date();
+    if (eventStart > now) return "Upcoming";
+
+    const diffMs = now.getTime() - eventStart.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return "Started just now";
+    if (diffMins < 60) return `Started ${diffMins} minute${diffMins === 1 ? "" : "s"} ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `Started ${diffHours} hour${diffHours === 1 ? "" : "s"} ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `Started ${diffDays} day${diffDays === 1 ? "" : "s"} ago`;
+  } catch {
+    return null;
+  }
+};
+
 // The component is already memoized with React.memo
 export const EventInfoModal = React.memo(function EventInfoModal({
   isOpen,
@@ -87,6 +112,9 @@ export const EventInfoModal = React.memo(function EventInfoModal({
     }
     return () => document.removeEventListener("keydown", handleEscape);
   }, [isOpen, onClose]);
+
+  // Get the started ago text if event exists
+  const startedAgoText = event ? getStartedAgo(event.date, event.time) : null;
 
   return (
     <AnimatePresence>
@@ -130,9 +158,21 @@ export const EventInfoModal = React.memo(function EventInfoModal({
             {/* Sticky header with title and X button */}
             <div className="sticky top-0 bg-white z-10 p-4 sm:p-6 pb-4 sm:pb-6 border-b border-gray-200">
               <div className="flex justify-between items-center">
-                <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">
-                  Event Information
-                </h2>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                  <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">
+                    Event Information
+                  </h2>
+                  {startedAgoText && (
+                    <span className={`text-sm font-medium ${
+                      startedAgoText === "Upcoming" 
+                        ? "text-blue-600 bg-blue-50" 
+                        : "text-amber-600 bg-amber-50"
+                    } px-2 py-0.5 rounded-full inline-flex items-center`}>
+                      <Clock className="w-3 h-3 mr-1" />
+                      {startedAgoText}
+                    </span>
+                  )}
+                </div>
                 <Button
                   onClick={(e) => {
                     e.stopPropagation();
