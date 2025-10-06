@@ -7,7 +7,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import toast from "react-hot-toast"
 import { ReservationFormData } from "@/interface/faculty-events-props"
 
-interface Venue {
+interface Asset {
   id: string
   name: string
   capacity: string
@@ -15,20 +15,22 @@ interface Venue {
 
 interface Props {
   formData: ReservationFormData
-  venues: Venue[]
+  assets: Asset[]
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void
-  handleVenueChange: (value: string) => void
+  handleAssetChange: (value: string) => void
   handleRangeChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   missingFields?: Record<string, boolean>
+  selectedAsset?: Asset | null // <-- add this prop
 }
 
 export function ReserveEventFormTab({
   formData,
-  venues,
+  assets,
   handleInputChange,
-  handleVenueChange,
+  handleAssetChange,
   handleRangeChange,
   missingFields = {},
+  selectedAsset, // <-- get selected asset
 }: Props) {
   // Local state for current time in "HH:mm" format
   const [currentTime, setCurrentTime] = useState(() => {
@@ -98,20 +100,25 @@ export function ReserveEventFormTab({
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex-1 min-w-0">
-            <Label htmlFor="venue" className="text-base inline-block font-medium">Venue</Label>
+            <Label htmlFor="asset" className="text-base inline-block font-medium">Assets</Label>
             <Select 
-              value={formData.venue || ""} 
-              onValueChange={handleVenueChange}
+              // Show the selected asset's id if chosen, otherwise blank
+              value={selectedAsset ? selectedAsset.id : ""}
+              onValueChange={handleAssetChange}
             >
-              <SelectTrigger id="venue" className={`mt-1 text-base w-full h-12 ${missingFields.venue ? "border-red-500 focus:border-red-500" : ""}`}>
-                <SelectValue placeholder="Select a venue" />
+              <SelectTrigger id="asset" className={`mt-1 text-base w-full h-12 ${missingFields.asset ? "border-red-500 focus:border-red-500" : ""}`}>
+                <SelectValue 
+                  placeholder="Select an asset"
+                  // Show the selected asset's name if chosen
+                  {...(selectedAsset ? { children: selectedAsset.name } : {})}
+                />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectLabel className="text-base">Available Venues</SelectLabel>
-                  {venues.map(venue => (
-                    <SelectItem key={venue.id} value={venue.id} className="text-base">
-                      {venue.name} ({venue.capacity})
+                  <SelectLabel className="text-base">Asset Type</SelectLabel>
+                  {assets.map(asset => (
+                    <SelectItem key={asset.id} value={asset.id} className="text-base">
+                      {asset.name}
                     </SelectItem>
                   ))}
                 </SelectGroup>

@@ -64,7 +64,12 @@ export interface FacultyPageEventDetails {
 
 export interface ReservationFormData {
   title: string
-  venue: string | null
+  asset: {
+    id: string
+    name: string
+    capacity: string
+    facilities?: string[]
+  } | null // <-- allow full asset object or null
   timeStart: string
   timeEnd: string
   description: string
@@ -73,4 +78,26 @@ export interface ReservationFormData {
   infoType: string
   category: string
   date?: string // <-- Add optional date field
+}
+
+export interface StudentRegisterFormData {
+  first_name: string
+  middle_name: string
+  last_name: string
+  email: string
+  studentId: string
+  campus_id: string
+  college_id: string
+  degree_course_id: string
+}
+
+export interface FacultyRegisterFormData {
+  first_name: string
+  middle_name: string
+  last_name: string
+  email: string
+  facultyId: string
+  campus_id: string
+  college_id: string
+  degree_course_id: string
 }

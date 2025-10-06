@@ -11,15 +11,8 @@ import { ReserveEventFormTab } from "@/components/modal/reserve-event-tab/event-
 import { ReserveEventAdditionalTab } from "@/components/modal/reserve-event-tab/event-additional-tab"
 import { ReserveEventSummaryTab } from "@/components/modal/reserve-event-tab/event-summary-tab"
 import { ReservationFormData } from "@/interface/faculty-events-props"
-
-// Sample venues for the select component
-const venues = [
-  { id: "v1", name: "Main Building, Room 101", capacity: "120 seats" },
-  { id: "v2", name: "Science Building, Room 203", capacity: "80 seats" },
-  { id: "v3", name: "Library Conference Room", capacity: "40 seats" },
-  { id: "v4", name: "Auditorium", capacity: "500 seats" },
-  { id: "v5", name: "Computer Lab", capacity: "60 seats" },
-]
+import { AssetsVenueModal } from "@/components/modal/reserve-event-assets/AssetsVenueModal";
+import { AssetsVehicleModal } from "@/components/modal/reserve-event-assets/AssetsVehicleModal";
 
 // Add these sample options above your component
 const infoTypes = [
@@ -42,15 +35,25 @@ interface ModalProps {
   eventDate?: string | undefined // <-- should be string | undefined
 }
 
+// 1. Update ReservationFormData asset type to allow storing the full asset object or null
+// (You may want to update your interface/faculty-events-props.ts as well)
+type AssetType = {
+  id: string;
+  name: string;
+  capacity: string;
+  facilities?: string[];
+} | null;
+
 export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: ModalProps) {
   const contentRef = useRef<HTMLDivElement>(null)
   const [activeTab, setActiveTab] = useState<string>("form")
   const [isSubmitting, setIsSubmitting] = useState(false)
   
   // Form state
+  // 2. Update formData to store the selected asset object
   const [formData, setFormData] = useState<ReservationFormData>({
     title: "",
-    venue: null,
+    asset: null, // <-- will store the selected asset object
     timeStart: "",
     timeEnd: "",
     description: "",
@@ -66,13 +69,10 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
     if (eventDate) {
       setFormData(prev => ({
         ...prev,
-        date: eventDate // Add date to formData
+        date: eventDate
       }))
     }
   }, [eventDate])
-
-  // Get venue details
-  const selectedVenue = venues.find(venue => venue.id === formData.venue)
 
   useEffect(() => {
     if (isOpen) {
@@ -112,17 +112,45 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
     });
   }
 
-  const handleVenueChange = (value: string) => {
-    setFormData(prev => ({ ...prev, venue: value }))
+  const [showVenueModal, setShowVenueModal] = useState(false);
+  const [showVehicleModal, setShowVehicleModal] = useState(false);
+
+  // Example asset data (replace with your real data)
+  const venueAssets = [
+    { id: "a1", name: "Main Building, Room 101", capacity: "120 seats" },
+    { id: "a2", name: "Science Building, Room 203", capacity: "80 seats" },
+    // ...other venues...
+  ];
+  const vehicleAssets = [
+    { id: "v1", name: "School Bus", capacity: "50 seats" },
+    { id: "v2", name: "Van", capacity: "15 seats" },
+    // ...other vehicles...
+  ];
+
+  // 3. Update handleAssetChange to only open the modal, not set asset directly
+  const handleAssetChange = (value: string) => {
+    // Only open the modal, don't set asset here
+    if (value === "assets venue") setShowVenueModal(true);
+    if (value === "assets vehicle") setShowVehicleModal(true);
+  };
+
+  // 4. When an asset is selected in the modal, set it in formData and close the modal
+  const handleAssetItemSelect = (asset: { id: string; name: string; capacity: string }) => {
+    setFormData(prev => ({
+      ...prev,
+      asset // store the full asset object
+    }));
     setMissingFields(prev => {
-      if (prev.venue) {
+      if (prev.asset) {
         const updated = { ...prev };
-        delete updated.venue;
+        delete updated.asset;
         return updated;
       }
       return prev;
     });
-  }
+    setShowVenueModal(false);
+    setShowVehicleModal(false);
+  };
 
   const handleRangeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({ ...prev, range: Number(e.target.value) }))
@@ -189,7 +217,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
       // Reset form and close modal
       setFormData({
         title: "",
-        venue: null,
+        asset: null,
         timeStart: "",
         timeEnd: "",
         description: "",
@@ -198,6 +226,9 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
         infoType: "",
         category: "",
       });
+
+      setTaggedPeople([]);
+      setTagInput("");
       
       // Wait a bit to show success message before closing
       setTimeout(() => {
@@ -215,7 +246,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
   const isFormValid = () => {
     return (
       formData.title.trim() !== "" && 
-      formData.venue !== null && 
+      formData.asset !== null && 
       formData.timeStart !== "" && 
       formData.timeEnd !== ""
     )
@@ -225,14 +256,14 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
   const checkFormFields = () => {
     const missingObj: Record<string, boolean> = {};
     if (!formData.title.trim()) missingObj.title = true;
-    if (!formData.venue) missingObj.venue = true;
+    if (!formData.asset) missingObj.asset = true;
     if (!formData.timeStart) missingObj.timeStart = true;
     if (!formData.timeEnd) missingObj.timeEnd = true;
     if (formData.timeStart && formData.timeEnd && formData.timeStart >= formData.timeEnd) missingObj.timeEnd = true;
     if (!formData.description.trim()) missingObj.description = true;
     if (!formData.range) missingObj.range = true;
 
-    setMissingFields(missingObj); // <-- set immediately
+    setMissingFields(missingObj);
 
     if (Object.keys(missingObj).length > 0) {
       Object.keys(missingObj).forEach((field, i) => {
@@ -396,11 +427,15 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                 <TabsContent value="form" className="space-y-4 sm:space-y-6">
                   <ReserveEventFormTab
                     formData={formData}
-                    venues={venues}
+                    assets={[
+                      { id: "assets venue", name: "Assets Venue", capacity: "" },
+                      { id: "assets vehicle", name: "Assets Vehicle", capacity: "" }
+                    ]}
                     handleInputChange={handleInputChange}
-                    handleVenueChange={handleVenueChange}
+                    handleAssetChange={handleAssetChange}
                     handleRangeChange={handleRangeChange}
                     missingFields={missingFields}
+                    selectedAsset={formData.asset} // <-- pass selected asset
                   />
                 </TabsContent>
 
@@ -431,7 +466,6 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                     categories={categories}
                     infoTypes={infoTypes}
                     taggedPeople={taggedPeople}
-                    selectedVenue={selectedVenue}
                     isFormValid={isFormValid}
                   />
                 </TabsContent>
@@ -523,6 +557,20 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
               )}
             </div>
           </motion.div>
+
+          {/* Place these modals outside your main modal content */}
+          <AssetsVenueModal
+            isOpen={showVenueModal}
+            onClose={() => setShowVenueModal(false)}
+            assets={venueAssets}
+            onAssetSelect={handleAssetItemSelect} // <-- Pass handler
+          />
+          <AssetsVehicleModal
+            isOpen={showVehicleModal}
+            onClose={() => setShowVehicleModal(false)}
+            assets={vehicleAssets}
+            onAssetSelect={handleAssetItemSelect} // <-- Pass handler
+          />
         </div>
       )}
     </AnimatePresence>

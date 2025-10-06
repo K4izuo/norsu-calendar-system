@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label"
 import {
   User
 } from "lucide-react"
+import { FacultyRegisterFormData } from "@/interface/faculty-events-props"
 
 const campusOptions = [
   { value: "main", label: "Main Campus" },
@@ -34,17 +35,6 @@ const courseOptions = [
   { value: "bsa", label: "BS Accountancy" },
 ]
 
-interface FormData {
-  first_name: string
-  middle_name: string
-  last_name: string
-  email: string
-  facultyId: string
-  campus_id: string
-  college_id: string
-  degree_course_id: string
-}
-
 const fieldLabelMap: Record<string, string> = {
   first_name: "first name",
   middle_name: "middle name",
@@ -58,7 +48,7 @@ const fieldLabelMap: Record<string, string> = {
 
 export default function FacultyRegisterPage() {
   const [activeTab, setActiveTab] = useState("details")
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<FacultyRegisterFormData>({
     first_name: "",
     middle_name: "",
     last_name: "",

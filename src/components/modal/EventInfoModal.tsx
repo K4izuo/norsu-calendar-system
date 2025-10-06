@@ -33,6 +33,12 @@ interface EventDetails {
   infoType?: string;
   approvedBy?: string;
   rejectedBy?: string;
+  asset?: {
+    id: string;
+    name: string;
+    capacity: string;
+    facilities?: string[];
+  }; // <-- add asset field
 }
 
 interface ModalProps {
@@ -115,6 +121,12 @@ export const EventInfoModal = React.memo(function EventInfoModal({
 
   // Get the started ago text if event exists
   const startedAgoText = event ? getStartedAgo(event.date, event.time) : null;
+
+  // Asset information
+  const asset = event?.asset;
+  const assetName = asset?.name || event?.location || "Not specified";
+  const assetCapacity = asset?.capacity || event?.capacity || "N/A";
+  const assetFacilities = asset?.facilities || event?.facilities;
 
   return (
     <AnimatePresence>
@@ -247,22 +259,22 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                     </div>
                   </div>
 
-                  {/* Venue Information */}
+                  {/* Asset Information (was Venue Information) */}
                   <div className="bg-gray-50 shadow-sm rounded-lg p-4">
                     <div className="flex items-center mb-3">
                       <MapPin className="text-gray-500 mr-2 h-5 w-5" />
                       <h3 className="text-md font-medium text-gray-700">
-                        Venue Information
+                        Asset Information
                       </h3>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-gray-500">Location</p>
-                        <p className="font-medium">{event.location}</p>
+                        <p className="text-sm text-gray-500">Asset Name</p>
+                        <p className="font-medium">{assetName}</p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-500">Capacity</p>
-                        <p className="font-medium">{event.capacity}</p>
+                        <p className="font-medium">{assetCapacity}</p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-500">Date</p>
@@ -272,11 +284,11 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                         <p className="text-sm text-gray-500">Organizer</p>
                         <p className="font-medium">{event.organizer}</p>
                       </div>
-                      {event.facilities && (
+                      {assetFacilities && (
                         <div className="md:col-span-2">
                           <p className="text-sm text-gray-500">Facilities</p>
                           <div className="flex flex-wrap gap-1 mt-1">
-                            {event.facilities.map((facility, index) => (
+                            {assetFacilities.map((facility, index) => (
                               <span
                                 key={index}
                                 className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"

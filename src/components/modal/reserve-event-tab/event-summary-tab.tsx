@@ -3,7 +3,7 @@ import { CalendarPlus2, Building, CalendarClock, Clock, FileText, CheckCircle2 }
 
 import { ReservationFormData } from "@/interface/faculty-events-props"
 
-interface Venue {
+interface Asset {
   id: string
   name: string
   capacity: string
@@ -14,7 +14,6 @@ interface Props {
   categories: { value: string; label: string }[]
   infoTypes: { value: string; label: string }[]
   taggedPeople: { id: string; name: string }[]
-  selectedVenue: Venue | undefined
   isFormValid: () => boolean
 }
 
@@ -23,9 +22,9 @@ export function ReserveEventSummaryTab({
   categories,
   infoTypes,
   taggedPeople,
-  selectedVenue,
   isFormValid,
 }: Props) {
+  const asset = formData.asset;
   return (
     <div className="space-y-4 sm:space-y-6 pb-4">
       <div className="bg-gray-50 shadow-sm rounded-lg p-4">
@@ -72,21 +71,36 @@ export function ReserveEventSummaryTab({
       <div className="bg-gray-50 shadow-sm rounded-lg p-4">
         <div className="flex items-center mb-3">
           <Building className="text-gray-500 mr-2 h-6 w-6" />
-          <h3 className="text-lg font-medium text-gray-700">Venue Information</h3>
+          <h3 className="text-lg font-medium text-gray-700">Asset Information</h3>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <p className="text-base text-gray-500">Location</p>
-            <p className="font-medium text-base">{selectedVenue?.name || "Not selected"}</p>
+            <p className="text-base text-gray-500">Asset Name</p>
+            <p className="font-medium text-base">{asset?.name || "Not selected"}</p>
           </div>
           <div>
             <p className="text-base text-gray-500">Capacity</p>
-            <p className="font-medium text-base">{selectedVenue?.capacity || "N/A"}</p>
+            <p className="font-medium text-base">{asset?.capacity || "N/A"}</p>
           </div>
           <div>
             <p className="text-base text-gray-500">Reservation Range</p>
             <p className="font-medium text-base">{formData.range} day{formData.range > 1 ? "s" : ""}</p>
           </div>
+          {asset?.facilities && asset.facilities.length > 0 && (
+            <div className="md:col-span-2">
+              <p className="text-base text-gray-500">Facilities</p>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {asset.facilities.map((facility, idx) => (
+                  <span
+                    key={idx}
+                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                  >
+                    {facility}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
       <div className="bg-gray-50 shadow-sm rounded-lg p-4">

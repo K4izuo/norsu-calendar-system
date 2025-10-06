@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import toast from "react-hot-toast"
 import { Button } from "@/components/ui/button"
@@ -14,15 +14,10 @@ import {
   SelectItem,
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import {
-  User
-} from "lucide-react"
+import { User } from "lucide-react"
+import { StudentRegisterFormData } from "@/interface/faculty-events-props"
+import { apiClient } from "@/lib/api-client"
 
-const campusOptions = [
-  { value: "main", label: "Main Campus" },
-  { value: "east", label: "East Campus" },
-  { value: "west", label: "West Campus" },
-]
 const collegeOptions = [
   { value: "cas", label: "College of Arts & Sciences" },
   { value: "coe", label: "College of Education" },
@@ -33,17 +28,6 @@ const courseOptions = [
   { value: "bsed", label: "BSEd English" },
   { value: "bsa", label: "BS Accountancy" },
 ]
-
-interface FormData {
-  first_name: string
-  middle_name: string
-  last_name: string
-  email: string
-  studentId: string
-  campus_id: string
-  college_id: string
-  degree_course_id: string
-}
 
 const fieldLabelMap: Record<string, string> = {
   first_name: "first name",
@@ -58,7 +42,7 @@ const fieldLabelMap: Record<string, string> = {
 
 export default function StudentRegisterPage() {
   const [activeTab, setActiveTab] = useState("details")
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<StudentRegisterFormData>({
     first_name: "",
     middle_name: "",
     last_name: "",
@@ -70,6 +54,57 @@ export default function StudentRegisterPage() {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [missingFields, setMissingFields] = useState<Record<string, boolean>>({})
+  
+  // Replace campusOptions with state
+  const [campuses, setCampuses] = useState<{value: string, label: string}[]>([])
+  const [loadingCampuses, setLoadingCampuses] = useState(false)
+  const [campusError, setCampusError] = useState<string | null>(null)
+
+  // Add useEffect for fetching campuses only once when component mounts
+  useEffect(() => {
+    let isMounted = true;
+    
+    async function fetchCampuses() {
+      if (campuses.length > 0) return; // Don't fetch if we already have data
+      
+      setLoadingCampuses(true);
+      
+      try {
+        const response = await apiClient.get<any[]>('campuses/all');
+        
+        if (response.error) {
+          throw new Error(response.error);
+        }
+        
+        // Only update state if component is still mounted
+        if (isMounted && response.data) {
+          // Adjust mapping to use campus_name instead of name
+          const formattedCampuses = response.data.map((campus) => ({
+            value: campus.id.toString(),
+            label: campus.campus_name
+          }));
+          
+          setCampuses(formattedCampuses);
+        }
+      } catch (error) {
+        console.error("Error fetching campuses:", error);
+        if (isMounted) {
+          setCampusError("Failed to load campuses");
+        }
+      } finally {
+        if (isMounted) {
+          setLoadingCampuses(false);
+        }
+      }
+    }
+    
+    fetchCampuses();
+    
+    // Cleanup function to prevent state updates after unmount
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Empty dependency array ensures it only runs once
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -113,13 +148,14 @@ export default function StudentRegisterPage() {
     const toastId = toast.loading("Registering student...")
 
     try {
-      // --- Place your API call here ---
-      await fetch("/api/student/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      })
-      // --- End API call ---
+      const response = await apiClient.post<{success: boolean}, StudentRegisterFormData>(
+        'users/store', 
+        formData
+      );
+      
+      if (response.error) {
+        throw new Error(response.error);
+      }
 
       // Add artificial delay for smoothness
       await new Promise(r => setTimeout(r, 1500))
@@ -298,17 +334,28 @@ export default function StudentRegisterPage() {
                         setFormData(prev => ({ ...prev, campus_id: value }))
                       }
                       name="campus_id"
+                      disabled={loadingCampuses}
                     >
                       <SelectTrigger
                         id="campus_id"
                         className={`h-11 cursor-pointer text-base border-2 rounded-lg w-full ${missingFields.campus_id ? "border-red-400" : "border-gray-200"}`}
                       >
-                        <SelectValue placeholder="Select campus" />
+                        <SelectValue placeholder={loadingCampuses ? "Loading campuses..." : "Select campus"} />
                       </SelectTrigger>
                       <SelectContent>
-                        {campusOptions.map(opt => (
-                          <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                        ))}
+                        {campusError ? (
+                          <SelectItem value="error" disabled>{campusError}</SelectItem>
+                        ) : loadingCampuses ? (
+                          <SelectItem value="loading" disabled>Loading...</SelectItem>
+                        ) : campuses.length > 0 ? (
+                          campuses.map(campus => (
+                            <SelectItem className="cursor-pointer" key={campus.value} value={campus.value}>
+                              {campus.label}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="empty" disabled>No campuses available</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -402,7 +449,9 @@ export default function StudentRegisterPage() {
                   </div>
                   <div>
                     <p className="text-base text-gray-500">Campus</p>
-                    <p className="font-medium text-base">{campusOptions.find(c => c.value === formData.campus_id)?.label || "Not selected"}</p>
+                    <p className="font-medium text-base">
+                      {campuses.find(c => c.value === formData.campus_id)?.label || "Not selected"}
+                    </p>
                   </div>
                   <div>
                     <p className="text-base text-gray-500">College</p>
