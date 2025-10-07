@@ -40,6 +40,12 @@ const fieldLabelMap: Record<string, string> = {
   degree_course_id: "course",
 }
 
+// Define a type for campus data from the API
+type Campus = {
+  id: number;
+  campus_name: string;
+};
+
 export default function StudentRegisterPage() {
   const [activeTab, setActiveTab] = useState("details")
   const [formData, setFormData] = useState<StudentRegisterFormData>({
@@ -63,47 +69,33 @@ export default function StudentRegisterPage() {
   // Add useEffect for fetching campuses only once when component mounts
   useEffect(() => {
     let isMounted = true;
-    
+
     async function fetchCampuses() {
-      if (campuses.length > 0) return; // Don't fetch if we already have data
-      
+      if (campuses.length > 0) return;
       setLoadingCampuses(true);
-      
+
       try {
-        const response = await apiClient.get<any[]>('campuses/all');
-        
-        if (response.error) {
-          throw new Error(response.error);
-        }
-        
-        // Only update state if component is still mounted
+        const response = await apiClient.get<Campus[]>('campuses/all');
+        if (response.error) throw new Error(response.error);
+
         if (isMounted && response.data) {
-          // Adjust mapping to use campus_name instead of name
-          const formattedCampuses = response.data.map((campus) => ({
-            value: campus.id.toString(),
-            label: campus.campus_name
-          }));
-          
-          setCampuses(formattedCampuses);
+          setCampuses(
+            response.data.map(campus => ({
+              value: campus.id.toString(),
+              label: campus.campus_name,
+            }))
+          );
         }
       } catch (error) {
         console.error("Error fetching campuses:", error);
-        if (isMounted) {
-          setCampusError("Failed to load campuses");
-        }
+        if (isMounted) setCampusError("Failed to load campuses");
       } finally {
-        if (isMounted) {
-          setLoadingCampuses(false);
-        }
+        if (isMounted) setLoadingCampuses(false);
       }
     }
-    
+
     fetchCampuses();
-    
-    // Cleanup function to prevent state updates after unmount
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, []); // Empty dependency array ensures it only runs once
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -175,6 +167,7 @@ export default function StudentRegisterPage() {
       setTimeout(() => setActiveTab("details"), 700)
       
     } catch (error) {
+      console.error("Registration error: ", error)
       toast.error("Registration failed!", { id: toastId })
       setIsSubmitting(false)
     }
