@@ -13,6 +13,7 @@ import { ReserveEventSummaryTab } from "@/components/modal/reserve-event-tab/eve
 import { ReservationFormData } from "@/interface/faculty-events-props"
 import { AssetsVenueModal } from "@/components/modal/reserve-event-assets/AssetsVenueModal";
 import { AssetsVehicleModal } from "@/components/modal/reserve-event-assets/AssetsVehicleModal";
+import { CalendarClock } from "lucide-react"
 
 // Add these sample options above your component
 const infoTypes = [
@@ -115,17 +116,40 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
   const [showVenueModal, setShowVenueModal] = useState(false);
   const [showVehicleModal, setShowVehicleModal] = useState(false);
 
-  // Example asset data (replace with your real data)
-  const venueAssets = [
-    { id: "a1", name: "Main Building, Room 101", capacity: "120 seats" },
-    { id: "a2", name: "Science Building, Room 203", capacity: "80 seats" },
-    // ...other venues...
-  ];
-  const vehicleAssets = [
-    { id: "v1", name: "School Bus", capacity: "50 seats" },
-    { id: "v2", name: "Van", capacity: "15 seats" },
-    // ...other vehicles...
-  ];
+  // Add loading states for assets
+  const [loadingVenueAssets, setLoadingVenueAssets] = useState(false);
+  const [loadingVehicleAssets, setLoadingVehicleAssets] = useState(false);
+
+  // Example asset data (replace with real API call if needed)
+  const [venueAssets, setVenueAssets] = useState<{ id: string; name: string; capacity: string }[]>([]);
+  const [vehicleAssets, setVehicleAssets] = useState<{ id: string; name: string; capacity: string }[]>([]);
+
+  // Simulate loading assets when opening modals
+  useEffect(() => {
+    if (showVenueModal) {
+      setLoadingVenueAssets(true);
+      setTimeout(() => {
+        setVenueAssets([
+          { id: "a1", name: "Main Building, Room 101", capacity: "120 seats" },
+          { id: "a2", name: "Science Building, Room 203", capacity: "80 seats" },
+        ]);
+        setLoadingVenueAssets(false);
+      }, 1000); // simulate loading
+    }
+  }, [showVenueModal]);
+
+  useEffect(() => {
+    if (showVehicleModal) {
+      setLoadingVehicleAssets(true);
+      setTimeout(() => {
+        setVehicleAssets([
+          { id: "v1", name: "School Bus", capacity: "50 seats" },
+          { id: "v2", name: "Van", capacity: "15 seats" },
+        ]);
+        setLoadingVehicleAssets(false);
+      }, 1000); // simulate loading
+    }
+  }, [showVehicleModal]);
 
   // 3. Update handleAssetChange to only open the modal, not set asset directly
   const handleAssetChange = (value: string) => {
@@ -563,13 +587,16 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
             isOpen={showVenueModal}
             onClose={() => setShowVenueModal(false)}
             assets={venueAssets}
-            onAssetSelect={handleAssetItemSelect} // <-- Pass handler
+            onAssetSelect={handleAssetItemSelect}
+            loading={loadingVenueAssets} // pass loading state
           />
+
           <AssetsVehicleModal
             isOpen={showVehicleModal}
             onClose={() => setShowVehicleModal(false)}
             assets={vehicleAssets}
-            onAssetSelect={handleAssetItemSelect} // <-- Pass handler
+            onAssetSelect={handleAssetItemSelect}
+            loading={loadingVehicleAssets} // pass loading state
           />
         </div>
       )}

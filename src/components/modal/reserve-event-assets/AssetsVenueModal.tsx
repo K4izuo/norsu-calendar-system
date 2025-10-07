@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, X } from "lucide-react";
+import { MapPin, X, CalendarClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface Asset {
@@ -16,14 +16,16 @@ interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   assets: Asset[];
-  onAssetSelect: (asset: Asset) => void; // <-- Add this
+  onAssetSelect: (asset: Asset) => void;
+  loading?: boolean; // add loading prop
 }
 
 export const AssetsVenueModal = React.memo(function AssetsVenueModal({
   isOpen,
   onClose,
   assets,
-  onAssetSelect, // <-- Add this
+  onAssetSelect,
+  loading = false, // default to false
 }: ModalProps) {
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -110,51 +112,77 @@ export const AssetsVenueModal = React.memo(function AssetsVenueModal({
               className="overflow-y-auto custom-scrollbar p-4 sm:p-6 pt-4 sm:pt-6"
               style={{ maxHeight: "calc(80vh - 85px)" }}
             >
-              <div className="space-y-6">
-                {assets.length === 0 ? (
-                  <div className="text-center text-gray-500">No venue assets available.</div>
-                ) : (
-                  assets.map((asset) => (
-                    <button
-                      key={asset.id}
-                      type="button"
-                      className="w-full text-left bg-gray-50 shadow-sm rounded-lg p-4 mb-4 hover:bg-blue-50 transition"
-                      onClick={() => {
-                        onAssetSelect(asset);
-                        onClose();
+              {loading ? (
+                <motion.div
+                  className="flex items-center justify-center py-20"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="relative h-16 w-16 flex items-center justify-center">
+                    <motion.div
+                      className="absolute inset-0 h-16 w-16 rounded-full border-t-4 border-b-4 border-blue-500"
+                      animate={{ rotate: 360 }}
+                      transition={{
+                        duration: 1.5,
+                        ease: "linear",
+                        repeat: Infinity,
                       }}
-                    >
-                      <div className="flex items-center mb-3">
-                        <MapPin className="text-gray-500 mr-2 h-5 w-5" />
-                        <h3 className="text-md font-medium text-gray-700">
-                          {asset.name}
-                        </h3>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm text-gray-500">Capacity</p>
-                          <p className="font-medium">{asset.capacity || "N/A"}</p>
+                    />
+                    <CalendarClock className="absolute inset-0 m-auto h-7 w-7 text-blue-500" />
+                  </div>
+                </motion.div>
+              ) : (
+                <div className="space-y-6">
+                  {assets.length === 0 ? (
+                    <div className="text-center text-gray-500">
+                      No venue assets available.
+                    </div>
+                  ) : (
+                    assets.map((asset) => (
+                      <button
+                        key={asset.id}
+                        type="button"
+                        className="w-full text-left bg-gray-50 shadow-sm rounded-lg p-4 mb-4 hover:bg-blue-50 transition"
+                        onClick={() => {
+                          onAssetSelect(asset);
+                          onClose();
+                        }}
+                      >
+                        <div className="flex items-center mb-3">
+                          <MapPin className="text-gray-500 mr-2 h-5 w-5" />
+                          <h3 className="text-md font-medium text-gray-700">
+                            {asset.name}
+                          </h3>
                         </div>
-                        {asset.facilities && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <p className="text-sm text-gray-500">Facilities</p>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {asset.facilities.map((facility, idx) => (
-                                <span
-                                  key={idx}
-                                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                                >
-                                  {facility}
-                                </span>
-                              ))}
-                            </div>
+                            <p className="text-sm text-gray-500">Capacity</p>
+                            <p className="font-medium">
+                              {asset.capacity || "N/A"}
+                            </p>
                           </div>
-                        )}
-                      </div>
-                    </button>
-                  ))
-                )}
-              </div>
+                          {asset.facilities && (
+                            <div>
+                              <p className="text-sm text-gray-500">Facilities</p>
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {asset.facilities.map((facility, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                                  >
+                                    {facility}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
           </motion.div>
         </div>
