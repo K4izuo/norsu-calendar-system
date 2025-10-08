@@ -18,17 +18,6 @@ import { User } from "lucide-react"
 import { StudentRegisterFormData } from "@/interface/faculty-events-props"
 import { apiClient } from "@/lib/api-client"
 
-const collegeOptions = [
-  { value: "cas", label: "College of Arts & Sciences" },
-  { value: "coe", label: "College of Education" },
-  { value: "cba", label: "College of Business Administration" },
-]
-const courseOptions = [
-  { value: "bsit", label: "BS Information Technology" },
-  { value: "bsed", label: "BSEd English" },
-  { value: "bsa", label: "BS Accountancy" },
-]
-
 const fieldLabelMap: Record<string, string> = {
   first_name: "first name",
   middle_name: "middle name",
@@ -46,6 +35,11 @@ type Campus = {
   campus_name: string;
 };
 
+type Office = {
+  id: number;
+  office_name: string;
+};
+
 export default function StudentRegisterPage() {
   const [activeTab, setActiveTab] = useState("details")
   const [formData, setFormData] = useState<StudentRegisterFormData>({
@@ -61,10 +55,15 @@ export default function StudentRegisterPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [missingFields, setMissingFields] = useState<Record<string, boolean>>({})
   
-  // Replace campusOptions with state
   const [campuses, setCampuses] = useState<{value: string, label: string}[]>([])
+  const [offices, setOffices] = useState<{value: string, label: string}[]>([])
+  const [courses, setCourses] = useState<{ value: string; label: string }[]>([]);
   const [loadingCampuses, setLoadingCampuses] = useState(false)
+  const [loadingOffices, setLoadingOffices] = useState(false)
+  const [loadingCourses, setLoadingCourses] = useState(false);
   const [campusError, setCampusError] = useState<string | null>(null)
+  const [officeError, setOfficeError] = useState<string | null>(null)
+  const [courseError, setCourseError] = useState<string | null>(null);
 
   // Add useEffect for fetching campuses only once when component mounts
   useEffect(() => {
@@ -97,6 +96,86 @@ export default function StudentRegisterPage() {
     fetchCampuses();
     return () => { isMounted = false; };
   }, []); // Empty dependency array ensures it only runs once
+
+  // Office fetch
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchOffices() {
+      if (offices.length > 0) return;
+      setLoadingOffices(true);
+
+      try {
+        const response = await apiClient.get<Office[]>('offices/all');
+        if (response.error) throw new Error(response.error);
+
+        if (isMounted && response.data) {
+          setOffices(
+            response.data.map(office => ({
+              value: office.id.toString(),
+              label: office.office_name,
+            }))
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching offices:", error);
+        if (isMounted) setOfficeError("Failed to load offices");
+      } finally {
+        if (isMounted) setLoadingOffices(false);
+      }
+    }
+
+    fetchOffices();
+    return () => { isMounted = false; };
+  }, []);
+
+  // Fetch courses when college_id changes and is not empty
+  useEffect(() => {
+    if (!formData.college_id) {
+      setCourses([]);
+      return;
+    }
+
+    let isMounted = true;
+    setLoadingCourses(true);
+    setCourseError(null);
+
+    apiClient
+      .get<{ id: number; degree_name: string }[]>(`degreeCourse/${formData.college_id}`)
+      .then(response => {
+        if (!isMounted) return;
+
+        if (response.error) {
+          setCourses([]);
+          setCourseError("No courses available for this college.");
+          return;
+        }
+
+        if (response.data && response.data.length > 0) {
+          setCourses(
+            response.data.map(course => ({
+              value: course.id.toString(),
+              label: course.degree_name,
+            }))
+          );
+          setCourseError(null);
+        } else {
+          setCourses([]);
+          setCourseError("No courses available for this college.");
+        }
+      })
+      .catch(error => {
+        console.error("Error fetching courses:", error);
+        if (isMounted) setCourseError("Failed to load courses");
+      })
+      .finally(() => {
+        if (isMounted) setLoadingCourses(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [formData.college_id]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -146,14 +225,21 @@ export default function StudentRegisterPage() {
       );
       
       if (response.error) {
-        throw new Error(response.error);
+        // Check for duplicate email error message from backend
+        if (
+          response.error.toLowerCase().includes("email") &&
+          response.error.toLowerCase().includes("already")
+        ) {
+          toast.error("Email is already registered.", { id: toastId });
+        } else {
+          toast.error(response.error, { id: toastId });
+        }
+        setIsSubmitting(false);
+        return;
       }
 
-      // Add artificial delay for smoothness
-      await new Promise(r => setTimeout(r, 1500))
-
-      toast.success("Registration successful!", { id: toastId })
-      setIsSubmitting(false)
+      toast.success("Registration successful!", { id: toastId });
+      setIsSubmitting(false);
       setFormData({
         first_name: "",
         middle_name: "",
@@ -163,13 +249,13 @@ export default function StudentRegisterPage() {
         campus_id: "",
         college_id: "",
         degree_course_id: "",
-      })
-      setTimeout(() => setActiveTab("details"), 700)
+      });
+      setTimeout(() => setActiveTab("details"), 700);
       
     } catch (error) {
-      console.error("Registration error: ", error)
-      toast.error("Registration failed!", { id: toastId })
-      setIsSubmitting(false)
+      console.error("Registration error: ", error);
+      toast.error("Registration failed!", { id: toastId });
+      setIsSubmitting(false);
     }
   }
 
@@ -361,20 +447,31 @@ export default function StudentRegisterPage() {
                     <Select
                       value={formData.college_id}
                       onValueChange={value =>
-                        setFormData(prev => ({ ...prev, college_id: value }))
+                        setFormData(prev => ({ ...prev, college_id: value, degree_course_id: "" }))
                       }
                       name="college_id"
+                      disabled={loadingOffices}
                     >
                       <SelectTrigger
                         id="college_id"
                         className={`h-11 cursor-pointer text-base border-2 rounded-lg w-full ${missingFields.college_id ? "border-red-400" : "border-gray-200"}`}
                       >
-                        <SelectValue placeholder="Select college" />
+                        <SelectValue placeholder={loadingOffices ? "Loading colleges..." : "Select college"} />
                       </SelectTrigger>
                       <SelectContent>
-                        {collegeOptions.map(opt => (
-                          <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                        ))}
+                        {officeError ? (
+                          <SelectItem value="error" disabled>{officeError}</SelectItem>
+                        ) : loadingOffices ? (
+                          <SelectItem value="loading" disabled>Loading...</SelectItem>
+                        ) : offices.length > 0 ? (
+                          offices.map(office => (
+                            <SelectItem className="cursor-pointer" key={office.value} value={office.value}>
+                              {office.label}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="empty" disabled>No offices available</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -389,20 +486,29 @@ export default function StudentRegisterPage() {
                   <Select
                     value={formData.degree_course_id}
                     onValueChange={value =>
-                        setFormData(prev => ({ ...prev, degree_course_id: value }))
-                      }
+                      setFormData(prev => ({ ...prev, degree_course_id: value }))
+                    }
                     name="degree_course_id"
+                    disabled={loadingCourses || !formData.college_id}
                   >
                     <SelectTrigger
                       id="degree_course_id"
                       className={`h-11 cursor-pointer text-base border-2 rounded-lg w-full ${missingFields.degree_course_id ? "border-red-400" : "border-gray-200"}`}
                     >
-                      <SelectValue placeholder="Select course" />
+                      <SelectValue placeholder={loadingCourses ? "Loading courses..." : "Select course"} />
                     </SelectTrigger>
                     <SelectContent>
-                      {courseOptions.map(opt => (
-                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                      ))}
+                      {courseError ? (
+                        <SelectItem value="error" disabled>{courseError}</SelectItem>
+                      ) : loadingCourses ? (
+                        <SelectItem value="loading" disabled>Loading...</SelectItem>
+                      ) : courses.length > 0 ? (
+                        courses.map(course => (
+                          <SelectItem key={course.value} value={course.value}>{course.label}</SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="empty" disabled>No courses available</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -448,11 +554,15 @@ export default function StudentRegisterPage() {
                   </div>
                   <div>
                     <p className="text-base text-gray-500">College</p>
-                    <p className="font-medium text-base">{collegeOptions.find(c => c.value === formData.college_id)?.label || "Not selected"}</p>
+                    <p className="font-medium text-base">
+                      {offices.find(o => o.value === formData.college_id)?.label || "Not selected"}
+                    </p>
                   </div>
                   <div>
                     <p className="text-base text-gray-500">Course</p>
-                    <p className="font-medium text-base">{courseOptions.find(c => c.value === formData.degree_course_id)?.label || "Not selected"}</p>
+                    <p className="font-medium text-base">
+                      {courses.find(c => c.value === formData.degree_course_id)?.label || "Not selected"}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -462,13 +572,9 @@ export default function StudentRegisterPage() {
                   : 'bg-yellow-50 text-yellow-800'
               }`}>
                 {isFormValid() ? (
-                  <>
-                    <span className="text-base">Ready for submission</span>
-                  </>
+                  <span className="text-base">Ready for submission</span>
                 ) : (
-                  <>
-                    <span className="text-base">Please complete all required fields</span>
-                  </>
+                  <span className="text-base">Please complete all required fields</span>
                 )}
               </div>
               <div className="flex justify-end gap-3">
