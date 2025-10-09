@@ -1,278 +1,42 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useCallback } from "react"
 import { motion } from "framer-motion"
-import toast from "react-hot-toast"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { User } from "lucide-react"
-import { StudentRegisterFormData } from "@/interface/faculty-events-props"
-import { apiClient } from "@/lib/api-client"
-
-const fieldLabelMap: Record<string, string> = {
-  first_name: "first name",
-  middle_name: "middle name",
-  last_name: "last name",
-  email: "email",
-  studentId: "student ID",
-  campus_id: "campus",
-  college_id: "college",
-  degree_course_id: "course",
-}
-
-// Define a type for campus data from the API
-type Campus = {
-  id: number;
-  campus_name: string;
-};
-
-type Office = {
-  id: number;
-  office_name: string;
-};
+import { StudentRegistrationSubmission } from "@/hooks/useStudRegForm"
+import { useCampuses, useOffices, useCourses } from "@/services/academicDataService"
+import { StudentFormSelectField } from "@/components/user-forms/student/StdFormField"
+import { StudentSummary } from "@/components/user-forms/student/StdSummary"
 
 export default function StudentRegisterPage() {
   const [activeTab, setActiveTab] = useState("details")
-  const [formData, setFormData] = useState<StudentRegisterFormData>({
-    first_name: "",
-    middle_name: "",
-    last_name: "",
-    email: "",
-    studentId: "",
-    campus_id: "",
-    college_id: "",
-    degree_course_id: "",
-  })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [missingFields, setMissingFields] = useState<Record<string, boolean>>({})
-  
-  const [campuses, setCampuses] = useState<{value: string, label: string}[]>([])
-  const [offices, setOffices] = useState<{value: string, label: string}[]>([])
-  const [courses, setCourses] = useState<{ value: string; label: string }[]>([]);
-  const [loadingCampuses, setLoadingCampuses] = useState(false)
-  const [loadingOffices, setLoadingOffices] = useState(false)
-  const [loadingCourses, setLoadingCourses] = useState(false);
-  const [campusError, setCampusError] = useState<string | null>(null)
-  const [officeError, setOfficeError] = useState<string | null>(null)
-  const [courseError, setCourseError] = useState<string | null>(null);
+  const {
+    formData,
+    missingFields,
+    isSubmitting,
+    handleInputChange,
+    handleSelectChange,
+    handleSubmit,
+    isFormValid
+  } = StudentRegistrationSubmission()
 
-  // Add useEffect for fetching campuses only once when component mounts
-  useEffect(() => {
-    let isMounted = true;
+  const { campuses, loading: loadingCampuses, error: campusError } = useCampuses()
+  const { offices, loading: loadingOffices, error: officeError } = useOffices()
+  const { courses, loading: loadingCourses, error: courseError } = useCourses(formData.college_id)
 
-    async function fetchCampuses() {
-      if (campuses.length > 0) return;
-      setLoadingCampuses(true);
-
-      try {
-        const response = await apiClient.get<Campus[]>('campuses/all');
-        if (response.error) throw new Error(response.error);
-
-        if (isMounted && response.data) {
-          setCampuses(
-            response.data.map(campus => ({
-              value: campus.id.toString(),
-              label: campus.campus_name,
-            }))
-          );
-        }
-      } catch (error) {
-        console.error("Error fetching campuses:", error);
-        if (isMounted) setCampusError("Failed to load campuses");
-      } finally {
-        if (isMounted) setLoadingCampuses(false);
-      }
+  // Memoize form submission handler
+  const onSubmit = useCallback(async () => {
+    const success = await handleSubmit()
+    if (success) {
+      setTimeout(() => setActiveTab("details"), 700)
     }
-
-    fetchCampuses();
-    return () => { isMounted = false; };
-  }, []); // Empty dependency array ensures it only runs once
-
-  // Office fetch
-  useEffect(() => {
-    let isMounted = true;
-
-    async function fetchOffices() {
-      if (offices.length > 0) return;
-      setLoadingOffices(true);
-
-      try {
-        const response = await apiClient.get<Office[]>('offices/all');
-        if (response.error) throw new Error(response.error);
-
-        if (isMounted && response.data) {
-          setOffices(
-            response.data.map(office => ({
-              value: office.id.toString(),
-              label: office.office_name,
-            }))
-          );
-        }
-      } catch (error) {
-        console.error("Error fetching offices:", error);
-        if (isMounted) setOfficeError("Failed to load offices");
-      } finally {
-        if (isMounted) setLoadingOffices(false);
-      }
-    }
-
-    fetchOffices();
-    return () => { isMounted = false; };
-  }, []);
-
-  // Fetch courses when college_id changes and is not empty
-  useEffect(() => {
-    if (!formData.college_id) {
-      setCourses([]);
-      return;
-    }
-
-    let isMounted = true;
-    setLoadingCourses(true);
-    setCourseError(null);
-
-    apiClient
-      .get<{ id: number; degree_name: string }[]>(`degreeCourse/${formData.college_id}`)
-      .then(response => {
-        if (!isMounted) return;
-
-        if (response.error) {
-          setCourses([]);
-          setCourseError("No courses available for this college.");
-          return;
-        }
-
-        if (response.data && response.data.length > 0) {
-          setCourses(
-            response.data.map(course => ({
-              value: course.id.toString(),
-              label: course.degree_name,
-            }))
-          );
-          setCourseError(null);
-        } else {
-          setCourses([]);
-          setCourseError("No courses available for this college.");
-        }
-      })
-      .catch(error => {
-        console.error("Error fetching courses:", error);
-        if (isMounted) setCourseError("Failed to load courses");
-      })
-      .finally(() => {
-        if (isMounted) setLoadingCourses(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [formData.college_id]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-    setMissingFields(prev => {
-      if (prev[name]) {
-        const updated = { ...prev }
-        delete updated[name]
-        return updated
-      }
-      return prev
-    })
-  }
-
-  const checkFormFields = () => {
-    const missing: Record<string, boolean> = {}
-    if (!formData.first_name.trim()) missing.first_name = true
-    if (!formData.middle_name.trim()) missing.middle_name = true
-    if (!formData.last_name.trim()) missing.last_name = true
-    if (!formData.email.trim() || !formData.email.includes("@")) missing.email = true
-    if (!formData.studentId.trim()) missing.studentId = true
-    if (!formData.campus_id) missing.campus_id = true
-    if (!formData.college_id) missing.college_id = true
-    if (!formData.degree_course_id) missing.degree_course_id = true
-
-    setMissingFields(missing)
-    if (Object.keys(missing).length > 0) {
-      Object.keys(missing).forEach((field, i) => {
-        const label = fieldLabelMap[field] || field
-        setTimeout(() => toast.error(`Missing or invalid: ${label}`), i * 200)
-      })
-      return false
-    }
-    return true
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!checkFormFields()) return
-    setIsSubmitting(true)
-    const toastId = toast.loading("Registering student...")
-
-    try {
-      const response = await apiClient.post<{success: boolean}, StudentRegisterFormData>(
-        'users/store', 
-        formData
-      );
-      
-      if (response.error) {
-        // Check for duplicate email error message from backend
-        if (
-          response.error.toLowerCase().includes("email") &&
-          response.error.toLowerCase().includes("already")
-        ) {
-          toast.error("Email is already registered.", { id: toastId });
-        } else {
-          toast.error(response.error, { id: toastId });
-        }
-        setIsSubmitting(false);
-        return;
-      }
-
-      toast.success("Registration successful!", { id: toastId });
-      setIsSubmitting(false);
-      setFormData({
-        first_name: "",
-        middle_name: "",
-        last_name: "",
-        email: "",
-        studentId: "",
-        campus_id: "",
-        college_id: "",
-        degree_course_id: "",
-      });
-      setTimeout(() => setActiveTab("details"), 700);
-      
-    } catch (error) {
-      console.error("Registration error: ", error);
-      toast.error("Registration failed!", { id: toastId });
-      setIsSubmitting(false);
-    }
-  }
-
-  const isFormValid = () =>
-    formData.first_name.trim() &&
-    formData.middle_name.trim() &&
-    formData.last_name.trim() &&
-    formData.email.trim() &&
-    formData.email.includes("@") &&
-    formData.studentId.trim() &&
-    formData.campus_id &&
-    formData.college_id &&
-    formData.degree_course_id
+  }, [handleSubmit, setActiveTab])
 
   return (
     <div className="h-screen w-screen bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center p-2 sm:p-4 lg:p-6 relative overflow-hidden">
-
       <div className="absolute top-0 left-0 w-32 h-32 bg-green-600 rounded-full opacity-10 -translate-x-16 -translate-y-16"></div>
       <div className="absolute bottom-0 right-0 w-48 h-48 bg-emerald-500 rounded-full opacity-10 translate-x-24 translate-y-24"></div>
       <div className="absolute top-1/2 left-0 w-24 h-24 bg-green-500 rounded-full opacity-10 -translate-x-12"></div>
@@ -363,6 +127,7 @@ export default function StudentRegisterPage() {
                     />
                   </div>
                 </div>
+                
                 {/* Email & Student ID row */}
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <div className="flex-1 flex flex-col gap-1">
@@ -399,124 +164,68 @@ export default function StudentRegisterPage() {
                     />
                   </div>
                 </div>
+                
                 {/* Campus & College row */}
                 <div className="flex flex-col gap-3 sm:flex-row">
-                  <div className="flex-1 flex flex-col gap-1">
-                    <Label htmlFor="campus_id" className="inline-flex pointer-events-none">
-                      <span className="pointer-events-auto">
-                        Campus <span className="text-red-500">*</span>
-                      </span>
-                    </Label>
-                    <Select
-                      value={formData.campus_id}
-                      onValueChange={value =>
-                        setFormData(prev => ({ ...prev, campus_id: value }))
-                      }
+                  <div className="flex-1">
+                    <StudentFormSelectField
+                      id="campus_id"
                       name="campus_id"
-                      disabled={loadingCampuses}
-                    >
-                      <SelectTrigger
-                        id="campus_id"
-                        className={`h-11 cursor-pointer text-base border-2 rounded-lg w-full ${missingFields.campus_id ? "border-red-400" : "border-gray-200"}`}
-                      >
-                        <SelectValue placeholder={loadingCampuses ? "Loading campuses..." : "Select campus"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {campusError ? (
-                          <SelectItem value="error" disabled>{campusError}</SelectItem>
-                        ) : loadingCampuses ? (
-                          <SelectItem value="loading" disabled>Loading...</SelectItem>
-                        ) : campuses.length > 0 ? (
-                          campuses.map(campus => (
-                            <SelectItem className="cursor-pointer" key={campus.value} value={campus.value}>
-                              {campus.label}
-                            </SelectItem>
-                          ))
-                        ) : (
-                          <SelectItem value="empty" disabled>No campuses available</SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
+                      label="Campus"
+                      placeholder="Select campus"
+                      value={formData.campus_id}
+                      onChange={(value) => handleSelectChange("campus_id", value)}
+                      options={campuses}
+                      loading={loadingCampuses}
+                      error={campusError}
+                      required
+                      hasError={!!missingFields.campus_id}
+                    />
                   </div>
-                  <div className="flex-1 flex flex-col gap-1">
-                    <Label htmlFor="college_id" className="inline-flex pointer-events-none">
-                      <span className="pointer-events-auto">
-                        College <span className="text-red-500">*</span>
-                      </span>
-                    </Label>
-                    <Select
-                      value={formData.college_id}
-                      onValueChange={value =>
-                        setFormData(prev => ({ ...prev, college_id: value, degree_course_id: "" }))
-                      }
+                  <div className="flex-1">
+                    <StudentFormSelectField
+                      id="college_id"
                       name="college_id"
-                      disabled={loadingOffices}
-                    >
-                      <SelectTrigger
-                        id="college_id"
-                        className={`h-11 cursor-pointer text-base border-2 rounded-lg w-full ${missingFields.college_id ? "border-red-400" : "border-gray-200"}`}
-                      >
-                        <SelectValue placeholder={loadingOffices ? "Loading colleges..." : "Select college"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {officeError ? (
-                          <SelectItem value="error" disabled>{officeError}</SelectItem>
-                        ) : loadingOffices ? (
-                          <SelectItem value="loading" disabled>Loading...</SelectItem>
-                        ) : offices.length > 0 ? (
-                          offices.map(office => (
-                            <SelectItem className="cursor-pointer" key={office.value} value={office.value}>
-                              {office.label}
-                            </SelectItem>
-                          ))
-                        ) : (
-                          <SelectItem value="empty" disabled>No offices available</SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
+                      label="College"
+                      placeholder="Select college"
+                      value={formData.college_id}
+                      onChange={(value) => handleSelectChange("college_id", value)}
+                      options={offices}
+                      loading={loadingOffices}
+                      error={officeError}
+                      required
+                      hasError={!!missingFields.college_id}
+                    />
                   </div>
                 </div>
-                {/* Course row (below) */}
-                <div className="flex flex-col gap-1">
-                  <Label htmlFor="degree_course_id" className="inline-flex pointer-events-none">
-                    <span className="pointer-events-auto">
-                      Course <span className="text-red-500">*</span>
-                    </span>
-                  </Label>
-                  <Select
-                    value={formData.degree_course_id}
-                    onValueChange={value =>
-                      setFormData(prev => ({ ...prev, degree_course_id: value }))
-                    }
-                    name="degree_course_id"
-                    disabled={loadingCourses || !formData.college_id}
-                  >
-                    <SelectTrigger
-                      id="degree_course_id"
-                      className={`h-11 cursor-pointer text-base border-2 rounded-lg w-full ${missingFields.degree_course_id ? "border-red-400" : "border-gray-200"}`}
-                    >
-                      <SelectValue placeholder={loadingCourses ? "Loading courses..." : "Select course"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {courseError ? (
-                        <SelectItem value="error" disabled>{courseError}</SelectItem>
-                      ) : loadingCourses ? (
-                        <SelectItem value="loading" disabled>Loading...</SelectItem>
-                      ) : courses.length > 0 ? (
-                        courses.map(course => (
-                          <SelectItem key={course.value} value={course.value}>{course.label}</SelectItem>
-                        ))
-                      ) : (
-                        <SelectItem value="empty" disabled>No courses available</SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
+                
+                {/* Course row */}
+                <StudentFormSelectField
+                  id="degree_course_id"
+                  name="degree_course_id"
+                  label="Course"
+                  placeholder="Select course"
+                  value={formData.degree_course_id}
+                  onChange={(value) => handleSelectChange("degree_course_id", value)}
+                  options={courses}
+                  loading={loadingCourses}
+                  error={courseError}
+                  required
+                  disabled={!formData.college_id}
+                  hasError={!!missingFields.degree_course_id}
+                />
+                
                 <div className="flex mt-2 justify-end">
                   <Button
                     type="button"
                     onClick={() => {
-                      if (checkFormFields()) setActiveTab("summary")
+                      // Only check if the form is valid, don't submit yet
+                      if (isFormValid()) {
+                        setActiveTab("summary");
+                      } else {
+                        // If form is invalid, show validation errors
+                        handleSubmit(true); // Pass true to indicate this is just validation
+                      }
                     }}
                     variant="default"
                     className="text-base cursor-pointer py-2.5"
@@ -527,56 +236,13 @@ export default function StudentRegisterPage() {
               </form>
             </TabsContent>
             <TabsContent value="summary" className="space-y-6">
-              <div className="bg-gray-50 shadow-sm rounded-lg p-4">
-                <div className="flex items-center mb-3">
-                  {/* Student icon added here */}
-                  <User className="w-6 h-6 text-emerald-500 mr-2" />
-                  <h3 className="text-lg font-medium text-gray-700">Student Information</h3>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-base text-gray-500">Full Name</p>
-                    <p className="font-medium text-base">{`${formData.first_name} ${formData.middle_name} ${formData.last_name}`.trim() || "Not provided"}</p>
-                  </div>
-                  <div>
-                    <p className="text-base text-gray-500">Email</p>
-                    <p className="font-medium text-base">{formData.email || "Not provided"}</p>
-                  </div>
-                  <div>
-                    <p className="text-base text-gray-500">Student ID</p>
-                    <p className="font-medium text-base">{formData.studentId || "Not provided"}</p>
-                  </div>
-                  <div>
-                    <p className="text-base text-gray-500">Campus</p>
-                    <p className="font-medium text-base">
-                      {campuses.find(c => c.value === formData.campus_id)?.label || "Not selected"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-base text-gray-500">College</p>
-                    <p className="font-medium text-base">
-                      {offices.find(o => o.value === formData.college_id)?.label || "Not selected"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-base text-gray-500">Course</p>
-                    <p className="font-medium text-base">
-                      {courses.find(c => c.value === formData.degree_course_id)?.label || "Not selected"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className={`mt-6 p-3 rounded-md flex items-center justify-center ${
-                isFormValid()
-                  ? 'bg-green-50 text-green-800'
-                  : 'bg-yellow-50 text-yellow-800'
-              }`}>
-                {isFormValid() ? (
-                  <span className="text-base">Ready for submission</span>
-                ) : (
-                  <span className="text-base">Please complete all required fields</span>
-                )}
-              </div>
+              <StudentSummary 
+                formData={formData}
+                campuses={campuses}
+                offices={offices}
+                courses={courses}
+                isFormValid={!!isFormValid()}
+              />
               <div className="flex justify-end gap-3">
                 <Button
                   type="button"
@@ -589,7 +255,7 @@ export default function StudentRegisterPage() {
                 </Button>
                 <Button
                   type="button"
-                  onClick={handleSubmit}
+                  onClick={onSubmit}
                   variant="default"
                   disabled={!isFormValid() || isSubmitting}
                   className="text-base cursor-pointer py-2.5"
