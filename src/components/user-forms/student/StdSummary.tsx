@@ -39,7 +39,7 @@ export const StudentSummary = memo(function StudentSummary({
           </div>
           <div>
             <p className="text-base text-gray-500">Student ID</p>
-            <p className="font-medium text-base">{formData.studentId || "Not provided"}</p>
+            <p className="font-medium text-base">{formData.studentID || "Not provided"}</p>
           </div>
           <div>
             <p className="text-base text-gray-500">Campus</p>

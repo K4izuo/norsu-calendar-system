@@ -9,7 +9,7 @@ const FIELD_LABELS: Record<keyof StudentRegisterFormData, string> = {
   middle_name: "middle name",
   last_name: "last name",
   email: "email",
-  studentId: "student ID",
+  studentID: "student ID",
   campus_id: "campus",
   college_id: "college",
   degree_course_id: "course",
@@ -21,7 +21,7 @@ const INITIAL_FORM_STATE: StudentRegisterFormData = {
   middle_name: "",
   last_name: "",
   email: "",
-  studentId: "",
+  studentID: "",
   campus_id: "",
   college_id: "",
   degree_course_id: "",
@@ -64,7 +64,7 @@ export function StudentRegistrationSubmission() {
     if (!formData.first_name.trim()) missing.first_name = true;
     if (!formData.middle_name.trim()) missing.middle_name = true;
     if (!formData.last_name.trim()) missing.last_name = true;
-    if (!formData.studentId.trim()) missing.studentId = true;
+    if (!formData.studentID.trim()) missing.studentID = true;
     if (!formData.campus_id) missing.campus_id = true;
     if (!formData.college_id) missing.college_id = true;
     if (!formData.degree_course_id) missing.degree_course_id = true;
@@ -100,7 +100,7 @@ export function StudentRegistrationSubmission() {
     const toastId = toast.loading("Registering student...");
 
     try {
-      const response = await apiClient.post<{success: boolean}, StudentRegisterFormData>(
+      const response = await apiClient.post<{message?: string}, StudentRegisterFormData>(
         'users/store', 
         formData
       );
@@ -116,16 +116,16 @@ export function StudentRegistrationSubmission() {
         return false;
       }
 
-      // Verify success response
-      if (!response.data?.success) {
+      // Check for response data (successful response)
+      if (!response.data) {
         toast.error("Registration could not be confirmed", { id: toastId });
-        console.log("Unexpected API response:", response);
+        console.log("Empty API response:", response);
         setIsSubmitting(false);
         return false;
       }
 
-      // Handle success
-      toast.success("Registration successful!", { id: toastId });
+      // Handle success (response data exists with no errors)
+      toast.success(response.data.message || "Registration successful!", { id: toastId });
       setFormData(INITIAL_FORM_STATE);
       setIsSubmitting(false);
       return true;
@@ -146,7 +146,7 @@ export function StudentRegistrationSubmission() {
       formData.last_name.trim() &&
       formData.email.trim() &&
       formData.email.includes("@") &&
-      formData.studentId.trim() &&
+      formData.studentID.trim() &&
       formData.campus_id &&
       formData.college_id &&
       formData.degree_course_id

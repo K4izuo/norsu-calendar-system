@@ -35,6 +35,24 @@ export default function StudentRegisterPage() {
     }
   }, [handleSubmit, setActiveTab])
 
+  const handleStudentIDChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    // Filter out non-numeric characters
+    const numericValue = e.target.value.replace(/\D/g, '');
+    
+    // Create a new synthetic event with the filtered value
+    const syntheticEvent = {
+      ...e,
+      target: {
+        ...e.target,
+        value: numericValue,
+        name: e.target.name
+      }
+    } as React.ChangeEvent<HTMLInputElement>;
+    
+    // Call the original handler with our modified event
+    handleInputChange(syntheticEvent);
+  }, [handleInputChange]);
+
   return (
     <div className="h-screen w-screen bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center p-2 sm:p-4 lg:p-6 relative overflow-hidden">
       <div className="absolute top-0 left-0 w-32 h-32 bg-green-600 rounded-full opacity-10 -translate-x-16 -translate-y-16"></div>
@@ -148,19 +166,20 @@ export default function StudentRegisterPage() {
                     />
                   </div>
                   <div className="flex-1 flex flex-col gap-1">
-                    <Label htmlFor="studentId" className="inline-flex pointer-events-none">
+                    <Label htmlFor="studentID" className="inline-flex pointer-events-none">
                       <span className="pointer-events-auto">
                         Student ID <span className="text-red-500">*</span>
                       </span>
                     </Label>
                     <Input
-                      id="studentId"
-                      name="studentId"
+                      id="studentID"
+                      name="studentID"
                       autoComplete="off"
                       placeholder="Enter student ID"
-                      value={formData.studentId}
-                      onChange={handleInputChange}
-                      className={`h-11 text-base border-2 rounded-lg ${missingFields.studentId ? "border-red-400" : "border-gray-200"} focus:border-ring`}
+                      value={formData.studentID}
+                      onChange={handleStudentIDChange}
+                      inputMode="numeric" // Helps mobile show numeric keyboard
+                      className={`h-11 text-base border-2 rounded-lg ${missingFields.studentID ? "border-red-400" : "border-gray-200"} focus:border-ring`}
                     />
                   </div>
                 </div>
