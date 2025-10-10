@@ -4,7 +4,7 @@ import React from "react"
 import { useAccountForm } from "@/hooks/useAccountRegForm"
 import { AccountPageLayout } from "@/components/auth-register-form/AccountPageComponent"
 
-export default function StudentAccountPage() {
+export default function FacultyAccountPage() {
   const {
     activeTab,
     formData,
@@ -20,7 +20,7 @@ export default function StudentAccountPage() {
 
   return (
     <AccountPageLayout
-      type="student"
+      type="faculty"
       formData={formData}
       activeTab={activeTab}
       missingFields={missingFields}

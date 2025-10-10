@@ -96,7 +96,7 @@ export interface FacultyRegisterFormData {
   middle_name: string
   last_name: string
   email: string
-  facultyId: string
+  facultyID: string
   campus_id: string
   college_id: string
   degree_course_id: string

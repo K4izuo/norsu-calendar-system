@@ -1,39 +1,39 @@
 import { useState, useCallback } from "react";
 import toast from "react-hot-toast";
-import { StudentRegisterFormData } from "@/interface/faculty-events-props";
+import { FacultyRegisterFormData } from "@/interface/faculty-events-props";
 import { apiClient } from "@/lib/api-client";
 
 // Field validation mapping for error messages
-const FIELD_LABELS: Record<keyof StudentRegisterFormData, string> = {
+const FIELD_LABELS: Record<keyof FacultyRegisterFormData, string> = {
   first_name: "first name",
   middle_name: "middle name",
   last_name: "last name",
   email: "email",
-  studentID: "student ID",
+  facultyID: "faculty ID", // Changed from facultyId to facultyID
   campus_id: "campus",
   college_id: "college",
   degree_course_id: "course",
 };
 
 // Initial form state
-const INITIAL_FORM_STATE: StudentRegisterFormData = {
+const INITIAL_FORM_STATE: FacultyRegisterFormData = {
   first_name: "",
   middle_name: "",
   last_name: "",
   email: "",
-  studentID: "",
+  facultyID: "", // Changed from facultyId to facultyID
   campus_id: "",
   college_id: "",
   degree_course_id: "",
 };
 
-export function StudentRegistrationSubmission() {
-  const [formData, setFormData] = useState<StudentRegisterFormData>(INITIAL_FORM_STATE);
+export function FacultyRegistrationSubmission() {
+  const [formData, setFormData] = useState<FacultyRegisterFormData>(INITIAL_FORM_STATE);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [missingFields, setMissingFields] = useState<Partial<Record<keyof StudentRegisterFormData, boolean>>>({});
+  const [missingFields, setMissingFields] = useState<Partial<Record<keyof FacultyRegisterFormData, boolean>>>({});
 
   // Generic field change handler (works for both inputs and selects)
-  const handleFieldChange = useCallback((name: keyof StudentRegisterFormData, value: string) => {
+  const handleFieldChange = useCallback((name: keyof FacultyRegisterFormData, value: string) => {
     setFormData(prev => {
       // Special case: reset course when college changes
       if (name === "college_id") {
@@ -53,18 +53,18 @@ export function StudentRegistrationSubmission() {
   // Convenience handler for input elements
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    handleFieldChange(name as keyof StudentRegisterFormData, value);
+    handleFieldChange(name as keyof FacultyRegisterFormData, value);
   }, [handleFieldChange]);
 
   // Validate all form fields
   const validateForm = useCallback(() => {
-    const missing: Partial<Record<keyof StudentRegisterFormData, boolean>> = {};
+    const missing: Partial<Record<keyof FacultyRegisterFormData, boolean>> = {};
     
     // Check required fields
     if (!formData.first_name.trim()) missing.first_name = true;
     if (!formData.middle_name.trim()) missing.middle_name = true;
     if (!formData.last_name.trim()) missing.last_name = true;
-    if (!formData.studentID.trim()) missing.studentID = true;
+    if (!formData.facultyID.trim()) missing.facultyID = true; // Changed from facultyId to facultyID
     if (!formData.campus_id) missing.campus_id = true;
     if (!formData.college_id) missing.college_id = true;
     if (!formData.degree_course_id) missing.degree_course_id = true;
@@ -78,7 +78,7 @@ export function StudentRegistrationSubmission() {
     const errorCount = Object.keys(missing).length;
     if (errorCount > 0) {
       Object.keys(missing).forEach((field, i) => {
-        const key = field as keyof StudentRegisterFormData;
+        const key = field as keyof FacultyRegisterFormData;
         setTimeout(() => toast.error(`Missing or invalid: ${FIELD_LABELS[key]}`), i * 200);
       });
       return false;
@@ -99,13 +99,13 @@ export function StudentRegistrationSubmission() {
     setIsSubmitting(true);
     
     // Create persistent loading toast with explicit duration and no auto-dismiss
-    const toastId = toast.loading("Registering student...", {
+    const toastId = toast.loading("Registering faculty...", {
       duration: Infinity, // Never auto-dismiss
     });
 
     try {
       // API call
-      const response = await apiClient.post<{message?: string}, StudentRegisterFormData>(
+      const response = await apiClient.post<{message?: string}, FacultyRegisterFormData>(
         'users/store', 
         formData
       );
@@ -165,7 +165,7 @@ export function StudentRegistrationSubmission() {
       formData.last_name.trim() &&
       formData.email.trim() &&
       formData.email.includes("@") &&
-      formData.studentID.trim() &&
+      formData.facultyID.trim() && // Changed from facultyId to facultyID
       formData.campus_id &&
       formData.college_id &&
       formData.degree_course_id
