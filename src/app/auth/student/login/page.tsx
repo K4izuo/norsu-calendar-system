@@ -212,7 +212,7 @@ export default function StudentLoginPage() {
                     placeholder="Username"
                     value={formData.username}
                     onChange={handleInputChange("username")}
-                    className="h-12 text-base sm:text-lg pl-[42px] border-2 border-gray-200 rounded-lg focus:border-green-500 focus:ring-green-500/20 transition-colors"
+                    className="h-12 text-base sm:text-lg pl-[42px] border-2 border-gray-200 placeholder:text-gray-400 rounded-lg focus:border-green-500 focus:ring-green-500/20 transition-colors"
                   />
                   <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 </div>
@@ -227,7 +227,7 @@ export default function StudentLoginPage() {
                     placeholder="Password"
                     value={formData.password}
                     onChange={handleInputChange("password")}
-                    className="h-12 text-base sm:text-lg pl-[42px] pr-9 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:ring-green-500/20 transition-colors"
+                    className="h-12 text-base sm:text-lg pl-[42px] pr-9 border-2 border-gray-200 placeholder:text-gray-400 rounded-lg focus:border-green-500 focus:ring-green-500/20 transition-colors"
                   />
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <button

@@ -10,14 +10,14 @@ import { Input } from "@/components/ui/input"
 export const BgBlobs = React.memo(({
   color = "blue",
 }: {
-  color?: "green" | "blue"
+  color?: "green" | "blue" | "gray"
 }) => (
   <>
     <div
       className={`absolute top-0 left-0 w-32 h-32 bg-${color}-600 rounded-full opacity-10 -translate-x-16 -translate-y-16`}
     />
     <div
-      className={`absolute bottom-0 right-0 w-48 h-48 bg-${color === "green" ? "emerald" : "indigo"}-500 rounded-full opacity-10 translate-x-24 translate-y-24`}
+      className={`absolute bottom-0 right-0 w-48 h-48 bg-${color === "green" ? "emerald" : color === "gray" ? "gray" : "indigo"}-500 rounded-full opacity-10 translate-x-24 translate-y-24`}
     />
     <div
       className={`absolute top-1/2 left-0 w-24 h-24 bg-${color}-500 rounded-full opacity-10 -translate-x-12`}
@@ -34,7 +34,7 @@ export interface AccountFormData {
 }
 
 export interface AccountPageProps {
-  type: "student" | "faculty"
+  type: "student" | "faculty" | "admin"
   formData: AccountFormData
   activeTab: string
   missingFields: Record<string, boolean>
@@ -62,13 +62,25 @@ export const AccountPageLayout = React.memo(({
   onSubmit
 }: AccountPageProps) => {
   const isStudent = type === "student"
-  const themeColor = isStudent ? "green" : "blue"
-  const titleText = `Create ${isStudent ? "Student" : "Faculty"} Account`
-  const accentColor = isStudent ? "emerald" : "indigo"
-  
+  const isFaculty = type === "faculty"
+  const isAdmin = type === "admin"
+
+  // Set theme color and accent color based on type
+  const themeColor = isStudent ? "green" : isFaculty ? "blue" : "gray"
+  const accentColor = isStudent ? "emerald" : isFaculty ? "indigo" : "gray"
+  const titleText = `Create ${isStudent ? "Student" : isFaculty ? "Faculty" : "Admin"} Account`
+
+  // Set background gradient based on type
+  const bgGradient =
+    isStudent
+      ? "from-green-50 to-emerald-50"
+      : isFaculty
+        ? "from-blue-50 to-indigo-50"
+        : "from-gray-900 to-gray-800"
+
   return (
-    <div className={`min-h-[100dvh] w-full bg-gradient-to-br from-${themeColor}-50 to-${isStudent ? "emerald" : "indigo"}-50 flex items-center justify-center py-6 px-2 sm:px-4 lg:px-6 relative font-['Poppins'] overflow-hidden`}>
-      <BgBlobs color={themeColor as "green" | "blue"} />
+    <div className={`min-h-[100dvh] w-full bg-gradient-to-br ${bgGradient} flex items-center justify-center py-6 px-2 sm:px-4 lg:px-6 relative font-['Poppins'] overflow-hidden`}>
+      <BgBlobs color={themeColor as "green" | "blue" | "gray"} />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -105,7 +117,7 @@ export const AccountPageLayout = React.memo(({
             <form className="flex flex-col gap-y-5" onSubmit={e => e.preventDefault()}>
               <div className="flex flex-col gap-4">
                 <div className="flex-1 flex flex-col gap-1">
-                  <Label htmlFor="username">
+                  <Label className="inline-block select-none">
                     Username <span className="text-red-500">*</span>
                   </Label>
                   <Input
@@ -119,7 +131,7 @@ export const AccountPageLayout = React.memo(({
                   />
                 </div>
                 <div className="flex-1 flex flex-col gap-1">
-                  <Label htmlFor="password">
+                  <Label htmlFor="password" className="inline-block select-none">
                     Password <span className="text-red-500">*</span>
                   </Label>
                   <Input
@@ -134,7 +146,7 @@ export const AccountPageLayout = React.memo(({
                   />
                 </div>
                 <div className="flex-1 flex flex-col gap-1">
-                  <Label htmlFor="confirmPassword">
+                  <Label htmlFor="confirmPassword" className="inline-block select-none">
                     Confirm Password <span className="text-red-500">*</span>
                   </Label>
                   <Input

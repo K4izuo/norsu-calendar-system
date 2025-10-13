@@ -5,14 +5,14 @@ import { apiClient } from "@/lib/api-client";
 
 // Field validation mapping for error messages
 const FIELD_LABELS: Record<keyof StudentRegisterFormData, string> = {
-  first_name: "first name",
-  middle_name: "middle name",
-  last_name: "last name",
-  email: "email",
-  studentID: "student ID",
-  campus_id: "campus",
-  college_id: "college",
-  degree_course_id: "course",
+  first_name: "First name",
+  middle_name: "Middle name",
+  last_name: "Last name",
+  email: "Email",
+  studentID: "Student ID",
+  campus_id: "Campus",
+  college_id: "College",
+  degree_course_id: "Course",
 };
 
 // Initial form state

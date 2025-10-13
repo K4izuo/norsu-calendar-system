@@ -1,48 +1,42 @@
 import { useState, useCallback } from "react";
 import toast from "react-hot-toast";
-import { FacultyRegisterFormData } from "@/interface/faculty-events-props";
 import { apiClient } from "@/lib/api-client";
 
-// Field validation mapping for error messages
-const FIELD_LABELS: Record<keyof FacultyRegisterFormData, string> = {
+// Define the admin form data structure
+export type AdminRegisterFormData = {
+  first_name: string;
+  middle_name: string;
+  last_name: string;
+  email: string;
+  facultyID: string;
+};
+
+// Field labels for error messages
+const FIELD_LABELS: Record<keyof AdminRegisterFormData, string> = {
   first_name: "First name",
   middle_name: "Middle name",
   last_name: "Last name",
   email: "Email",
-  facultyID: "Faculty ID",
-  campus_id: "Campus",
-  college_id: "College",
-  degree_course_id: "Course",
+  facultyID: "Admin ID",
 };
 
 // Initial form state
-const INITIAL_FORM_STATE: FacultyRegisterFormData = {
+const INITIAL_FORM_STATE: AdminRegisterFormData = {
   first_name: "",
   middle_name: "",
   last_name: "",
   email: "",
   facultyID: "",
-  campus_id: "",
-  college_id: "",
-  degree_course_id: "",
 };
 
-export function FacultyRegistrationSubmission() {
-  const [formData, setFormData] = useState<FacultyRegisterFormData>(INITIAL_FORM_STATE);
+export function useAdminRegForm() {
+  const [formData, setFormData] = useState<AdminRegisterFormData>(INITIAL_FORM_STATE);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [missingFields, setMissingFields] = useState<Partial<Record<keyof FacultyRegisterFormData, boolean>>>({});
+  const [missingFields, setMissingFields] = useState<Partial<Record<keyof AdminRegisterFormData, boolean>>>({});
 
-  // Generic field change handler (works for both inputs and selects)
-  const handleFieldChange = useCallback((name: keyof FacultyRegisterFormData, value: string) => {
-    setFormData(prev => {
-      // Special case: reset course when college changes
-      if (name === "college_id") {
-        return { ...prev, [name]: value, degree_course_id: "" };
-      }
-      return { ...prev, [name]: value };
-    });
-    
-    // Clear validation error when field is updated
+  // Generic field change handler
+  const handleFieldChange = useCallback((name: keyof AdminRegisterFormData, value: string) => {
+    setFormData(prev => ({ ...prev, [name]: value }));
     setMissingFields(prev => {
       if (!prev[name]) return prev;
       const { [name]: _, ...rest } = prev;
@@ -50,62 +44,47 @@ export function FacultyRegistrationSubmission() {
     });
   }, []);
 
-  // Convenience handler for input elements
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  // For input elements
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    handleFieldChange(name as keyof FacultyRegisterFormData, value);
+    handleFieldChange(name as keyof AdminRegisterFormData, value);
   }, [handleFieldChange]);
 
   // Validate all form fields
   const validateForm = useCallback(() => {
-    const missing: Partial<Record<keyof FacultyRegisterFormData, boolean>> = {};
-    
-    // Check required fields
+    const missing: Partial<Record<keyof AdminRegisterFormData, boolean>> = {};
+
     if (!formData.first_name.trim()) missing.first_name = true;
     if (!formData.middle_name.trim()) missing.middle_name = true;
     if (!formData.last_name.trim()) missing.last_name = true;
-    if (!formData.facultyID.trim()) missing.facultyID = true; // Changed from facultyId to facultyID
-    if (!formData.campus_id) missing.campus_id = true;
-    if (!formData.college_id) missing.college_id = true;
-    if (!formData.degree_course_id) missing.degree_course_id = true;
-    
-    // Email validation
+    if (!formData.facultyID.trim()) missing.facultyID = true;
     if (!formData.email.trim() || !formData.email.includes("@")) missing.email = true;
 
     setMissingFields(missing);
-    
-    // Show validation error toasts
-    const errorCount = Object.keys(missing).length;
-    if (errorCount > 0) {
+
+    if (Object.keys(missing).length > 0) {
       Object.keys(missing).forEach((field, i) => {
-        const key = field as keyof FacultyRegisterFormData;
+        const key = field as keyof AdminRegisterFormData;
         setTimeout(() => toast.error(`Missing or invalid: ${FIELD_LABELS[key]}`), i * 200);
       });
       return false;
     }
-    
     return true;
   }, [formData]);
 
-  // Form submission handler
+  // Submission handler
   const submitForm = useCallback(async (validateOnly = false) => {
-    // Validate form first
     if (!validateForm()) return false;
-    
-    // Skip actual submission if we're only validating
     if (validateOnly) return true;
-    
-    // Begin submission
-    setIsSubmitting(true);
-    
-    // Create persistent loading toast with explicit duration and no auto-dismiss
-    const toastId = toast.loading("Registering faculty...", {
-      duration: Infinity, // Never auto-dismiss
-    });
 
+    setIsSubmitting(true);
+
+    // Simulate API call
+    const toastId = toast.loading("Registering admin...", { duration: Infinity });
+    
     try {
       // API call
-      const response = await apiClient.post<{message?: string}, FacultyRegisterFormData>(
+      const response = await apiClient.post<{message?: string}, AdminRegisterFormData>(
         'users/store', 
         formData
       );
@@ -165,10 +144,7 @@ export function FacultyRegistrationSubmission() {
       formData.last_name.trim() &&
       formData.email.trim() &&
       formData.email.includes("@") &&
-      formData.facultyID.trim() && // Changed from facultyId to facultyID
-      formData.campus_id &&
-      formData.college_id &&
-      formData.degree_course_id
+      formData.facultyID.trim()
     );
   }, [formData]);
 
@@ -178,7 +154,7 @@ export function FacultyRegistrationSubmission() {
     missingFields,
     isSubmitting,
     handleInputChange,
-    handleSelectChange: handleFieldChange,
+    handleFieldChange,
     handleSubmit: submitForm,
     isFormValid,
   };

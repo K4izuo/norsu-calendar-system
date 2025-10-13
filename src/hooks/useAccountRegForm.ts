@@ -1,7 +1,7 @@
 // filepath: c:\Projects\norsu-calendar-system\src\hooks\useAccountForm.ts
 import { useState, useRef, useCallback, useMemo } from "react"
 import toast from "react-hot-toast"
-import { AccountFormData } from "@/components/auth-register-form/AccountPageComponent"
+import { AccountFormData } from "@/components/auth-register-form/account-page-form"
 
 export const useAccountForm = () => {
   const [activeTab, setActiveTab] = useState("details")

@@ -141,9 +141,9 @@ export default function AdminLoginPage() {
   return (
     <div className="h-screen w-screen bg-gradient-to-br from-gray-900 to-gray-800 font-['Poppins'] flex items-center justify-center p-2 sm:p-4 lg:p-6 relative overflow-hidden">
       {/* Background decorative elements - dark theme */}
-      <div className="absolute top-0 left-0 w-32 h-32 bg-gray-700 rounded-full opacity-20 -translate-x-16 -translate-y-16"></div>
-      <div className="absolute bottom-0 right-0 w-48 h-48 bg-gray-600 rounded-full opacity-20 translate-x-24 translate-y-24"></div>
-      <div className="absolute top-1/2 left-0 w-24 h-24 bg-gray-700 rounded-full opacity-20 -translate-x-12"></div>
+      <div className="absolute top-0 left-0 w-32 h-32 bg-gray-600 rounded-full opacity-20 -translate-x-16 -translate-y-16"></div>
+      <div className="absolute bottom-0 right-0 w-48 h-48 bg-gray-500 rounded-full opacity-20 translate-x-24 translate-y-24"></div>
+      <div className="absolute top-1/2 left-0 w-24 h-24 bg-gray-600 rounded-full opacity-20 -translate-x-12"></div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -192,11 +192,11 @@ export default function AdminLoginPage() {
         </div>
 
         {/* Right Side - Login Form */}
-        <div className="p-4 sm:p-8 w-full flex flex-col justify-center bg-gray-800">
+        <div className="p-4 sm:p-8 w-full flex flex-col justify-center bg-white">
           {/* Heading at the top */}
           <div className="flex flex-col items-center mt-1.5 mb-7 gap-y-0.5">
-            <h1 className="text-2xl font-bold text-white">Administrator Access</h1>
-            <p className="text-gray-300 text-sm">Please enter your admin credentials</p>
+            <h1 className="text-2xl font-bold text-gray-800">Administrator Access</h1>
+            <p className="text-gray-600 text-sm">Please enter your admin credentials</p>
           </div>
           <form onSubmit={handleLogin} className="flex flex-col gap-y-6 max-w-md mx-auto w-full">
             <div className="flex flex-col gap-y-2 w-full sm:w-[98%] md:w-[94%] mx-auto">
@@ -208,11 +208,11 @@ export default function AdminLoginPage() {
                     placeholder="Admin Username"
                     value={formData.username}
                     onChange={handleInputChange("username")}
-                    className="h-12 text-base sm:text-lg pl-[42px] border-2 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400 rounded-lg focus:border-gray-500 focus:ring-gray-500/20 transition-colors"
+                    className="h-12 text-base sm:text-lg pl-[42px] border-2 border-gray-200 placeholder:text-gray-400 rounded-lg focus:border-blue-400 focus:ring-blue-200 transition-colors"
                   />
                   <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 </div>
-                {errors.username && <p className="text-red-400 text-sm ml-1">{errors.username}</p>}
+                {errors.username && <p className="text-red-500 text-sm ml-1">{errors.username}</p>}
               </div>
 
               {/* Password Field */}
@@ -223,18 +223,18 @@ export default function AdminLoginPage() {
                     placeholder="Admin Password"
                     value={formData.password}
                     onChange={handleInputChange("password")}
-                    className="h-12 text-base sm:text-lg pl-[42px] pr-9 border-2 border-gray-600 bg-gray-700 text-white placeholder:text-gray-400 rounded-lg focus:border-gray-500 focus:ring-gray-500/20 transition-colors"
+                    className="h-12 text-base sm:text-lg pl-[42px] pr-9 border-2 border-gray-200 bg-white text-gray-900 placeholder:text-gray-400 rounded-lg focus:border-blue-400 focus:ring-blue-200 transition-colors"
                   />
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <button
                     type="button"
                     onClick={togglePasswordVisibility}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300 transition-colors focus:outline-none"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
                   >
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
-                {errors.password && <p className="text-red-400 text-sm ml-1">{errors.password}</p>}
+                {errors.password && <p className="text-red-500 text-sm ml-1">{errors.password}</p>}
               </div>
 
               {/* Remember Me & Forgot Password */}
@@ -244,13 +244,13 @@ export default function AdminLoginPage() {
                     id="remember"
                     checked={rememberMe}
                     onCheckedChange={(checked) => setRememberMe(checked === true)}
-                    className="border-2 border-gray-600 data-[state=checked]:bg-gray-600 data-[state=checked]:border-gray-600"
+                    className="border-2 cursor-pointer border-gray-300 data-[state=checked]:bg-blue-100 data-[state=checked]:border-blue-400"
                   />
-                  <label htmlFor="remember" className="text-sm text-gray-300 cursor-pointer">
+                  <label htmlFor="remember" className="text-sm text-gray-700 cursor-pointer">
                     Remember Me
                   </label>
                 </div>
-                <Button variant="link" className="text-gray-300 hover:text-white p-0 text-sm font-medium" type="button">
+                <Button variant="link" className="text-blue-600 hover:text-blue-800 p-0 text-sm font-medium" type="button">
                   Contact IT Support
                 </Button>
               </div>
@@ -258,7 +258,7 @@ export default function AdminLoginPage() {
               {/* Login Button */}
               <Button
                 type="submit"
-                className="w-full cursor-pointer h-[50px] sm:h-[54px] font-semibold text-sm sm:text-base bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] mb-4 flex items-center justify-center gap-x-2"
+                className="w-full cursor-pointer h-[50px] sm:h-[54px] font-semibold text-sm sm:text-base bg-gradient-to-r from-gray-400 via-gray-500 to-gray-700 hover:from-gray-500 hover:to-gray-800 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] mb-4 flex items-center justify-center gap-x-2"
                 disabled={isLoading}
               >
                 {isLoading ? (

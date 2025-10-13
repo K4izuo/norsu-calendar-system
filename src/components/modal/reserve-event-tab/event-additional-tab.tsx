@@ -42,7 +42,7 @@ export function ReserveEventAdditionalTab({
     <form className="space-y-4 sm:space-y-6">
       <div className="space-y-4 sm:space-y-5">
         <div>
-          <Label htmlFor="people" className="text-base font-medium">People Tag</Label>
+          <Label htmlFor="people" className="text-base inline-block font-medium">People Tag</Label>
           <div className="relative mt-1">
             <Input
               id="people"
@@ -102,7 +102,7 @@ export function ReserveEventAdditionalTab({
           </div>
         </div>
         <div>
-          <Label htmlFor="infoType" className="text-base font-medium">Information Type</Label>
+          <Label htmlFor="infoType" className="text-base inline-block font-medium">Information Type</Label>
           <Select
             value={formData.infoType}
             onValueChange={handleInfoTypeChange}
@@ -123,7 +123,7 @@ export function ReserveEventAdditionalTab({
           </Select>
         </div>
         <div>
-          <Label htmlFor="category" className="text-base font-medium">Category</Label>
+          <Label htmlFor="category" className="text-base inline-block font-medium">Category</Label>
           <Select
             value={formData.category}
             onValueChange={handleCategoryChange}

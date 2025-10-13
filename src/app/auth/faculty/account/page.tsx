@@ -2,7 +2,7 @@
 
 import React from "react"
 import { useAccountForm } from "@/hooks/useAccountRegForm"
-import { AccountPageLayout } from "@/components/auth-register-form/AccountPageComponent"
+import { AccountPageLayout } from "@/components/auth-register-form/account-page-form"
 
 export default function FacultyAccountPage() {
   const {

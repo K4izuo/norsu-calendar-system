@@ -8,8 +8,8 @@ import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { Label } from "@/components/ui/label"
 import { StudentRegistrationSubmission } from "@/hooks/useStudRegForm"
 import { useCampuses, useOffices, useCourses } from "@/services/academicDataService"
-import { StudentFormSelectField } from "@/components/user-forms/student/StdFormField"
-import { StudentSummary } from "@/components/user-forms/student/StdSummary"
+import { StudentFormSelectField } from "@/components/user-forms/student/student-form-field"
+import { StudentSummary } from "@/components/user-forms/student/student-summary"
 
 export default function StudentRegisterPage() {
   const [activeTab, setActiveTab] = useState("details")
@@ -72,22 +72,20 @@ export default function StudentRegisterPage() {
           <Tabs value={activeTab} className="w-full">
             <div className="grid grid-cols-2 mb-4 bg-muted rounded-lg p-1 overflow-x-auto">
               <div
-                className={`flex items-center justify-center py-2 px-2 rounded-md text-base font-medium transition-colors ${
+                className={`flex items-center justify-center py-2 px-2 rounded-md text-base font-medium transition-colors min-w-[100px] ${
                   activeTab === "details"
                     ? "bg-background text-foreground shadow-sm"
                     : "text-muted-foreground"
                 }`}
-                style={{ cursor: "default", minWidth: "100px" }}
               >
                 Student Details
               </div>
               <div
-                className={`flex items-center justify-center py-2 px-2 rounded-md text-base font-medium transition-colors ${
+                className={`flex items-center justify-center py-2 px-2 rounded-md text-base font-medium transition-colors min-w-[100px] ${
                   activeTab === "summary"
                     ? "bg-background text-foreground shadow-sm"
                     : "text-muted-foreground"
                 }`}
-                style={{ cursor: "default", minWidth: "100px" }}
               >
                 Summary
               </div>
