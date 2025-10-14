@@ -225,7 +225,7 @@ export default function FacultyRegisterPage() {
                       }
                     }}
                     variant="default"
-                    className="text-base cursor-pointer py-2.5"
+                    className="text-base bg-indigo-600 hover:bg-indigo-500 cursor-pointer py-2.5"
                   >
                     Next
                   </Button>
@@ -255,7 +255,7 @@ export default function FacultyRegisterPage() {
                   onClick={onSubmit}
                   variant="default"
                   disabled={!isFormValid() || isSubmitting}
-                  className="text-base cursor-pointer py-2.5"
+                  className="text-base bg-indigo-600 hover:bg-indigo-500 cursor-pointer py-2.5"
                 >
                   {isSubmitting ? (
                     <div className="flex items-center">

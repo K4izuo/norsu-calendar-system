@@ -245,7 +245,7 @@ export default function StudentRegisterPage() {
                       }
                     }}
                     variant="default"
-                    className="text-base cursor-pointer py-2.5"
+                    className="text-base bg-green-700 hover:bg-green-600 cursor-pointer py-2.5"
                   >
                     Next
                   </Button>
@@ -275,7 +275,7 @@ export default function StudentRegisterPage() {
                   onClick={onSubmit}
                   variant="default"
                   disabled={!isFormValid() || isSubmitting}
-                  className="text-base cursor-pointer py-2.5"
+                  className="text-base bg-green-700 hover:bg-green-600 cursor-pointer py-2.5"
                 >
                   {isSubmitting ? (
                     <div className="flex items-center">

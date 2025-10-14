@@ -7,7 +7,7 @@ type AdminSummaryProps = {
     middle_name: string;
     last_name: string;
     email: string;
-    facultyID: string;
+    adminID: string;
   };
   isFormValid: boolean;
 };
@@ -36,14 +36,14 @@ export const AdminSummary = memo(function AdminSummary({
           </div>
           <div>
             <p className="text-base text-gray-500">Admin ID</p>
-            <p className="font-medium text-base text-gray-800">{formData.facultyID || "Not provided"}</p>
+            <p className="font-medium text-base text-gray-800">{formData.adminID || "Not provided"}</p>
           </div>
         </div>
       </div>
       <div
         className={`mt-6 p-3 rounded-md flex items-center justify-center ${
           isFormValid
-            ? "bg-gray-600 text-white"
+            ? "bg-gray-700 text-white"
             : "bg-yellow-50 text-yellow-800"
         }`}
       >

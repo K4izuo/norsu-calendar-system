@@ -8,7 +8,7 @@ export type AdminRegisterFormData = {
   middle_name: string;
   last_name: string;
   email: string;
-  facultyID: string;
+  adminID: string;
 };
 
 // Field labels for error messages
@@ -17,7 +17,7 @@ const FIELD_LABELS: Record<keyof AdminRegisterFormData, string> = {
   middle_name: "Middle name",
   last_name: "Last name",
   email: "Email",
-  facultyID: "Admin ID",
+  adminID: "Admin ID",
 };
 
 // Initial form state
@@ -26,7 +26,7 @@ const INITIAL_FORM_STATE: AdminRegisterFormData = {
   middle_name: "",
   last_name: "",
   email: "",
-  facultyID: "",
+  adminID: "",
 };
 
 export function useAdminRegForm() {
@@ -57,7 +57,7 @@ export function useAdminRegForm() {
     if (!formData.first_name.trim()) missing.first_name = true;
     if (!formData.middle_name.trim()) missing.middle_name = true;
     if (!formData.last_name.trim()) missing.last_name = true;
-    if (!formData.facultyID.trim()) missing.facultyID = true;
+    if (!formData.adminID.trim()) missing.adminID = true;
     if (!formData.email.trim() || !formData.email.includes("@")) missing.email = true;
 
     setMissingFields(missing);
@@ -85,7 +85,7 @@ export function useAdminRegForm() {
     try {
       // API call
       const response = await apiClient.post<{message?: string}, AdminRegisterFormData>(
-        'users/store', 
+        'admin/store', 
         formData
       );
       
@@ -144,7 +144,7 @@ export function useAdminRegForm() {
       formData.last_name.trim() &&
       formData.email.trim() &&
       formData.email.includes("@") &&
-      formData.facultyID.trim()
+      formData.adminID.trim()
     );
   }, [formData]);
 

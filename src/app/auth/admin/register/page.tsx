@@ -128,14 +128,14 @@ export default function AdminRegisterPage() {
                   </div>
                   <div className="flex-1">
                     <AdminFormField
-                      id="facultyID"
-                      name="facultyID"
+                      id="adminID"
+                      name="adminID"
                       label="Admin ID"
                       placeholder="Enter admin ID"
-                      value={formData.facultyID}
+                      value={formData.adminID}
                       onChange={handleInputChange}
                       required
-                      hasError={!!missingFields.facultyID}
+                      hasError={!!missingFields.adminID}
                     />
                   </div>
                 </div>
@@ -151,7 +151,7 @@ export default function AdminRegisterPage() {
                       }
                     }}
                     variant="default"
-                    className="text-base cursor-pointer py-2.5"
+                    className="text-base bg-gray-700 hover:bg-gray-600 cursor-pointer py-2.5"
                   >
                     Next
                   </Button>
@@ -178,7 +178,7 @@ export default function AdminRegisterPage() {
                   onClick={onSubmit}
                   variant="default"
                   disabled={!isFormValid() || isSubmitting}
-                  className="text-base cursor-pointer py-2.5"
+                  className="text-base bg-gray-700 hover:bg-gray-600 cursor-pointer py-2.5"
                 >
                   {isSubmitting ? (
                     <div className="flex items-center">
