@@ -2,10 +2,10 @@
 
 import React, { useRef, useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { CalendarPlus, Clock, MapPin, User, CalendarClock, Search, X } from "lucide-react"
+import { CalendarPlus, Clock, CalendarClock, Search, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 // import { Badge } from "@/components/ui/badge"
-import { ReserveEventModal } from "@/components/modal/ReserveEventModal"
+import { ReserveEventModal } from "@/components/modal/reserve-event-modal"
 import type { EventsListModalProps, EventDetails, ReservationFormData } from "@/interface/faculty-events-props"
 // import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Input } from "../ui/input"

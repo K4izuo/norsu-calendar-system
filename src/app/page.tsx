@@ -2,19 +2,11 @@
 
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-  SelectValue,
-} from "@/components/ui/select";
-import { CalendarClock, ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState, useEffect, useCallback } from "react";
-import { EventsListModal } from "@/components/modal/EventsListModal";
-import { EventInfoModal } from "@/components/modal/EventInfoModal";
-import { motion, AnimatePresence } from "framer-motion";
-import type { EventDetails } from "@/interface/faculty-events-props";
+import { EventsListModal } from "@/components/modal/events-list-modal";
+import { EventInfoModal } from "@/components/modal/event-info-modal";
+import { Calendar } from "@/components/calendar-ui/calendar-component";
+import type { EventDetails, CalendarDayType } from "@/interface/faculty-events-props";
 
 export default function Home() {
   const upcomingEvents = [
@@ -28,17 +20,9 @@ export default function Home() {
   ];
 
   const today = useMemo(() => new Date(), []);
-
-  // State for current month and year - initialized with today's date
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [loading, setLoading] = useState(false);
-
-  // Animation direction state
-  const [direction, setDirection] = useState(0); // -1 for previous, 1 for next, 0 for initial/reset
-
-  // Window width state for responsive rendering
-  const [windowWidth, setWindowWidth] = useState(0);
 
   // Modal states
   const [modalOpen, setModalOpen] = useState(false);
@@ -46,70 +30,13 @@ export default function Home() {
   const [selectedEvent, setSelectedEvent] = useState<EventDetails | undefined>(
     undefined
   );
-  const [selectedDay, setSelectedDay] = useState<{
-    date: number;
-    currentMonth: boolean;
-    key: string;
-    hasEvent: boolean;
-    eventCount?: number;
-    isToday?: boolean;
-  } | null>(null);
+  const [selectedDay, setSelectedDay] = useState<CalendarDayType | null>(null);
+  const [eventInfoLoading, setEventInfoLoading] = useState(false);
 
-  // New state to control recent events visibility
+  // Show recent events state
   const [showRecent, setShowRecent] = useState(false);
 
-  // Navigation functions
-  const goToPreviousMonth = useCallback(() => {
-    setDirection(-1);
-    setLoading(true);
-    setTimeout(() => {
-      if (currentMonth === 0) {
-        setCurrentMonth(11);
-        setCurrentYear((prev) => prev - 1);
-      } else {
-        setCurrentMonth((prev) => prev - 1);
-      }
-      setLoading(false);
-    }, 700); // Adjust delay as needed
-  }, [currentMonth]);
-
-  const goToNextMonth = useCallback(() => {
-    setDirection(1);
-    setLoading(true);
-    setTimeout(() => {
-      if (currentMonth === 11) {
-        setCurrentMonth(0);
-        setCurrentYear((prev) => prev + 1);
-      } else {
-        setCurrentMonth((prev) => prev + 1);
-      }
-      setLoading(false);
-    }, 700); // Adjust delay as needed
-  }, [currentMonth]);
-
-  const goToToday = useCallback(() => {
-    const currentDate = new Date();
-    const currentMonthYear = new Date(currentYear, currentMonth);
-    const targetMonthYear = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth()
-    );
-    setDirection(
-      targetMonthYear > currentMonthYear
-        ? 1
-        : targetMonthYear < currentMonthYear
-        ? -1
-        : 0
-    );
-    setLoading(true);
-    setTimeout(() => {
-      setCurrentMonth(today.getMonth());
-      setCurrentYear(today.getFullYear());
-      setLoading(false);
-    }, 700); // Adjust delay as needed
-  }, [currentMonth, currentYear, today]);
-
-  // Sample events for demonstration (assuming events on day 15, 20, and 25)
+  // Sample events for demonstration
   const eventsMap = useMemo(
     () => ({
       15: { title: "University Meeting", count: 1 },
@@ -119,71 +46,15 @@ export default function Home() {
     []
   );
 
-  // Build calendar days (6 rows x 7 columns = 42 cells)
-  const calendarDays = useMemo(() => {
-    const days: {
-      date: number;
-      currentMonth: boolean;
-      key: string;
-      hasEvent: boolean;
-      eventCount?: number;
-      isToday?: boolean;
-    }[] = [];
-
-    // Get info for previous, current, and next month
-    const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay(); // 0=Sun
-    const lastDateOfMonth = new Date(
-      currentYear,
-      currentMonth + 1,
-      0
-    ).getDate();
-    const lastDateOfPrevMonth = new Date(
-      currentYear,
-      currentMonth,
-      0
-    ).getDate();
-
-    // 1. Fill in previous month's days
-    for (let i = firstDayOfMonth - 1; i >= 0; i--) {
-      const prevDate = lastDateOfPrevMonth - i;
-      days.push({
-        date: prevDate,
-        currentMonth: false,
-        key: `prev-${prevDate}-${currentMonth}-${currentYear}`,
-        hasEvent: false,
-      });
-    }
-
-    // 2. Fill in current month's days
-    for (let i = 1; i <= lastDateOfMonth; i++) {
-      const isToday =
-        i === today.getDate() &&
-        currentMonth === today.getMonth() &&
-        currentYear === today.getFullYear();
-      days.push({
-        date: i,
-        currentMonth: true,
-        key: `curr-${i}-${currentMonth}-${currentYear}`,
-        hasEvent: i in eventsMap,
-        eventCount: eventsMap[i as keyof typeof eventsMap]?.count,
-        isToday,
-      });
-    }
-
-    // 3. Fill in next month's days to reach 35 cells
-    let nextMonthDay = 1;
-    while (days.length < 35) {
-      days.push({
-        date: nextMonthDay,
-        currentMonth: false,
-        key: `next-${nextMonthDay}-${currentMonth}-${currentYear}`,
-        hasEvent: false,
-      });
-      nextMonthDay++;
-    }
-
-    return days;
-  }, [currentMonth, currentYear, today, eventsMap]);
+  // Get events for a particular day - used by Calendar component
+  const getEventsForDate = useCallback(
+    (year: number, month: number, day: number) => {
+      const hasEvent = eventsMap[day as keyof typeof eventsMap] !== undefined;
+      const count = hasEvent ? eventsMap[day as keyof typeof eventsMap].count : 0;
+      return { hasEvent, count };
+    },
+    [eventsMap]
+  );
 
   // Format month and year
   const monthNames = useMemo(
@@ -202,12 +73,6 @@ export default function Home() {
       "December",
     ],
     []
-  );
-
-  // Get current month name and year as a formatted string
-  const currentMonthYear = useMemo(
-    () => `${monthNames[currentMonth]} ${currentYear}`,
-    [currentMonth, currentYear, monthNames]
   );
 
   // Memoize selected day events
@@ -279,7 +144,6 @@ export default function Home() {
             ? "Please bring your university ID and laptop"
             : undefined,
         category: eventType.category,
-        // Use only names for peopleTag
         peopleTag: [
           i % 2 === 0 ? "John Doe" : "Jane Smith",
           i % 3 === 0 ? "Alice Johnson" : "Bob Lee",
@@ -296,91 +160,31 @@ export default function Home() {
   }, [eventsMap, currentMonth, currentYear, selectedDay, monthNames]);
 
   // Open event info modal with the selected event
-  const handleEventClick = (event: EventDetails) => {
+  const handleEventClick = useCallback((event: EventDetails) => {
     setSelectedEvent(event);
     setEventInfoLoading(true);
     setEventInfoModalOpen(true);
-    setTimeout(() => setEventInfoLoading(false), 700); // match your other loading
-  };
+    setTimeout(() => setEventInfoLoading(false), 700);
+  }, []);
 
-  // Animation variants
-  const calendarVariants = {
-    initial: (direction: number) => ({
-      x: direction * 30,
-      opacity: 0,
-    }),
-    animate: {
-      x: 0,
-      opacity: 1,
-      transition: {
-        x: { type: "spring" as const, stiffness: 300, damping: 30 },
-        opacity: { duration: 0.2 },
-      },
+  // Calendar day selection handler
+  const handleDaySelect = useCallback(
+    (day: CalendarDayType) => {
+      setSelectedDay(day);
+      setModalOpen(true);
+      setLoading(true);
+      setTimeout(() => {
+        setLoading(false);
+      }, 700);
     },
-    exit: (direction: number) => ({
-      x: direction * -30,
-      opacity: 0,
-      transition: {
-        x: { type: "spring" as const, stiffness: 300, damping: 30 },
-        opacity: { duration: 0.2 },
-      },
-    }),
-  };
+    []
+  );
 
-  // Header animation variants
-  const headerVariants = {
-    initial: (direction: number) => ({
-      y: direction * 10,
-      opacity: 0,
-    }),
-    animate: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        y: { type: "spring" as const, stiffness: 500, damping: 30 },
-        opacity: { duration: 0.2 },
-      },
-    },
-    exit: (direction: number) => ({
-      y: direction * -10,
-      opacity: 0,
-      transition: {
-        y: { type: "spring" as const, stiffness: 500, damping: 30 },
-        opacity: { duration: 0.2 },
-      },
-    }),
-  };
-
-  // Update the window width state on mount and on resize
-  useEffect(() => {
-    // Update the window width state with the initial size
-    setWindowWidth(window.innerWidth);
-
-    // Create handler to update state on window resize
-    const handleResize = () => {
-      setWindowWidth(window.innerWidth);
-    };
-
-    // Add event listener
-    window.addEventListener("resize", handleResize);
-
-    // Remove event listener on cleanup
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []); // Empty array ensures effect runs only once on mount
-
-  // Calendar day click handler: open modal, show loading in modal
-  const handleDayClick = (day: (typeof calendarDays)[number]) => {
-    setSelectedDay(day);
-    setModalOpen(true); // Open modal immediately
-    setLoading(true); // Start loading animation in modal
-    setTimeout(() => {
-      setLoading(false); // Stop loading after 700ms
-    }, 700);
-  };
-
-  const [eventInfoLoading, setEventInfoLoading] = useState(false);
+  // Add handleMonthYearChange to synchronize state
+  const handleMonthYearChange = useCallback((month: number, year: number) => {
+    setCurrentMonth(month);
+    setCurrentYear(year);
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -470,311 +274,18 @@ export default function Home() {
             {/* Main content */}
             <div className="flex-1 flex flex-col items-start justify-center">
               <div className="w-full bg-white rounded-md shadow-md flex flex-col items-start self-stretch p-6 gap-6 relative flex-1 min-h-0">
-                {/* Calendar header */}
-                <div className="w-full grid grid-cols-3 items-center mb-1.5 relative">
-                  {/* Left: arrow, today, select */}
-                  <div className="flex items-center gap-2.5 justify-start relative">
-                    {/* Arrow buttons group for desktop/tablet */}
-                    <div className="hidden sm:flex items-center bg-white border border-gray-300 rounded-sm px-2 h-9 w-max">
-                      <motion.button
-                        className="w-7 h-7 flex items-center justify-center rounded bg-transparent border-none shadow-none hover:bg-gray-100 transition-colors"
-                        aria-label="Previous"
-                        type="button"
-                        onClick={goToPreviousMonth}
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <ChevronLeft className="w-5 h-5 text-gray-600" />
-                      </motion.button>
-                      <span className="mx-1 h-5 w-px bg-gray-200 rounded"></span>
-                      <motion.button
-                        className="w-7 h-7 flex items-center justify-center rounded bg-transparent border-none shadow-none hover:bg-gray-100 transition-colors"
-                        aria-label="Next"
-                        type="button"
-                        onClick={goToNextMonth}
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <ChevronRight className="w-5 h-5 text-gray-600" />
-                      </motion.button>
-                    </div>
-                    {/* Today button */}
-                    <motion.button
-                      className="h-9 min-h-0 px-3 flex items-center justify-center rounded-sm bg-white border border-gray-300 text-gray-700 text-base font-semibold shadow-none hover:bg-gray-100 transition-colors"
-                      aria-label="Today"
-                      type="button"
-                      onClick={goToToday}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      Today
-                    </motion.button>
-                    {/* Select button replaced with Select component */}
-                    <Select>
-                      <SelectTrigger className="h-9 min-h-0 px-3 rounded-sm bg-white border border-gray-300 text-gray-700 text-base font-semibold shadow-none hover:bg-gray-100 transition-colors w-[104px]">
-                        <SelectValue placeholder="Select" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {/* Input field at the top of the dropdown */}
-                        <div className="px-2 py-1 border-b border-gray-200 bg-white sticky top-0 z-10">
-                          <input
-                            className="w-full px-2 py-1 rounded border border-gray-300 text-base outline-none"
-                            placeholder="Type here..."
-                          />
-                        </div>
-                        <SelectItem value="option1" className="text-base">
-                          Option 1
-                        </SelectItem>
-                        <SelectItem value="option2" className="text-base">
-                          Option 2
-                        </SelectItem>
-                        <SelectItem value="option3" className="text-base">
-                          Option 3
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {/* Center: calendar title */}
-                  <div className="flex flex-col items-center overflow-hidden">
-                    <AnimatePresence mode="wait" custom={direction}>
-                      <motion.h2
-                        key={currentMonthYear}
-                        custom={direction}
-                        variants={headerVariants}
-                        initial="initial"
-                        animate="animate"
-                        exit="exit"
-                        className="text-center text-2xl font-medium leading-6"
-                      >
-                        {currentMonthYear}
-                      </motion.h2>
-                    </AnimatePresence>
-                  </div>
-                  {/* Right: month/week/day */}
-                  <div className="flex items-center justify-end">
-                    <div className="flex items-center bg-white border border-gray-300 rounded-sm overflow-hidden">
-                      <motion.button
-                        className="px-4 rounded-sm min-w-[64px] py-2 text-lg font-semibold text-gray-700 bg-white focus:outline-none hover:bg-gray-100 transition-colors"
-                        whileHover={{ backgroundColor: "#f3f4f6" }}
-                      >
-                        Month
-                      </motion.button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Calendar table */}
-                <div className="flex flex-col w-full flex-1 h-full min-h-0">
-                  {/* Calendar table header */}
-                  <div className="w-full px-0 pb-3">
-                    <div className="grid grid-cols-7 w-full">
-                      {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map(
-                        (day) => (
-                          <div
-                            key={day}
-                            className="flex-1 text-base font-bold uppercase tracking-[1px] text-[#A8B2B9] text-center"
-                          >
-                            {windowWidth === 0
-                              ? day // Initial render check
-                              : windowWidth < 400
-                              ? day.charAt(0)
-                              : windowWidth < 640
-                              ? day.slice(0, 1)
-                              : day}
-                          </div>
-                        )
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Calendar table days with animation */}
-                  <div className="flex flex-col px-[1px] sm:px-0 py-[0.5px] w-full flex-1 h-full min-h-0 relative">
-                    {loading ? (
-                      <motion.div
-                        className="absolute inset-0 flex items-center justify-center z-10 bg-white bg-opacity-70"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <div className="relative h-16 w-16 flex items-center justify-center">
-                          {/* Spinner rotates */}
-                          <motion.div
-                            className="absolute inset-0 h-16 w-16 rounded-full border-t-4 border-b-4 border-blue-500"
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 1.5, ease: "linear", repeat: Infinity }}
-                          />
-                          {/* Icon stays still */}
-                          <CalendarClock className="absolute inset-0 m-auto h-7 w-7 text-blue-500" />
-                        </div>
-                      </motion.div>
-                    ) : (
-                      <AnimatePresence mode="wait" custom={direction}>
-                        <motion.div
-                          key={`${currentMonth}-${currentYear}`}
-                          custom={direction}
-                          variants={calendarVariants}
-                          initial="initial"
-                          animate="animate"
-                          exit="exit"
-                          className="grid grid-rows-5 grid-cols-7 w-full h-full gap-1.5 sm:gap-2 md:gap-2.5 bg-white flex-1"
-                        >
-                          {calendarDays.map((day, idx) => (
-                            <motion.div
-                              key={day.key}
-                              data-idx={idx}
-                              className={`relative border rounded-md flex flex-col p-2 md:p-3 text-lg md:text-xl font-medium cursor-pointer transition-colors hover:bg-blue-50 active:bg-blue-100 hover:shadow-sm min-h-[60px] sm:min-h-[70px] md:min-h-[80px]
-                                ${
-                                  day.currentMonth
-                                    ? "text-gray-900 border-gray-200"
-                                    : "text-gray-400 border-gray-100 bg-gray-50"
-                                }
-                                ${day.isToday ? "border-blue-500 border-2" : ""}
-                                ${
-                                  day.hasEvent && day.currentMonth
-                                    ? "bg-blue-50"
-                                    : ""
-                                }
-                              `}
-                              onClick={() => handleDayClick(day)}
-                              initial={{ scale: 0.97, opacity: 0 }}
-                              animate={{
-                                scale: 1,
-                                opacity: 1,
-                                transition: {
-                                  delay: Math.min(0.01 * idx, 0.3),
-                                  duration: 0.12,
-                                },
-                              }}
-                              whileHover={{
-                                scale: 1.02,
-                                boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-                                transition: { duration: 0.2 },
-                              }}
-                              whileTap={{ scale: 0.98 }}
-                            >
-                              {/* Date number (always shown) */}
-                              <div className="flex justify-end items-start w-full mb-2">
-                                <span
-                                  className={`text-lg md:text-xl ${
-                                    day.isToday
-                                      ? "text-blue-600 font-bold"
-                                      : day.currentMonth
-                                      ? ""
-                                      : "text-gray-400"
-                                  }`}
-                                >
-                                  {day.date}
-                                </span>
-                              </div>
-
-                              {/* 
-                                Event indicators - ONLY SHOWN WHEN:
-                                1. Day has events (day.hasEvent is true)
-                                2. Day is in current month (day.currentMonth is true)
-                                3. Event count is greater than 0 (additional check for API safety)
-                              */}
-                              {day.hasEvent &&
-                                day.currentMonth &&
-                                day.eventCount &&
-                                day.eventCount > 0 && (
-                                  <>
-                                    {/* Desktop/Laptop: Top-left calendar icon and count */}
-                                    <motion.div
-                                      className="hidden md:inline-flex items-center bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-xl text-lg md:text-xl font-semibold absolute top-2 left-2"
-                                      initial={{ scale: 0, opacity: 0 }}
-                                      animate={{
-                                        scale: 1,
-                                        opacity: 1,
-                                        transition: {
-                                          delay: Math.min(0.01 * idx + 0.1, 0.4),
-                                          type: "spring",
-                                          stiffness: 500,
-                                          damping: 15,
-                                        },
-                                      }}
-                                    >
-                                      <CalendarClock size={18} className="mr-1" />
-                                      <span>{day.eventCount}</span>
-                                    </motion.div>
-
-                                    {/* Mobile: Centered calendar icon */}
-                                    <motion.div
-                                      className="md:hidden flex-grow flex items-center justify-center"
-                                      initial={{ scale: 0, opacity: 0 }}
-                                      animate={{
-                                        scale: 1,
-                                        opacity: 1,
-                                        transition: {
-                                          delay: Math.min(0.01 * idx + 0.1, 0.4),
-                                          type: "spring",
-                                          stiffness: 500,
-                                          damping: 15,
-                                        },
-                                      }}
-                                    >
-                                      <div className="inline-flex items-center bg-blue-100 text-blue-700 px-1 py-1 rounded-xl text-base font-semibold w-min">
-                                        <CalendarClock
-                                          size={14}
-                                          className="mr-0.5"
-                                        />
-                                        <span>{day.eventCount}</span>
-                                      </div>
-                                    </motion.div>
-
-                                    {/* Desktop/Laptop: "See event" or "See events..." text */}
-                                    <motion.div
-                                      className="absolute inset-0 hidden md:flex items-center justify-center pointer-events-none"
-                                      initial={{ opacity: 0 }}
-                                      animate={{
-                                        opacity: 1,
-                                        transition: {
-                                          delay: Math.min(0.01 * idx + 0.2, 0.5),
-                                          duration: 0.3,
-                                        },
-                                      }}
-                                    >
-                                      <span className="text-blue-600 text-sm md:text-base font-medium px-2 py-0.5 rounded pointer-events-auto translate-y-3">
-                                        {day.eventCount === 1
-                                          ? "See event"
-                                          : "See events..."}
-                                      </span>
-                                    </motion.div>
-                                  </>
-                                )}
-                            </motion.div>
-                          ))}
-                        </motion.div>
-                      </AnimatePresence>
-                    )}
-                  </div>
-                </div>
-
-                {/* Fixed arrow buttons group for mobile only */}
-                <div className="sm:hidden">
-                  <div className="absolute bottom-3 left-1/2 z-50 -translate-x-1/2 flex items-center bg-white border border-gray-300 rounded-full px-2 h-10 w-max shadow-md">
-                    <motion.button
-                      className="w-8 h-8 flex items-center justify-center rounded-full bg-transparent border-none shadow-none hover:bg-gray-100 transition-colors"
-                      aria-label="Previous"
-                      type="button"
-                      onClick={goToPreviousMonth}
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <ChevronLeft className="w-5 h-5 text-gray-600" />
-                    </motion.button>
-                    <span className="mx-1.5 h-5 w-px bg-gray-300 rounded"></span>
-                    <motion.button
-                      className="w-8 h-8 flex items-center justify-center rounded-full bg-transparent border-none shadow-none hover:bg-gray-100 transition-colors"
-                      aria-label="Next"
-                      type="button"
-                      onClick={goToNextMonth}
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <ChevronRight className="w-5 h-5 text-gray-600" />
-                    </motion.button>
-                  </div>
-                </div>
+                {/* Calendar component */}
+                <Calendar
+                  events={[]}
+                  onDaySelect={handleDaySelect}
+                  getEventsForDate={getEventsForDate}
+                  initialDate={today}
+                  isLoading={loading}
+                  setLoading={setLoading}
+                  currentMonth={currentMonth}
+                  currentYear={currentYear}
+                  onMonthYearChange={handleMonthYearChange}
+                />
               </div>
             </div>
           </div>

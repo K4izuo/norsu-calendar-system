@@ -18,8 +18,8 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
   useEffect(() => {
     if (pathname?.includes("/asset-management")) {
       setActiveTab("asset-management");
-    } else if (pathname?.includes("/events")) {
-      setActiveTab("events");
+    } else if (pathname?.includes("/calendar")) {
+      setActiveTab("calendar");
     } else {
       setActiveTab("dashboard");
     }
@@ -73,16 +73,16 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
               
               <li>
                 <Link 
-                  href="/pages/faculty/events" 
+                  href="/pages/faculty/calendar" 
                   className={`flex items-center px-3 py-3 rounded-md transition-all ${
-                    activeTab === "events" 
+                    activeTab === "calendar" 
                       ? "bg-white text-blue-900" 
                       : "text-white hover:bg-blue-800"
                   }`}
                 >
                   <Calendar size={20} className="mr-3" />
-                  <span className="font-medium">Events</span>
-                  {activeTab === "events" && (
+                  <span className="font-medium">Calendar</span>
+                  {activeTab === "calendar" && (
                     <ChevronRight size={16} className="ml-auto" />
                   )}
                 </Link>
@@ -115,7 +115,7 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
           {/* Empty navbar */}
         </div>
         
-        <div className="flex-1 p-8 overflow-y-auto">
+        <div className="flex-1 p-5 overflow-y-auto">
           {children}
         </div>
       </div>

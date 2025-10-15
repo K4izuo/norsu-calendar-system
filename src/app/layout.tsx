@@ -26,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${poppins.className} min-h-screen bg-white antialiased`}
+        className={`${poppins.className} custom-scrollbar min-h-screen bg-white antialiased`}
       >
         {children}
         <Toaster 

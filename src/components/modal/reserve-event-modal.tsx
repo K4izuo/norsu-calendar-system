@@ -428,7 +428,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
             </div>
 
             {/* Tabs and content */}
-            <div className="overflow-y-auto custom-scrollbar p-4 sm:p-6 pt-2 sm:pt-4 flex-1 max-h-[calc(91vh-155px)]">
+            <div className="overflow-y-auto p-4 sm:p-6 pt-2 sm:pt-4 flex-1 max-h-[calc(91vh-155px)]">
               <Tabs value={activeTab} className="w-full">
                 {/* Tabs header: allow horizontal scroll on mobile */}
                 <div className="grid grid-cols-3 mb-4 sm:mb-6 bg-muted rounded-lg p-1 overflow-x-auto">
