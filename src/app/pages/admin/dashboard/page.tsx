@@ -1,35 +1,42 @@
 import { UsersRound, Calendar } from "lucide-react";
+import DashboardStatCard from "@/components/admin-ui/dashboard/stat-card";
 
-export default function FacultyDashboardTab() {
+export default function AdminStatCard() {
   return (
-    <div className="flex flex-col items-start self-stretch p-2 sm:p-2">
+    <div className="flex flex-col items-start self-stretch">
       {/* Dashboard Title */}
-      <h1 className="text-[26px] font-normal text-gray-800 mb-6">Dashboard</h1>
-      <div className="flex flex-col items-start gap-6 flex-1 self-stretch">
-        {/* Card div */}
-        <div className="flex gap-7 justify-center items-start flex-wrap">
-          <div className="flex flex-row items-center rounded-md border-l-4 border-l-[#4E73DF] bg-white shadow-sm p-6 max-w-full min-h-[110px] gap-x-16">
-            <div className="flex flex-col justify-center">
-              <h2 className="text-xs font-semibold text-[#4E73DF] tracking-wide mb-2">
-                TOTAL USERS
-              </h2>
-              <h1 className="text-2xl font-bold text-gray-700">3,000</h1>
-            </div>
-            <div className="flex items-center justify-center rounded-md">
-              <UsersRound className="w-9 h-9 text-gray-500" />
-            </div>
-          </div>
-          <div className="flex flex-row items-center rounded-md border-l-4 border-l-[#4edf88] bg-white shadow-sm p-6 max-w-full min-h-[110px] gap-x-16">
-            <div className="flex flex-col justify-center">
-              <h2 className="text-xs font-semibold text-[#4edf88] tracking-wide mb-2">
-                TOTAL EVENTS
-              </h2>
-              <h1 className="text-2xl font-bold text-gray-700">3,000</h1>
-            </div>
-            <div className="flex items-center justify-center rounded-md">
-              <Calendar className="w-9 h-9 text-gray-500" />
-            </div>
-          </div>
+      <h1 className="text-[26px] font-normal text-gray-800 mb-5">Dashboard</h1>
+      <div className="flex flex-col items-start gap-8 flex-1 self-stretch">
+        {/* Card row - now a responsive grid */}
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <DashboardStatCard
+            title="TOTAL USERS"
+            value="3,000"
+            borderColor="#4E73DF"
+            titleColor="#4E73DF"
+            icon={<UsersRound className="w-8 h-8 text-gray-300" />}
+          />
+          <DashboardStatCard
+            title="TOTAL EVENTS"
+            value="1,200"
+            borderColor="#4edf88"
+            titleColor="#4edf88"
+            icon={<Calendar className="w-8 h-8 text-gray-300" />}
+          />
+          <DashboardStatCard
+            title="UPCOMING EVENTS"
+            value="8"
+            borderColor="#fbbf24"
+            titleColor="#fbbf24"
+            icon={<Calendar className="w-8 h-8 text-gray-300" />}
+          />
+          <DashboardStatCard
+            title="PENDING REQUESTS"
+            value="15"
+            borderColor="#f87171"
+            titleColor="#f87171"
+            icon={<UsersRound className="w-8 h-8 text-gray-300" />}
+          />
         </div>
       </div>
     </div>

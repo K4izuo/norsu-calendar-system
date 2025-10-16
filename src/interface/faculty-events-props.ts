@@ -81,14 +81,15 @@ export interface ReservationFormData {
 }
 
 export interface StudentRegisterFormData {
-  first_name: string
-  middle_name: string
-  last_name: string
-  email: string
-  studentID: string
-  campus_id: string
-  college_id: string
-  degree_course_id: string
+  first_name: string;
+  middle_name: string;
+  last_name: string;
+  email: string;
+  studentID: string;
+  campus_id: string;
+  college_id: string;
+  degree_course_id: string;
+  role: string; // Add this field
 }
 
 export interface FacultyRegisterFormData {

@@ -115,7 +115,7 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
           {/* Empty navbar */}
         </div>
         
-        <div className="flex-1 p-5 overflow-y-auto">
+        <div className="flex-1 p-6.5 overflow-y-auto">
           {children}
         </div>
       </div>

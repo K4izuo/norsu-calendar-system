@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { Calendar } from "@/components/calendar-ui/calendar-component";
+import { Calendar } from "@/components/ui/norsu-calendar";
 import { EventsListModal } from "@/components/modal/events-list-modal";
 import { EventInfoModal } from "@/components/modal/event-info-modal";
 import { CalendarDayType } from "@/interface/faculty-events-props";
@@ -73,6 +73,8 @@ export default function AdminCalendarTab() {
   // Fetch events on mount
   useEffect(() => {
     setEventsListLoading(true);
+    setLoading(true); // Set calendar loading to true
+    
     fetchAdminEvents()
       .then(data => {
         setEvents(data);
@@ -83,6 +85,7 @@ export default function AdminCalendarTab() {
       })
       .finally(() => {
         setEventsListLoading(false);
+        setLoading(false); // Set calendar loading to false
       });
   }, []);
 
@@ -170,7 +173,7 @@ export default function AdminCalendarTab() {
   ];
 
   return (
-    <div className="h-full flex flex-col max-w-full overflow-hidden p-2 sm:p-2">
+    <div className="h-full flex flex-col max-w-full">
       <h1 className="text-2xl sm:text-3xl font-normal leading-tight mb-4 sm:mb-6 px-2 sm:px-0">
         Admin Calendar
       </h1>

@@ -179,7 +179,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </div>
               
               {/* User profile - with balanced spacing */}
-              <div className="flex items-center ml-4 mr-4"> {/* Changed ml-2 mr-3 to ml-4 mr-4 */}
+              <div className="flex items-center ml-3 mr-4"> {/* Changed ml-2 mr-3 to ml-4 mr-4 */}
                 <button className="flex items-center space-x-2">
                   <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center">
                     <User size={20} className="text-white" />
@@ -191,7 +191,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </div>
         
-        <div className="flex-1 p-5 overflow-y-auto">
+        <div className="flex-1 p-6.5 overflow-y-auto">
           {children}
         </div>
       </div>

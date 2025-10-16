@@ -10,14 +10,14 @@ import { Input } from "@/components/ui/input"
 export const BgBlobs = React.memo(({
   color = "blue",
 }: {
-  color?: "green" | "blue" | "gray"
+  color?: "green" | "blue" | "yellow"
 }) => (
   <>
     <div
       className={`absolute top-0 left-0 w-32 h-32 bg-${color}-600 rounded-full opacity-10 -translate-x-16 -translate-y-16`}
     />
     <div
-      className={`absolute bottom-0 right-0 w-48 h-48 bg-${color === "green" ? "emerald" : color === "gray" ? "gray" : "indigo"}-500 rounded-full opacity-10 translate-x-24 translate-y-24`}
+      className={`absolute bottom-0 right-0 w-48 h-48 bg-${color === "green" ? "emerald" : color === "yellow" ? "yellow" : "indigo"}-500 rounded-full opacity-10 translate-x-24 translate-y-24`}
     />
     <div
       className={`absolute top-1/2 left-0 w-24 h-24 bg-${color}-500 rounded-full opacity-10 -translate-x-12`}
@@ -34,7 +34,7 @@ export interface AccountFormData {
 }
 
 export interface AccountPageProps {
-  type: "student" | "faculty" | "admin"
+  type: "student" | "faculty" | "staff" // <-- Add "staff" here
   formData: AccountFormData
   activeTab: string
   missingFields: Record<string, boolean>
@@ -63,24 +63,23 @@ export const AccountPageLayout = React.memo(({
 }: AccountPageProps) => {
   const isStudent = type === "student"
   const isFaculty = type === "faculty"
-  const isAdmin = type === "admin"
+  const isStaff = type === "staff"
 
   // Set theme color and accent color based on type
-  const themeColor = isStudent ? "green" : isFaculty ? "blue" : "gray"
-  const accentColor = isStudent ? "emerald" : isFaculty ? "indigo" : "gray"
-  const titleText = `Create ${isStudent ? "Student" : isFaculty ? "Faculty" : "Admin"} Account`
+  const themeColor = isStudent ? "green" : isStaff ? "yellow" : "blue"
+  const accentColor = isStudent ? "emerald" : isStaff ? "yellow" : "indigo"
+  const titleText = `Create ${isStudent ? "Student" : isFaculty ? "Faculty" : "Staff"} Account`
 
   // Set background gradient based on type
-  const bgGradient =
-    isStudent
-      ? "from-green-50 to-emerald-50"
-      : isFaculty
-        ? "from-blue-50 to-indigo-50"
-        : "from-gray-900 to-gray-800"
+  const bgGradient = isStudent
+    ? "from-green-50 to-emerald-50"
+    : isStaff
+      ? "from-yellow-50 to-yellow-200"
+      : "from-blue-50 to-indigo-50"
 
   return (
     <div className={`min-h-[100dvh] w-full bg-gradient-to-br ${bgGradient} flex items-center justify-center py-6 px-2 sm:px-4 lg:px-6 relative font-['Poppins'] overflow-hidden`}>
-      <BgBlobs color={themeColor as "green" | "blue" | "gray"} />
+      <BgBlobs color={isStudent ? "green" : isStaff ? "yellow" : "blue"} />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

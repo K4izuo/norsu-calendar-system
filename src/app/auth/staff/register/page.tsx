@@ -1,21 +1,17 @@
 "use client"
 
-import React, { useState, useCallback, useEffect } from "react"
-import { useSearchParams } from "next/navigation"
+import React, { useState, useCallback } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { Label } from "@/components/ui/label"
-import { StudentRegistrationSubmission } from "@/hooks/useStudRegForm"
-import { useCampuses, useOffices, useCourses } from "@/services/academicDataService"
-import { StudentFormSelectField } from "@/components/user-forms/student/student-form-field"
-import { StudentSummary } from "@/components/user-forms/student/student-summary"
+import { StaffRegistrationSubmission } from "@/hooks/useStaffRegForm"
+import { useCampuses, useOffices } from "@/services/academicDataService"
+import { StaffFormSelectField } from "@/components/user-forms/staff/staff-form-field"
+import { StaffSummary } from "@/components/user-forms/staff/staff-summary"
 
-export default function StudentRegisterPage() {
-  const searchParams = useSearchParams();
-  const role = searchParams.get("role") || "student";
-  
+export default function StaffRegisterPage() {
   const [activeTab, setActiveTab] = useState("details")
   const {
     formData,
@@ -25,13 +21,11 @@ export default function StudentRegisterPage() {
     handleSelectChange,
     handleSubmit,
     isFormValid
-  } = StudentRegistrationSubmission(role)
+  } = StaffRegistrationSubmission()
 
   const { campuses, loading: loadingCampuses, error: campusError } = useCampuses()
   const { offices, loading: loadingOffices, error: officeError } = useOffices()
-  const { courses, loading: loadingCourses, error: courseError } = useCourses(formData.college_id)
 
-  // Memoize form submission handler
   const onSubmit = useCallback(async () => {
     const success = await handleSubmit()
     if (success) {
@@ -39,30 +33,11 @@ export default function StudentRegisterPage() {
     }
   }, [handleSubmit, setActiveTab])
 
-  const handleStudentIDChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    // Filter out non-numeric characters
-    const numericValue = e.target.value.replace(/\D/g, '');
-    
-    // Create a new synthetic event with the filtered value
-    const syntheticEvent = {
-      ...e,
-      target: {
-        ...e.target,
-        value: numericValue,
-        name: e.target.name
-      }
-    } as React.ChangeEvent<HTMLInputElement>;
-    
-    // Call the original handler with our modified event
-    handleInputChange(syntheticEvent);
-  }, [handleInputChange]);
-
   return (
-    <div className="min-h-[100dvh] w-full bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center py-6 px-2 sm:px-4 lg:px-6 relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-32 h-32 bg-green-600 rounded-full opacity-10 -translate-x-16 -translate-y-16"></div>
-      <div className="absolute bottom-0 right-0 w-48 h-48 bg-emerald-500 rounded-full opacity-10 translate-x-24 translate-y-24"></div>
-      <div className="absolute top-1/2 left-0 w-24 h-24 bg-green-500 rounded-full opacity-10 -translate-x-12"></div>
-      
+    <div className="min-h-[100dvh] w-full bg-gradient-to-br from-yellow-50 to-yellow-50 flex items-center justify-center py-6 px-2 sm:px-4 lg:px-6 relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-32 h-32 bg-yellow-400 rounded-full opacity-10 -translate-x-16 -translate-y-16"></div>
+      <div className="absolute bottom-0 right-0 w-48 h-48 bg-yellow-500 rounded-full opacity-10 translate-x-24 translate-y-24"></div>
+      <div className="absolute top-1/2 left-0 w-24 h-24 bg-yellow-300 rounded-full opacity-10 -translate-x-12"></div>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -70,7 +45,7 @@ export default function StudentRegisterPage() {
       >
         <div className="p-4 sm:p-8 w-full flex flex-col justify-center">
           <div className="flex flex-col items-center mt-1.5 mb-7 gap-y-0.5">
-            <h1 className="text-2xl font-bold text-gray-800">Student Registration</h1>
+            <h1 className="text-2xl font-bold text-gray-800">Staff Registration</h1>
             <p className="text-gray-600 text-sm">Fill in your details to register</p>
           </div>
           <Tabs value={activeTab} className="w-full">
@@ -82,7 +57,7 @@ export default function StudentRegisterPage() {
                     : "text-muted-foreground"
                 }`}
               >
-                Student Details
+                Staff Details
               </div>
               <div
                 className={`flex items-center justify-center py-2 px-2 rounded-md text-base font-medium transition-colors min-w-[100px] ${
@@ -147,8 +122,7 @@ export default function StudentRegisterPage() {
                     />
                   </div>
                 </div>
-                
-                {/* Email & Student ID row */}
+                {/* Email & Staff ID row */}
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <div className="flex-1 flex flex-col gap-1">
                     <Label htmlFor="email" className="inline-flex pointer-events-none">
@@ -168,34 +142,32 @@ export default function StudentRegisterPage() {
                     />
                   </div>
                   <div className="flex-1 flex flex-col gap-1">
-                    <Label htmlFor="studentID" className="inline-flex pointer-events-none">
+                    <Label htmlFor="staffID" className="inline-flex pointer-events-none">
                       <span className="pointer-events-auto">
-                        Student ID <span className="text-red-500">*</span>
+                        Staff ID <span className="text-red-500">*</span>
                       </span>
                     </Label>
                     <Input
-                      id="studentID"
-                      name="studentID"
+                      id="staffID"
+                      name="staffID"
                       autoComplete="off"
-                      placeholder="Enter student ID"
-                      value={formData.studentID}
-                      onChange={handleStudentIDChange}
-                      inputMode="numeric" // Helps mobile show numeric keyboard
-                      className={`h-11 text-base border-2 rounded-lg ${missingFields.studentID ? "border-red-400" : "border-gray-200"} focus:border-ring`}
+                      placeholder="Enter staff ID"
+                      value={formData.staffID}
+                      onChange={handleInputChange}
+                      className={`h-11 text-base border-2 rounded-lg ${missingFields.staffID ? "border-red-400" : "border-gray-200"} focus:border-ring`}
                     />
                   </div>
                 </div>
-                
-                {/* Campus & College row */}
+                {/* Campus & Office row */}
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <div className="flex-1">
-                    <StudentFormSelectField
+                    <StaffFormSelectField
                       id="campus_id"
                       name="campus_id"
                       label="Campus"
                       placeholder="Select campus"
                       value={formData.campus_id}
-                      onChange={(value) => handleSelectChange("campus_id", value)}
+                      onChange={value => handleSelectChange("campus_id", value)}
                       options={campuses}
                       loading={loadingCampuses}
                       error={campusError}
@@ -204,38 +176,21 @@ export default function StudentRegisterPage() {
                     />
                   </div>
                   <div className="flex-1">
-                    <StudentFormSelectField
-                      id="college_id"
-                      name="college_id"
-                      label="College"
-                      placeholder="Select college"
-                      value={formData.college_id}
-                      onChange={(value) => handleSelectChange("college_id", value)}
+                    <StaffFormSelectField
+                      id="office_id"
+                      name="office_id"
+                      label="Office"
+                      placeholder="Select office"
+                      value={formData.office_id}
+                      onChange={value => handleSelectChange("office_id", value)}
                       options={offices}
                       loading={loadingOffices}
                       error={officeError}
                       required
-                      hasError={!!missingFields.college_id}
+                      hasError={!!missingFields.office_id}
                     />
                   </div>
                 </div>
-                
-                {/* Course row */}
-                <StudentFormSelectField
-                  id="degree_course_id"
-                  name="degree_course_id"
-                  label="Course"
-                  placeholder="Select course"
-                  value={formData.degree_course_id}
-                  onChange={(value) => handleSelectChange("degree_course_id", value)}
-                  options={courses}
-                  loading={loadingCourses}
-                  error={courseError}
-                  required
-                  disabled={!formData.college_id}
-                  hasError={!!missingFields.degree_course_id}
-                />
-                
                 <div className="flex mt-2 justify-between">
                   <Button
                     type="button"
@@ -249,13 +204,13 @@ export default function StudentRegisterPage() {
                     type="button"
                     onClick={() => {
                       if (isFormValid()) {
-                        setActiveTab("summary");
+                        setActiveTab("summary")
                       } else {
-                        handleSubmit(true);
+                        handleSubmit(true)
                       }
                     }}
                     variant="default"
-                    className="text-base bg-green-700 hover:bg-green-600 cursor-pointer py-2.5"
+                    className="text-base bg-yellow-500 hover:bg-yellow-400 cursor-pointer py-2.5"
                   >
                     Next
                   </Button>
@@ -263,11 +218,10 @@ export default function StudentRegisterPage() {
               </form>
             </TabsContent>
             <TabsContent value="summary" className="space-y-6">
-              <StudentSummary 
+              <StaffSummary
                 formData={formData}
                 campuses={campuses}
                 offices={offices}
-                courses={courses}
                 isFormValid={!!isFormValid()}
               />
               <div className="flex justify-end gap-3">
@@ -285,7 +239,7 @@ export default function StudentRegisterPage() {
                   onClick={onSubmit}
                   variant="default"
                   disabled={!isFormValid() || isSubmitting}
-                  className="text-base bg-green-700 hover:bg-green-600 cursor-pointer py-2.5"
+                  className="text-base bg-yellow-500 hover:bg-yellow-400 cursor-pointer py-2.5"
                 >
                   {isSubmitting ? (
                     <div className="flex items-center">

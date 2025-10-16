@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { fetchFacultyEvents } from "@/api/facultyEventsApi";
 import { EventsListModal } from "@/components/modal/events-list-modal";
 import { EventInfoModal } from "@/components/modal/event-info-modal";
-import { Calendar } from "@/components/calendar-ui/calendar-component";
+import { Calendar } from "@/components/ui/norsu-calendar";
 import { FacultyPageEventDetails, CalendarDayType } from "@/interface/faculty-events-props";
 
 export default function FacultyEventsTab() {
@@ -30,6 +30,8 @@ export default function FacultyEventsTab() {
   // Fetch events ONCE on mount
   useEffect(() => {
     setEventsListLoading(true);
+    setLoading(true);
+
     fetchFacultyEvents()
       .then((data) => {
         if (data.length === 0) {
@@ -57,7 +59,10 @@ export default function FacultyEventsTab() {
         }
       })
       .catch(() => setEvents([]))
-      .finally(() => setEventsListLoading(false));
+      .finally(() => {
+        setEventsListLoading(false);
+        setLoading(false); // Set calendar loading to false
+      });
   }, []); 
 
   // Get events for a particular day - used by Calendar component
@@ -143,7 +148,7 @@ export default function FacultyEventsTab() {
   ];
 
   return (
-    <div className="h-full flex flex-col max-w-full overflow-hidden p-2 sm:p-2">
+    <div className="h-full flex flex-col max-w-full">
       <h1 className="text-2xl sm:text-3xl font-normal leading-tight mb-4 sm:mb-6 px-2 sm:px-0">
         Events
       </h1>

@@ -13,6 +13,7 @@ const FIELD_LABELS: Record<keyof StudentRegisterFormData, string> = {
   campus_id: "Campus",
   college_id: "College",
   degree_course_id: "Course",
+  role: "Role", // Add this to fix TypeScript error
 };
 
 // Initial form state
@@ -25,10 +26,14 @@ const INITIAL_FORM_STATE: StudentRegisterFormData = {
   campus_id: "",
   college_id: "",
   degree_course_id: "",
+  role: "student", // Add default role
 };
 
-export function StudentRegistrationSubmission() {
-  const [formData, setFormData] = useState<StudentRegisterFormData>(INITIAL_FORM_STATE);
+export function StudentRegistrationSubmission(initialRole?: string) {
+  const [formData, setFormData] = useState<StudentRegisterFormData>({
+    ...INITIAL_FORM_STATE,
+    role: initialRole || "student" // Use provided role or default
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [missingFields, setMissingFields] = useState<Partial<Record<keyof StudentRegisterFormData, boolean>>>({});
 
@@ -98,16 +103,16 @@ export function StudentRegistrationSubmission() {
     // Begin submission
     setIsSubmitting(true);
     
-    // Create persistent loading toast with explicit duration and no auto-dismiss
+    // Create persistent loading toast
     const toastId = toast.loading("Registering student...", {
-      duration: Infinity, // Never auto-dismiss
+      duration: Infinity,
     });
 
     try {
-      // API call
+      // API call with role included
       const response = await apiClient.post<{message?: string}, StudentRegisterFormData>(
         'users/store', 
-        formData
+        formData // This now includes the role field
       );
       
       // Handle API errors

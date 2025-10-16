@@ -1,0 +1,69 @@
+import React, { memo } from "react";
+import { User } from "lucide-react";
+import { OptionType } from "@/services/academicDataService";
+
+type StaffSummaryProps = {
+  formData: any;
+  campuses: OptionType[];
+  offices: OptionType[];
+  isFormValid: boolean;
+};
+
+export const StaffSummary = memo(function StaffSummary({
+  formData,
+  campuses,
+  offices,
+  isFormValid,
+}: StaffSummaryProps) {
+  return (
+    <>
+      <div className="bg-gray-50 shadow-sm rounded-lg p-4">
+        <div className="flex items-center mb-3">
+          <User className="w-6 h-6 text-yellow-500 mr-2" />
+          <h3 className="text-lg font-medium text-gray-700">Staff Information</h3>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <p className="text-base text-gray-500">Full Name</p>
+            <p className="font-medium text-base">
+              {`${formData.first_name} ${formData.middle_name} ${formData.last_name}`.trim() || "Not provided"}
+            </p>
+          </div>
+          <div>
+            <p className="text-base text-gray-500">Email</p>
+            <p className="font-medium text-base">{formData.email || "Not provided"}</p>
+          </div>
+          <div>
+            <p className="text-base text-gray-500">Staff ID</p>
+            <p className="font-medium text-base">{formData.staffID || "Not provided"}</p>
+          </div>
+          <div>
+            <p className="text-base text-gray-500">Campus</p>
+            <p className="font-medium text-base">
+              {campuses.find((c) => c.value === formData.campus_id)?.label || "Not selected"}
+            </p>
+          </div>
+          <div>
+            <p className="text-base text-gray-500">Office</p>
+            <p className="font-medium text-base">
+              {offices.find((o) => o.value === formData.office_id)?.label || "Not selected"}
+            </p>
+          </div>
+        </div>
+      </div>
+      <div
+        className={`mt-6 p-3 rounded-md flex items-center justify-center ${
+          isFormValid
+            ? "bg-yellow-50 text-yellow-800"
+            : "bg-yellow-100 text-yellow-900"
+        }`}
+      >
+        {isFormValid ? (
+          <span className="text-base">Ready for submission</span>
+        ) : (
+          <span className="text-base">Please complete all required fields</span>
+        )}
+      </div>
+    </>
+  );
+});

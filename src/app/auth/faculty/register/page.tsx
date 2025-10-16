@@ -214,14 +214,22 @@ export default function FacultyRegisterPage() {
                   hasError={!!missingFields.degree_course_id}
                 />
                 
-                <div className="flex mt-1 justify-end">
+                <div className="flex mt-2 justify-between">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="text-base cursor-pointer py-2.5"
+                    onClick={() => window.history.back()}
+                  >
+                    Back
+                  </Button>
                   <Button
                     type="button"
                     onClick={() => {
                       if (isFormValid()) {
                         setActiveTab("summary");
                       } else {
-                        handleSubmit(true); // Just validate, don't submit
+                        handleSubmit(true);
                       }
                     }}
                     variant="default"

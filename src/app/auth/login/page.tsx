@@ -28,7 +28,7 @@ export default function AuthLoginPage() {
 
       {/* Main Content */}
       <main className="flex-1 flex justify-center items-center px-2">
-        <section className="bg-white rounded-xl shadow-lg p-4 sm:p-6 w-full max-w-md sm:max-w-2xl flex flex-col">
+        <section className="bg-white rounded-xl shadow-lg p-4 sm:p-6 w-full max-w-md sm:max-w-4xl flex flex-col">
           <div className="flex flex-col items-center mb-5">
             <div className="flex items-center">
               <User className="h-7 w-7 sm:h-8 sm:w-8 text-gray-500 mr-2 sm:mr-3" />
@@ -79,6 +79,26 @@ export default function AuthLoginPage() {
               </span>
               <span className="text-sm sm:text-base text-gray-500 text-center mt-2">
                 Manage schedules and activities.
+              </span>
+            </div>
+            {/* Staff Card */}
+            <div
+              tabIndex={0}
+              role="button"
+              className="bg-white border border-gray-200 rounded-xl shadow-md flex flex-col items-center px-6 py-6 sm:px-10 sm:py-8 w-full sm:w-72 transition-all duration-200 hover:shadow-xl hover:-translate-y-1 hover:border-yellow-400 group cursor-pointer outline-none"
+              onClick={() => router.push("/auth/staff/login")}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  router.push("/auth/staff/login");
+                }
+              }}
+            >
+              <User className="h-7 w-7 sm:h-8 sm:w-8 text-yellow-500 mb-3 group-hover:text-yellow-600 transition-colors duration-200" />
+              <span className="font-bold text-base sm:text-xl text-gray-800 mb-2 group-hover:text-yellow-600 transition-colors duration-200">
+                Staff
+              </span>
+              <span className="text-sm sm:text-base text-gray-500 text-center mt-2">
+                Organize and support campus operations.
               </span>
             </div>
           </div>

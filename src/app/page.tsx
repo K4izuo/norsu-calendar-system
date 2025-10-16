@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { EventsListModal } from "@/components/modal/events-list-modal";
 import { EventInfoModal } from "@/components/modal/event-info-modal";
-import { Calendar } from "@/components/calendar-ui/calendar-component";
+import { Calendar } from "@/components/ui/norsu-calendar";
 import type { EventDetails, CalendarDayType } from "@/interface/faculty-events-props";
 
 export default function Home() {
