@@ -1,7 +1,7 @@
 "use client"
 
-import React, { useState, useCallback, useEffect } from "react"
-import { useSearchParams } from "next/navigation"
+import React, { useState, useCallback } from "react"
+// import { useSearchParams } from "next/navigation"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,10 +11,12 @@ import { StudentRegistrationSubmission } from "@/hooks/useStudRegForm"
 import { useCampuses, useOffices, useCourses } from "@/services/academicDataService"
 import { StudentFormSelectField } from "@/components/user-forms/student/student-form-field"
 import { StudentSummary } from "@/components/user-forms/student/student-summary"
+import { useRole } from "@/contexts/user-role"
 
 export default function StudentRegisterPage() {
-  const searchParams = useSearchParams();
-  const role = searchParams.get("role") || "student";
+  const { role } = useRole(); // Get role from context
+  // const searchParams = useSearchParams();
+  // const roleParam = searchParams.get("role") || "student";
   
   const [activeTab, setActiveTab] = useState("details")
   const {
@@ -25,7 +27,7 @@ export default function StudentRegisterPage() {
     handleSelectChange,
     handleSubmit,
     isFormValid
-  } = StudentRegistrationSubmission(role)
+  } = StudentRegistrationSubmission(role || "student") // Use role from context with fallback
 
   const { campuses, loading: loadingCampuses, error: campusError } = useCampuses()
   const { offices, loading: loadingOffices, error: officeError } = useOffices()

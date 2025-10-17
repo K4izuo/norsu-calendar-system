@@ -3,13 +3,16 @@
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { User } from "lucide-react";
+import { useRole } from "@/contexts/user-role";
 
 export default function AuthRegisterPage() {
   const router = useRouter();
+  const { setRole } = useRole();
 
-  // Helper function to navigate with role parameter
-  const navigateToRegistration = (path: string, role: string) => {
-    router.push(`${path}?role=${role}`);
+  // Updated navigation function without query params
+  const navigateToRegistration = (path: string, role: "student" | "faculty" | "staff") => {
+    setRole(role); // Set role in context
+    router.push(path); // Navigate without query param
   };
 
   return (

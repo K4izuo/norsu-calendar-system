@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
+import { RoleProvider } from '@/contexts/user-role';
+import { AuthProvider } from '@/contexts/auth-context';
 
 const poppins = Poppins({
   weight: ["400", "500", "600", "700"],
@@ -28,7 +30,11 @@ export default function RootLayout({
       <body
         className={`${poppins.className} custom-scrollbar min-h-screen bg-white antialiased`}
       >
-        {children}
+        <AuthProvider>
+          <RoleProvider>
+            {children}
+          </RoleProvider>
+        </AuthProvider>
         <Toaster 
           position="top-right"
           toastOptions={{
