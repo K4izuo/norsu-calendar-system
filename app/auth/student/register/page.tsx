@@ -1,7 +1,6 @@
 "use client"
 
-import React, { useState, useCallback } from "react"
-// import { useSearchParams } from "next/navigation"
+import React, { useState, useCallback, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,13 +11,27 @@ import { useCampuses, useOffices, useCourses } from "@/services/academicDataServ
 import { StudentFormSelectField } from "@/components/user-forms/student/student-form-field"
 import { StudentSummary } from "@/components/user-forms/student/student-summary"
 import { useRole } from "@/contexts/user-role"
+import { useRouter } from "next/navigation"
 
 export default function StudentRegisterPage() {
-  const { role } = useRole(); // Get role from context
-  // const searchParams = useSearchParams();
-  // const roleParam = searchParams.get("role") || "student";
+  // First, declare ALL hooks regardless of authorization status
+  const router = useRouter();
+  const { role, setRole } = useRole();
+  const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState("details");
   
-  const [activeTab, setActiveTab] = useState("details")
+  // Check if we came from the register page
+  useEffect(() => {
+    // Check if the user has the student role
+    if (role === 'student') {
+      // User has the correct role, allow access
+      setIsAuthorized(true);
+    } else {
+      // No role or wrong role, redirect to register
+      router.push('/auth/register');
+    }
+  }, [role, router]);
+
   const {
     formData,
     missingFields,
@@ -27,19 +40,19 @@ export default function StudentRegisterPage() {
     handleSelectChange,
     handleSubmit,
     isFormValid
-  } = StudentRegistrationSubmission(role || "student") // Use role from context with fallback
+  } = StudentRegistrationSubmission();
 
-  const { campuses, loading: loadingCampuses, error: campusError } = useCampuses()
-  const { offices, loading: loadingOffices, error: officeError } = useOffices()
-  const { courses, loading: loadingCourses, error: courseError } = useCourses(formData.college_id)
+  const { campuses, loading: loadingCampuses, error: campusError } = useCampuses();
+  const { offices, loading: loadingOffices, error: officeError } = useOffices();
+  const { courses, loading: loadingCourses, error: courseError } = useCourses(formData.college_id);
 
-  // Memoize form submission handler
+  // Memoize form submission handler - must be declared after hooks
   const onSubmit = useCallback(async () => {
-    const success = await handleSubmit()
+    const success = await handleSubmit();
     if (success) {
-      setTimeout(() => setActiveTab("details"), 700)
+      setTimeout(() => setActiveTab("details"), 700);
     }
-  }, [handleSubmit, setActiveTab])
+  }, [handleSubmit, setActiveTab]);
 
   const handleStudentIDChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     // Filter out non-numeric characters
@@ -58,6 +71,12 @@ export default function StudentRegisterPage() {
     // Call the original handler with our modified event
     handleInputChange(syntheticEvent);
   }, [handleInputChange]);
+  
+  // Don't render anything until we've checked authorization
+  // This prevents UI flashing before redirect
+  if (isAuthorized !== true) {
+    return null; // Return empty (no UI)
+  }
 
   return (
     <div className="min-h-[100dvh] w-full bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center py-6 px-2 sm:px-4 lg:px-6 relative overflow-hidden">

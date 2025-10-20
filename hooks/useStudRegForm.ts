@@ -1,7 +1,8 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import toast from "react-hot-toast";
 import { StudentRegisterFormData } from "@/interface/faculty-events-props";
 import { apiClient } from "@/lib/api-client";
+import { useRole } from "@/contexts/user-role";
 
 // Field validation mapping for error messages
 const FIELD_LABELS: Record<keyof StudentRegisterFormData, string> = {
@@ -13,11 +14,11 @@ const FIELD_LABELS: Record<keyof StudentRegisterFormData, string> = {
   campus_id: "Campus",
   college_id: "College",
   degree_course_id: "Course",
-  role: "Role", // Add this to fix TypeScript error
+  role: "Role",
 };
 
-// Initial form state
-const INITIAL_FORM_STATE: StudentRegisterFormData = {
+// Initial form state without role
+const INITIAL_FORM_STATE: Omit<StudentRegisterFormData, 'role'> = {
   first_name: "",
   middle_name: "",
   last_name: "",
@@ -26,14 +27,27 @@ const INITIAL_FORM_STATE: StudentRegisterFormData = {
   campus_id: "",
   college_id: "",
   degree_course_id: "",
-  role: "student", // Add default role
 };
 
-export function StudentRegistrationSubmission(initialRole?: string) {
-  const [formData, setFormData] = useState<StudentRegisterFormData>({
-    ...INITIAL_FORM_STATE,
-    role: initialRole || "student" // Use provided role or default
+export function StudentRegistrationSubmission() {
+  const { role } = useRole();
+  
+  // Get role from our context on initial render
+  const [formData, setFormData] = useState<StudentRegisterFormData>(() => {
+    return {
+      ...INITIAL_FORM_STATE,
+      role: role as string
+    };
   });
+  
+  // Update form data when role changes
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      role: role as string
+    }));
+  }, [role]);
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [missingFields, setMissingFields] = useState<Partial<Record<keyof StudentRegisterFormData, boolean>>>({});
 
@@ -147,7 +161,10 @@ export function StudentRegistrationSubmission(initialRole?: string) {
         id: toastId,
         duration: 5000 // Show success for 5 seconds
       });
-      setFormData(INITIAL_FORM_STATE);
+      setFormData(prev => ({
+        ...INITIAL_FORM_STATE,
+        role: prev.role // Preserve the current role when resetting
+      }));
       setIsSubmitting(false);
       return true;
       

@@ -1,7 +1,8 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import toast from "react-hot-toast";
 import { FacultyRegisterFormData } from "@/interface/faculty-events-props";
 import { apiClient } from "@/lib/api-client";
+import { useRole } from "@/contexts/user-role";
 
 // Field validation mapping for error messages
 const FIELD_LABELS: Record<keyof FacultyRegisterFormData, string> = {
@@ -13,10 +14,11 @@ const FIELD_LABELS: Record<keyof FacultyRegisterFormData, string> = {
   campus_id: "Campus",
   college_id: "College",
   degree_course_id: "Course",
+  role: "Role"
 };
 
 // Initial form state
-const INITIAL_FORM_STATE: FacultyRegisterFormData = {
+const INITIAL_FORM_STATE: Omit<FacultyRegisterFormData, 'role'> = {
   first_name: "",
   middle_name: "",
   last_name: "",
@@ -28,7 +30,24 @@ const INITIAL_FORM_STATE: FacultyRegisterFormData = {
 };
 
 export function FacultyRegistrationSubmission() {
-  const [formData, setFormData] = useState<FacultyRegisterFormData>(INITIAL_FORM_STATE);
+  const { role } = useRole();
+    
+  // Get role from our context on initial render
+  const [formData, setFormData] = useState<FacultyRegisterFormData>(() => {
+    return {
+      ...INITIAL_FORM_STATE,
+      role: role as string
+    };
+  });
+  
+  // Update form data when role changes
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      role: role as string
+    }));
+  }, [role]);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [missingFields, setMissingFields] = useState<Partial<Record<keyof FacultyRegisterFormData, boolean>>>({});
 
@@ -142,7 +161,10 @@ export function FacultyRegistrationSubmission() {
         id: toastId,
         duration: 5000 // Show success for 5 seconds
       });
-      setFormData(INITIAL_FORM_STATE);
+      setFormData(prev => ({
+        ...INITIAL_FORM_STATE,
+        role: prev.role // Preserve the current role when resetting
+      }));
       setIsSubmitting(false);
       return true;
       

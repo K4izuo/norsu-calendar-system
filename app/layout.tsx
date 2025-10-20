@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
-import { RoleProvider } from '@/contexts/user-role';
 import { AuthProvider } from '@/contexts/auth-context';
+import { RoleProvider } from '@/contexts/user-role';
 
 const poppins = Poppins({
   weight: ["400", "500", "600", "700"],

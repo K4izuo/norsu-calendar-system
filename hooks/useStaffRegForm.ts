@@ -1,16 +1,8 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import toast from "react-hot-toast";
 import { apiClient } from "@/lib/api-client";
-
-export type StaffRegisterFormData = {
-  first_name: string;
-  middle_name: string;
-  last_name: string;
-  email: string;
-  staffID: string;
-  campus_id: string;
-  office_id: string;
-};
+import { StaffRegisterFormData } from "@/interface/faculty-events-props";
+import { useRole } from "@/contexts/user-role";
 
 const FIELD_LABELS: Record<keyof StaffRegisterFormData, string> = {
   first_name: "First name",
@@ -20,9 +12,10 @@ const FIELD_LABELS: Record<keyof StaffRegisterFormData, string> = {
   staffID: "Staff ID",
   campus_id: "Campus",
   office_id: "Office",
+  role: "Role"
 };
 
-const INITIAL_FORM_STATE: StaffRegisterFormData = {
+const INITIAL_FORM_STATE: Omit<StaffRegisterFormData, 'role'> = {
   first_name: "",
   middle_name: "",
   last_name: "",
@@ -33,7 +26,24 @@ const INITIAL_FORM_STATE: StaffRegisterFormData = {
 };
 
 export function StaffRegistrationSubmission() {
-  const [formData, setFormData] = useState<StaffRegisterFormData>(INITIAL_FORM_STATE);
+  const { role } = useRole();
+      
+  // Get role from our context on initial render
+  const [formData, setFormData] = useState<StaffRegisterFormData>(() => {
+    return {
+      ...INITIAL_FORM_STATE,
+      role: role as string
+    };
+  });
+  
+  // Update form data when role changes
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      role: role as string
+    }));
+  }, [role]);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [missingFields, setMissingFields] = useState<Partial<Record<keyof StaffRegisterFormData, boolean>>>({});
 
@@ -89,7 +99,7 @@ export function StaffRegistrationSubmission() {
 
     try {
       const response = await apiClient.post<{ message?: string }, StaffRegisterFormData>(
-        "users/store-staff",
+        "users/store",
         formData
       );
 
@@ -111,7 +121,10 @@ export function StaffRegistrationSubmission() {
       }
 
       toast.success(response.data.message || "Registration successful!", { id: toastId, duration: 5000 });
-      setFormData(INITIAL_FORM_STATE);
+      setFormData(prev => ({
+        ...INITIAL_FORM_STATE,
+        role: prev.role // Preserve the current role when resetting
+      }));
       setIsSubmitting(false);
       return true;
     } catch (error) {

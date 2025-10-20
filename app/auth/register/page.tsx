@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import Image from "next/image";
 import { User } from "lucide-react";
 import { useRole } from "@/contexts/user-role";
@@ -9,10 +10,14 @@ export default function AuthRegisterPage() {
   const router = useRouter();
   const { setRole } = useRole();
 
-  // Updated navigation function without query params
+  // Clear any existing role when landing on this page
+  useEffect(() => {
+    setRole(null);
+  }, [setRole]);
+
   const navigateToRegistration = (path: string, role: "student" | "faculty" | "staff") => {
-    setRole(role); // Set role in context
-    router.push(path); // Navigate without query param
+    setRole(role);
+    router.push(path);
   };
 
   return (
@@ -48,7 +53,7 @@ export default function AuthRegisterPage() {
           <hr className="border-t border-gray-200 mb-6" />
 
           {/* User Role Cards */}
-          <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 justify-center items-stretch w-full">
+          <div className="flex flex-col sm:flex-row gap-6 sm:gap-6 justify-center items-stretch w-full">
             {/* Student Card */}
             <div
               tabIndex={0}

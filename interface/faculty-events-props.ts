@@ -101,7 +101,19 @@ export interface FacultyRegisterFormData {
   campus_id: string
   college_id: string
   degree_course_id: string
+  role: string
 }
+
+export type StaffRegisterFormData = {
+  first_name: string;
+  middle_name: string;
+  last_name: string;
+  email: string;
+  staffID: string;
+  campus_id: string;
+  office_id: string;
+  role: string;
+};
 
 export interface CalendarDayType {
   date: number;

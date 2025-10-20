@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useCallback } from "react"
+import React, { useState, useCallback, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,9 +10,15 @@ import { FacultyRegistrationSubmission } from "@/hooks/useFacultyRegForm"
 import { useCampuses, useOffices, useCourses } from "@/services/academicDataService"
 import { FacultyFormSelectField } from "@/components/user-forms/faculty/faculty-form-field"
 import { FacultySummary } from "@/components/user-forms/faculty/faculty-summary"
+import { useRouter } from "next/navigation";
+import { useRole } from "@/contexts/user-role"
 
 export default function FacultyRegisterPage() {
-  const [activeTab, setActiveTab] = useState("details")
+  const router = useRouter();
+  const { role } = useRole();
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+  const [activeTab, setActiveTab] = useState("details");
+
   const {
     formData,
     missingFields,
@@ -27,6 +33,15 @@ export default function FacultyRegisterPage() {
   const { offices, loading: loadingOffices, error: officeError } = useOffices()
   const { courses, loading: loadingCourses, error: courseError } = useCourses(formData.college_id)
 
+  useEffect(() => {
+    if (role !== 'faculty') {
+      // If wrong role or no role, redirect to registration selection page
+      router.push('/auth/register');
+    } else {
+      setIsAuthorized(true);
+    }
+  }, [role, router]);
+
   // Memoize form submission handler
   const onSubmit = useCallback(async () => {
     const success = await handleSubmit()
@@ -34,6 +49,28 @@ export default function FacultyRegisterPage() {
       setTimeout(() => setActiveTab("details"), 700)
     }
   }, [handleSubmit, setActiveTab])
+
+  const handleFacultyIDChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    // Filter out non-numeric characters
+    const numericValue = e.target.value.replace(/\D/g, '');
+    
+    // Create a new synthetic event with the filtered value
+    const syntheticEvent = {
+      ...e,
+      target: {
+        ...e.target,
+        value: numericValue,
+        name: e.target.name
+      }
+    } as React.ChangeEvent<HTMLInputElement>;
+    
+    // Call the original handler with our modified event
+    handleInputChange(syntheticEvent);
+  }, [handleInputChange]);
+
+  if (isAuthorized !== true) {
+    return null; // Return empty (no UI)
+  }
 
   return (
     <div className="min-h-[100dvh] w-full bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center py-6 px-2 sm:px-4 lg:px-6 relative overflow-hidden">
@@ -158,7 +195,7 @@ export default function FacultyRegisterPage() {
                       autoComplete="off"
                       placeholder="Enter faculty ID"
                       value={formData.facultyID}
-                      onChange={handleInputChange}
+                      onChange={handleFacultyIDChange}
                       className={`h-11 text-base border-2 rounded-lg ${missingFields.facultyID ? "border-red-400" : "border-gray-200"} focus:border-ring`}
                     />
                   </div>
