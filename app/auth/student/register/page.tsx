@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useCallback, useEffect } from "react"
+import React, { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -19,7 +19,8 @@ export default function StudentRegisterPage() {
   const { role, setRole } = useRole();
   const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState("details");
-  
+  const [agreed, setAgreed] = useState(false); // <-- Add this line
+
   // Check if we came from the register page
   useEffect(() => {
     // Check if the user has the student role
@@ -189,20 +190,20 @@ export default function StudentRegisterPage() {
                     />
                   </div>
                   <div className="flex-1 flex flex-col gap-1">
-                    <Label htmlFor="studentID" className="inline-flex pointer-events-none">
+                    <Label htmlFor="assignment_id" className="inline-flex pointer-events-none">
                       <span className="pointer-events-auto">
                         Student ID <span className="text-red-500">*</span>
                       </span>
                     </Label>
                     <Input
-                      id="studentID"
-                      name="studentID"
+                      id="assignment_id"
+                      name="assignment_id"
                       autoComplete="off"
                       placeholder="Enter student ID"
-                      value={formData.studentID}
+                      value={formData.assignment_id}
                       onChange={handleStudentIDChange}
                       inputMode="numeric" // Helps mobile show numeric keyboard
-                      className={`h-11 text-base border-2 rounded-lg ${missingFields.studentID ? "border-red-400" : "border-gray-200"} focus:border-ring`}
+                      className={`h-11 text-base border-2 rounded-lg ${missingFields.assignment_id ? "border-red-400" : "border-gray-200"} focus:border-ring`}
                     />
                   </div>
                 </div>
@@ -290,6 +291,9 @@ export default function StudentRegisterPage() {
                 offices={offices}
                 courses={courses}
                 isFormValid={!!isFormValid()}
+                agreed={agreed} // <-- Pass agreed
+                setAgreed={setAgreed} // <-- Pass setAgreed
+                color="emerald"
               />
               <div className="flex justify-end gap-3">
                 <Button
@@ -305,7 +309,7 @@ export default function StudentRegisterPage() {
                   type="button"
                   onClick={onSubmit}
                   variant="default"
-                  disabled={!isFormValid() || isSubmitting}
+                  disabled={!isFormValid() || isSubmitting || !agreed} // <-- Disable if not agreed
                   className="text-base bg-green-700 hover:bg-green-600 cursor-pointer py-2.5"
                 >
                   {isSubmitting ? (

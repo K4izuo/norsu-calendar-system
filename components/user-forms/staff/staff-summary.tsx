@@ -1,12 +1,18 @@
-import React, { memo } from "react";
+import React, { memo, useState } from "react";
 import { User } from "lucide-react";
 import { OptionType } from "@/services/academicDataService";
+import { TermsAndConditionModal } from "@/components/privacy/terms-and-condition-modal";
+import { Checkbox } from "@/components/ui/checkbox";
+import { StaffRegisterFormData } from "@/interface/faculty-events-props";
 
 type StaffSummaryProps = {
-  formData: any;
+  formData: StaffRegisterFormData;
   campuses: OptionType[];
   offices: OptionType[];
   isFormValid: boolean;
+  agreed: boolean;
+  setAgreed: React.Dispatch<React.SetStateAction<boolean>>;
+  color?: "emerald" | "indigo" | "yellow";
 };
 
 export const StaffSummary = memo(function StaffSummary({
@@ -14,7 +20,12 @@ export const StaffSummary = memo(function StaffSummary({
   campuses,
   offices,
   isFormValid,
+  agreed,
+  setAgreed,
+  color = "yellow",
 }: StaffSummaryProps) {
+  const [termsOpen, setTermsOpen] = useState(false);
+
   return (
     <>
       <div className="bg-gray-50 shadow-sm rounded-lg p-4">
@@ -35,7 +46,7 @@ export const StaffSummary = memo(function StaffSummary({
           </div>
           <div>
             <p className="text-base text-gray-500">Staff ID</p>
-            <p className="font-medium text-base">{formData.staffID || "Not provided"}</p>
+            <p className="font-medium text-base">{formData.assignment_id || "Not provided"}</p>
           </div>
           <div>
             <p className="text-base text-gray-500">Campus</p>
@@ -50,6 +61,34 @@ export const StaffSummary = memo(function StaffSummary({
             </p>
           </div>
         </div>
+        {/* Terms and Condition Checkbox */}
+        <div className="mt-6 flex items-center">
+          <Checkbox
+            id="terms"
+            checked={agreed}
+            onCheckedChange={(checked) => {
+              if (!checked) {
+                setAgreed(false);
+              } else if (!agreed) {
+                setTermsOpen(true);
+              }
+            }}
+            className="data-[state=checked]:bg-yellow-500 data-[state=checked]:border-yellow-500 cursor-pointer"
+          />
+          <span
+            className="ml-3 text-base text-gray-700 cursor-pointer select-none"
+            onClick={() => setTermsOpen(true)}
+          >
+            I have read and agree to the{" "}
+            <span className="underline text-yellow-500">Terms & Conditions</span>
+          </span>
+        </div>
+        <TermsAndConditionModal
+          isOpen={termsOpen}
+          onClose={() => setTermsOpen(false)}
+          onAgree={() => setAgreed(true)}
+          color={color}
+        />
       </div>
       <div
         className={`mt-6 p-3 rounded-md flex items-center justify-center ${

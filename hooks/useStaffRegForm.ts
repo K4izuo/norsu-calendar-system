@@ -9,7 +9,7 @@ const FIELD_LABELS: Record<keyof StaffRegisterFormData, string> = {
   middle_name: "Middle name",
   last_name: "Last name",
   email: "Email",
-  staffID: "Staff ID",
+  assignment_id: "Staff ID", // <-- Changed
   campus_id: "Campus",
   office_id: "Office",
   role: "Role"
@@ -20,7 +20,7 @@ const INITIAL_FORM_STATE: Omit<StaffRegisterFormData, 'role'> = {
   middle_name: "",
   last_name: "",
   email: "",
-  staffID: "",
+  assignment_id: "", // <-- Changed
   campus_id: "",
   office_id: "",
 };
@@ -71,7 +71,7 @@ export function StaffRegistrationSubmission() {
     if (!formData.first_name.trim()) missing.first_name = true;
     if (!formData.middle_name.trim()) missing.middle_name = true;
     if (!formData.last_name.trim()) missing.last_name = true;
-    if (!formData.staffID.trim()) missing.staffID = true;
+    if (!formData.assignment_id.trim()) missing.assignment_id = true;
     if (!formData.campus_id) missing.campus_id = true;
     if (!formData.office_id) missing.office_id = true;
     if (!formData.email.trim() || !formData.email.includes("@")) missing.email = true;
@@ -98,29 +98,39 @@ export function StaffRegistrationSubmission() {
     const toastId = toast.loading("Registering staff...", { duration: Infinity });
 
     try {
-      const response = await apiClient.post<{ message?: string }, StaffRegisterFormData>(
+      const response = await apiClient.post<{ role?: number }, StaffRegisterFormData>(
         "users/store",
         formData
       );
 
+      // Handle API errors
       if (response.error) {
-        const errorMessage = response.error.toLowerCase().includes("email") &&
-          response.error.toLowerCase().includes("already")
+        const errorMessage = response.error.toLowerCase().includes("email") && 
+            response.error.toLowerCase().includes("already")
           ? "Email is already registered."
           : response.error;
-
-        toast.error(errorMessage, { id: toastId, duration: 5000 });
+        
+        // Replace loading toast with error
+        toast.error(errorMessage, { 
+          id: toastId,
+          duration: 5000 // Show error for 5 seconds
+        });
         setIsSubmitting(false);
         return false;
       }
 
-      if (!response.data) {
-        toast.error("Registration could not be confirmed", { id: toastId, duration: 5000 });
-        setIsSubmitting(false);
-        return false;
+      let successMsg = "Registration successful!";
+
+      switch(response.data?.role) {
+        case 1: successMsg = "Student registration successful!"; break;
+        case 2: successMsg = "Faculty registration successful!"; break;
+        case 3: successMsg = "Staff registration successful!"; break;
       }
 
-      toast.success(response.data.message || "Registration successful!", { id: toastId, duration: 5000 });
+      toast.success(successMsg, { 
+        id: toastId,
+        duration: 5000 // Show success for 5 seconds
+      });
       setFormData(prev => ({
         ...INITIAL_FORM_STATE,
         role: prev.role // Preserve the current role when resetting
@@ -141,7 +151,7 @@ export function StaffRegistrationSubmission() {
       formData.last_name.trim() &&
       formData.email.trim() &&
       formData.email.includes("@") &&
-      formData.staffID.trim() &&
+      formData.assignment_id.trim() &&
       formData.campus_id &&
       formData.office_id
     );

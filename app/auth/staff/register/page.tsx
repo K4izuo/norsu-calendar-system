@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useCallback, useEffect } from "react"
+import React, { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,6 +18,7 @@ export default function StaffRegisterPage() {
   const { role } = useRole();
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   const [activeTab, setActiveTab] = useState("details")
+  const [agreed, setAgreed] = useState(false); // <-- Add this
   const {
     formData,
     missingFields,
@@ -178,19 +179,19 @@ export default function StaffRegisterPage() {
                     />
                   </div>
                   <div className="flex-1 flex flex-col gap-1">
-                    <Label htmlFor="staffID" className="inline-flex pointer-events-none">
+                    <Label htmlFor="assignment_id" className="inline-flex pointer-events-none">
                       <span className="pointer-events-auto">
                         Staff ID <span className="text-red-500">*</span>
                       </span>
                     </Label>
                     <Input
-                      id="staffID"
-                      name="staffID"
+                      id="assignment_id"
+                      name="assignment_id"
                       autoComplete="off"
                       placeholder="Enter staff ID"
-                      value={formData.staffID}
+                      value={formData.assignment_id}
                       onChange={handleStaffIDChange}
-                      className={`h-11 text-base border-2 rounded-lg ${missingFields.staffID ? "border-red-400" : "border-gray-200"} focus:border-ring`}
+                      className={`h-11 text-base border-2 rounded-lg ${missingFields.assignment_id ? "border-red-400" : "border-gray-200"} focus:border-ring`}
                     />
                   </div>
                 </div>
@@ -259,6 +260,9 @@ export default function StaffRegisterPage() {
                 campuses={campuses}
                 offices={offices}
                 isFormValid={!!isFormValid()}
+                agreed={agreed} // <-- Pass agreed
+                setAgreed={setAgreed} // <-- Pass setAgreed
+                color="yellow"
               />
               <div className="flex justify-end gap-3">
                 <Button
@@ -274,7 +278,7 @@ export default function StaffRegisterPage() {
                   type="button"
                   onClick={onSubmit}
                   variant="default"
-                  disabled={!isFormValid() || isSubmitting}
+                  disabled={!isFormValid() || isSubmitting || !agreed} // <-- Disable if not agreed
                   className="text-base bg-yellow-500 hover:bg-yellow-400 cursor-pointer py-2.5"
                 >
                   {isSubmitting ? (

@@ -85,23 +85,23 @@ export interface StudentRegisterFormData {
   middle_name: string;
   last_name: string;
   email: string;
-  studentID: string;
+  assignment_id: string; // <-- Changed from studentID
   campus_id: string;
   college_id: string;
   degree_course_id: string;
-  role: string; // Add this field
+  role: string;
 }
 
 export interface FacultyRegisterFormData {
-  first_name: string
-  middle_name: string
-  last_name: string
-  email: string
-  facultyID: string
-  campus_id: string
-  college_id: string
-  degree_course_id: string
-  role: string
+  first_name: string;
+  middle_name: string;
+  last_name: string;
+  email: string;
+  assignment_id: string; // <-- Changed from facultyID
+  campus_id: string;
+  college_id: string;
+  degree_course_id: string;
+  role: string;
 }
 
 export type StaffRegisterFormData = {
@@ -109,7 +109,7 @@ export type StaffRegisterFormData = {
   middle_name: string;
   last_name: string;
   email: string;
-  staffID: string;
+  assignment_id: string; // <-- Changed from staffID
   campus_id: string;
   office_id: string;
   role: string;

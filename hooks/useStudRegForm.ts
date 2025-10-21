@@ -10,7 +10,7 @@ const FIELD_LABELS: Record<keyof StudentRegisterFormData, string> = {
   middle_name: "Middle name",
   last_name: "Last name",
   email: "Email",
-  studentID: "Student ID",
+  assignment_id: "Student ID", // <-- Changed
   campus_id: "Campus",
   college_id: "College",
   degree_course_id: "Course",
@@ -23,7 +23,7 @@ const INITIAL_FORM_STATE: Omit<StudentRegisterFormData, 'role'> = {
   middle_name: "",
   last_name: "",
   email: "",
-  studentID: "",
+  assignment_id: "", // <-- Changed
   campus_id: "",
   college_id: "",
   degree_course_id: "",
@@ -83,7 +83,7 @@ export function StudentRegistrationSubmission() {
     if (!formData.first_name.trim()) missing.first_name = true;
     if (!formData.middle_name.trim()) missing.middle_name = true;
     if (!formData.last_name.trim()) missing.last_name = true;
-    if (!formData.studentID.trim()) missing.studentID = true;
+    if (!formData.assignment_id.trim()) missing.assignment_id = true;
     if (!formData.campus_id) missing.campus_id = true;
     if (!formData.college_id) missing.college_id = true;
     if (!formData.degree_course_id) missing.degree_course_id = true;
@@ -124,7 +124,7 @@ export function StudentRegistrationSubmission() {
 
     try {
       // API call with role included
-      const response = await apiClient.post<{message?: string}, StudentRegisterFormData>(
+      const response = await apiClient.post<{role?: number}, StudentRegisterFormData>(
         'users/store', 
         formData // This now includes the role field
       );
@@ -145,19 +145,13 @@ export function StudentRegistrationSubmission() {
         return false;
       }
 
-      // Check for response data
-      if (!response.data) {
-        toast.error("Registration could not be confirmed", { 
-          id: toastId,
-          duration: 5000 // Show error for 5 seconds
-        });
-        console.log("Empty API response:", response);
-        setIsSubmitting(false);
-        return false;
-      }
+      // Show success toast based on role from API response
+      let successMsg = "Registration successful!";
+      if (response.data?.role === 1) successMsg = "Student registration successful!";
+      else if (response.data?.role === 2) successMsg = "Faculty registration successful!";
+      else if (response.data?.role === 3) successMsg = "Staff registration successful!";
 
-      // Replace loading toast with success message
-      toast.success(response.data.message || "Registration successful!", { 
+      toast.success(successMsg, { 
         id: toastId,
         duration: 5000 // Show success for 5 seconds
       });
@@ -187,7 +181,7 @@ export function StudentRegistrationSubmission() {
       formData.last_name.trim() &&
       formData.email.trim() &&
       formData.email.includes("@") &&
-      formData.studentID.trim() &&
+      formData.assignment_id.trim() &&
       formData.campus_id &&
       formData.college_id &&
       formData.degree_course_id

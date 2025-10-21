@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useCallback, useEffect } from "react"
+import React, { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,6 +18,7 @@ export default function FacultyRegisterPage() {
   const { role } = useRole();
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   const [activeTab, setActiveTab] = useState("details");
+  const [agreed, setAgreed] = useState(false); // <-- Add this
 
   const {
     formData,
@@ -184,19 +185,19 @@ export default function FacultyRegisterPage() {
                     />
                   </div>
                   <div className="flex-1 flex flex-col gap-1">
-                    <Label htmlFor="facultyID" className="inline-flex pointer-events-none"> {/* Changed from facultyId to facultyID */}
+                    <Label htmlFor="assignment_id" className="inline-flex pointer-events-none"> {/* Changed from facultyId to facultyID */}
                       <span className="pointer-events-auto">
                         Faculty ID <span className="text-red-500">*</span>
                       </span>
                     </Label>
                     <Input
-                      id="facultyID"
-                      name="facultyID"
+                      id="assignment_id"
+                      name="assignment_id"
                       autoComplete="off"
                       placeholder="Enter faculty ID"
-                      value={formData.facultyID}
+                      value={formData.assignment_id}
                       onChange={handleFacultyIDChange}
-                      className={`h-11 text-base border-2 rounded-lg ${missingFields.facultyID ? "border-red-400" : "border-gray-200"} focus:border-ring`}
+                      className={`h-11 text-base border-2 rounded-lg ${missingFields.assignment_id ? "border-red-400" : "border-gray-200"} focus:border-ring`}
                     />
                   </div>
                 </div>
@@ -284,6 +285,9 @@ export default function FacultyRegisterPage() {
                 offices={offices}
                 courses={courses}
                 isFormValid={!!isFormValid()}
+                agreed={agreed} // <-- Pass agreed
+                setAgreed={setAgreed} // <-- Pass setAgreed
+                color="indigo"
               />
               <div className="flex justify-end gap-3">
                 <Button
@@ -299,7 +303,7 @@ export default function FacultyRegisterPage() {
                   type="button"
                   onClick={onSubmit}
                   variant="default"
-                  disabled={!isFormValid() || isSubmitting}
+                  disabled={!isFormValid() || isSubmitting || !agreed} // <-- Disable if not agreed
                   className="text-base bg-indigo-600 hover:bg-indigo-500 cursor-pointer py-2.5"
                 >
                   {isSubmitting ? (
