@@ -11,9 +11,9 @@ import { ReserveEventFormTab } from "@/components/modal/reserve-event-tab/event-
 import { ReserveEventAdditionalTab } from "@/components/modal/reserve-event-tab/event-additional-tab"
 import { ReserveEventSummaryTab } from "@/components/modal/reserve-event-tab/event-summary-tab"
 import { ReservationFormData } from "@/interface/faculty-events-props"
-import { AssetsVenueModal } from "@/components/modal/reserve-event-assets/AssetsVenueModal";
-import { AssetsVehicleModal } from "@/components/modal/reserve-event-assets/AssetsVehicleModal";
-import { CalendarClock } from "lucide-react"
+import { AssetsVenueModal } from "@/components/modal/reserve-event-assets/assets-venue-modal";
+import { AssetsVehicleModal } from "@/components/modal/reserve-event-assets/assets-vehicle-modal";
+// import { CalendarClock } from "lucide-react"
 
 // Add these sample options above your component
 const infoTypes = [
