@@ -13,7 +13,8 @@ import {
   Search,
   Bell,
   User,
-  Mail
+  Mail,
+  Users
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +29,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       setActiveTab("asset-management");
     } else if (pathname?.includes("/calendar")) {
       setActiveTab("calendar");
+    } else if (pathname?.includes("/accounts")) {
+      setActiveTab("accounts");
     } else {
       setActiveTab("dashboard");
     }
@@ -91,6 +94,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <Calendar size={20} className="mr-3" />
                   <span className="font-medium">Calendar</span>
                   {activeTab === "calendar" && (
+                    <ChevronRight size={16} className="ml-auto" />
+                  )}
+                </Link>
+              </li>
+
+              {/* Accounts tab below Calendar */}
+              <li>
+                <Link 
+                  href="/pages/admin/accounts" 
+                  className={`flex items-center px-3 py-3 rounded-md transition-all ${
+                    activeTab === "accounts" 
+                      ? "bg-white text-gray-900" 
+                      : "text-white hover:bg-gray-800"
+                  }`}
+                >
+                  <Users size={20} className="mr-3" />
+                  <span className="font-medium">Accounts</span>
+                  {activeTab === "accounts" && (
                     <ChevronRight size={16} className="ml-auto" />
                   )}
                 </Link>

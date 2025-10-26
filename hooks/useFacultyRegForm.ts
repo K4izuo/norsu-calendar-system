@@ -146,9 +146,12 @@ export function FacultyRegistrationSubmission() {
       }
 
       let successMsg = "Registration successful!";
-      if (response.data?.role === 1) successMsg = "Student registration successful!";
-      else if (response.data?.role === 2) successMsg = "Faculty registration successful!";
-      else if (response.data?.role === 3) successMsg = "Staff registration successful!";
+
+      switch(response.data?.role) {
+        case 1: successMsg = "Student registration successful!"; break;
+        case 2: successMsg = "Faculty registration successful!"; break;
+        case 3: successMsg = "Staff registration successful!"; break;
+      }
 
       toast.success(successMsg, { 
         id: toastId,
