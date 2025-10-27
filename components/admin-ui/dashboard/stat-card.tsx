@@ -16,7 +16,7 @@ const DashboardStatCard: React.FC<DashboardStatCardProps> = ({
   titleColor,
 }) => (
   <div
-    className={`flex flex-row items-center justify-between rounded-xl border-l-8 bg-white shadow-sm p-6 min-h-[110px]`}
+    className={`flex flex-row items-center justify-between rounded-md border-l-8 bg-white shadow-sm p-6 min-h-[110px]`}
     style={{ borderLeftColor: borderColor }}
   >
     <div className="flex flex-col justify-center">
