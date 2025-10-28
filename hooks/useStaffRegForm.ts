@@ -95,7 +95,6 @@ export function StaffRegistrationSubmission() {
     if (validateOnly) return true;
 
     setIsSubmitting(true);
-    const toastId = toast.loading("Registering staff...", { duration: Infinity });
 
     try {
       const response = await apiClient.post<{ role?: number }, StaffRegisterFormData>(
@@ -110,11 +109,7 @@ export function StaffRegistrationSubmission() {
           ? "Email is already registered."
           : response.error;
         
-        // Replace loading toast with error
-        toast.error(errorMessage, { 
-          id: toastId,
-          duration: 5000 // Show error for 5 seconds
-        });
+        toast.error(errorMessage, { duration: 5000 });
         setIsSubmitting(false);
         return false;
       }
@@ -127,10 +122,7 @@ export function StaffRegistrationSubmission() {
         case 3: successMsg = "Staff registration successful!"; break;
       }
 
-      toast.success(successMsg, { 
-        id: toastId,
-        duration: 5000 // Show success for 5 seconds
-      });
+      toast.success(successMsg, { duration: 5000 });
       setFormData(prev => ({
         ...INITIAL_FORM_STATE,
         role: prev.role // Preserve the current role when resetting
@@ -138,7 +130,7 @@ export function StaffRegistrationSubmission() {
       setIsSubmitting(false);
       return true;
     } catch (error) {
-      toast.error("Registration failed!", { id: toastId, duration: 5000 });
+      toast.error("Registration failed!", { duration: 5000 });
       setIsSubmitting(false);
       return false;
     }

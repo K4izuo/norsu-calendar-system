@@ -110,17 +110,12 @@ export function StudentRegistrationSubmission() {
   const submitForm = useCallback(async (validateOnly = false) => {
     // Validate form first
     if (!validateForm()) return false;
-    
+
     // Skip actual submission if we're only validating
     if (validateOnly) return true;
-    
+
     // Begin submission
     setIsSubmitting(true);
-    
-    // Create persistent loading toast
-    const toastId = toast.loading("Registering student...", {
-      duration: Infinity,
-    });
 
     try {
       // API call with role included
@@ -128,48 +123,37 @@ export function StudentRegistrationSubmission() {
         'users/store', 
         formData // This now includes the role field
       );
-      
+
       // Handle API errors
       if (response.error) {
         const errorMessage = response.error.toLowerCase().includes("email") && 
             response.error.toLowerCase().includes("already")
           ? "Email is already registered."
           : response.error;
-        
-        // Replace loading toast with error
-        toast.error(errorMessage, { 
-          id: toastId,
-          duration: 5000 // Show error for 5 seconds
-        });
+
+        toast.error(errorMessage, { duration: 5000 });
         setIsSubmitting(false);
         return false;
       }
 
       let successMsg = "Registration successful!";
-
       switch(response.data?.role) {
         case 1: successMsg = "Student registration successful!"; break;
         case 2: successMsg = "Faculty registration successful!"; break;
         case 3: successMsg = "Staff registration successful!"; break;
       }
 
-      toast.success(successMsg, { 
-        id: toastId,
-        duration: 5000 // Show success for 5 seconds
-      });
+      toast.success(successMsg, { duration: 5000 });
       setFormData(prev => ({
         ...INITIAL_FORM_STATE,
         role: prev.role // Preserve the current role when resetting
       }));
       setIsSubmitting(false);
       return true;
-      
+
     } catch (error) {
       console.error("Registration error:", error);
-      toast.error("Registration failed!", { 
-        id: toastId,
-        duration: 5000 // Show error for 5 seconds
-      });
+      toast.error("Registration failed!", { duration: 5000 });
       setIsSubmitting(false);
       return false;
     }

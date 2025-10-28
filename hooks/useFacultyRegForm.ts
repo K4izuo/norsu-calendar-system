@@ -116,11 +116,6 @@ export function FacultyRegistrationSubmission() {
     
     // Begin submission
     setIsSubmitting(true);
-    
-    // Create persistent loading toast with explicit duration and no auto-dismiss
-    const toastId = toast.loading("Registering faculty...", {
-      duration: Infinity, // Never auto-dismiss
-    });
 
     try {
       // API call
@@ -136,11 +131,7 @@ export function FacultyRegistrationSubmission() {
           ? "Email is already registered."
           : response.error;
         
-        // Replace loading toast with error
-        toast.error(errorMessage, { 
-          id: toastId,
-          duration: 5000 // Show error for 5 seconds
-        });
+        toast.error(errorMessage, { duration: 5000 });
         setIsSubmitting(false);
         return false;
       }
@@ -153,10 +144,7 @@ export function FacultyRegistrationSubmission() {
         case 3: successMsg = "Staff registration successful!"; break;
       }
 
-      toast.success(successMsg, { 
-        id: toastId,
-        duration: 5000 // Show success for 5 seconds
-      });
+      toast.success(successMsg, { duration: 5000 });
       setFormData(prev => ({
         ...INITIAL_FORM_STATE,
         role: prev.role // Preserve the current role when resetting
@@ -166,10 +154,7 @@ export function FacultyRegistrationSubmission() {
       
     } catch (error) {
       console.error("Registration error:", error);
-      toast.error("Registration failed!", { 
-        id: toastId,
-        duration: 5000 // Show error for 5 seconds
-      });
+      toast.error("Registration failed!", { duration: 5000 });
       setIsSubmitting(false);
       return false;
     }

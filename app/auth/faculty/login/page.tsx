@@ -1,145 +1,77 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState } from "react"
+import { useForm } from "react-hook-form"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { motion } from "framer-motion"
 import { Lock, GraduationCap, BookOpen, Users, Award, Clock, User, Eye, EyeOff, Loader2 } from "lucide-react"
 import toast from "react-hot-toast"
+import { FacultyFormField } from "@/components/user-forms/login/faculty/faculty-form-field"
 
 interface FormData {
   username: string
   password: string
 }
 
-interface FormErrors {
-  username: string
-  password: string
-}
-
 export default function FacultyStaffLoginPage() {
-  const [formData, setFormData] = useState<FormData>({
-    username: "",
-    password: "",
-  })
-  const [rememberMe, setRememberMe] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const [errors, setErrors] = useState<FormErrors>({ username: "", password: "" })
-  const [debouncedValues, setDebouncedValues] = useState({
-    username: "",
-    password: "",
-  })
+  const [rememberMe, setRememberMe] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
-  // Debounce username validation
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedValues((prev) => ({ ...prev, username: formData.username }))
-    }, 550)
-    return () => clearTimeout(timer)
-  }, [formData.username])
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors },
+    reset,
+  } = useForm<FormData>({
+    mode: "onChange",
+    defaultValues: { username: "", password: "" },
+  })
 
-  // Debounce password validation
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedValues((prev) => ({ ...prev, password: formData.password }))
-    }, 550)
-    return () => clearTimeout(timer)
-  }, [formData.password])
+  // Custom validation functions
+  const validateUsername = (username: string) =>
+    username.length >= 3 && /^[a-zA-Z0-9_]+$/.test(username)
+  const validatePassword = (password: string) => password.length >= 8
 
-  // Validate username when debounced value changes
-  useEffect(() => {
-    if (debouncedValues.username) {
-      if (!validateUsername(debouncedValues.username)) {
-        setErrors((prev) => ({
-          ...prev,
-          username: "Username must be at least 3 characters long",
-        }))
-      } else {
-        setErrors((prev) => ({ ...prev, username: "" }))
-      }
-    }
-  }, [debouncedValues.username])
-
-  // Validate password when debounced value changes
-  useEffect(() => {
-    if (debouncedValues.password) {
-      if (!validatePassword(debouncedValues.password)) {
-        setErrors((prev) => ({
-          ...prev,
-          password: "Password must be at least 8 characters long",
-        }))
-      } else {
-        setErrors((prev) => ({ ...prev, password: "" }))
-      }
-    }
-  }, [debouncedValues.password])
-
-  const validateUsername = (username: string) => {
-    return username.length >= 3 && /^[a-zA-Z0-9_]+$/.test(username)
-  }
-
-  const validatePassword = (password: string) => {
-    return password.length >= 8
-  }
-
-  const handleInputChange = (field: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }))
-    // Clear error for this field if it exists
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }))
-    }
-  }
-
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword)
-  }
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const onSubmit = async (data: FormData) => {
     let hasError = false
 
-    // if (!formData.username) {
-    //   toast.error("Username is required", { position: "top-center" })
-    //   hasError = true
-    // }
-    if (!formData.password) {
-      toast.error("Password is required", { position: "top-center" })
-      hasError = true
-    }
-    if (!formData.username) {
+    if (!data.username.trim()) {
+      setError("username", { type: "manual", message: "Username is required" })
       toast.error("Username is required", { position: "top-center" })
       hasError = true
     }
-    if (formData.username && !validateUsername(formData.username)) {
+    if (!data.password.trim()) {
+      setError("password", { type: "manual", message: "Password is required" })
+      toast.error("Password is required", { position: "top-center" })
+      hasError = true
+    }
+    if (data.username.trim() && !validateUsername(data.username)) {
+      setError("username", { type: "manual", message: "Username must be at least 3 characters long" })
       toast.error("Username must be at least 3 characters long", { position: "top-center" })
       hasError = true
     }
-    if (formData.password && !validatePassword(formData.password)) {
+    if (data.password.trim() && !validatePassword(data.password)) {
+      setError("password", { type: "manual", message: "Password must be at least 8 characters long" })
       toast.error("Password must be at least 8 characters long", { position: "top-center" })
       hasError = true
     }
     if (hasError) return
 
     setIsLoading(true)
-    const loadingToastId = toast.loading("Logging in...", { position: "top-center" })
-
     setTimeout(() => {
       setIsLoading(false)
-      toast.dismiss(loadingToastId)
       toast.success("Login successful!", { position: "top-center" })
+      reset()
       // window.location.href = "/dashboard"
     }, 2000)
   }
 
   return (
-    <div className="min-h-[100dvh] w-full bg-gradient-to-br from-blue-50 to-indigo-50 font-['Poppins'] flex items-center justify-center py-6 px-2 sm:px-4 lg:px-6 relative overflow-hidden">
+    <div className="min-h-[100dvh] w-full bg-gradient-to-br from-blue-50 to-indigo-50 font-['Poppins'] flex items-center justify-center py-6 px-3 sm:px-4 lg:px-6 relative overflow-hidden">
       {/* Background decorative elements */}
       <div className="absolute top-0 left-0 w-32 h-32 bg-blue-600 rounded-full opacity-10 -translate-x-16 -translate-y-16"></div>
       <div className="absolute bottom-0 right-0 w-48 h-48 bg-indigo-500 rounded-full opacity-10 translate-x-24 translate-y-24"></div>
@@ -148,7 +80,7 @@ export default function FacultyStaffLoginPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden w-[96%] max-w-4xl grid grid-cols-1 md:grid-cols-2 relative p-2 sm:p-0"
+        className="bg-white rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden w-[96%] max-w-4xl grid grid-cols-1 md:grid-cols-2 relative"
       >
         {/* Left Side - Hidden on mobile */}
         <div className="hidden md:flex bg-gradient-to-br from-blue-600 to-indigo-700 p-4 sm:p-6 lg:p-8 text-white flex-col items-center justify-center relative min-h-[400px]">
@@ -194,50 +126,46 @@ export default function FacultyStaffLoginPage() {
         </div>
 
         {/* Right Side - Login Form */}
-        <div className="p-4 sm:p-8 w-full flex flex-col justify-center">
+        <div className="p-5 sm:p-8 w-full flex flex-col justify-center">
           {/* Heading at the top */}
           <div className="flex flex-col items-center mt-1.5 mb-7 gap-y-0.5">
             <h1 className="text-2xl font-bold text-gray-800">Welcome</h1>
             <p className="text-gray-600 text-sm">Please enter your login credentials</p>
           </div>
-          <form onSubmit={handleLogin} className="flex flex-col gap-y-6 max-w-md mx-auto w-full">
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-y-6 max-w-md mx-auto w-full">
             <div className="flex flex-col gap-y-2 w-full sm:w-[98%] md:w-[94%] mx-auto">
               {/* Username Field */}
-              <div className="space-y-2">
-                <div className="relative">
-                  <Input
-                    type="text"
-                    placeholder="Username"
-                    value={formData.username}
-                    onChange={handleInputChange("username")}
-                    className="h-12 text-base sm:text-lg pl-[42px] border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue-500/20 transition-colors"
-                  />
-                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                </div>
-                {errors.username && <p className="text-red-500 text-sm ml-1">{errors.username}</p>}
-              </div>
+              <FacultyFormField
+                id="username"
+                type="text"
+                placeholder="Username"
+                icon={User}
+                hasError={!!errors.username}
+                errorMessage={errors.username?.message}
+                autoComplete="username"
+                {...register("username")}
+              />
 
               {/* Password Field */}
-              <div className="space-y-2">
-                <div className="relative">
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Password"
-                    value={formData.password}
-                    onChange={handleInputChange("password")}
-                    className="h-12 text-base sm:text-lg pl-[42px] pr-9 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue-500/20 transition-colors"
-                  />
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <FacultyFormField
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                icon={Lock}
+                hasError={!!errors.password}
+                errorMessage={errors.password?.message}
+                autoComplete="current-password"
+                {...register("password")}
+                rightElement={
                   <button
                     type="button"
-                    onClick={togglePasswordVisibility}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+                    onClick={() => setShowPassword(v => !v)}
+                    className="absolute right-1 cursor-pointer top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
                   >
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
-                </div>
-                {errors.password && <p className="text-red-500 text-sm ml-1">{errors.password}</p>}
-              </div>
+                }
+              />
 
               {/* Remember Me & Forgot Password */}
               <div className="flex mb-4 items-center justify-between">
@@ -245,7 +173,7 @@ export default function FacultyStaffLoginPage() {
                   <Checkbox
                     id="remember"
                     checked={rememberMe}
-                    onCheckedChange={(checked) => setRememberMe(checked === true)}
+                    onCheckedChange={checked => setRememberMe(checked === true)}
                     className="border-2 border-gray-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
                   />
                   <label htmlFor="remember" className="text-sm text-gray-600 cursor-pointer">
@@ -254,7 +182,7 @@ export default function FacultyStaffLoginPage() {
                 </div>
                 <Button
                   variant="link"
-                  className="text-blue-600 hover:text-blue-700 p-0 text-sm font-medium"
+                  className="text-blue-600 cursor-pointer hover:text-blue-700 p-0 text-sm font-medium"
                   type="button"
                 >
                   Forgot Password?
@@ -264,7 +192,7 @@ export default function FacultyStaffLoginPage() {
               {/* Login Button */}
               <Button
                 type="submit"
-                className="w-full cursor-pointer h-[50px] sm:h-[54px] font-semibold text-sm sm:text-base bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] mb-4 flex items-center justify-center gap-x-2"
+                className="w-full cursor-pointer h-[50px] sm:h-[54px] font-semibold text-sm sm:text-base bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] mb-3.5 flex items-center justify-center gap-x-2"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -276,21 +204,6 @@ export default function FacultyStaffLoginPage() {
                   "LOGIN"
                 )}
               </Button>
-
-              {/* Sign up link */}
-              {/* <div className="text-center pt-4">
-                <p className="text-sm text-gray-600">
-                  New to CycleTrack?{" "}
-                  <Button
-                    variant="link"
-                    className="text-blue-600 cursor-pointer hover:text-blue-700 p-0 text-sm font-medium"
-                    type="button"
-                    onClick={() => (window.location.href = "/auth/register")}
-                  >
-                    Join the Community
-                  </Button>
-                </p>
-              </div> */}
             </div>
           </form>
         </div>

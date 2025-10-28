@@ -1,74 +1,149 @@
 "use client"
 
-import React, { useState, useCallback, useEffect } from "react";
-import { motion } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent } from "@/components/ui/tabs"
-import { Label } from "@/components/ui/label"
-import { StaffRegistrationSubmission } from "@/hooks/useStaffRegForm"
-import { useCampuses, useOffices } from "@/services/academicDataService"
-import { StaffFormSelectField } from "@/components/user-forms/staff/staff-form-field"
-import { StaffSummary } from "@/components/user-forms/staff/staff-summary"
+import React, { useEffect, useCallback, useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
+import { StaffRegisterFormData } from "@/interface/faculty-events-props";
+import { useCampuses, useOffices } from "@/services/academicDataService";
+import { StaffFormSelectField } from "@/components/user-forms/register/staff/staff-form-field";
+import { StaffSummary } from "@/components/user-forms/register/staff/staff-summary";
+import { useRole } from "@/contexts/user-role";
 import { useRouter } from "next/navigation";
-import { useRole } from "@/contexts/user-role"
+import toast from "react-hot-toast";
+import { apiClient } from "@/lib/api-client";
+
+const FIELD_LABELS: Record<keyof StaffRegisterFormData, string> = {
+  first_name: "First name",
+  middle_name: "Middle name",
+  last_name: "Last name",
+  email: "Email",
+  assignment_id: "Staff ID",
+  campus_id: "Campus",
+  office_id: "Office",
+  role: "Role",
+};
 
 export default function StaffRegisterPage() {
   const router = useRouter();
   const { role } = useRole();
-  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
-  const [activeTab, setActiveTab] = useState("details")
-  const [agreed, setAgreed] = useState(false); // <-- Add this
-  const {
-    formData,
-    missingFields,
-    isSubmitting,
-    handleInputChange,
-    handleSelectChange,
-    handleSubmit,
-    isFormValid
-  } = StaffRegistrationSubmission()
+  const [activeTab, setActiveTab] = useState("details");
+  const [agreed, setAgreed] = useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
 
-  const { campuses, loading: loadingCampuses, error: campusError } = useCampuses()
-  const { offices, loading: loadingOffices, error: officeError } = useOffices()
+  // Always call hooks first!
+  const {
+    campuses,
+    loading: loadingCampuses,
+    error: campusError,
+  } = useCampuses();
+  const {
+    offices,
+    loading: loadingOffices,
+    error: officeError,
+  } = useOffices();
+
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    getValues,
+    formState: { errors, isSubmitting, isValid },
+    trigger,
+    reset,
+  } = useForm<StaffRegisterFormData>({
+    mode: "onChange",
+    defaultValues: {
+      first_name: "",
+      middle_name: "",
+      last_name: "",
+      email: "",
+      assignment_id: "",
+      campus_id: "",
+      office_id: "",
+      role: "",
+    },
+  });
 
   useEffect(() => {
-      if (role !== 'staff') {
-        // If wrong role or no role, redirect to registration selection page
-        router.push('/auth/register');
-      } else {
-        setIsAuthorized(true);
-      }
-    }, [role, router]);
-
-  const onSubmit = useCallback(async () => {
-    const success = await handleSubmit()
-    if (success) {
-      setTimeout(() => setActiveTab("details"), 700)
+    if (role === "staff") {
+      setShouldRender(true);
+    } else {
+      router.replace("/auth/register");
     }
-  }, [handleSubmit, setActiveTab])
+  }, [role, router]);
 
-  const handleStaffIDChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    // Filter out non-numeric characters
-    const numericValue = e.target.value.replace(/\D/g, '');
-    
-    // Create a new synthetic event with the filtered value
-    const syntheticEvent = {
-      ...e,
-      target: {
-        ...e.target,
-        value: numericValue,
-        name: e.target.name
+  const handleStaffIDChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>, onChange: (value: string) => void) => {
+      const numericValue = e.target.value.replace(/\D/g, "");
+      onChange(numericValue);
+    },
+    []
+  );
+
+  const onSubmit = useCallback(
+    async (data: StaffRegisterFormData) => {
+      const valid = await trigger();
+      if (!valid) {
+        Object.keys(errors).forEach((field, i) => {
+          setTimeout(
+            () => toast.error(`Missing or invalid: ${FIELD_LABELS[field as keyof StaffRegisterFormData]}`),
+            i * 200
+          );
+        });
+        return;
       }
-    } as React.ChangeEvent<HTMLInputElement>;
-    
-    // Call the original handler with our modified event
-    handleInputChange(syntheticEvent);
-  }, [handleInputChange]);
+      try {
+        const safeRole = role ?? "";
+        const response = await apiClient.post<{ role?: number }, StaffRegisterFormData>(
+          "users/store",
+          { ...data, role: safeRole }
+        );
+        if (response.error) {
+          const errorMessage =
+            response.error.toLowerCase().includes("email") && response.error.toLowerCase().includes("already")
+              ? "Email is already registered."
+              : response.error;
+          toast.error(errorMessage, { duration: 5000 });
+          return;
+        }
+        let successMsg = "Registration successful!";
+        switch (response.data?.role) {
+          case 1:
+            successMsg = "Student registration successful!";
+            break;
+          case 2:
+            successMsg = "Faculty registration successful!";
+            break;
+          case 3:
+            successMsg = "Staff registration successful!";
+            break;
+        }
+        toast.success(successMsg, { duration: 5000 });
+        reset({
+          ...getValues(),
+          first_name: "",
+          middle_name: "",
+          last_name: "",
+          email: "",
+          assignment_id: "",
+          campus_id: "",
+          office_id: "",
+          role: "",
+        });
+        setActiveTab("details");
+      } catch (error) {
+        console.error("Registration error:", error);
+        toast.error("Registration failed!", { duration: 5000 });
+      }
+    },
+    [role, errors, trigger, getValues, reset]
+  );
 
-  if (isAuthorized !== true) {
-    return null; // Return empty (no UI)
-  }
+  if (!shouldRender) return null;
 
   return (
     <div className="min-h-[100dvh] w-full bg-gradient-to-br from-yellow-50 to-yellow-50 flex items-center justify-center py-6 px-2 sm:px-4 lg:px-6 relative overflow-hidden">
@@ -116,14 +191,21 @@ export default function StaffRegisterPage() {
                         First Name <span className="text-red-500">*</span>
                       </span>
                     </Label>
-                    <Input
-                      id="first_name"
+                    <Controller
                       name="first_name"
-                      autoComplete="given-name"
-                      placeholder="Enter first name"
-                      value={formData.first_name}
-                      onChange={handleInputChange}
-                      className={`h-11 text-base border-2 rounded-lg ${missingFields.first_name ? "border-red-400" : "border-gray-200"} focus:border-ring`}
+                      control={control}
+                      rules={{ required: true }}
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          id="first_name"
+                          autoComplete="given-name"
+                          placeholder="Enter first name"
+                          className={`h-11 text-base border-2 rounded-lg ${
+                            errors.first_name ? "border-red-400" : "border-gray-200"
+                          } focus:border-ring`}
+                        />
+                      )}
                     />
                   </div>
                   <div className="flex-1 flex flex-col gap-1">
@@ -132,14 +214,21 @@ export default function StaffRegisterPage() {
                         Middle Name <span className="text-red-500">*</span>
                       </span>
                     </Label>
-                    <Input
-                      id="middle_name"
+                    <Controller
                       name="middle_name"
-                      autoComplete="additional-name"
-                      placeholder="Enter middle name"
-                      value={formData.middle_name}
-                      onChange={handleInputChange}
-                      className={`h-11 text-base border-2 rounded-lg ${missingFields.middle_name ? "border-red-400" : "border-gray-200"} focus:border-ring`}
+                      control={control}
+                      rules={{ required: true }}
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          id="middle_name"
+                          autoComplete="additional-name"
+                          placeholder="Enter middle name"
+                          className={`h-11 text-base border-2 rounded-lg ${
+                            errors.middle_name ? "border-red-400" : "border-gray-200"
+                          } focus:border-ring`}
+                        />
+                      )}
                     />
                   </div>
                   <div className="flex-1 flex flex-col gap-1">
@@ -148,14 +237,21 @@ export default function StaffRegisterPage() {
                         Last Name <span className="text-red-500">*</span>
                       </span>
                     </Label>
-                    <Input
-                      id="last_name"
+                    <Controller
                       name="last_name"
-                      autoComplete="family-name"
-                      placeholder="Enter last name"
-                      value={formData.last_name}
-                      onChange={handleInputChange}
-                      className={`h-11 text-base border-2 rounded-lg ${missingFields.last_name ? "border-red-400" : "border-gray-200"} focus:border-ring`}
+                      control={control}
+                      rules={{ required: true }}
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          id="last_name"
+                          autoComplete="family-name"
+                          placeholder="Enter last name"
+                          className={`h-11 text-base border-2 rounded-lg ${
+                            errors.last_name ? "border-red-400" : "border-gray-200"
+                          } focus:border-ring`}
+                        />
+                      )}
                     />
                   </div>
                 </div>
@@ -167,15 +263,25 @@ export default function StaffRegisterPage() {
                         Email <span className="text-red-500">*</span>
                       </span>
                     </Label>
-                    <Input
-                      id="email"
+                    <Controller
                       name="email"
-                      type="email"
-                      autoComplete="email"
-                      placeholder="Enter email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      className={`h-11 text-base border-2 rounded-lg ${missingFields.email ? "border-red-400" : "border-gray-200"} focus:border-ring`}
+                      control={control}
+                      rules={{
+                        required: true,
+                        validate: value => value.includes("@"),
+                      }}
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          id="email"
+                          type="email"
+                          autoComplete="email"
+                          placeholder="Enter email"
+                          className={`h-11 text-base border-2 rounded-lg ${
+                            errors.email ? "border-red-400" : "border-gray-200"
+                          } focus:border-ring`}
+                        />
+                      )}
                     />
                   </div>
                   <div className="flex-1 flex flex-col gap-1">
@@ -184,47 +290,71 @@ export default function StaffRegisterPage() {
                         Staff ID <span className="text-red-500">*</span>
                       </span>
                     </Label>
-                    <Input
-                      id="assignment_id"
+                    <Controller
                       name="assignment_id"
-                      autoComplete="off"
-                      placeholder="Enter staff ID"
-                      value={formData.assignment_id}
-                      onChange={handleStaffIDChange}
-                      className={`h-11 text-base border-2 rounded-lg ${missingFields.assignment_id ? "border-red-400" : "border-gray-200"} focus:border-ring`}
+                      control={control}
+                      rules={{ required: true }}
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          id="assignment_id"
+                          autoComplete="off"
+                          placeholder="Enter staff ID"
+                          value={field.value}
+                          onChange={e => handleStaffIDChange(e, field.onChange)}
+                          inputMode="numeric"
+                          className={`h-11 text-base border-2 rounded-lg ${
+                            errors.assignment_id ? "border-red-400" : "border-gray-200"
+                          } focus:border-ring`}
+                        />
+                      )}
                     />
                   </div>
                 </div>
                 {/* Campus & Office row */}
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <div className="flex-1">
-                    <StaffFormSelectField
-                      id="campus_id"
+                    <Controller
                       name="campus_id"
-                      label="Campus"
-                      placeholder="Select campus"
-                      value={formData.campus_id}
-                      onChange={value => handleSelectChange("campus_id", value)}
-                      options={campuses}
-                      loading={loadingCampuses}
-                      error={campusError}
-                      required
-                      hasError={!!missingFields.campus_id}
+                      control={control}
+                      rules={{ required: true }}
+                      render={({ field }) => (
+                        <StaffFormSelectField
+                          id="campus_id"
+                          name="campus_id"
+                          label="Campus"
+                          placeholder="Select campus"
+                          value={field.value}
+                          onChange={field.onChange}
+                          options={campuses}
+                          loading={loadingCampuses}
+                          error={campusError}
+                          required
+                          hasError={!!errors.campus_id}
+                        />
+                      )}
                     />
                   </div>
                   <div className="flex-1">
-                    <StaffFormSelectField
-                      id="office_id"
+                    <Controller
                       name="office_id"
-                      label="Office"
-                      placeholder="Select office"
-                      value={formData.office_id}
-                      onChange={value => handleSelectChange("office_id", value)}
-                      options={offices}
-                      loading={loadingOffices}
-                      error={officeError}
-                      required
-                      hasError={!!missingFields.office_id}
+                      control={control}
+                      rules={{ required: true }}
+                      render={({ field }) => (
+                        <StaffFormSelectField
+                          id="office_id"
+                          name="office_id"
+                          label="Office"
+                          placeholder="Select office"
+                          value={field.value}
+                          onChange={field.onChange}
+                          options={offices}
+                          loading={loadingOffices}
+                          error={officeError}
+                          required
+                          hasError={!!errors.office_id}
+                        />
+                      )}
                     />
                   </div>
                 </div>
@@ -239,11 +369,16 @@ export default function StaffRegisterPage() {
                   </Button>
                   <Button
                     type="button"
-                    onClick={() => {
-                      if (isFormValid()) {
-                        setActiveTab("summary")
-                      } else {
-                        handleSubmit(true)
+                    onClick={async () => {
+                      const valid = await trigger();
+                      if (valid) setActiveTab("summary");
+                      else {
+                        Object.keys(errors).forEach((field, i) => {
+                          setTimeout(
+                            () => toast.error(`Missing or invalid: ${FIELD_LABELS[field as keyof StaffRegisterFormData]}`),
+                            i * 200
+                          );
+                        });
                       }
                     }}
                     variant="default"
@@ -256,12 +391,12 @@ export default function StaffRegisterPage() {
             </TabsContent>
             <TabsContent value="summary" className="space-y-6">
               <StaffSummary
-                formData={formData}
+                formData={{ ...getValues(), role: role ?? "" }}
                 campuses={campuses}
                 offices={offices}
-                isFormValid={!!isFormValid()}
-                agreed={agreed} // <-- Pass agreed
-                setAgreed={setAgreed} // <-- Pass setAgreed
+                isFormValid={isValid}
+                agreed={agreed}
+                setAgreed={setAgreed}
                 color="yellow"
               />
               <div className="flex justify-end gap-3">
@@ -276,9 +411,9 @@ export default function StaffRegisterPage() {
                 </Button>
                 <Button
                   type="button"
-                  onClick={onSubmit}
+                  onClick={handleSubmit(onSubmit)}
                   variant="default"
-                  disabled={!isFormValid() || isSubmitting || !agreed} // <-- Disable if not agreed
+                  disabled={!isValid || isSubmitting || !agreed}
                   className="text-base bg-yellow-500 hover:bg-yellow-400 cursor-pointer py-2.5"
                 >
                   {isSubmitting ? (
@@ -313,5 +448,5 @@ export default function StaffRegisterPage() {
         </div>
       </motion.div>
     </div>
-  )
+  );
 }

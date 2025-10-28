@@ -1,85 +1,167 @@
 "use client"
 
-import React, { useState, useCallback, useEffect } from "react";
-import { motion } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent } from "@/components/ui/tabs"
-import { Label } from "@/components/ui/label"
-import { FacultyRegistrationSubmission } from "@/hooks/useFacultyRegForm"
-import { useCampuses, useOffices, useCourses } from "@/services/academicDataService"
-import { FacultyFormSelectField } from "@/components/user-forms/faculty/faculty-form-field"
-import { FacultySummary } from "@/components/user-forms/faculty/faculty-summary"
+import React, { useEffect, useCallback, useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
+import { FacultyRegisterFormData } from "@/interface/faculty-events-props";
+import { useCampuses, useOffices, useCourses } from "@/services/academicDataService";
+import { FacultyFormSelectField } from "@/components/user-forms/register/faculty/faculty-form-field";
+import { FacultySummary } from "@/components/user-forms/register/faculty/faculty-summary";
+import { useRole } from "@/contexts/user-role";
 import { useRouter } from "next/navigation";
-import { useRole } from "@/contexts/user-role"
+import toast from "react-hot-toast";
+import { apiClient } from "@/lib/api-client";
+
+const FIELD_LABELS: Record<keyof FacultyRegisterFormData, string> = {
+  first_name: "First name",
+  middle_name: "Middle name",
+  last_name: "Last name",
+  email: "Email",
+  assignment_id: "Faculty ID",
+  campus_id: "Campus",
+  college_id: "College",
+  degree_course_id: "Course",
+  role: "Role",
+};
 
 export default function FacultyRegisterPage() {
   const router = useRouter();
   const { role } = useRole();
-  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   const [activeTab, setActiveTab] = useState("details");
-  const [agreed, setAgreed] = useState(false); // <-- Add this
+  const [agreed, setAgreed] = useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
+
+  // Always call hooks first!
+  const {
+    campuses,
+    loading: loadingCampuses,
+    error: campusError,
+  } = useCampuses();
+  const {
+    offices,
+    loading: loadingOffices,
+    error: officeError,
+  } = useOffices();
+  const [selectedCollege, setSelectedCollege] = useState("");
+  const { courses, loading: loadingCourses, error: courseError } = useCourses(selectedCollege);
 
   const {
-    formData,
-    missingFields,
-    isSubmitting,
-    handleInputChange,
-    handleSelectChange,
+    control,
     handleSubmit,
-    isFormValid
-  } = FacultyRegistrationSubmission()
-
-  const { campuses, loading: loadingCampuses, error: campusError } = useCampuses()
-  const { offices, loading: loadingOffices, error: officeError } = useOffices()
-  const { courses, loading: loadingCourses, error: courseError } = useCourses(formData.college_id)
+    setValue,
+    getValues,
+    watch,
+    formState: { errors, isSubmitting, isValid },
+    trigger,
+    reset,
+  } = useForm<FacultyRegisterFormData>({
+    mode: "onChange",
+    defaultValues: {
+      first_name: "",
+      middle_name: "",
+      last_name: "",
+      email: "",
+      assignment_id: "",
+      campus_id: "",
+      college_id: "",
+      degree_course_id: "",
+      role: "",
+    },
+  });
 
   useEffect(() => {
-    if (role !== 'faculty') {
-      // If wrong role or no role, redirect to registration selection page
-      router.push('/auth/register');
+    if (role === "faculty") {
+      setShouldRender(true);
     } else {
-      setIsAuthorized(true);
+      router.replace("/auth/register");
     }
   }, [role, router]);
 
-  // Memoize form submission handler
-  const onSubmit = useCallback(async () => {
-    const success = await handleSubmit()
-    if (success) {
-      setTimeout(() => setActiveTab("details"), 700)
-    }
-  }, [handleSubmit, setActiveTab])
+  React.useEffect(() => {
+    const college_id = watch("college_id");
+    setSelectedCollege(college_id);
+    setValue("degree_course_id", "");
+  }, [watch("college_id"), setValue]);
 
-  const handleFacultyIDChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    // Filter out non-numeric characters
-    const numericValue = e.target.value.replace(/\D/g, '');
-    
-    // Create a new synthetic event with the filtered value
-    const syntheticEvent = {
-      ...e,
-      target: {
-        ...e.target,
-        value: numericValue,
-        name: e.target.name
+  const handleFacultyIDChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>, onChange: (value: string) => void) => {
+      const numericValue = e.target.value.replace(/\D/g, "");
+      onChange(numericValue);
+    },
+    []
+  );
+
+  const onSubmit = useCallback(
+    async (data: FacultyRegisterFormData) => {
+      const valid = await trigger();
+      if (!valid) {
+        Object.keys(errors).forEach((field, i) => {
+          setTimeout(
+            () => toast.error(`Missing or invalid: ${FIELD_LABELS[field as keyof FacultyRegisterFormData]}`),
+            i * 200
+          );
+        });
+        return;
       }
-    } as React.ChangeEvent<HTMLInputElement>;
-    
-    // Call the original handler with our modified event
-    handleInputChange(syntheticEvent);
-  }, [handleInputChange]);
+      try {
+        const safeRole = role ?? "";
+        const response = await apiClient.post<{ role?: number }, FacultyRegisterFormData>(
+          "users/store",
+          { ...data, role: safeRole }
+        );
+        if (response.error) {
+          const errorMessage =
+            response.error.toLowerCase().includes("email") && response.error.toLowerCase().includes("already")
+              ? "Email is already registered."
+              : response.error;
+          toast.error(errorMessage, { duration: 5000 });
+          return;
+        }
+        let successMsg = "Registration successful!";
+        switch (response.data?.role) {
+          case 1:
+            successMsg = "Student registration successful!";
+            break;
+          case 2:
+            successMsg = "Faculty registration successful!";
+            break;
+          case 3:
+            successMsg = "Staff registration successful!";
+            break;
+        }
+        toast.success(successMsg, { duration: 5000 });
+        reset({
+          ...getValues(),
+          first_name: "",
+          middle_name: "",
+          last_name: "",
+          email: "",
+          assignment_id: "",
+          campus_id: "",
+          college_id: "",
+          degree_course_id: "",
+          role: "",
+        });
+        setActiveTab("details");
+      } catch (error) {
+        console.error("Registration error:", error);
+        toast.error("Registration failed!", { duration: 5000 });
+      }
+    },
+    [role, errors, trigger, getValues, reset]
+  );
 
-  if (isAuthorized !== true) {
-    return null; // Return empty (no UI)
-  }
+  if (!shouldRender) return null;
 
   return (
     <div className="min-h-[100dvh] w-full bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center py-6 px-2 sm:px-4 lg:px-6 relative overflow-hidden">
-      {/* Background decorative elements */}
       <div className="absolute top-0 left-0 w-32 h-32 bg-blue-600 rounded-full opacity-10 -translate-x-16 -translate-y-16"></div>
       <div className="absolute bottom-0 right-0 w-48 h-48 bg-indigo-500 rounded-full opacity-10 translate-x-24 translate-y-24"></div>
       <div className="absolute top-1/2 left-0 w-24 h-24 bg-blue-500 rounded-full opacity-10 -translate-x-12"></div>
-      
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -121,14 +203,21 @@ export default function FacultyRegisterPage() {
                         First Name <span className="text-red-500">*</span>
                       </span>
                     </Label>
-                    <Input
-                      id="first_name"
+                    <Controller
                       name="first_name"
-                      autoComplete="given-name"
-                      placeholder="Enter first name"
-                      value={formData.first_name}
-                      onChange={handleInputChange}
-                      className={`h-11 text-base border-2 rounded-lg ${missingFields.first_name ? "border-red-400" : "border-gray-200"} focus:border-ring`}
+                      control={control}
+                      rules={{ required: true }}
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          id="first_name"
+                          autoComplete="given-name"
+                          placeholder="Enter first name"
+                          className={`h-11 text-base border-2 rounded-lg ${
+                            errors.first_name ? "border-red-400" : "border-gray-200"
+                          } focus:border-ring`}
+                        />
+                      )}
                     />
                   </div>
                   <div className="flex-1 flex flex-col gap-1">
@@ -137,14 +226,21 @@ export default function FacultyRegisterPage() {
                         Middle Name <span className="text-red-500">*</span>
                       </span>
                     </Label>
-                    <Input
-                      id="middle_name"
+                    <Controller
                       name="middle_name"
-                      autoComplete="additional-name"
-                      placeholder="Enter middle name"
-                      value={formData.middle_name}
-                      onChange={handleInputChange}
-                      className={`h-11 text-base border-2 rounded-lg ${missingFields.middle_name ? "border-red-400" : "border-gray-200"} focus:border-ring`}
+                      control={control}
+                      rules={{ required: true }}
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          id="middle_name"
+                          autoComplete="additional-name"
+                          placeholder="Enter middle name"
+                          className={`h-11 text-base border-2 rounded-lg ${
+                            errors.middle_name ? "border-red-400" : "border-gray-200"
+                          } focus:border-ring`}
+                        />
+                      )}
                     />
                   </div>
                   <div className="flex-1 flex flex-col gap-1">
@@ -153,18 +249,24 @@ export default function FacultyRegisterPage() {
                         Last Name <span className="text-red-500">*</span>
                       </span>
                     </Label>
-                    <Input
-                      id="last_name"
+                    <Controller
                       name="last_name"
-                      autoComplete="family-name"
-                      placeholder="Enter last name"
-                      value={formData.last_name}
-                      onChange={handleInputChange}
-                      className={`h-11 text-base border-2 rounded-lg ${missingFields.last_name ? "border-red-400" : "border-gray-200"} focus:border-ring`}
+                      control={control}
+                      rules={{ required: true }}
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          id="last_name"
+                          autoComplete="family-name"
+                          placeholder="Enter last name"
+                          className={`h-11 text-base border-2 rounded-lg ${
+                            errors.last_name ? "border-red-400" : "border-gray-200"
+                          } focus:border-ring`}
+                        />
+                      )}
                     />
                   </div>
                 </div>
-                
                 {/* Email & Faculty ID row */}
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <div className="flex-1 flex flex-col gap-1">
@@ -173,85 +275,123 @@ export default function FacultyRegisterPage() {
                         Email <span className="text-red-500">*</span>
                       </span>
                     </Label>
-                    <Input
-                      id="email"
+                    <Controller
                       name="email"
-                      type="email"
-                      autoComplete="email"
-                      placeholder="Enter email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      className={`h-11 text-base border-2 rounded-lg ${missingFields.email ? "border-red-400" : "border-gray-200"} focus:border-ring`}
+                      control={control}
+                      rules={{
+                        required: true,
+                        validate: value => value.includes("@"),
+                      }}
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          id="email"
+                          type="email"
+                          autoComplete="email"
+                          placeholder="Enter email"
+                          className={`h-11 text-base border-2 rounded-lg ${
+                            errors.email ? "border-red-400" : "border-gray-200"
+                          } focus:border-ring`}
+                        />
+                      )}
                     />
                   </div>
                   <div className="flex-1 flex flex-col gap-1">
-                    <Label htmlFor="assignment_id" className="inline-flex pointer-events-none"> {/* Changed from facultyId to facultyID */}
+                    <Label htmlFor="assignment_id" className="inline-flex pointer-events-none">
                       <span className="pointer-events-auto">
                         Faculty ID <span className="text-red-500">*</span>
                       </span>
                     </Label>
-                    <Input
-                      id="assignment_id"
+                    <Controller
                       name="assignment_id"
-                      autoComplete="off"
-                      placeholder="Enter faculty ID"
-                      value={formData.assignment_id}
-                      onChange={handleFacultyIDChange}
-                      className={`h-11 text-base border-2 rounded-lg ${missingFields.assignment_id ? "border-red-400" : "border-gray-200"} focus:border-ring`}
+                      control={control}
+                      rules={{ required: true }}
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          id="assignment_id"
+                          autoComplete="off"
+                          placeholder="Enter faculty ID"
+                          value={field.value}
+                          onChange={e => handleFacultyIDChange(e, field.onChange)}
+                          inputMode="numeric"
+                          className={`h-11 text-base border-2 rounded-lg ${
+                            errors.assignment_id ? "border-red-400" : "border-gray-200"
+                          } focus:border-ring`}
+                        />
+                      )}
                     />
                   </div>
                 </div>
-                
                 {/* Campus & College row */}
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <div className="flex-1">
-                    <FacultyFormSelectField
-                      id="campus_id"
+                    <Controller
                       name="campus_id"
-                      label="Campus"
-                      placeholder="Select campus"
-                      value={formData.campus_id}
-                      onChange={(value) => handleSelectChange("campus_id", value)}
-                      options={campuses}
-                      loading={loadingCampuses}
-                      error={campusError}
-                      required
-                      hasError={!!missingFields.campus_id}
+                      control={control}
+                      rules={{ required: true }}
+                      render={({ field }) => (
+                        <FacultyFormSelectField
+                          id="campus_id"
+                          name="campus_id"
+                          label="Campus"
+                          placeholder="Select campus"
+                          value={field.value}
+                          onChange={field.onChange}
+                          options={campuses}
+                          loading={loadingCampuses}
+                          error={campusError}
+                          required
+                          hasError={!!errors.campus_id}
+                        />
+                      )}
                     />
                   </div>
                   <div className="flex-1">
-                    <FacultyFormSelectField
-                      id="college_id"
+                    <Controller
                       name="college_id"
-                      label="College"
-                      placeholder="Select college"
-                      value={formData.college_id}
-                      onChange={(value) => handleSelectChange("college_id", value)}
-                      options={offices}
-                      loading={loadingOffices}
-                      error={officeError}
-                      required
-                      hasError={!!missingFields.college_id}
+                      control={control}
+                      rules={{ required: true }}
+                      render={({ field }) => (
+                        <FacultyFormSelectField
+                          id="college_id"
+                          name="college_id"
+                          label="College"
+                          placeholder="Select college"
+                          value={field.value}
+                          onChange={field.onChange}
+                          options={offices}
+                          loading={loadingOffices}
+                          error={officeError}
+                          required
+                          hasError={!!errors.college_id}
+                        />
+                      )}
                     />
                   </div>
                 </div>
-                
                 {/* Course row */}
-                <FacultyFormSelectField
-                  id="degree_course_id"
+                <Controller
                   name="degree_course_id"
-                  label="Course"
-                  placeholder="Select course"
-                  value={formData.degree_course_id}
-                  onChange={(value) => handleSelectChange("degree_course_id", value)}
-                  options={courses}
-                  loading={loadingCourses}
-                  error={courseError}
-                  required
-                  disabled={!formData.college_id}
-                  hasError={!!missingFields.degree_course_id}
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field }) => (
+                    <FacultyFormSelectField
+                      id="degree_course_id"
+                      name="degree_course_id"
+                      label="Course"
+                      placeholder="Select course"
+                      value={field.value}
+                      onChange={field.onChange}
+                      options={courses}
+                      loading={loadingCourses}
+                      error={courseError}
+                      required
+                      disabled={!selectedCollege}
+                      hasError={!!errors.degree_course_id}
+                    />
+                  )}
                 />
-                
                 <div className="flex mt-2 justify-between">
                   <Button
                     type="button"
@@ -263,11 +403,16 @@ export default function FacultyRegisterPage() {
                   </Button>
                   <Button
                     type="button"
-                    onClick={() => {
-                      if (isFormValid()) {
-                        setActiveTab("summary");
-                      } else {
-                        handleSubmit(true);
+                    onClick={async () => {
+                      const valid = await trigger();
+                      if (valid) setActiveTab("summary");
+                      else {
+                        Object.keys(errors).forEach((field, i) => {
+                          setTimeout(
+                            () => toast.error(`Missing or invalid: ${FIELD_LABELS[field as keyof FacultyRegisterFormData]}`),
+                            i * 200
+                          );
+                        });
                       }
                     }}
                     variant="default"
@@ -279,14 +424,14 @@ export default function FacultyRegisterPage() {
               </form>
             </TabsContent>
             <TabsContent value="summary" className="space-y-6">
-              <FacultySummary 
-                formData={formData}
+              <FacultySummary
+                formData={{ ...getValues(), role: role ?? "" }}
                 campuses={campuses}
                 offices={offices}
                 courses={courses}
-                isFormValid={!!isFormValid()}
-                agreed={agreed} // <-- Pass agreed
-                setAgreed={setAgreed} // <-- Pass setAgreed
+                isFormValid={isValid}
+                agreed={agreed}
+                setAgreed={setAgreed}
                 color="indigo"
               />
               <div className="flex justify-end gap-3">
@@ -301,9 +446,9 @@ export default function FacultyRegisterPage() {
                 </Button>
                 <Button
                   type="button"
-                  onClick={onSubmit}
+                  onClick={handleSubmit(onSubmit)}
                   variant="default"
-                  disabled={!isFormValid() || isSubmitting || !agreed} // <-- Disable if not agreed
+                  disabled={!isValid || isSubmitting || !agreed}
                   className="text-base bg-indigo-600 hover:bg-indigo-500 cursor-pointer py-2.5"
                 >
                   {isSubmitting ? (
@@ -338,5 +483,5 @@ export default function FacultyRegisterPage() {
         </div>
       </motion.div>
     </div>
-  )
+  );
 }

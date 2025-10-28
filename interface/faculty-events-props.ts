@@ -1,3 +1,5 @@
+import { LucideIcon } from "lucide-react"
+
 type EventStatus = "pending" | "approved" | "rejected"
 
 export interface EventDetails {
@@ -155,4 +157,22 @@ export type AdminEventDetails = {
   approvalStatus?: "pending" | "approved" | "rejected";
   createdBy?: string;
   // Add any admin-specific fields here
+};
+
+// admin props
+
+export type AdminFormFieldProps = {
+  id: string;
+  name: string;
+  type?: string;
+  placeholder: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  icon: LucideIcon;
+  required?: boolean;
+  disabled?: boolean;
+  hasError?: boolean;
+  errorMessage?: string;
+  autoComplete?: string;
+  rightElement?: React.ReactNode;
 };
