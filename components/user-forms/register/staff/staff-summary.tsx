@@ -3,7 +3,7 @@ import { User } from "lucide-react";
 import { OptionType } from "@/services/academicDataService";
 import { TermsAndConditionModal } from "@/components/privacy/terms-and-condition-modal";
 import { Checkbox } from "@/components/ui/checkbox";
-import { StaffRegisterFormData } from "@/interface/faculty-events-props";
+import { StaffRegisterFormData } from "@/interface/user-props";
 
 type StaffSummaryProps = {
   formData: StaffRegisterFormData;

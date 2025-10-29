@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import toast from "react-hot-toast";
 import { apiClient } from "@/lib/api-client";
-import { StaffRegisterFormData } from "@/interface/faculty-events-props";
+import { StaffRegisterFormData } from "@/interface/user-props";
 import { useRole } from "@/contexts/user-role";
 
 const FIELD_LABELS: Record<keyof StaffRegisterFormData, string> = {

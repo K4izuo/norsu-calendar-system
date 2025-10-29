@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
-import { StudentRegisterFormData } from "@/interface/faculty-events-props";
+import { StudentRegisterFormData } from "@/interface/user-props";
 import { useCampuses, useOffices, useCourses } from "@/services/academicDataService";
 import { StudentFormSelectField } from "@/components/user-forms/register/student/student-form-field";
 import { StudentSummary } from "@/components/user-forms/register/student/student-summary";
@@ -155,6 +155,8 @@ export default function StudentRegisterPage() {
     [role, errors, trigger, getValues, reset]
   );
 
+  if (!shouldRender) return null;
+
   return (
     <div className="min-h-[100dvh] w-full bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center py-6 px-2 sm:px-4 lg:px-6 relative overflow-hidden">
       <div className="absolute top-0 left-0 w-32 h-32 bg-green-600 rounded-full opacity-10 -translate-x-16 -translate-y-16"></div>
@@ -265,7 +267,6 @@ export default function StudentRegisterPage() {
                     />
                   </div>
                 </div>
-                
                 {/* Email & Student ID row */}
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <div className="flex-1 flex flex-col gap-1">
@@ -322,7 +323,6 @@ export default function StudentRegisterPage() {
                     />
                   </div>
                 </div>
-                
                 {/* Campus & College row */}
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <div className="flex-1">
@@ -370,7 +370,6 @@ export default function StudentRegisterPage() {
                     />
                   </div>
                 </div>
-                
                 {/* Course row */}
                 <Controller
                   name="degree_course_id"
@@ -393,7 +392,6 @@ export default function StudentRegisterPage() {
                     />
                   )}
                 />
-                
                 <div className="flex mt-2 justify-between">
                   <Button
                     type="button"
@@ -427,7 +425,7 @@ export default function StudentRegisterPage() {
             </TabsContent>
             <TabsContent value="summary" className="space-y-6">
               <StudentSummary
-                formData={{ ...getValues(), role: role ?? "" }} // <-- Ensure role is string
+                formData={{ ...getValues(), role: role ?? "" }}
                 campuses={campuses}
                 offices={offices}
                 courses={courses}

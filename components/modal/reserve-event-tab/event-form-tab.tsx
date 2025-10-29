@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import toast from "react-hot-toast"
-import { ReservationFormData } from "@/interface/faculty-events-props"
+import { ReservationFormData } from "@/interface/user-props"
 
 interface Asset {
   id: string

@@ -4,8 +4,8 @@ import React, { useEffect, useState, useCallback } from "react";
 import { Calendar } from "@/components/ui/norsu-calendar";
 import { EventsListModal } from "@/components/modal/events-list-modal";
 import { EventInfoModal } from "@/components/modal/event-info-modal";
-import { CalendarDayType } from "@/interface/faculty-events-props";
-import { AdminEventDetails } from "@/interface/faculty-events-props";
+import { CalendarDayType } from "@/interface/user-props";
+import { AdminEventDetails } from "@/interface/user-props";
 
 // Mock function to fetch admin events - replace with actual API
 const fetchAdminEvents = async (): Promise<AdminEventDetails[]> => {

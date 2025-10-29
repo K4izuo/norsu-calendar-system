@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import toast from "react-hot-toast";
-import { StudentRegisterFormData } from "@/interface/faculty-events-props";
+import { StudentRegisterFormData } from "@/interface/user-props";
 import { apiClient } from "@/lib/api-client";
 import { useRole } from "@/contexts/user-role";
 

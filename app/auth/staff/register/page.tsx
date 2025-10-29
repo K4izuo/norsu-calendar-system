@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
-import { StaffRegisterFormData } from "@/interface/faculty-events-props";
+import { StaffRegisterFormData } from "@/interface/user-props";
 import { useCampuses, useOffices } from "@/services/academicDataService";
 import { StaffFormSelectField } from "@/components/user-forms/register/staff/staff-form-field";
 import { StaffSummary } from "@/components/user-forms/register/staff/staff-summary";

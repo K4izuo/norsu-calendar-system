@@ -5,7 +5,7 @@ import { fetchFacultyEvents } from "@/api/facultyEventsApi";
 import { EventsListModal } from "@/components/modal/events-list-modal";
 import { EventInfoModal } from "@/components/modal/event-info-modal";
 import { Calendar } from "@/components/ui/norsu-calendar";
-import { FacultyPageEventDetails, CalendarDayType } from "@/interface/faculty-events-props";
+import { FacultyPageEventDetails, CalendarDayType } from "@/interface/user-props";
 
 export default function FacultyEventsTab() {
   // Modal states

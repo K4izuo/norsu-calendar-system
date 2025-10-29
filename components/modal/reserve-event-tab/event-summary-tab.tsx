@@ -1,7 +1,7 @@
 import React from "react"
 import { CalendarPlus2, Building, CalendarClock, Clock, FileText, CheckCircle2 } from "lucide-react"
 
-import { ReservationFormData } from "@/interface/faculty-events-props"
+import { ReservationFormData } from "@/interface/user-props"
 
 interface Asset {
   id: string

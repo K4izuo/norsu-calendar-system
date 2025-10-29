@@ -10,7 +10,7 @@ import toast from "react-hot-toast" // Import toast
 import { ReserveEventFormTab } from "@/components/modal/reserve-event-tab/event-form-tab"
 import { ReserveEventAdditionalTab } from "@/components/modal/reserve-event-tab/event-additional-tab"
 import { ReserveEventSummaryTab } from "@/components/modal/reserve-event-tab/event-summary-tab"
-import { ReservationFormData } from "@/interface/faculty-events-props"
+import { ReservationFormData } from "@/interface/user-props"
 import { AssetsVenueModal } from "@/components/modal/reserve-event-assets/assets-venue-modal";
 import { AssetsVehicleModal } from "@/components/modal/reserve-event-assets/assets-vehicle-modal";
 // import { CalendarClock } from "lucide-react"

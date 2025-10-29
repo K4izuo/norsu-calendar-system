@@ -10,7 +10,7 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
-import { CalendarDayType } from "@/interface/faculty-events-props";
+import { CalendarDayType } from "@/interface/user-props";
 
 // Simplified props interface
 export function Calendar<T>({

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
-import { FacultyRegisterFormData } from "@/interface/faculty-events-props";
+import { FacultyRegisterFormData } from "@/interface/user-props";
 import { useCampuses, useOffices, useCourses } from "@/services/academicDataService";
 import { FacultyFormSelectField } from "@/components/user-forms/register/faculty/faculty-form-field";
 import { FacultySummary } from "@/components/user-forms/register/faculty/faculty-summary";

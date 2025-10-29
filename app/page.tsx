@@ -6,7 +6,7 @@ import { useMemo, useState, useEffect, useCallback } from "react";
 import { EventsListModal } from "@/components/modal/events-list-modal";
 import { EventInfoModal } from "@/components/modal/event-info-modal";
 import { Calendar } from "@/components/ui/norsu-calendar";
-import type { EventDetails, CalendarDayType } from "@/interface/faculty-events-props";
+import type { EventDetails, CalendarDayType } from "@/interface/user-props";
 
 export default function Home() {
   const upcomingEvents = [

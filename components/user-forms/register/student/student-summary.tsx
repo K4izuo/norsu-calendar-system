@@ -1,6 +1,6 @@
 import React, { memo, useState } from "react";
 import { User } from "lucide-react";
-import { StudentRegisterFormData } from "@/interface/faculty-events-props";
+import { StudentRegisterFormData } from "@/interface/user-props";
 import { OptionType } from "@/services/academicDataService";
 import { TermsAndConditionModal } from "@/components/privacy/terms-and-condition-modal";
 import { Checkbox } from "@/components/ui/checkbox"; // <-- Import shadcn/ui Checkbox

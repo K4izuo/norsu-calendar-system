@@ -1,7 +1,7 @@
 import React from "react"
 import { Badge } from "@/components/ui/badge"
 import { CalendarClock, Clock, MapPin, User, Layers, FileText } from "lucide-react"
-import type { EventCardsListProps } from "@/interface/faculty-events-props"
+import type { EventCardsListProps } from "@/interface/user-props"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 export const EventCardsList = React.memo(function EventCardsList({
