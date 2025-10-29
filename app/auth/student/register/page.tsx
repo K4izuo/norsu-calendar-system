@@ -15,18 +15,8 @@ import { useRole } from "@/contexts/user-role";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { apiClient } from "@/lib/api-client";
-
-const FIELD_LABELS: Record<keyof StudentRegisterFormData, string> = {
-  first_name: "First name",
-  middle_name: "Middle name",
-  last_name: "Last name",
-  email: "Email",
-  assignment_id: "Student ID",
-  campus_id: "Campus",
-  college_id: "College",
-  degree_course_id: "Course",
-  role: "Role",
-};
+import type { FieldErrors } from "react-hook-form";
+import { showFieldErrorToast } from "@/utils/showFieldErrorToast";
 
 export default function StudentRegisterPage() {
   const router = useRouter();
@@ -87,24 +77,19 @@ export default function StudentRegisterPage() {
     setValue("degree_course_id", "");
   }, [watch("college_id"), setValue]);
 
-  const handleStudentIDChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>, onChange: (value: string) => void) => {
-      const numericValue = e.target.value.replace(/\D/g, "");
-      onChange(numericValue);
-    },
-    []
-  );
+  // const handleStudentIDChange = useCallback(
+  //   (e: React.ChangeEvent<HTMLInputElement>, onChange: (value: string) => void) => {
+  //     const numericValue = e.target.value.replace(/\D/g, "");
+  //     onChange(numericValue);
+  //   },
+  //   []
+  // );
 
   const onSubmit = useCallback(
     async (data: StudentRegisterFormData) => {
       const valid = await trigger();
       if (!valid) {
-        Object.keys(errors).forEach((field, i) => {
-          setTimeout(
-            () => toast.error(`Missing or invalid: ${FIELD_LABELS[field as keyof StudentRegisterFormData]}`),
-            i * 200
-          );
-        });
+        showFieldErrorToast(errors, data);
         return;
       }
       try {
@@ -173,28 +158,28 @@ export default function StudentRegisterPage() {
             <p className="text-gray-600 text-sm">Fill in your details to register</p>
           </div>
           <Tabs value={activeTab} className="w-full">
-            <div className="grid grid-cols-2 mb-4 bg-muted rounded-lg p-1 overflow-x-auto">
-              <div
-                className={`flex items-center justify-center py-2 px-2 rounded-md text-base font-medium transition-colors min-w-[100px] ${
-                  activeTab === "details"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground"
-                }`}
-              >
-                Student Details
+            <form className="flex flex-col gap-y-4" onSubmit={handleSubmit(onSubmit)}>
+              <div className="grid grid-cols-2 mb-4 bg-muted rounded-lg p-1 overflow-x-auto">
+                <div
+                  className={`flex items-center justify-center py-2 px-2 rounded-md text-base font-medium transition-colors min-w-[100px] ${
+                    activeTab === "details"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground"
+                  }`}
+                >
+                  Student Details
+                </div>
+                <div
+                  className={`flex items-center justify-center py-2 px-2 rounded-md text-base font-medium transition-colors min-w-[100px] ${
+                    activeTab === "summary"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground"
+                  }`}
+                >
+                  Summary
+                </div>
               </div>
-              <div
-                className={`flex items-center justify-center py-2 px-2 rounded-md text-base font-medium transition-colors min-w-[100px] ${
-                  activeTab === "summary"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground"
-                }`}
-              >
-                Summary
-              </div>
-            </div>
-            <TabsContent value="details" className="space-y-6">
-              <form className="flex flex-col gap-y-5" onSubmit={e => e.preventDefault()}>
+              <TabsContent value="details" className="space-y-6">
                 {/* Name row */}
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <div className="flex-1 flex flex-col gap-1">
@@ -206,7 +191,11 @@ export default function StudentRegisterPage() {
                     <Controller
                       name="first_name"
                       control={control}
-                      rules={{ required: true }}
+                      rules={{
+                        required: "First name is required",
+                        minLength: { value: 2, message: "Please input your real first name" },
+                        pattern: { value: /^[A-Za-z\s]+$/, message: "Letters only" }
+                      }}
                       render={({ field }) => (
                         <Input
                           {...field}
@@ -229,7 +218,11 @@ export default function StudentRegisterPage() {
                     <Controller
                       name="middle_name"
                       control={control}
-                      rules={{ required: true }}
+                      rules={{
+                        required: "Middle name is required",
+                        minLength: { value: 2, message: "Please input your real middle name" },
+                        pattern: { value: /^[A-Za-z\s]+$/, message: "Letters only" }
+                      }}
                       render={({ field }) => (
                         <Input
                           {...field}
@@ -252,7 +245,11 @@ export default function StudentRegisterPage() {
                     <Controller
                       name="last_name"
                       control={control}
-                      rules={{ required: true }}
+                      rules={{
+                        required: "Last name is required",
+                        minLength: { value: 2, message: "Please input your real last name" },
+                        pattern: { value: /^[A-Za-z\s]+$/, message: "Letters only" }
+                      }}
                       render={({ field }) => (
                         <Input
                           {...field}
@@ -279,8 +276,11 @@ export default function StudentRegisterPage() {
                       name="email"
                       control={control}
                       rules={{
-                        required: true,
-                        validate: value => value.includes("@"),
+                        required: "Email is required",
+                        pattern: {
+                          value: /^[A-Za-z0-9._%+-]+@(gmail\.com|yahoo\.com|outlook\.com|[a-z]+\.edu\.ph)$/,
+                          message: "Please enter a valid email address"
+                        }
                       }}
                       render={({ field }) => (
                         <Input
@@ -305,7 +305,10 @@ export default function StudentRegisterPage() {
                     <Controller
                       name="assignment_id"
                       control={control}
-                      rules={{ required: true }}
+                      rules={{
+                        required: "Student ID is required",
+                        minLength: { value: 8, message: "Please input your real student ID" }
+                      }}
                       render={({ field }) => (
                         <Input
                           {...field}
@@ -313,7 +316,6 @@ export default function StudentRegisterPage() {
                           autoComplete="off"
                           placeholder="Enter student ID"
                           value={field.value}
-                          onChange={e => handleStudentIDChange(e, field.onChange)}
                           inputMode="numeric"
                           className={`h-11 text-base border-2 rounded-lg ${
                             errors.assignment_id ? "border-red-400" : "border-gray-200"
@@ -406,14 +408,7 @@ export default function StudentRegisterPage() {
                     onClick={async () => {
                       const valid = await trigger();
                       if (valid) setActiveTab("summary");
-                      else {
-                        Object.keys(errors).forEach((field, i) => {
-                          setTimeout(
-                            () => toast.error(`Missing or invalid: ${FIELD_LABELS[field as keyof StudentRegisterFormData]}`),
-                            i * 200
-                          );
-                        });
-                      }
+                      else showFieldErrorToast(errors, { ...getValues(), role: role ?? "" });
                     }}
                     variant="default"
                     className="text-base bg-green-700 hover:bg-green-600 cursor-pointer py-2.5"
@@ -421,64 +416,63 @@ export default function StudentRegisterPage() {
                     Next
                   </Button>
                 </div>
-              </form>
-            </TabsContent>
-            <TabsContent value="summary" className="space-y-6">
-              <StudentSummary
-                formData={{ ...getValues(), role: role ?? "" }}
-                campuses={campuses}
-                offices={offices}
-                courses={courses}
-                isFormValid={isValid}
-                agreed={agreed}
-                setAgreed={setAgreed}
-                color="emerald"
-              />
-              <div className="flex justify-end gap-3">
-                <Button
-                  type="button"
-                  onClick={() => setActiveTab("details")}
-                  variant="outline"
-                  className="text-base cursor-pointer py-2.5"
-                  disabled={isSubmitting}
-                >
-                  Back
-                </Button>
-                <Button
-                  type="button"
-                  onClick={handleSubmit(onSubmit)}
-                  variant="default"
-                  disabled={!isValid || isSubmitting || !agreed}
-                  className="text-base bg-green-700 hover:bg-green-600 cursor-pointer py-2.5"
-                >
-                  {isSubmitting ? (
-                    <div className="flex items-center">
-                      <span className="animate-spin mr-2">
-                        <svg className="h-5 w-5" viewBox="0 0 24 24">
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                            fill="none"
-                          />
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          />
-                        </svg>
-                      </span>
-                      Processing...
-                    </div>
-                  ) : (
-                    "Submit Registration"
-                  )}
-                </Button>
-              </div>
-            </TabsContent>
+              </TabsContent>
+              <TabsContent value="summary" className="space-y-6">
+                <StudentSummary
+                  formData={{ ...getValues(), role: role ?? "" }}
+                  campuses={campuses}
+                  offices={offices}
+                  courses={courses}
+                  isFormValid={isValid}
+                  agreed={agreed}
+                  setAgreed={setAgreed}
+                  color="emerald"
+                />
+                <div className="flex justify-end gap-3">
+                  <Button
+                    type="button"
+                    onClick={() => setActiveTab("details")}
+                    variant="outline"
+                    className="text-base cursor-pointer py-2.5"
+                    disabled={isSubmitting}
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    type="submit"
+                    variant="default"
+                    disabled={!isValid || isSubmitting || !agreed}
+                    className="text-base bg-green-700 hover:bg-green-600 cursor-pointer py-2.5"
+                  >
+                    {isSubmitting ? (
+                      <div className="flex items-center">
+                        <span className="animate-spin mr-2">
+                          <svg className="h-5 w-5" viewBox="0 0 24 24">
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                              fill="none"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            />
+                          </svg>
+                        </span>
+                        Processing...
+                      </div>
+                    ) : (
+                      "Submit Registration"
+                    )}
+                  </Button>
+                </div>
+              </TabsContent>
+            </form>
           </Tabs>
         </div>
       </motion.div>

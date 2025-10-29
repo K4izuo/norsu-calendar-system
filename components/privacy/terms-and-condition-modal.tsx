@@ -117,6 +117,7 @@ export const TermsAndConditionModal: React.FC<TermsAndConditionModalProps> = ({
                   </Button>
                 ) : (
                   <Button
+                    type="button"
                     onClick={() => {
                       onAgree();
                       onClose();
