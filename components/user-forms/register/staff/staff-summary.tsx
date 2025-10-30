@@ -1,9 +1,9 @@
 import React, { memo, useState } from "react";
 import { User } from "lucide-react";
+import { StaffRegisterFormData } from "@/interface/user-props";
 import { OptionType } from "@/services/academicDataService";
 import { TermsAndConditionModal } from "@/components/privacy/terms-and-condition-modal";
 import { Checkbox } from "@/components/ui/checkbox";
-import { StaffRegisterFormData } from "@/interface/user-props";
 
 type StaffSummaryProps = {
   formData: StaffRegisterFormData;
@@ -80,13 +80,14 @@ export const StaffSummary = memo(function StaffSummary({
             onClick={() => setTermsOpen(true)}
           >
             I have read and agree to the{" "}
-            <span className="underline text-yellow-500">Terms & Conditions</span>
+            <span className="underline text-yellow-600">Terms & Conditions</span>
           </span>
         </div>
         <TermsAndConditionModal
           isOpen={termsOpen}
           onClose={() => setTermsOpen(false)}
           onAgree={() => setAgreed(true)}
+          agreed={agreed}
           color={color}
         />
       </div>

@@ -94,7 +94,7 @@ export function ReserveEventFormTab({
             placeholder="Enter event title"
             value={formData.title}
             onChange={handleInputChange}
-            className={`mt-1 text-base h-12 w-full ${missingFields.title ? "border-red-500 focus:border-red-500" : ""}`}
+            className={`mt-1 border-2 text-base h-12 w-full ${missingFields.title ? "border-red-500 focus:border-red-500" : ""}`}
             required
           />
         </div>
@@ -106,7 +106,7 @@ export function ReserveEventFormTab({
               value={selectedAsset ? selectedAsset.id : ""}
               onValueChange={handleAssetChange}
             >
-              <SelectTrigger id="asset" className={`mt-1 text-base w-full h-12 ${missingFields.asset ? "border-red-500 focus:border-red-500" : ""}`}>
+              <SelectTrigger id="asset" className={`mt-1 border-2 text-base w-full h-12 ${missingFields.asset ? "border-red-500 focus:border-red-500" : ""}`}>
                 <SelectValue 
                   placeholder="Select an asset"
                   // Show the selected asset's name if chosen
@@ -151,7 +151,7 @@ export function ReserveEventFormTab({
               value={formData.range}
               onChange={handleRangeInputChange}
               onBlur={handleRangeBlur}
-              className={`mt-1 h-12 text-base w-full ${missingFields.range ? "border-red-500 focus:border-red-500" : ""}`}
+              className={`mt-1 border-2 h-12 text-base w-full ${missingFields.range ? "border-red-500 focus:border-red-500" : ""}`}
               required
             />
           </div>
@@ -163,7 +163,7 @@ export function ReserveEventFormTab({
               type="time"
               value={formData.timeStart || currentTime}
               onChange={handleInputChange}
-              className={`mt-1 text-base h-12 w-full ${missingFields.timeStart ? "border-red-500 focus:border-red-500" : ""}`}
+              className={`mt-1 border-2 text-base h-12 w-full ${missingFields.timeStart ? "border-red-500 focus:border-red-500" : ""}`}
               required
             />
           </div>
@@ -175,7 +175,7 @@ export function ReserveEventFormTab({
               type="time"
               value={formData.timeEnd || currentTime}
               onChange={handleInputChange}
-              className={`mt-1 text-base h-12 w-full ${missingFields.timeEnd ? "border-red-500 focus:border-red-500" : ""}`}
+              className={`mt-1 border-2 text-base h-12 w-full ${missingFields.timeEnd ? "border-red-500 focus:border-red-500" : ""}`}
               required
             />
           </div>
@@ -188,7 +188,7 @@ export function ReserveEventFormTab({
             placeholder="Enter event description"
             value={formData.description}
             onChange={handleInputChange}
-            className={`mt-1 min-h-[120px] text-base h-12 w-full ${missingFields.description ? "border-red-500 focus:border-red-500" : ""}`}
+            className={`mt-1 border-2 min-h-[120px] text-base h-12 w-full ${missingFields.description ? "border-red-500 focus:border-red-500" : ""}`}
             required
           />
         </div>

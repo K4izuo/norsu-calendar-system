@@ -1,12 +1,10 @@
 "use client"
 
-import React, { useEffect, useCallback, useState } from "react";
+import React, { useEffect, useCallback, useState, useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { Label } from "@/components/ui/label";
 import { StaffRegisterFormData } from "@/interface/user-props";
 import { useCampuses, useOffices } from "@/services/academicDataService";
 import { StaffFormSelectField } from "@/components/user-forms/register/staff/staff-form-field";
@@ -15,16 +13,19 @@ import { useRole } from "@/contexts/user-role";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { apiClient } from "@/lib/api-client";
+import { showFieldErrorToast } from "@/utils/staff-field-error-toast";
+import { STAFF_VALIDATION_RULES } from "@/utils/staff-validation-rules";
+import { StaffFormInput } from "@/components/user-forms/register/staff/staff-input-field";
 
-const FIELD_LABELS: Record<keyof StaffRegisterFormData, string> = {
-  first_name: "First name",
-  middle_name: "Middle name",
-  last_name: "Last name",
-  email: "Email",
-  assignment_id: "Staff ID",
-  campus_id: "Campus",
-  office_id: "Office",
-  role: "Role",
+const TABS = [
+  { value: "details", label: "Staff Details" },
+  { value: "summary", label: "Summary" },
+] as const;
+
+const ROLE_SUCCESS_MESSAGES: Record<number, string> = {
+  1: "Student registration successful!",
+  2: "Faculty registration successful!",
+  3: "Staff registration successful!",
 };
 
 export default function StaffRegisterPage() {
@@ -76,6 +77,7 @@ export default function StaffRegisterPage() {
     }
   }, [role, router]);
 
+  // Numeric only for staff ID
   const handleStaffIDChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>, onChange: (value: string) => void) => {
       const numericValue = e.target.value.replace(/\D/g, "");
@@ -86,21 +88,10 @@ export default function StaffRegisterPage() {
 
   const onSubmit = useCallback(
     async (data: StaffRegisterFormData) => {
-      const valid = await trigger();
-      if (!valid) {
-        Object.keys(errors).forEach((field, i) => {
-          setTimeout(
-            () => toast.error(`Missing or invalid: ${FIELD_LABELS[field as keyof StaffRegisterFormData]}`),
-            i * 200
-          );
-        });
-        return;
-      }
       try {
-        const safeRole = role ?? "";
         const response = await apiClient.post<{ role?: number }, StaffRegisterFormData>(
           "users/store",
-          { ...data, role: safeRole }
+          { ...data, role: role || "staff" }
         );
         if (response.error) {
           const errorMessage =
@@ -110,37 +101,32 @@ export default function StaffRegisterPage() {
           toast.error(errorMessage, { duration: 5000 });
           return;
         }
-        let successMsg = "Registration successful!";
-        switch (response.data?.role) {
-          case 1:
-            successMsg = "Student registration successful!";
-            break;
-          case 2:
-            successMsg = "Faculty registration successful!";
-            break;
-          case 3:
-            successMsg = "Staff registration successful!";
-            break;
-        }
+        const successMsg = response.data?.role
+          ? ROLE_SUCCESS_MESSAGES[response.data.role] ?? "Registration successful!"
+          : "Registration successful!";
         toast.success(successMsg, { duration: 5000 });
-        reset({
-          ...getValues(),
-          first_name: "",
-          middle_name: "",
-          last_name: "",
-          email: "",
-          assignment_id: "",
-          campus_id: "",
-          office_id: "",
-          role: "",
-        });
+        reset();
         setActiveTab("details");
       } catch (error) {
         console.error("Registration error:", error);
         toast.error("Registration failed!", { duration: 5000 });
       }
     },
-    [role, errors, trigger, getValues, reset]
+    [role, reset]
+  );
+
+  const handleNextClick = useCallback(async () => {
+    const valid = await trigger();
+    if (valid) {
+      setActiveTab("summary");
+    } else {
+      showFieldErrorToast(errors, { ...getValues(), role: role ?? "" });
+    }
+  }, [trigger, errors, getValues, role]);
+
+  const formDataWithRole = useMemo(
+    () => ({ ...getValues(), role: role ?? "" }),
+    [getValues, role, activeTab] // <-- Add activeTab here!
   );
 
   if (!shouldRender) return null;
@@ -161,155 +147,75 @@ export default function StaffRegisterPage() {
             <p className="text-gray-600 text-sm">Fill in your details to register</p>
           </div>
           <Tabs value={activeTab} className="w-full">
-            <div className="grid grid-cols-2 mb-4 bg-muted rounded-lg p-1 overflow-x-auto">
-              <div
-                className={`flex items-center justify-center py-2 px-2 rounded-md text-base font-medium transition-colors min-w-[100px] ${
-                  activeTab === "details"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground"
-                }`}
-              >
-                Staff Details
+            <form className="flex flex-col gap-y-4" onSubmit={handleSubmit(onSubmit)}>
+              <div className="grid grid-cols-2 mb-4 bg-muted rounded-lg p-1 overflow-x-auto">
+                {TABS.map(tab => (
+                  <div
+                    key={tab.value}
+                    className={`flex items-center justify-center py-2 px-2 rounded-md text-base font-medium transition-colors min-w-[100px] ${
+                      activeTab === tab.value
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    {tab.label}
+                  </div>
+                ))}
               </div>
-              <div
-                className={`flex items-center justify-center py-2 px-2 rounded-md text-base font-medium transition-colors min-w-[100px] ${
-                  activeTab === "summary"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground"
-                }`}
-              >
-                Summary
-              </div>
-            </div>
-            <TabsContent value="details" className="space-y-6">
-              <form className="flex flex-col gap-y-5" onSubmit={e => e.preventDefault()}>
+              <TabsContent value="details" className="space-y-6">
                 {/* Name row */}
                 <div className="flex flex-col gap-3 sm:flex-row">
-                  <div className="flex-1 flex flex-col gap-1">
-                    <Label htmlFor="first_name" className="inline-flex pointer-events-none">
-                      <span className="pointer-events-auto">
-                        First Name <span className="text-red-500">*</span>
-                      </span>
-                    </Label>
-                    <Controller
-                      name="first_name"
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field }) => (
-                        <Input
-                          {...field}
-                          id="first_name"
-                          autoComplete="given-name"
-                          placeholder="Enter first name"
-                          className={`h-11 text-base border-2 rounded-lg ${
-                            errors.first_name ? "border-red-400" : "border-gray-200"
-                          } focus:border-ring`}
-                        />
-                      )}
-                    />
-                  </div>
-                  <div className="flex-1 flex flex-col gap-1">
-                    <Label htmlFor="middle_name" className="inline-flex pointer-events-none">
-                      <span className="pointer-events-auto">
-                        Middle Name <span className="text-red-500">*</span>
-                      </span>
-                    </Label>
-                    <Controller
-                      name="middle_name"
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field }) => (
-                        <Input
-                          {...field}
-                          id="middle_name"
-                          autoComplete="additional-name"
-                          placeholder="Enter middle name"
-                          className={`h-11 text-base border-2 rounded-lg ${
-                            errors.middle_name ? "border-red-400" : "border-gray-200"
-                          } focus:border-ring`}
-                        />
-                      )}
-                    />
-                  </div>
-                  <div className="flex-1 flex flex-col gap-1">
-                    <Label htmlFor="last_name" className="inline-flex pointer-events-none">
-                      <span className="pointer-events-auto">
-                        Last Name <span className="text-red-500">*</span>
-                      </span>
-                    </Label>
-                    <Controller
-                      name="last_name"
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field }) => (
-                        <Input
-                          {...field}
-                          id="last_name"
-                          autoComplete="family-name"
-                          placeholder="Enter last name"
-                          className={`h-11 text-base border-2 rounded-lg ${
-                            errors.last_name ? "border-red-400" : "border-gray-200"
-                          } focus:border-ring`}
-                        />
-                      )}
-                    />
-                  </div>
+                  <StaffFormInput
+                    name="first_name"
+                    label="First Name"
+                    control={control}
+                    rules={STAFF_VALIDATION_RULES.name}
+                    errors={errors}
+                    autoComplete="given-name"
+                    placeholder="Enter first name"
+                  />
+                  <StaffFormInput
+                    name="middle_name"
+                    label="Middle Name"
+                    control={control}
+                    rules={STAFF_VALIDATION_RULES.name}
+                    errors={errors}
+                    autoComplete="additional-name"
+                    placeholder="Enter middle name"
+                  />
+                  <StaffFormInput
+                    name="last_name"
+                    label="Last Name"
+                    control={control}
+                    rules={STAFF_VALIDATION_RULES.name}
+                    errors={errors}
+                    autoComplete="family-name"
+                    placeholder="Enter last name"
+                  />
                 </div>
                 {/* Email & Staff ID row */}
                 <div className="flex flex-col gap-3 sm:flex-row">
-                  <div className="flex-1 flex flex-col gap-1">
-                    <Label htmlFor="email" className="inline-flex pointer-events-none">
-                      <span className="pointer-events-auto">
-                        Email <span className="text-red-500">*</span>
-                      </span>
-                    </Label>
-                    <Controller
-                      name="email"
-                      control={control}
-                      rules={{
-                        required: true,
-                        validate: value => value.includes("@"),
-                      }}
-                      render={({ field }) => (
-                        <Input
-                          {...field}
-                          id="email"
-                          type="email"
-                          autoComplete="email"
-                          placeholder="Enter email"
-                          className={`h-11 text-base border-2 rounded-lg ${
-                            errors.email ? "border-red-400" : "border-gray-200"
-                          } focus:border-ring`}
-                        />
-                      )}
-                    />
-                  </div>
-                  <div className="flex-1 flex flex-col gap-1">
-                    <Label htmlFor="assignment_id" className="inline-flex pointer-events-none">
-                      <span className="pointer-events-auto">
-                        Staff ID <span className="text-red-500">*</span>
-                      </span>
-                    </Label>
-                    <Controller
-                      name="assignment_id"
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field }) => (
-                        <Input
-                          {...field}
-                          id="assignment_id"
-                          autoComplete="off"
-                          placeholder="Enter staff ID"
-                          value={field.value}
-                          onChange={e => handleStaffIDChange(e, field.onChange)}
-                          inputMode="numeric"
-                          className={`h-11 text-base border-2 rounded-lg ${
-                            errors.assignment_id ? "border-red-400" : "border-gray-200"
-                          } focus:border-ring`}
-                        />
-                      )}
-                    />
-                  </div>
+                  <StaffFormInput
+                    name="email"
+                    label="Email"
+                    control={control}
+                    rules={STAFF_VALIDATION_RULES.email}
+                    errors={errors}
+                    type="email"
+                    autoComplete="email"
+                    placeholder="Enter email"
+                  />
+                  <StaffFormInput
+                    name="assignment_id"
+                    label="Staff ID"
+                    control={control}
+                    rules={STAFF_VALIDATION_RULES.staffID}
+                    errors={errors}
+                    autoComplete="off"
+                    placeholder="Enter staff ID"
+                    inputMode="numeric"
+                    onChange={e => handleStaffIDChange(e as React.ChangeEvent<HTMLInputElement>, value => setValue("assignment_id", value))}
+                  />
                 </div>
                 {/* Campus & Office row */}
                 <div className="flex flex-col gap-3 sm:flex-row">
@@ -317,7 +223,7 @@ export default function StaffRegisterPage() {
                     <Controller
                       name="campus_id"
                       control={control}
-                      rules={{ required: true }}
+                      rules={STAFF_VALIDATION_RULES.campus}
                       render={({ field }) => (
                         <StaffFormSelectField
                           id="campus_id"
@@ -339,7 +245,7 @@ export default function StaffRegisterPage() {
                     <Controller
                       name="office_id"
                       control={control}
-                      rules={{ required: true }}
+                      rules={STAFF_VALIDATION_RULES.office}
                       render={({ field }) => (
                         <StaffFormSelectField
                           id="office_id"
@@ -369,81 +275,69 @@ export default function StaffRegisterPage() {
                   </Button>
                   <Button
                     type="button"
-                    onClick={async () => {
-                      const valid = await trigger();
-                      if (valid) setActiveTab("summary");
-                      else {
-                        Object.keys(errors).forEach((field, i) => {
-                          setTimeout(
-                            () => toast.error(`Missing or invalid: ${FIELD_LABELS[field as keyof StaffRegisterFormData]}`),
-                            i * 200
-                          );
-                        });
-                      }
-                    }}
+                    onClick={handleNextClick}
                     variant="default"
                     className="text-base bg-yellow-500 hover:bg-yellow-400 cursor-pointer py-2.5"
                   >
                     Next
                   </Button>
                 </div>
-              </form>
-            </TabsContent>
-            <TabsContent value="summary" className="space-y-6">
-              <StaffSummary
-                formData={{ ...getValues(), role: role ?? "" }}
-                campuses={campuses}
-                offices={offices}
-                isFormValid={isValid}
-                agreed={agreed}
-                setAgreed={setAgreed}
-                color="yellow"
-              />
-              <div className="flex justify-end gap-3">
-                <Button
-                  type="button"
-                  onClick={() => setActiveTab("details")}
-                  variant="outline"
-                  className="text-base cursor-pointer py-2.5"
-                  disabled={isSubmitting}
-                >
-                  Back
-                </Button>
-                <Button
-                  type="button"
-                  onClick={handleSubmit(onSubmit)}
-                  variant="default"
-                  disabled={!isValid || isSubmitting || !agreed}
-                  className="text-base bg-yellow-500 hover:bg-yellow-400 cursor-pointer py-2.5"
-                >
-                  {isSubmitting ? (
-                    <div className="flex items-center">
-                      <span className="animate-spin mr-2">
-                        <svg className="h-5 w-5" viewBox="0 0 24 24">
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                            fill="none"
-                          />
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          />
-                        </svg>
-                      </span>
-                      Processing...
-                    </div>
-                  ) : (
-                    "Submit Registration"
-                  )}
-                </Button>
-              </div>
-            </TabsContent>
+              </TabsContent>
+              <TabsContent value="summary" className="space-y-6">
+                <StaffSummary
+                  formData={formDataWithRole}
+                  campuses={campuses}
+                  offices={offices}
+                  isFormValid={isValid}
+                  agreed={agreed}
+                  setAgreed={setAgreed}
+                  color="yellow"
+                />
+                <div className="flex justify-end gap-3">
+                  <Button
+                    type="button"
+                    onClick={() => setActiveTab("details")}
+                    variant="outline"
+                    className="text-base cursor-pointer py-2.5"
+                    disabled={isSubmitting}
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    type="submit"
+                    variant="default"
+                    disabled={!isValid || isSubmitting || !agreed}
+                    className="text-base bg-yellow-500 hover:bg-yellow-400 cursor-pointer py-2.5"
+                  >
+                    {isSubmitting ? (
+                      <div className="flex items-center">
+                        <span className="animate-spin mr-2">
+                          <svg className="h-5 w-5" viewBox="0 0 24 24">
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                              fill="none"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            />
+                          </svg>
+                        </span>
+                        Processing...
+                      </div>
+                    ) : (
+                      "Submit Registration"
+                    )}
+                  </Button>
+                </div>
+              </TabsContent>
+            </form>
           </Tabs>
         </div>
       </motion.div>

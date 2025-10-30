@@ -1,22 +1,32 @@
 "use client"
 
-import React, { useEffect, useCallback, useState } from "react";
+import React, { useEffect, useCallback, useState, useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { Label } from "@/components/ui/label";
 import { StudentRegisterFormData } from "@/interface/user-props";
 import { useCampuses, useOffices, useCourses } from "@/services/academicDataService";
-import { StudentFormSelectField } from "@/components/user-forms/register/student/student-form-field";
+import { StudentFormSelectField } from "@/components/user-forms/register/student/student-select-field";
 import { StudentSummary } from "@/components/user-forms/register/student/student-summary";
 import { useRole } from "@/contexts/user-role";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { apiClient } from "@/lib/api-client";
-import type { FieldErrors } from "react-hook-form";
-import { showFieldErrorToast } from "@/utils/showFieldErrorToast";
+import { showFieldErrorToast } from "@/utils/student-field-error-toast";
+import { STUDENT_VALIDATION_RULES } from "@/utils/student-validation-rules";
+import { StudentFormInput } from "@/components/user-forms/register/student/student-input-field";
+
+const TABS = [
+  { value: "details", label: "Student Details" },
+  { value: "summary", label: "Summary" }
+] as const;
+
+const ROLE_SUCCESS_MESSAGES: Record<number, string> = {
+  1: "Student registration successful!",
+  2: "Faculty registration successful!",
+  3: "Staff registration successful!"
+};
 
 export default function StudentRegisterPage() {
   const router = useRouter();
@@ -49,7 +59,7 @@ export default function StudentRegisterPage() {
     trigger,
     reset,
   } = useForm<StudentRegisterFormData>({
-    mode: "onChange",
+    mode: "onChange", // <--- change here
     defaultValues: {
       first_name: "",
       middle_name: "",
@@ -71,32 +81,19 @@ export default function StudentRegisterPage() {
     }
   }, [role, router]);
 
+  const college_id = watch("college_id");
+
   React.useEffect(() => {
-    const college_id = watch("college_id");
     setSelectedCollege(college_id);
     setValue("degree_course_id", "");
-  }, [watch("college_id"), setValue]);
-
-  // const handleStudentIDChange = useCallback(
-  //   (e: React.ChangeEvent<HTMLInputElement>, onChange: (value: string) => void) => {
-  //     const numericValue = e.target.value.replace(/\D/g, "");
-  //     onChange(numericValue);
-  //   },
-  //   []
-  // );
+  }, [college_id, setValue]);
 
   const onSubmit = useCallback(
     async (data: StudentRegisterFormData) => {
-      const valid = await trigger();
-      if (!valid) {
-        showFieldErrorToast(errors, data);
-        return;
-      }
       try {
-        const safeRole = role ?? "";
         const response = await apiClient.post<{ role?: number }, StudentRegisterFormData>(
           "users/store",
-          { ...data, role: safeRole }
+          { ...data, role: role || "student" }
         );
         if (response.error) {
           const errorMessage =
@@ -106,38 +103,32 @@ export default function StudentRegisterPage() {
           toast.error(errorMessage, { duration: 5000 });
           return;
         }
-        let successMsg = "Registration successful!";
-        switch (response.data?.role) {
-          case 1:
-            successMsg = "Student registration successful!";
-            break;
-          case 2:
-            successMsg = "Faculty registration successful!";
-            break;
-          case 3:
-            successMsg = "Staff registration successful!";
-            break;
-        }
+        const successMsg = response.data?.role
+          ? ROLE_SUCCESS_MESSAGES[response.data.role] ?? "Registration successful!"
+          : "Registration successful!";
         toast.success(successMsg, { duration: 5000 });
-        reset({
-          ...getValues(),
-          first_name: "",
-          middle_name: "",
-          last_name: "",
-          email: "",
-          assignment_id: "",
-          campus_id: "",
-          college_id: "",
-          degree_course_id: "",
-          role: "",
-        });
+        reset();
         setActiveTab("details");
       } catch (error) {
         console.error("Registration error:", error);
         toast.error("Registration failed!", { duration: 5000 });
       }
     },
-    [role, errors, trigger, getValues, reset]
+    [role, reset]
+  );
+
+  const handleNextClick = useCallback(async () => {
+    const valid = await trigger(); // Validates all untouched fields
+    if (valid) {
+      setActiveTab("summary");
+    } else {
+      showFieldErrorToast(errors, { ...getValues(), role: role ?? "" });
+    }
+  }, [trigger, errors, getValues, role]);
+
+  const formDataWithRole = useMemo(
+    () => ({ ...getValues(), role: role ?? "" }),
+    [getValues, role]
   );
 
   if (!shouldRender) return null;
@@ -160,170 +151,71 @@ export default function StudentRegisterPage() {
           <Tabs value={activeTab} className="w-full">
             <form className="flex flex-col gap-y-4" onSubmit={handleSubmit(onSubmit)}>
               <div className="grid grid-cols-2 mb-4 bg-muted rounded-lg p-1 overflow-x-auto">
-                <div
-                  className={`flex items-center justify-center py-2 px-2 rounded-md text-base font-medium transition-colors min-w-[100px] ${
-                    activeTab === "details"
-                      ? "bg-background text-foreground shadow-sm"
-                      : "text-muted-foreground"
-                  }`}
-                >
-                  Student Details
-                </div>
-                <div
-                  className={`flex items-center justify-center py-2 px-2 rounded-md text-base font-medium transition-colors min-w-[100px] ${
-                    activeTab === "summary"
-                      ? "bg-background text-foreground shadow-sm"
-                      : "text-muted-foreground"
-                  }`}
-                >
-                  Summary
-                </div>
+                {TABS.map(tab => (
+                  <div
+                    key={tab.value}
+                    className={`flex items-center justify-center py-2 px-2 rounded-md text-base font-medium transition-colors min-w-[100px] ${activeTab === tab.value
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground"
+                      }`}
+                  >
+                    {tab.label}
+                  </div>
+                ))}
               </div>
               <TabsContent value="details" className="space-y-6">
                 {/* Name row */}
                 <div className="flex flex-col gap-3 sm:flex-row">
-                  <div className="flex-1 flex flex-col gap-1">
-                    <Label htmlFor="first_name" className="inline-flex pointer-events-none">
-                      <span className="pointer-events-auto">
-                        First Name <span className="text-red-500">*</span>
-                      </span>
-                    </Label>
-                    <Controller
-                      name="first_name"
-                      control={control}
-                      rules={{
-                        required: "First name is required",
-                        minLength: { value: 2, message: "Please input your real first name" },
-                        pattern: { value: /^[A-Za-z\s]+$/, message: "Letters only" }
-                      }}
-                      render={({ field }) => (
-                        <Input
-                          {...field}
-                          id="first_name"
-                          autoComplete="given-name"
-                          placeholder="Enter first name"
-                          className={`h-11 text-base border-2 rounded-lg ${
-                            errors.first_name ? "border-red-400" : "border-gray-200"
-                          } focus:border-ring`}
-                        />
-                      )}
-                    />
-                  </div>
-                  <div className="flex-1 flex flex-col gap-1">
-                    <Label htmlFor="middle_name" className="inline-flex pointer-events-none">
-                      <span className="pointer-events-auto">
-                        Middle Name <span className="text-red-500">*</span>
-                      </span>
-                    </Label>
-                    <Controller
-                      name="middle_name"
-                      control={control}
-                      rules={{
-                        required: "Middle name is required",
-                        minLength: { value: 2, message: "Please input your real middle name" },
-                        pattern: { value: /^[A-Za-z\s]+$/, message: "Letters only" }
-                      }}
-                      render={({ field }) => (
-                        <Input
-                          {...field}
-                          id="middle_name"
-                          autoComplete="additional-name"
-                          placeholder="Enter middle name"
-                          className={`h-11 text-base border-2 rounded-lg ${
-                            errors.middle_name ? "border-red-400" : "border-gray-200"
-                          } focus:border-ring`}
-                        />
-                      )}
-                    />
-                  </div>
-                  <div className="flex-1 flex flex-col gap-1">
-                    <Label htmlFor="last_name" className="inline-flex pointer-events-none">
-                      <span className="pointer-events-auto">
-                        Last Name <span className="text-red-500">*</span>
-                      </span>
-                    </Label>
-                    <Controller
-                      name="last_name"
-                      control={control}
-                      rules={{
-                        required: "Last name is required",
-                        minLength: { value: 2, message: "Please input your real last name" },
-                        pattern: { value: /^[A-Za-z\s]+$/, message: "Letters only" }
-                      }}
-                      render={({ field }) => (
-                        <Input
-                          {...field}
-                          id="last_name"
-                          autoComplete="family-name"
-                          placeholder="Enter last name"
-                          className={`h-11 text-base border-2 rounded-lg ${
-                            errors.last_name ? "border-red-400" : "border-gray-200"
-                          } focus:border-ring`}
-                        />
-                      )}
-                    />
-                  </div>
+                  <StudentFormInput
+                    name="first_name"
+                    label="First Name"
+                    control={control}
+                    rules={STUDENT_VALIDATION_RULES.name}
+                    errors={errors}
+                    autoComplete="given-name"
+                    placeholder="Enter first name"
+                  />
+                  <StudentFormInput
+                    name="middle_name"
+                    label="Middle Name"
+                    control={control}
+                    rules={STUDENT_VALIDATION_RULES.name}
+                    errors={errors}
+                    autoComplete="additional-name"
+                    placeholder="Enter middle name"
+                  />
+                  <StudentFormInput
+                    name="last_name"
+                    label="Last Name"
+                    control={control}
+                    rules={STUDENT_VALIDATION_RULES.name}
+                    errors={errors}
+                    autoComplete="family-name"
+                    placeholder="Enter last name"
+                  />
                 </div>
                 {/* Email & Student ID row */}
                 <div className="flex flex-col gap-3 sm:flex-row">
-                  <div className="flex-1 flex flex-col gap-1">
-                    <Label htmlFor="email" className="inline-flex pointer-events-none">
-                      <span className="pointer-events-auto">
-                        Email <span className="text-red-500">*</span>
-                      </span>
-                    </Label>
-                    <Controller
-                      name="email"
-                      control={control}
-                      rules={{
-                        required: "Email is required",
-                        pattern: {
-                          value: /^[A-Za-z0-9._%+-]+@(gmail\.com|yahoo\.com|outlook\.com|[a-z]+\.edu\.ph)$/,
-                          message: "Please enter a valid email address"
-                        }
-                      }}
-                      render={({ field }) => (
-                        <Input
-                          {...field}
-                          id="email"
-                          type="email"
-                          autoComplete="email"
-                          placeholder="Enter email"
-                          className={`h-11 text-base border-2 rounded-lg ${
-                            errors.email ? "border-red-400" : "border-gray-200"
-                          } focus:border-ring`}
-                        />
-                      )}
-                    />
-                  </div>
-                  <div className="flex-1 flex flex-col gap-1">
-                    <Label htmlFor="assignment_id" className="inline-flex pointer-events-none">
-                      <span className="pointer-events-auto">
-                        Student ID <span className="text-red-500">*</span>
-                      </span>
-                    </Label>
-                    <Controller
-                      name="assignment_id"
-                      control={control}
-                      rules={{
-                        required: "Student ID is required",
-                        minLength: { value: 8, message: "Please input your real student ID" }
-                      }}
-                      render={({ field }) => (
-                        <Input
-                          {...field}
-                          id="assignment_id"
-                          autoComplete="off"
-                          placeholder="Enter student ID"
-                          value={field.value}
-                          inputMode="numeric"
-                          className={`h-11 text-base border-2 rounded-lg ${
-                            errors.assignment_id ? "border-red-400" : "border-gray-200"
-                          } focus:border-ring`}
-                        />
-                      )}
-                    />
-                  </div>
+                  <StudentFormInput
+                    name="email"
+                    label="Email"
+                    control={control}
+                    rules={STUDENT_VALIDATION_RULES.email}
+                    errors={errors}
+                    type="email"
+                    autoComplete="email"
+                    placeholder="Enter email"
+                  />
+                  <StudentFormInput
+                    name="assignment_id"
+                    label="Student ID"
+                    control={control}
+                    rules={STUDENT_VALIDATION_RULES.studentId}
+                    errors={errors}
+                    autoComplete="off"
+                    placeholder="Enter student ID"
+                    inputMode="numeric"
+                  />
                 </div>
                 {/* Campus & College row */}
                 <div className="flex flex-col gap-3 sm:flex-row">
@@ -331,7 +223,7 @@ export default function StudentRegisterPage() {
                     <Controller
                       name="campus_id"
                       control={control}
-                      rules={{ required: true }}
+                      rules={STUDENT_VALIDATION_RULES.campus}
                       render={({ field }) => (
                         <StudentFormSelectField
                           id="campus_id"
@@ -353,7 +245,7 @@ export default function StudentRegisterPage() {
                     <Controller
                       name="college_id"
                       control={control}
-                      rules={{ required: true }}
+                      rules={STUDENT_VALIDATION_RULES.college}
                       render={({ field }) => (
                         <StudentFormSelectField
                           id="college_id"
@@ -376,7 +268,7 @@ export default function StudentRegisterPage() {
                 <Controller
                   name="degree_course_id"
                   control={control}
-                  rules={{ required: true }}
+                  rules={STUDENT_VALIDATION_RULES.course}
                   render={({ field }) => (
                     <StudentFormSelectField
                       id="degree_course_id"
@@ -405,11 +297,7 @@ export default function StudentRegisterPage() {
                   </Button>
                   <Button
                     type="button"
-                    onClick={async () => {
-                      const valid = await trigger();
-                      if (valid) setActiveTab("summary");
-                      else showFieldErrorToast(errors, { ...getValues(), role: role ?? "" });
-                    }}
+                    onClick={handleNextClick}
                     variant="default"
                     className="text-base bg-green-700 hover:bg-green-600 cursor-pointer py-2.5"
                   >
@@ -419,7 +307,7 @@ export default function StudentRegisterPage() {
               </TabsContent>
               <TabsContent value="summary" className="space-y-6">
                 <StudentSummary
-                  formData={{ ...getValues(), role: role ?? "" }}
+                  formData={formDataWithRole}
                   campuses={campuses}
                   offices={offices}
                   courses={courses}
