@@ -26,7 +26,7 @@ export function ReserveEventSummaryTab({
 }: Props) {
   const asset = formData.asset;
   return (
-    <div className="space-y-4 sm:space-y-6 pb-4">
+    <div className="space-y-4 sm:space-y-6">
       <div className="bg-gray-50 shadow-sm rounded-lg p-4">
         <div className="flex items-center mb-3">
           <CalendarPlus2 className="text-gray-500 mr-2 h-6 w-6" />

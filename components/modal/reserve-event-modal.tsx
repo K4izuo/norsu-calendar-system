@@ -1,21 +1,20 @@
 "use client"
 
-import React, { useEffect, useRef, useState } from "react"
+import React, { useEffect, useRef, useState, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
-// import { Label } from "@/components/ui/label"
-import toast from "react-hot-toast" // Import toast
+import { useForm, Controller } from "react-hook-form"
+import toast from "react-hot-toast"
 import { ReserveEventFormTab } from "@/components/modal/reserve-event-tab/event-form-tab"
 import { ReserveEventAdditionalTab } from "@/components/modal/reserve-event-tab/event-additional-tab"
 import { ReserveEventSummaryTab } from "@/components/modal/reserve-event-tab/event-summary-tab"
 import { ReservationFormData } from "@/interface/user-props"
-import { AssetsVenueModal } from "@/components/modal/reserve-event-assets/assets-venue-modal";
-import { AssetsVehicleModal } from "@/components/modal/reserve-event-assets/assets-vehicle-modal";
-// import { CalendarClock } from "lucide-react"
+import { AssetsVenueModal } from "@/components/modal/reserve-event-assets/assets-venue-modal"
+import { AssetsVehicleModal } from "@/components/modal/reserve-event-assets/assets-vehicle-modal"
+import { showFormTabErrorToast, showAdditionalTabErrorToast } from "@/utils/reservation-field-error-toast"
 
-// Add these sample options above your component
 const infoTypes = [
   { value: "public", label: "Public" },
   { value: "private", label: "Private" },
@@ -33,11 +32,9 @@ interface ModalProps {
   isOpen: boolean
   onClose: () => void
   onSubmit?: (data: ReservationFormData) => void
-  eventDate?: string | undefined // <-- should be string | undefined
+  eventDate?: string | undefined
 }
 
-// 1. Update ReservationFormData asset type to allow storing the full asset object or null
-// (You may want to update your interface/faculty-events-props.ts as well)
 type AssetType = {
   id: string;
   name: string;
@@ -48,32 +45,73 @@ type AssetType = {
 export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: ModalProps) {
   const contentRef = useRef<HTMLDivElement>(null)
   const [activeTab, setActiveTab] = useState<string>("form")
-  const [isSubmitting, setIsSubmitting] = useState(false)
   
-  // Form state
-  // 2. Update formData to store the selected asset object
-  const [formData, setFormData] = useState<ReservationFormData>({
-    title: "",
-    asset: null, // <-- will store the selected asset object
-    timeStart: "",
-    timeEnd: "",
-    description: "",
-    range: 1,
-    people: "",
-    infoType: "",
-    category: "",
-    // No date field yet
-  })
+  // Get current time for default values
+  const getCurrentTime = () => {
+    const now = new Date();
+    return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  };
+  
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    getValues,
+    watch,
+    formState: { errors, isSubmitting },
+    trigger,
+    reset,
+  } = useForm<ReservationFormData>({
+    mode: "onTouched", // Changed from "onChange" to "onTouched" for better performance
+    reValidateMode: "onBlur", // Add this for consistent validation timing
+    defaultValues: {
+      title: "",
+      asset: null,
+      timeStart: getCurrentTime(),
+      timeEnd: getCurrentTime(),
+      description: "",
+      range: 1,
+      people: "",
+      infoType: "",
+      category: "",
+      date: eventDate || "",
+    },
+  });
 
-  // Add date to formData when eventDate changes
+  const [showVenueModal, setShowVenueModal] = useState(false);
+  const [showVehicleModal, setShowVehicleModal] = useState(false);
+  const [loadingVenueAssets, setLoadingVenueAssets] = useState(false);
+  const [loadingVehicleAssets, setLoadingVehicleAssets] = useState(false);
+  const [venueAssets, setVenueAssets] = useState<{ id: string; name: string; capacity: string }[]>([]);
+  const [vehicleAssets, setVehicleAssets] = useState<{ id: string; name: string; capacity: string }[]>([]);
+
+  const peopleSuggestions = [
+    { id: "1", name: "John Doe" },
+    { id: "2", name: "Jane Smith" },
+    { id: "3", name: "Alice Johnson" },
+    { id: "4", name: "Bob Lee" },
+    { id: "5", name: "Maria Garcia" },
+  ];
+
+  const [tagInput, setTagInput] = useState("");
+  const [taggedPeople, setTaggedPeople] = useState<{ id: string; name: string }[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [showAdditionalTabErrors, setShowAdditionalTabErrors] = useState(false);
+
   useEffect(() => {
     if (eventDate) {
-      setFormData(prev => ({
-        ...prev,
-        date: eventDate
-      }))
+      setValue("date", eventDate);
     }
-  }, [eventDate])
+  }, [eventDate, setValue]);
+
+  // Update time values when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      const currentTime = getCurrentTime();
+      setValue("timeStart", currentTime);
+      setValue("timeEnd", currentTime);
+    }
+  }, [isOpen, setValue]);
 
   useEffect(() => {
     if (isOpen) {
@@ -92,39 +130,13 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
     return () => document.removeEventListener("keydown", handleEscape)
   }, [isOpen, onClose])
 
-  // Add this effect to reset the activeTab when the modal opens/closes
   useEffect(() => {
     if (isOpen) {
-      // Reset to form tab whenever the modal opens
       setActiveTab("form")
+      setShowAdditionalTabErrors(false)
     }
   }, [isOpen])
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    setMissingFields(prev => {
-      if (prev[name]) {
-        const updated = { ...prev };
-        delete updated[name];
-        return updated;
-      }
-      return prev;
-    });
-  }
-
-  const [showVenueModal, setShowVenueModal] = useState(false);
-  const [showVehicleModal, setShowVehicleModal] = useState(false);
-
-  // Add loading states for assets
-  const [loadingVenueAssets, setLoadingVenueAssets] = useState(false);
-  const [loadingVehicleAssets, setLoadingVehicleAssets] = useState(false);
-
-  // Example asset data (replace with real API call if needed)
-  const [venueAssets, setVenueAssets] = useState<{ id: string; name: string; capacity: string }[]>([]);
-  const [vehicleAssets, setVehicleAssets] = useState<{ id: string; name: string; capacity: string }[]>([]);
-
-  // Simulate loading assets when opening modals
   useEffect(() => {
     if (showVenueModal) {
       setLoadingVenueAssets(true);
@@ -134,7 +146,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
           { id: "a2", name: "Science Building, Room 203", capacity: "80 seats" },
         ]);
         setLoadingVenueAssets(false);
-      }, 1000); // simulate loading
+      }, 1000);
     }
   }, [showVenueModal]);
 
@@ -147,200 +159,22 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
           { id: "v2", name: "Van", capacity: "15 seats" },
         ]);
         setLoadingVehicleAssets(false);
-      }, 1000); // simulate loading
+      }, 1000);
     }
   }, [showVehicleModal]);
 
-  // 3. Update handleAssetChange to only open the modal, not set asset directly
   const handleAssetChange = (value: string) => {
-    // Only open the modal, don't set asset here
     if (value === "assets venue") setShowVenueModal(true);
     if (value === "assets vehicle") setShowVehicleModal(true);
   };
 
-  // 4. When an asset is selected in the modal, set it in formData and close the modal
   const handleAssetItemSelect = (asset: { id: string; name: string; capacity: string }) => {
-    setFormData(prev => ({
-      ...prev,
-      asset // store the full asset object
-    }));
-    setMissingFields(prev => {
-      if (prev.asset) {
-        const updated = { ...prev };
-        delete updated.asset;
-        return updated;
-      }
-      return prev;
-    });
+    setValue("asset", asset);
+    // Trigger validation after setting the asset
+    trigger("asset");
     setShowVenueModal(false);
     setShowVehicleModal(false);
   };
-
-  const handleRangeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, range: Number(e.target.value) }))
-    setMissingFields(prev => {
-      if (prev.range) {
-        const updated = { ...prev };
-        delete updated.range;
-        return updated;
-      }
-      return prev;
-    });
-  }
-
-  const handleInfoTypeChange = (value: string) => {
-    setFormData(prev => ({ ...prev, infoType: value }))
-    setMissingFields(prev => {
-      if (prev.infoType) {
-        const updated = { ...prev };
-        delete updated.infoType;
-        return updated;
-      }
-      return prev;
-    });
-  }
-
-  const handleCategoryChange = (value: string) => {
-    setFormData(prev => ({ ...prev, category: value }))
-    setMissingFields(prev => {
-      if (prev.category) {
-        const updated = { ...prev };
-        delete updated.category;
-        return updated;
-      }
-      return prev;
-    });
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!isFormValid()) {
-      toast.error("Please complete all required fields");
-      return;
-    }
-    
-    setIsSubmitting(true);
-    
-    try {
-      // Show loading toast while submitting
-      const toastId = toast.loading("Submitting reservation...");
-      
-      // Simulate API call delay (remove this in production)
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      if (onSubmit) {
-        // Pass the toast ID to the parent component so it can update the toast if needed
-        // or just call onSubmit without showing our own success toast
-        onSubmit(formData);
-      }
-      
-      // Update toast to success
-      toast.success("Event reserved successfully!", { id: toastId });
-      
-      // Reset form and close modal
-      setFormData({
-        title: "",
-        asset: null,
-        timeStart: "",
-        timeEnd: "",
-        description: "",
-        range: 1, // Reset range to default
-        people: "",
-        infoType: "",
-        category: "",
-      });
-
-      setTaggedPeople([]);
-      setTagInput("");
-      
-      // Wait a bit to show success message before closing
-      setTimeout(() => {
-        onClose();
-      }, 1000);
-      
-    } catch {
-      // Show error toast
-      toast.error("Failed to reserve event. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
-  const isFormValid = () => {
-    return (
-      formData.title.trim() !== "" && 
-      formData.asset !== null && 
-      formData.timeStart !== "" && 
-      formData.timeEnd !== ""
-    )
-  }
-
-  // Function to show form validation toast
-  const checkFormFields = () => {
-    const missingObj: Record<string, boolean> = {};
-    if (!formData.title.trim()) missingObj.title = true;
-    if (!formData.asset) missingObj.asset = true;
-    if (!formData.timeStart) missingObj.timeStart = true;
-    if (!formData.timeEnd) missingObj.timeEnd = true;
-    if (formData.timeStart && formData.timeEnd && formData.timeStart >= formData.timeEnd) missingObj.timeEnd = true;
-    if (!formData.description.trim()) missingObj.description = true;
-    if (!formData.range) missingObj.range = true;
-
-    setMissingFields(missingObj);
-
-    if (Object.keys(missingObj).length > 0) {
-      Object.keys(missingObj).forEach((field, i) => {
-        setTimeout(() => {
-          toast.error(`Missing: ${field}`);
-        }, i * 200);
-      });
-      return false;
-    }
-    return true;
-  };
-
-  // Validate additional tab fields
-  const validateAdditionalTab = () => {
-    const missingObj: Record<string, boolean> = {};
-    if (taggedPeople.length === 0) missingObj.people = true; // <-- use taggedPeople
-    if (!formData.infoType) missingObj.infoType = true;
-    if (!formData.category) missingObj.category = true;
-
-    setMissingFields(prev => ({ ...prev, ...missingObj }));
-
-    if (Object.keys(missingObj).length > 0) {
-      Object.keys(missingObj).forEach((field, i) => {
-        setTimeout(() => {
-          toast.error(`Missing: ${field}`);
-        }, i * 200);
-      });
-      return false;
-    }
-    return true;
-  };
-
-  // Define tab order and labels
-  const tabOrder = ["form", "additional", "summary"];
-  const tabLabels: Record<string, string> = {
-    form: "Event Details",
-    additional: "Additional Info",
-    summary: "Summary",
-  };
-
-  // Sample people suggestions
-  const peopleSuggestions = [
-    { id: "1", name: "John Doe" },
-    { id: "2", name: "Jane Smith" },
-    { id: "3", name: "Alice Johnson" },
-    { id: "4", name: "Bob Lee" },
-    { id: "5", name: "Maria Garcia" },
-  ];
-
-  const [tagInput, setTagInput] = useState("");
-  const [taggedPeople, setTaggedPeople] = useState<{ id: string; name: string }[]>([]);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [missingFields, setMissingFields] = useState<Record<string, boolean>>({});
 
   const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTagInput(e.target.value);
@@ -359,79 +193,154 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
     setTaggedPeople(taggedPeople.filter(p => p.id !== id));
   };
 
-  useEffect(() => {
-    if (taggedPeople.length > 0 && missingFields.people) {
-      setMissingFields(prev => {
-        const updated = { ...prev };
-        delete updated.people;
-        return updated;
-      });
+  // Check if form is valid for submission - Fixed to always return boolean
+  const isFormValid = useCallback((): boolean => {
+    const values = getValues();
+    return Boolean(
+      values.title &&
+      values.asset &&
+      values.timeStart &&
+      values.timeEnd &&
+      values.timeEnd > values.timeStart &&
+      values.description &&
+      values.range &&
+      values.infoType &&
+      values.category &&
+      taggedPeople.length > 0
+    );
+  }, [getValues, taggedPeople.length]);
+
+  const onSubmitForm = useCallback(
+    async (data: ReservationFormData) => {
+      try {
+        const toastId = toast.loading("Submitting reservation...");
+        
+        // Add tagged people to the form data
+        const formDataWithPeople = {
+          ...data,
+          people: taggedPeople.map(p => p.name).join(', '), // Convert tagged people to string
+        };
+        
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        if (onSubmit) {
+          onSubmit(formDataWithPeople);
+        }
+        
+        toast.success("Event reserved successfully!", { id: toastId });
+        
+        reset();
+        setTaggedPeople([]);
+        setTagInput("");
+        setShowAdditionalTabErrors(false);
+        
+        setTimeout(() => {
+          onClose();
+        }, 1000);
+        
+      } catch (error) {
+        console.error("Reservation error:", error);
+        toast.error("Failed to reserve event. Please try again.");
+      }
+    },
+    [onSubmit, reset, onClose, taggedPeople]
+  );
+
+  const handleFormTabNext = useCallback(async () => {
+    // Trigger validation for ALL form fields at once
+    const formValid = await trigger(); // This validates all fields simultaneously
+    
+    if (formValid) {
+      setActiveTab("additional");
+      setShowAdditionalTabErrors(false);
+    } else {
+      // Show error toast with current form values and errors
+      showFormTabErrorToast(errors, getValues());
     }
-  }, [taggedPeople, missingFields.people]);
+  }, [trigger, errors, getValues]);
+
+  const handleAdditionalTabNext = useCallback(async () => {
+    // Trigger validation for ALL additional fields at once
+    const additionalValid = await trigger(); // This validates all fields simultaneously
+    
+    if (additionalValid && taggedPeople.length > 0) {
+      setActiveTab("summary");
+      setShowAdditionalTabErrors(false);
+    } else {
+      setShowAdditionalTabErrors(true);
+      showAdditionalTabErrorToast(errors, getValues(), taggedPeople);
+    }
+  }, [trigger, errors, getValues, taggedPeople]);
+
+  const tabOrder = ["form", "additional", "summary"];
+  const tabLabels: Record<string, string> = {
+    form: "Event Details",
+    additional: "Additional Info",
+    summary: "Summary",
+  };
+
+  const watchedAsset = watch("asset");
+
+  if (!isOpen) return null;
 
   return (
     <AnimatePresence>
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 overscroll-none"
-          onClick={onClose}
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 overscroll-none"
+        onClick={onClose}
+      >
+        <motion.div
+          className="absolute inset-0 bg-black/40"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{
+            duration: 0.28,
+            ease: [0.22, 1, 0.36, 1]
+          }}
+        />
+
+        <motion.div
+          ref={contentRef}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 4 }}
+          transition={{
+            type: "tween",
+            duration: 0.28,
+            ease: [0.22, 1, 0.36, 1]
+          }}
+          className="relative w-full max-w-[900px] sm:mx-4 mx-[1px] max-h-[92vh] bg-white rounded-lg shadow-xl overflow-hidden flex flex-col"
+          style={{
+            transform: "translateZ(0)",
+            backfaceVisibility: "hidden",
+            transformOrigin: "center",
+            willChange: "transform, opacity",
+          }}
+          onClick={e => e.stopPropagation()}
         >
-          {/* Animated backdrop */}
-          <motion.div
-            className="absolute inset-0 bg-black/40"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{
-              duration: 0.28,
-              ease: [0.22, 1, 0.36, 1]
-            }}
-          />
-
-          {/* Modal content */}
-          <motion.div
-            ref={contentRef}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 4 }}
-            transition={{
-              type: "tween",
-              duration: 0.28,
-              ease: [0.22, 1, 0.36, 1]
-            }}
-            className="relative w-full max-w-[900px] sm:mx-4 mx-[1px] max-h-[92vh] bg-white rounded-lg shadow-xl overflow-hidden flex flex-col"
-            style={{
-              transform: "translateZ(0)",
-              backfaceVisibility: "hidden",
-              transformOrigin: "center",
-              willChange: "transform, opacity",
-            }}
-            onClick={e => e.stopPropagation()}
-          >
-            {/* Header with title and close button */}
-            <div className="sticky top-0 bg-white z-10 p-4 sm:p-6 pb-4 sm:pb-6 border-b border-gray-200">
-              <div className="flex justify-between items-center">
-                <h2 className="text-2xl sm:text-3xl font-semibold text-gray-800">
-                  Reserve Event
-                </h2>
-                <Button
-                  onClick={e => {
-                    e.stopPropagation();
-                    onClose();
-                  }}
-                  className="p-2 bg-white cursor-pointer rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-200"
-                  aria-label="Close"
-                >
-                  <X className="w-6 h-6 text-gray-500" />
-                </Button>
-              </div>
+          <div className="sticky top-0 bg-white z-10 p-4 sm:p-6 pb-4 sm:pb-6 border-b border-gray-200">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl sm:text-3xl font-semibold text-gray-800">
+                Reserve Event
+              </h2>
+              <Button
+                onClick={e => {
+                  e.stopPropagation();
+                  onClose();
+                }}
+                className="p-2 bg-white cursor-pointer rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-200"
+                aria-label="Close"
+              >
+                <X className="w-6 h-6 text-gray-500" />
+              </Button>
             </div>
+          </div>
 
-            {/* Tabs and content */}
+          <form className="flex flex-col flex-1" onSubmit={handleSubmit(onSubmitForm)}>
             <div className="overflow-y-auto p-4 sm:p-6 pt-2 sm:pt-4 flex-1 max-h-[calc(91vh-155px)]">
               <Tabs value={activeTab} className="w-full">
-                {/* Tabs header: allow horizontal scroll on mobile */}
-                <div className="grid grid-cols-3 mb-4 sm:mb-6 bg-muted rounded-lg p-1 overflow-x-auto">
+                <div className="grid grid-cols-3 mb-4 sm:mb-4 bg-muted rounded-lg p-1 overflow-x-auto">
                   {tabOrder.map(tab => (
                     <div
                       key={tab}
@@ -447,26 +356,23 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                   ))}
                 </div>
 
-                {/* Form Tab */}
                 <TabsContent value="form" className="space-y-4 sm:space-y-6">
                   <ReserveEventFormTab
-                    formData={formData}
+                    control={control}
+                    errors={errors}
                     assets={[
                       { id: "assets venue", name: "Assets Venue", capacity: "" },
                       { id: "assets vehicle", name: "Assets Vehicle", capacity: "" }
                     ]}
-                    handleInputChange={handleInputChange}
                     handleAssetChange={handleAssetChange}
-                    handleRangeChange={handleRangeChange}
-                    missingFields={missingFields}
-                    selectedAsset={formData.asset} // <-- pass selected asset
+                    selectedAsset={watchedAsset}
                   />
                 </TabsContent>
 
-                {/* Additional Info Tab */}
                 <TabsContent value="additional" className="space-y-4 sm:space-y-6">
                   <ReserveEventAdditionalTab
-                    formData={formData}
+                    control={control}
+                    errors={errors}
                     infoTypes={infoTypes}
                     categories={categories}
                     tagInput={tagInput}
@@ -476,17 +382,14 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                     handleTagInputChange={handleTagInputChange}
                     handleTagSelect={handleTagSelect}
                     handleRemoveTag={handleRemoveTag}
-                    handleInfoTypeChange={handleInfoTypeChange}
-                    handleCategoryChange={handleCategoryChange}
                     setShowDropdown={setShowDropdown}
-                    missingFields={missingFields} // <-- add this line
+                    showPeopleError={showAdditionalTabErrors}
                   />
                 </TabsContent>
 
-                {/* Summary Tab */}
-                <TabsContent value="summary" className="space-y-4 sm:space-y-6 pb-4">
+                <TabsContent value="summary" className="space-y-4 sm:space-y-6">
                   <ReserveEventSummaryTab
-                    formData={formData}
+                    formData={getValues()}
                     categories={categories}
                     infoTypes={infoTypes}
                     taggedPeople={taggedPeople}
@@ -496,14 +399,11 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
               </Tabs>
             </div>
 
-            {/* Sticky footer navigation */}
-            <div className="sticky bottom-0 bg-white z-10 p-4 sm:p-5 border-t border-gray-100 flex justify-end">
+            <div className="sticky bottom-0 bg-white z-10 p-4 sm:p-5 border-t border-gray-200 flex justify-end">
               {activeTab === "form" && (
                 <Button
                   type="button"
-                  onClick={() => {
-                    if (checkFormFields()) setActiveTab("additional");
-                  }}
+                  onClick={handleFormTabNext}
                   variant="default"
                   className="text-base cursor-pointer py-2.5"
                 >
@@ -514,7 +414,10 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                 <div className="flex gap-3">
                   <Button
                     type="button"
-                    onClick={() => setActiveTab("form")}
+                    onClick={() => {
+                      setActiveTab("form");
+                      setShowAdditionalTabErrors(false);
+                    }}
                     variant="outline"
                     className="text-base cursor-pointer py-2.5"
                     disabled={isSubmitting}
@@ -523,9 +426,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                   </Button>
                   <Button
                     type="button"
-                    onClick={async () => {
-                      if (await validateAdditionalTab()) setActiveTab("summary");
-                    }}
+                    onClick={handleAdditionalTabNext}
                     variant="default"
                     className="text-base cursor-pointer py-2.5"
                   >
@@ -537,7 +438,10 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                 <div className="flex gap-3">
                   <Button
                     type="button"
-                    onClick={() => setActiveTab("additional")}
+                    onClick={() => {
+                      setActiveTab("additional");
+                      setShowAdditionalTabErrors(false);
+                    }}
                     variant="outline"
                     className="text-base cursor-pointer py-2.5"
                     disabled={isSubmitting}
@@ -545,10 +449,9 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                     Back
                   </Button>
                   <Button
-                    type="button"
-                    onClick={handleSubmit}
+                    type="submit"
                     variant="default"
-                    disabled={!isFormValid() || isSubmitting}
+                    disabled={isSubmitting}
                     className="text-base cursor-pointer py-2.5"
                   >
                     {isSubmitting ? (
@@ -580,26 +483,25 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                 </div>
               )}
             </div>
-          </motion.div>
+          </form>
+        </motion.div>
 
-          {/* Place these modals outside your main modal content */}
-          <AssetsVenueModal
-            isOpen={showVenueModal}
-            onClose={() => setShowVenueModal(false)}
-            assets={venueAssets}
-            onAssetSelect={handleAssetItemSelect}
-            loading={loadingVenueAssets} // pass loading state
-          />
+        <AssetsVenueModal
+          isOpen={showVenueModal}
+          onClose={() => setShowVenueModal(false)}
+          assets={venueAssets}
+          onAssetSelect={handleAssetItemSelect}
+          loading={loadingVenueAssets}
+        />
 
-          <AssetsVehicleModal
-            isOpen={showVehicleModal}
-            onClose={() => setShowVehicleModal(false)}
-            assets={vehicleAssets}
-            onAssetSelect={handleAssetItemSelect}
-            loading={loadingVehicleAssets} // pass loading state
-          />
-        </div>
-      )}
+        <AssetsVehicleModal
+          isOpen={showVehicleModal}
+          onClose={() => setShowVehicleModal(false)}
+          assets={vehicleAssets}
+          onAssetSelect={handleAssetItemSelect}
+          loading={loadingVehicleAssets}
+        />
+      </div>
     </AnimatePresence>
   )
 }

@@ -4,8 +4,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import toast from "react-hot-toast"
+import { Control, FieldErrors, Controller } from "react-hook-form"
 import { ReservationFormData } from "@/interface/user-props"
+import { RESERVATION_VALIDATION_RULES } from "@/utils/reservation-validation-rules"
 
 interface Asset {
   id: string
@@ -14,31 +15,25 @@ interface Asset {
 }
 
 interface Props {
-  formData: ReservationFormData
+  control: Control<ReservationFormData>
+  errors: FieldErrors<ReservationFormData>
   assets: Asset[]
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void
   handleAssetChange: (value: string) => void
-  handleRangeChange: (e: React.ChangeEvent<HTMLInputElement>) => void
-  missingFields?: Record<string, boolean>
-  selectedAsset?: Asset | null // <-- add this prop
+  selectedAsset?: Asset | null
 }
 
 export function ReserveEventFormTab({
-  formData,
+  control,
+  errors,
   assets,
-  handleInputChange,
   handleAssetChange,
-  handleRangeChange,
-  missingFields = {},
-  selectedAsset, // <-- get selected asset
+  selectedAsset,
 }: Props) {
-  // Local state for current time in "HH:mm" format
   const [currentTime, setCurrentTime] = useState(() => {
     const now = new Date();
     return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
   });
 
-  // Update currentTime every second, but do NOT update formData unless empty
   useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date();
@@ -47,83 +42,60 @@ export function ReserveEventFormTab({
     return () => clearInterval(interval);
   }, []);
 
-  // Set timeStart and timeEnd to current time only if empty
-  useEffect(() => {
-    if (!formData.timeStart) {
-      handleInputChange({
-        target: { name: "timeStart", value: currentTime }
-      } as React.ChangeEvent<HTMLInputElement>);
-    }
-    if (!formData.timeEnd) {
-      handleInputChange({
-        target: { name: "timeEnd", value: currentTime }
-      } as React.ChangeEvent<HTMLInputElement>);
-    }
-    // Only run when currentTime changes and fields are empty
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentTime]);
-
-  // Rename local function to avoid conflict
-  const handleRangeInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^0-9]/g, "");
-    handleRangeChange({
-      ...e,
-      target: { ...e.target, value }
-    } as React.ChangeEvent<HTMLInputElement>);
-  };
-
-  const handleRangeBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (!value || value === "0") {
-      toast.error("Range must be at least 1 day.");
-      handleRangeChange({
-        ...e,
-        target: { ...e.target, value: "1" }
-      } as React.ChangeEvent<HTMLInputElement>);
-    }
-  };
-
   return (
-    <form className="space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="space-y-4 sm:space-y-5">
         <div>
           <Label htmlFor="title" className="text-base inline-block font-medium">Event Title</Label>
-          <Input 
-            id="title"
+          <Controller
             name="title"
-            placeholder="Enter event title"
-            value={formData.title}
-            onChange={handleInputChange}
-            className={`mt-1 border-2 text-base h-12 w-full ${missingFields.title ? "border-red-500 focus:border-red-500" : ""}`}
-            required
+            control={control}
+            rules={RESERVATION_VALIDATION_RULES.title}
+            render={({ field }) => (
+              <Input 
+                {...field}
+                id="title"
+                placeholder="Enter event title"
+                className={`mt-1 border-2 text-base h-12 w-full ${errors.title ? "border-red-500 focus:border-red-500" : ""}`}
+                required
+              />
+            )}
           />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex-1 min-w-0">
             <Label htmlFor="asset" className="text-base inline-block font-medium">Assets</Label>
-            <Select 
-              // Show the selected asset's id if chosen, otherwise blank
-              value={selectedAsset ? selectedAsset.id : ""}
-              onValueChange={handleAssetChange}
-            >
-              <SelectTrigger id="asset" className={`mt-1 border-2 text-base w-full h-12 ${missingFields.asset ? "border-red-500 focus:border-red-500" : ""}`}>
-                <SelectValue 
-                  placeholder="Select an asset"
-                  // Show the selected asset's name if chosen
-                  {...(selectedAsset ? { children: selectedAsset.name } : {})}
-                />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel className="text-base">Asset Type</SelectLabel>
-                  {assets.map(asset => (
-                    <SelectItem key={asset.id} value={asset.id} className="text-base">
-                      {asset.name}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+            <Controller
+              name="asset"
+              control={control}
+              rules={RESERVATION_VALIDATION_RULES.asset}
+              render={({ field }) => (
+                <Select 
+                  value={selectedAsset?.id || ""}
+                  onValueChange={(value) => {
+                    handleAssetChange(value);
+                    field.onChange(selectedAsset);
+                  }}
+                >
+                  <SelectTrigger id="asset" className={`mt-1 border-2 text-base w-full h-12 ${errors.asset ? "border-red-500 focus:border-red-500" : ""}`}>
+                    <SelectValue 
+                      placeholder="Select an asset"
+                      {...(selectedAsset ? { children: selectedAsset.name } : {})}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel className="text-base">Asset Type</SelectLabel>
+                      {assets.map(asset => (
+                        <SelectItem key={asset.id} value={asset.id} className="text-base">
+                          {asset.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              )}
+            />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -144,55 +116,81 @@ export function ReserveEventFormTab({
                 </Tooltip>
               </TooltipProvider>
             </div>
-            <Input
-              type="text"
-              id="range"
+            <Controller
               name="range"
-              value={formData.range}
-              onChange={handleRangeInputChange}
-              onBlur={handleRangeBlur}
-              className={`mt-1 border-2 h-12 text-base w-full ${missingFields.range ? "border-red-500 focus:border-red-500" : ""}`}
-              required
+              control={control}
+              rules={RESERVATION_VALIDATION_RULES.range}
+              render={({ field }) => (
+                <Input
+                  {...field}
+                  type="text"
+                  id="range"
+                  placeholder="Enter range (days)"
+                  value={field.value?.toString() || ""}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9]/g, "");
+                    field.onChange(value === "" ? "" : Number(value));
+                  }}
+                  className={`mt-1 border-2 h-12 text-base w-full ${errors.range ? "border-red-500 focus:border-red-500" : ""}`}
+                  required
+                />
+              )}
             />
           </div>
           <div>
             <Label htmlFor="timeStart" className="text-base inline-block font-medium">Start Time</Label>
-            <Input 
-              id="timeStart"
+            <Controller
               name="timeStart"
-              type="time"
-              value={formData.timeStart || currentTime}
-              onChange={handleInputChange}
-              className={`mt-1 border-2 text-base h-12 w-full ${missingFields.timeStart ? "border-red-500 focus:border-red-500" : ""}`}
-              required
+              control={control}
+              render={({ field }) => (
+                <Input 
+                  {...field}
+                  id="timeStart"
+                  type="time"
+                  value={field.value || currentTime}
+                  className="mt-1 border-2 text-base h-12 w-full"
+                  required
+                />
+              )}
             />
           </div>
           <div>
             <Label htmlFor="timeEnd" className="text-base inline-block font-medium">End Time</Label>
-            <Input 
-              id="timeEnd"
+            <Controller
               name="timeEnd"
-              type="time"
-              value={formData.timeEnd || currentTime}
-              onChange={handleInputChange}
-              className={`mt-1 border-2 text-base h-12 w-full ${missingFields.timeEnd ? "border-red-500 focus:border-red-500" : ""}`}
-              required
+              control={control}
+              rules={RESERVATION_VALIDATION_RULES.timeEnd}
+              render={({ field }) => (
+                <Input 
+                  {...field}
+                  id="timeEnd"
+                  type="time"
+                  placeholder="Select end time"
+                  className={`mt-1 border-2 text-base h-12 w-full ${errors.timeEnd ? "border-red-500 focus:border-red-500" : ""}`}
+                  required
+                />
+              )}
             />
           </div>
         </div>
         <div>
           <Label htmlFor="description" className="text-base inline-block font-medium">Description</Label>
-          <Textarea 
-            id="description"
+          <Controller
             name="description"
-            placeholder="Enter event description"
-            value={formData.description}
-            onChange={handleInputChange}
-            className={`mt-1 border-2 min-h-[120px] text-base h-12 w-full ${missingFields.description ? "border-red-500 focus:border-red-500" : ""}`}
-            required
+            control={control}
+            rules={RESERVATION_VALIDATION_RULES.description}
+            render={({ field }) => (
+              <Textarea 
+                {...field}
+                id="description"
+                placeholder="Enter event description"
+                className={`mt-1 border-2 min-h-[120px] text-base h-12 w-full ${errors.description ? "border-red-500 focus:border-red-500" : ""}`}
+                required
+              />
+            )}
           />
         </div>
       </div>
-    </form>
+    </div>
   )
 }

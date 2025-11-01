@@ -3,10 +3,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { X, User } from "lucide-react"
+import { Control, FieldErrors, Controller } from "react-hook-form"
 import { ReservationFormData } from "@/interface/user-props"
+import { RESERVATION_VALIDATION_RULES } from "@/utils/reservation-validation-rules"
 
 interface Props {
-  formData: ReservationFormData
+  control: Control<ReservationFormData>
+  errors: FieldErrors<ReservationFormData>
   infoTypes: { value: string; label: string }[]
   categories: { value: string; label: string }[]
   tagInput: string
@@ -16,14 +19,13 @@ interface Props {
   handleTagInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   handleTagSelect: (person: { id: string; name: string }) => void
   handleRemoveTag: (id: string) => void
-  handleInfoTypeChange: (value: string) => void
-  handleCategoryChange: (value: string) => void
   setShowDropdown: (show: boolean) => void
-  missingFields?: Record<string, boolean>
+  showPeopleError?: boolean // Add this prop to control when to show people error
 }
 
 export function ReserveEventAdditionalTab({
-  formData,
+  control,
+  errors,
   infoTypes,
   categories,
   tagInput,
@@ -33,13 +35,14 @@ export function ReserveEventAdditionalTab({
   handleTagInputChange,
   handleTagSelect,
   handleRemoveTag,
-  handleInfoTypeChange,
-  handleCategoryChange,
   setShowDropdown,
-  missingFields = {},
+  showPeopleError = false, // Default to false
 }: Props) {
+  // Only show people error when explicitly told to do so
+  const hasPeopleError = showPeopleError && taggedPeople.length === 0;
+
   return (
-    <form className="space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="space-y-4 sm:space-y-5">
         <div>
           <Label htmlFor="people" className="text-base inline-block font-medium">People Tag</Label>
@@ -50,7 +53,7 @@ export function ReserveEventAdditionalTab({
               placeholder="Type a name to tag..."
               value={tagInput}
               onChange={handleTagInputChange}
-              className={`h-12 border-2 text-base w-full ${missingFields.people ? "border-red-500 focus:border-red-500" : ""}`}
+              className={`h-12 border-2 text-base w-full ${hasPeopleError ? "border-red-500 focus:border-red-500" : ""}`}
               autoComplete="off"
               onFocus={() => setShowDropdown(tagInput.length > 0)}
               onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
@@ -103,47 +106,55 @@ export function ReserveEventAdditionalTab({
         </div>
         <div>
           <Label htmlFor="infoType" className="text-base inline-block font-medium">Information Type</Label>
-          <Select
-            value={formData.infoType}
-            onValueChange={handleInfoTypeChange}
-          >
-            <SelectTrigger id="infoType" className={`mt-1 border-2 text-base w-full h-12 ${missingFields.infoType ? "border-red-500 focus:border-red-500" : ""}`}>
-              <SelectValue placeholder="Select information type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel className="text-base">Types</SelectLabel>
-                {infoTypes.map(type => (
-                  <SelectItem key={type.value} value={type.value} className="text-base">
-                    {type.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+          <Controller
+            name="infoType"
+            control={control}
+            rules={RESERVATION_VALIDATION_RULES.infoType}
+            render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger id="infoType" className={`mt-1 border-2 text-base w-full h-12 ${errors.infoType ? "border-red-500 focus:border-red-500" : ""}`}>
+                  <SelectValue placeholder="Select information type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel className="text-base">Types</SelectLabel>
+                    {infoTypes.map(type => (
+                      <SelectItem key={type.value} value={type.value} className="text-base">
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            )}
+          />
         </div>
         <div>
           <Label htmlFor="category" className="text-base inline-block font-medium">Category</Label>
-          <Select
-            value={formData.category}
-            onValueChange={handleCategoryChange}
-          >
-            <SelectTrigger id="category" className={`mt-1 border-2 text-base w-full h-12 ${missingFields.category ? "border-red-500 focus:border-red-500" : ""}`}>
-              <SelectValue placeholder="Select category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel className="text-base">Categories</SelectLabel>
-                {categories.map(cat => (
-                  <SelectItem key={cat.value} value={cat.value} className="text-base">
-                    {cat.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+          <Controller
+            name="category"
+            control={control}
+            rules={RESERVATION_VALIDATION_RULES.category}
+            render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger id="category" className={`mt-1 border-2 text-base w-full h-12 ${errors.category ? "border-red-500 focus:border-red-500" : ""}`}>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel className="text-base">Categories</SelectLabel>
+                    {categories.map(cat => (
+                      <SelectItem key={cat.value} value={cat.value} className="text-base">
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            )}
+          />
         </div>
       </div>
-    </form>
+    </div>
   )
 }

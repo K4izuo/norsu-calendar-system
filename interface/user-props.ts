@@ -79,7 +79,7 @@ export interface ReservationFormData {
   people: string // comma-separated names
   infoType: string
   category: string
-  date?: string // <-- Add optional date field
+  date?: string
 }
 
 export interface StudentRegisterFormData {
