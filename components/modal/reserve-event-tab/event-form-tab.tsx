@@ -46,7 +46,7 @@ export function ReserveEventFormTab({
     <div className="space-y-4 sm:space-y-6">
       <div className="space-y-4 sm:space-y-5">
         <div>
-          <Label htmlFor="title" className="text-base inline-block font-medium">Event Title</Label>
+          <Label htmlFor="title" className="text-base inline-block font-medium">Event Title<span className="text-red-500"> *</span></Label>
           <Input
             {...control.register("title", RESERVATION_VALIDATION_RULES.title)}
             id="title"
@@ -56,7 +56,7 @@ export function ReserveEventFormTab({
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex-1 min-w-0">
-            <Label htmlFor="asset" className="text-base inline-block font-medium">Assets</Label>
+            <Label htmlFor="asset" className="text-base inline-block font-medium">Assets<span className="text-red-500"> *</span></Label>
             <Controller
               name="asset"
               control={control}
@@ -127,7 +127,7 @@ export function ReserveEventFormTab({
             />
           </div>
           <div>
-            <Label htmlFor="timeStart" className="text-base inline-block font-medium">Start Time</Label>
+            <Label htmlFor="timeStart" className="text-base inline-block font-medium">Start Time<span className="text-red-500"> *</span></Label>
             <Input
               {...control.register("timeStart", RESERVATION_VALIDATION_RULES.timeStart)}
               id="timeStart"
@@ -137,7 +137,7 @@ export function ReserveEventFormTab({
             />
           </div>
           <div>
-            <Label htmlFor="timeEnd" className="text-base inline-block font-medium">End Time</Label>
+            <Label htmlFor="timeEnd" className="text-base inline-block font-medium">End Time<span className="text-red-500"> *</span></Label>
             <Input
               {...control.register("timeEnd", RESERVATION_VALIDATION_RULES.timeEnd)}
               id="timeEnd"
@@ -148,7 +148,7 @@ export function ReserveEventFormTab({
           </div>
         </div>
         <div>
-          <Label htmlFor="description" className="text-base inline-block font-medium">Description</Label>
+          <Label htmlFor="description" className="text-base inline-block font-medium">Description<span className="text-red-500"> *</span></Label>
           <Textarea
             {...control.register("description", RESERVATION_VALIDATION_RULES.description)}
             id="description"

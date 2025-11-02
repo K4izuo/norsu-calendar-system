@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
-import { useForm, Controller } from "react-hook-form"
+import { useForm } from "react-hook-form"
 import toast from "react-hot-toast"
 import { ReserveEventFormTab } from "@/components/modal/reserve-event-tab/event-form-tab"
 import { ReserveEventAdditionalTab } from "@/components/modal/reserve-event-tab/event-additional-tab"
@@ -34,13 +34,6 @@ interface ModalProps {
   onSubmit?: (data: ReservationFormData) => void
   eventDate?: string | undefined
 }
-
-type AssetType = {
-  id: string;
-  name: string;
-  capacity: string;
-  facilities?: string[];
-} | null;
 
 // Tab field definitions for targeted validation
 const FORM_TAB_FIELDS = ["title", "asset", "timeStart", "timeEnd", "description", "range"] as const;
@@ -99,6 +92,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
   const [tagInput, setTagInput] = useState("");
   const [taggedPeople, setTaggedPeople] = useState<{ id: string; name: string }[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [hasInteractedWithAdditional, setHasInteractedWithAdditional] = useState(false);
 
   useEffect(() => {
     if (eventDate) {
@@ -165,7 +159,8 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
 
   // Sync taggedPeople with form state for validation
   useEffect(() => {
-    setValue("people", taggedPeople.map(p => p.name).join(', '), { shouldDirty: true });
+    const peopleValue = taggedPeople.map(p => p.name).join(', ');
+    setValue("people", peopleValue, { shouldDirty: false, shouldTouch: false });
   }, [taggedPeople, setValue]);
 
   const handleAssetChange = (value: string) => {
@@ -255,6 +250,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
   }, [trigger, errors, getValues]);
 
   const handleAdditionalTabNext = useCallback(async () => {
+    setHasInteractedWithAdditional(true);
     const additionalValid = await trigger(ADDITIONAL_TAB_FIELDS as any);
 
     if (additionalValid) {
@@ -337,8 +333,8 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                     <div
                       key={tab}
                       className={`flex items-center justify-center py-2 px-2 sm:py-2.5 sm:px-4 rounded-md text-base font-medium transition-colors ${activeTab === tab
-                          ? "bg-background text-foreground shadow-sm"
-                          : "text-muted-foreground"
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground"
                         }`}
                       style={{ cursor: "default", minWidth: "100px" }}
                     >
@@ -374,6 +370,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                     handleTagSelect={handleTagSelect}
                     handleRemoveTag={handleRemoveTag}
                     setShowDropdown={setShowDropdown}
+                    hasInteracted={hasInteractedWithAdditional}
                   />
                 </TabsContent>
 

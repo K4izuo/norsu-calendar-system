@@ -20,11 +20,12 @@ interface Props {
   handleTagSelect: (person: { id: string; name: string }) => void
   handleRemoveTag: (id: string) => void
   setShowDropdown: (show: boolean) => void
+  hasInteracted: boolean
 }
 
 export function ReserveEventAdditionalTab({
   control,
-  errors,
+  // errors,
   infoTypes,
   categories,
   tagInput,
@@ -35,17 +36,18 @@ export function ReserveEventAdditionalTab({
   handleTagSelect,
   handleRemoveTag,
   setShowDropdown,
+  hasInteracted,
 }: Props) {
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="space-y-4 sm:space-y-5">
         <div>
-          <Label htmlFor="people" className="text-base inline-block font-medium">People Tag</Label>
+          <Label htmlFor="people" className="text-base inline-block font-medium">People Tag<span className="text-red-500"> *</span></Label>
           <Controller
             name="people"
             control={control}
             rules={RESERVATION_VALIDATION_RULES.people}
-            render={({ field }) => (
+            render={({ field, fieldState: { error, isTouched } }) => (
               <div className="relative mt-1">
                 <Input
                   id="people"
@@ -53,10 +55,13 @@ export function ReserveEventAdditionalTab({
                   placeholder="Type a name to tag..."
                   value={tagInput}
                   onChange={handleTagInputChange}
-                  className={`h-12 border-2 text-base w-full ${errors.people ? "border-red-500 focus:border-red-500" : ""}`}
+                  onBlur={() => {
+                    field.onBlur();
+                    setTimeout(() => setShowDropdown(false), 150);
+                  }}
+                  className={`h-12 border-2 text-base w-full ${(error && (isTouched || hasInteracted)) ? "border-red-500 focus:border-red-500" : ""}`}
                   autoComplete="off"
                   onFocus={() => setShowDropdown(tagInput.length > 0)}
-                  onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
                 />
                 {showDropdown && (
                   <div className="absolute z-10 left-0 right-0 mt-1 bg-white border border-gray-200 rounded shadow-lg max-h-48 overflow-auto">
@@ -107,21 +112,32 @@ export function ReserveEventAdditionalTab({
           />
         </div>
         <div>
-          <Label htmlFor="infoType" className="text-base inline-block font-medium">Information Type</Label>
+          <Label htmlFor="infoType" className="text-base inline-block font-medium">Information Type<span className="text-red-500"> *</span></Label>
           <Controller
             name="infoType"
             control={control}
             rules={RESERVATION_VALIDATION_RULES.infoType}
-            render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger id="infoType" className={`mt-1 border-2 text-base w-full h-12 ${errors.infoType ? "border-red-500 focus:border-red-500" : ""}`}>
+            render={({ field, fieldState: { error, isTouched } }) => (
+              <Select 
+                value={field.value} 
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  if (value) {
+                    field.onBlur();
+                  }
+                }}
+              >
+                <SelectTrigger 
+                  id="infoType" 
+                  className={`mt-1 cursor-pointer border-2 text-base w-full h-12 ${(error && (isTouched || hasInteracted)) ? "border-red-500 focus:border-red-500" : ""}`}
+                >
                   <SelectValue placeholder="Select information type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel className="text-base">Types</SelectLabel>
                     {infoTypes.map(type => (
-                      <SelectItem key={type.value} value={type.value} className="text-base">
+                      <SelectItem key={type.value} value={type.value} className="text-base cursor-pointer">
                         {type.label}
                       </SelectItem>
                     ))}
@@ -132,21 +148,32 @@ export function ReserveEventAdditionalTab({
           />
         </div>
         <div>
-          <Label htmlFor="category" className="text-base inline-block font-medium">Category</Label>
+          <Label htmlFor="category" className="text-base inline-block font-medium">Category<span className="text-red-500"> *</span></Label>
           <Controller
             name="category"
             control={control}
             rules={RESERVATION_VALIDATION_RULES.category}
-            render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger id="category" className={`mt-1 border-2 text-base w-full h-12 ${errors.category ? "border-red-500 focus:border-red-500" : ""}`}>
+            render={({ field, fieldState: { error, isTouched } }) => (
+              <Select 
+                value={field.value} 
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  if (value) {
+                    field.onBlur();
+                  }
+                }}
+              >
+                <SelectTrigger 
+                  id="category" 
+                  className={`mt-1 cursor-pointer border-2 text-base w-full h-12 ${(error && (isTouched || hasInteracted)) ? "border-red-500 focus:border-red-500" : ""}`}
+                >
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel className="text-base">Categories</SelectLabel>
                     {categories.map(cat => (
-                      <SelectItem key={cat.value} value={cat.value} className="text-base">
+                      <SelectItem key={cat.value} value={cat.value} className="text-base cursor-pointer">
                         {cat.label}
                       </SelectItem>
                     ))}
