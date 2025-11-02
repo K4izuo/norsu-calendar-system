@@ -47,19 +47,11 @@ export function ReserveEventFormTab({
       <div className="space-y-4 sm:space-y-5">
         <div>
           <Label htmlFor="title" className="text-base inline-block font-medium">Event Title</Label>
-          <Controller
-            name="title"
-            control={control}
-            rules={RESERVATION_VALIDATION_RULES.title}
-            render={({ field }) => (
-              <Input 
-                {...field}
-                id="title"
-                placeholder="Enter event title"
-                className={`mt-1 border-2 text-base h-12 w-full ${errors.title ? "border-red-500 focus:border-red-500" : ""}`}
-                required
-              />
-            )}
+          <Input
+            {...control.register("title", RESERVATION_VALIDATION_RULES.title)}
+            id="title"
+            placeholder="Enter event title"
+            className={`mt-1 border-2 text-base h-12 w-full ${errors.title ? "border-red-500 focus:border-red-500" : ""}`}
           />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -70,15 +62,12 @@ export function ReserveEventFormTab({
               control={control}
               rules={RESERVATION_VALIDATION_RULES.asset}
               render={({ field }) => (
-                <Select 
+                <Select
                   value={selectedAsset?.id || ""}
-                  onValueChange={(value) => {
-                    handleAssetChange(value);
-                    field.onChange(selectedAsset);
-                  }}
+                  onValueChange={handleAssetChange}
                 >
                   <SelectTrigger id="asset" className={`mt-1 border-2 text-base w-full h-12 ${errors.asset ? "border-red-500 focus:border-red-500" : ""}`}>
-                    <SelectValue 
+                    <SelectValue
                       placeholder="Select an asset"
                       {...(selectedAsset ? { children: selectedAsset.name } : {})}
                     />
@@ -120,74 +109,51 @@ export function ReserveEventFormTab({
               name="range"
               control={control}
               rules={RESERVATION_VALIDATION_RULES.range}
-              render={({ field }) => (
+              render={({ field: { onChange, value, ...field } }) => (
                 <Input
                   {...field}
-                  type="text"
+                  type="number"
                   id="range"
                   placeholder="Enter range (days)"
-                  value={field.value?.toString() || ""}
+                  value={value || ""}
                   onChange={(e) => {
-                    const value = e.target.value.replace(/[^0-9]/g, "");
-                    field.onChange(value === "" ? "" : Number(value));
+                    const val = e.target.value === "" ? "" : Number(e.target.value);
+                    onChange(val);
                   }}
+                  min="1"
                   className={`mt-1 border-2 h-12 text-base w-full ${errors.range ? "border-red-500 focus:border-red-500" : ""}`}
-                  required
                 />
               )}
             />
           </div>
           <div>
             <Label htmlFor="timeStart" className="text-base inline-block font-medium">Start Time</Label>
-            <Controller
-              name="timeStart"
-              control={control}
-              render={({ field }) => (
-                <Input 
-                  {...field}
-                  id="timeStart"
-                  type="time"
-                  value={field.value || currentTime}
-                  className="mt-1 border-2 text-base h-12 w-full"
-                  required
-                />
-              )}
+            <Input
+              {...control.register("timeStart", RESERVATION_VALIDATION_RULES.timeStart)}
+              id="timeStart"
+              type="time"
+              defaultValue={currentTime}
+              className={`mt-1 border-2 text-base h-12 w-full ${errors.timeStart ? "border-red-500 focus:border-red-500" : ""}`}
             />
           </div>
           <div>
             <Label htmlFor="timeEnd" className="text-base inline-block font-medium">End Time</Label>
-            <Controller
-              name="timeEnd"
-              control={control}
-              rules={RESERVATION_VALIDATION_RULES.timeEnd}
-              render={({ field }) => (
-                <Input 
-                  {...field}
-                  id="timeEnd"
-                  type="time"
-                  placeholder="Select end time"
-                  className={`mt-1 border-2 text-base h-12 w-full ${errors.timeEnd ? "border-red-500 focus:border-red-500" : ""}`}
-                  required
-                />
-              )}
+            <Input
+              {...control.register("timeEnd", RESERVATION_VALIDATION_RULES.timeEnd)}
+              id="timeEnd"
+              type="time"
+              placeholder="Select end time"
+              className={`mt-1 border-2 text-base h-12 w-full ${errors.timeEnd ? "border-red-500 focus:border-red-500" : ""}`}
             />
           </div>
         </div>
         <div>
           <Label htmlFor="description" className="text-base inline-block font-medium">Description</Label>
-          <Controller
-            name="description"
-            control={control}
-            rules={RESERVATION_VALIDATION_RULES.description}
-            render={({ field }) => (
-              <Textarea 
-                {...field}
-                id="description"
-                placeholder="Enter event description"
-                className={`mt-1 border-2 min-h-[120px] text-base h-12 w-full ${errors.description ? "border-red-500 focus:border-red-500" : ""}`}
-                required
-              />
-            )}
+          <Textarea
+            {...control.register("description", RESERVATION_VALIDATION_RULES.description)}
+            id="description"
+            placeholder="Enter event description"
+            className={`mt-1 border-2 min-h-[120px] text-base h-12 w-full ${errors.description ? "border-red-500 focus:border-red-500" : ""}`}
           />
         </div>
       </div>

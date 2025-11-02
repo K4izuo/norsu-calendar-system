@@ -38,9 +38,9 @@ export function ReserveEventSummaryTab({
             <p className="font-medium text-base">{formData.title || "Not provided"}</p>
           </div>
           <div>
-            <p className="text-base text-gray-500">Category</p>
+            <p className="text-base text-gray-500">Information Type</p>
             <p className="font-medium text-base">
-              {categories.find(cat => cat.value === formData.category)?.label || "Not provided"}
+              {infoTypes.find(type => type.value === formData.infoType)?.label || "Not provided"}
             </p>
           </div>
           <div>
@@ -61,9 +61,9 @@ export function ReserveEventSummaryTab({
             </div>
           </div>
           <div>
-            <p className="text-base text-gray-500">Information Type</p>
+            <p className="text-base text-gray-500">Category</p>
             <p className="font-medium text-base">
-              {infoTypes.find(type => type.value === formData.infoType)?.label || "Not provided"}
+              {categories.find(cat => cat.value === formData.category)?.label || "Not provided"}
             </p>
           </div>
         </div>

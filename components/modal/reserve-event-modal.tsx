@@ -42,16 +42,19 @@ type AssetType = {
   facilities?: string[];
 } | null;
 
+// Tab field definitions for targeted validation
+const FORM_TAB_FIELDS = ["title", "asset", "timeStart", "timeEnd", "description", "range"] as const;
+const ADDITIONAL_TAB_FIELDS = ["people", "infoType", "category"] as const;
+
 export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: ModalProps) {
   const contentRef = useRef<HTMLDivElement>(null)
   const [activeTab, setActiveTab] = useState<string>("form")
-  
-  // Get current time for default values
+
   const getCurrentTime = () => {
     const now = new Date();
     return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
   };
-  
+
   const {
     control,
     handleSubmit,
@@ -62,8 +65,8 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
     trigger,
     reset,
   } = useForm<ReservationFormData>({
-    mode: "onTouched", // Changed from "onChange" to "onTouched" for better performance
-    reValidateMode: "onBlur", // Add this for consistent validation timing
+    mode: "onTouched",
+    reValidateMode: "onBlur",
     defaultValues: {
       title: "",
       asset: null,
@@ -96,7 +99,6 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
   const [tagInput, setTagInput] = useState("");
   const [taggedPeople, setTaggedPeople] = useState<{ id: string; name: string }[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [showAdditionalTabErrors, setShowAdditionalTabErrors] = useState(false);
 
   useEffect(() => {
     if (eventDate) {
@@ -104,7 +106,6 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
     }
   }, [eventDate, setValue]);
 
-  // Update time values when modal opens
   useEffect(() => {
     if (isOpen) {
       const currentTime = getCurrentTime();
@@ -133,7 +134,6 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
   useEffect(() => {
     if (isOpen) {
       setActiveTab("form")
-      setShowAdditionalTabErrors(false)
     }
   }, [isOpen])
 
@@ -163,15 +163,18 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
     }
   }, [showVehicleModal]);
 
+  // Sync taggedPeople with form state for validation
+  useEffect(() => {
+    setValue("people", taggedPeople.map(p => p.name).join(', '), { shouldDirty: true });
+  }, [taggedPeople, setValue]);
+
   const handleAssetChange = (value: string) => {
     if (value === "assets venue") setShowVenueModal(true);
     if (value === "assets vehicle") setShowVehicleModal(true);
   };
 
   const handleAssetItemSelect = (asset: { id: string; name: string; capacity: string }) => {
-    setValue("asset", asset);
-    // Trigger validation after setting the asset
-    trigger("asset");
+    setValue("asset", asset, { shouldValidate: true, shouldTouch: true });
     setShowVenueModal(false);
     setShowVehicleModal(false);
   };
@@ -193,7 +196,6 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
     setTaggedPeople(taggedPeople.filter(p => p.id !== id));
   };
 
-  // Check if form is valid for submission - Fixed to always return boolean
   const isFormValid = useCallback((): boolean => {
     const values = getValues();
     return Boolean(
@@ -208,36 +210,32 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
       values.category &&
       taggedPeople.length > 0
     );
-  }, [getValues, taggedPeople.length]);
+  }, [taggedPeople.length]);
 
   const onSubmitForm = useCallback(
     async (data: ReservationFormData) => {
       try {
-        const toastId = toast.loading("Submitting reservation...");
-        
-        // Add tagged people to the form data
         const formDataWithPeople = {
           ...data,
-          people: taggedPeople.map(p => p.name).join(', '), // Convert tagged people to string
+          people: taggedPeople.map(p => p.name).join(', '),
         };
-        
+
         await new Promise(resolve => setTimeout(resolve, 1500));
-        
+
         if (onSubmit) {
           onSubmit(formDataWithPeople);
         }
-        
-        toast.success("Event reserved successfully!", { id: toastId });
-        
+
+        toast.success("Event reserved successfully!");
+
         reset();
         setTaggedPeople([]);
         setTagInput("");
-        setShowAdditionalTabErrors(false);
-        
+
         setTimeout(() => {
           onClose();
         }, 1000);
-        
+
       } catch (error) {
         console.error("Reservation error:", error);
         toast.error("Failed to reserve event. Please try again.");
@@ -247,27 +245,21 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
   );
 
   const handleFormTabNext = useCallback(async () => {
-    // Trigger validation for ALL form fields at once
-    const formValid = await trigger(); // This validates all fields simultaneously
-    
+    const formValid = await trigger(FORM_TAB_FIELDS as any);
+
     if (formValid) {
       setActiveTab("additional");
-      setShowAdditionalTabErrors(false);
     } else {
-      // Show error toast with current form values and errors
       showFormTabErrorToast(errors, getValues());
     }
   }, [trigger, errors, getValues]);
 
   const handleAdditionalTabNext = useCallback(async () => {
-    // Trigger validation for ALL additional fields at once
-    const additionalValid = await trigger(); // This validates all fields simultaneously
-    
-    if (additionalValid && taggedPeople.length > 0) {
+    const additionalValid = await trigger(ADDITIONAL_TAB_FIELDS as any);
+
+    if (additionalValid) {
       setActiveTab("summary");
-      setShowAdditionalTabErrors(false);
     } else {
-      setShowAdditionalTabErrors(true);
       showAdditionalTabErrorToast(errors, getValues(), taggedPeople);
     }
   }, [trigger, errors, getValues, taggedPeople]);
@@ -344,11 +336,10 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                   {tabOrder.map(tab => (
                     <div
                       key={tab}
-                      className={`flex items-center justify-center py-2 px-2 sm:py-2.5 sm:px-4 rounded-md text-base font-medium transition-colors ${
-                        activeTab === tab
+                      className={`flex items-center justify-center py-2 px-2 sm:py-2.5 sm:px-4 rounded-md text-base font-medium transition-colors ${activeTab === tab
                           ? "bg-background text-foreground shadow-sm"
                           : "text-muted-foreground"
-                      }`}
+                        }`}
                       style={{ cursor: "default", minWidth: "100px" }}
                     >
                       {tabLabels[tab]}
@@ -383,7 +374,6 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                     handleTagSelect={handleTagSelect}
                     handleRemoveTag={handleRemoveTag}
                     setShowDropdown={setShowDropdown}
-                    showPeopleError={showAdditionalTabErrors}
                   />
                 </TabsContent>
 
@@ -399,7 +389,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
               </Tabs>
             </div>
 
-            <div className="sticky bottom-0 bg-white z-10 p-4 sm:p-5 border-t border-gray-200 flex justify-end">
+            <div className="sticky bottom-0 bg-white z-10 p-4 sm:p-6 border-t border-gray-200 flex justify-end">
               {activeTab === "form" && (
                 <Button
                   type="button"
@@ -414,10 +404,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                 <div className="flex gap-3">
                   <Button
                     type="button"
-                    onClick={() => {
-                      setActiveTab("form");
-                      setShowAdditionalTabErrors(false);
-                    }}
+                    onClick={() => setActiveTab("form")}
                     variant="outline"
                     className="text-base cursor-pointer py-2.5"
                     disabled={isSubmitting}
@@ -438,10 +425,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                 <div className="flex gap-3">
                   <Button
                     type="button"
-                    onClick={() => {
-                      setActiveTab("additional");
-                      setShowAdditionalTabErrors(false);
-                    }}
+                    onClick={() => setActiveTab("additional")}
                     variant="outline"
                     className="text-base cursor-pointer py-2.5"
                     disabled={isSubmitting}

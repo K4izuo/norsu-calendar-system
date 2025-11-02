@@ -7,6 +7,9 @@ export const RESERVATION_VALIDATION_RULES = {
     required: "Asset selection is missing",
     validate: (value: any) => value !== null || "Asset selection is missing"
   },
+  timeStart: {
+    required: "Start time is missing"
+  },
   timeEnd: {
     required: "End time is missing",
     validate: (value: string, formValues: any) => {
@@ -20,7 +23,12 @@ export const RESERVATION_VALIDATION_RULES = {
     minLength: { value: 10, message: "Description must be at least 10 characters" }
   },
   range: {
-    min: { value: 1, message: "Range must be at least 1 day" }
+    required: "Range is missing",
+    min: { value: 1, message: "Range must be at least 1 day" },
+    validate: (value: any) => {
+      if (!value) return "Range is missing";
+      return value >= 1 || "Range must be at least 1 day";
+    }
   },
   infoType: {
     required: "Information type is missing"
@@ -29,8 +37,9 @@ export const RESERVATION_VALIDATION_RULES = {
     required: "Category is missing"
   },
   people: {
-    validate: (value: any, formValues: any, taggedPeople?: any[]) => {
-      // This will be handled separately since it's not a form field
+    required: "People tag is missing",
+    validate: (value: string) => {
+      if (!value || value.trim() === "") return "People tag is missing";
       return true;
     }
   }
