@@ -34,6 +34,7 @@ export default function StudentRegisterPage() {
   const [activeTab, setActiveTab] = useState("details");
   const [agreed, setAgreed] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
+  const [touchedOnNext, setTouchedOnNext] = useState(false);
 
   // Always call hooks first!
   const {
@@ -55,11 +56,12 @@ export default function StudentRegisterPage() {
     setValue,
     getValues,
     watch,
-    formState: { errors, isSubmitting, isValid },
+    register,
+    formState: { errors, isSubmitting, isValid, touchedFields },
     trigger,
     reset,
   } = useForm<StudentRegisterFormData>({
-    mode: "onChange", // <--- change here
+    mode: "onTouched",
     defaultValues: {
       first_name: "",
       middle_name: "",
@@ -109,6 +111,7 @@ export default function StudentRegisterPage() {
         toast.success(successMsg, { duration: 5000 });
         reset();
         setActiveTab("details");
+        setTouchedOnNext(false);
       } catch (error) {
         console.error("Registration error:", error);
         toast.error("Registration failed!", { duration: 5000 });
@@ -118,6 +121,7 @@ export default function StudentRegisterPage() {
   );
 
   const handleNextClick = useCallback(async () => {
+    setTouchedOnNext(true);
     const valid = await trigger(); // Validates all untouched fields
     if (valid) {
       setActiveTab("summary");
@@ -130,6 +134,12 @@ export default function StudentRegisterPage() {
     () => ({ ...getValues(), role: role ?? "" }),
     [getValues, role]
   );
+
+  const getFieldError = useCallback((fieldName: keyof StudentRegisterFormData) => {
+      const fieldValue = watch(fieldName);
+      const hasValue = fieldValue && fieldValue.trim() !== "";
+      return (touchedFields[fieldName] || touchedOnNext) && !hasValue ? errors[fieldName] : undefined;
+    }, [touchedFields, touchedOnNext, errors, watch]);
 
   if (!shouldRender) return null;
 
@@ -169,8 +179,8 @@ export default function StudentRegisterPage() {
                   <StudentFormInput
                     name="first_name"
                     label="First Name"
-                    control={control}
-                    rules={STUDENT_VALIDATION_RULES.name}
+                    register={register}
+                    rules={STUDENT_VALIDATION_RULES.first_name}
                     errors={errors}
                     autoComplete="given-name"
                     placeholder="Enter first name"
@@ -178,8 +188,8 @@ export default function StudentRegisterPage() {
                   <StudentFormInput
                     name="middle_name"
                     label="Middle Name"
-                    control={control}
-                    rules={STUDENT_VALIDATION_RULES.name}
+                    register={register}
+                    rules={STUDENT_VALIDATION_RULES.middle_name}
                     errors={errors}
                     autoComplete="additional-name"
                     placeholder="Enter middle name"
@@ -187,8 +197,8 @@ export default function StudentRegisterPage() {
                   <StudentFormInput
                     name="last_name"
                     label="Last Name"
-                    control={control}
-                    rules={STUDENT_VALIDATION_RULES.name}
+                    register={register}
+                    rules={STUDENT_VALIDATION_RULES.last_name}
                     errors={errors}
                     autoComplete="family-name"
                     placeholder="Enter last name"
@@ -199,7 +209,7 @@ export default function StudentRegisterPage() {
                   <StudentFormInput
                     name="email"
                     label="Email"
-                    control={control}
+                    register={register}
                     rules={STUDENT_VALIDATION_RULES.email}
                     errors={errors}
                     type="email"
@@ -209,7 +219,7 @@ export default function StudentRegisterPage() {
                   <StudentFormInput
                     name="assignment_id"
                     label="Student ID"
-                    control={control}
+                    register={register}
                     rules={STUDENT_VALIDATION_RULES.studentId}
                     errors={errors}
                     autoComplete="off"
@@ -236,7 +246,7 @@ export default function StudentRegisterPage() {
                           loading={loadingCampuses}
                           error={campusError}
                           required
-                          hasError={!!errors.campus_id}
+                          hasError={!!getFieldError("campus_id")}
                         />
                       )}
                     />
@@ -258,7 +268,7 @@ export default function StudentRegisterPage() {
                           loading={loadingOffices}
                           error={officeError}
                           required
-                          hasError={!!errors.college_id}
+                          hasError={!!getFieldError("college_id")}
                         />
                       )}
                     />
@@ -282,7 +292,7 @@ export default function StudentRegisterPage() {
                       error={courseError}
                       required
                       disabled={!selectedCollege}
-                      hasError={!!errors.degree_course_id}
+                      hasError={!!getFieldError("degree_course_id")}
                     />
                   )}
                 />

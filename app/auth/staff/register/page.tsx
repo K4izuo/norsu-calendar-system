@@ -34,6 +34,7 @@ export default function StaffRegisterPage() {
   const [activeTab, setActiveTab] = useState("details");
   const [agreed, setAgreed] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
+  const [touchedOnNext, setTouchedOnNext] = useState(false);
 
   // Always call hooks first!
   const {
@@ -52,11 +53,13 @@ export default function StaffRegisterPage() {
     handleSubmit,
     setValue,
     getValues,
-    formState: { errors, isSubmitting, isValid },
+    watch,
+    register,
+    formState: { errors, isSubmitting, isValid, touchedFields },
     trigger,
     reset,
   } = useForm<StaffRegisterFormData>({
-    mode: "onChange",
+    mode: "onTouched",
     defaultValues: {
       first_name: "",
       middle_name: "",
@@ -79,11 +82,11 @@ export default function StaffRegisterPage() {
 
   // Numeric only for staff ID
   const handleStaffIDChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>, onChange: (value: string) => void) => {
+    (e: React.ChangeEvent<HTMLInputElement>) => {
       const numericValue = e.target.value.replace(/\D/g, "");
-      onChange(numericValue);
+      setValue("assignment_id", numericValue);
     },
-    []
+    [setValue]
   );
 
   const onSubmit = useCallback(
@@ -107,6 +110,7 @@ export default function StaffRegisterPage() {
         toast.success(successMsg, { duration: 5000 });
         reset();
         setActiveTab("details");
+        setTouchedOnNext(false);
       } catch (error) {
         console.error("Registration error:", error);
         toast.error("Registration failed!", { duration: 5000 });
@@ -116,6 +120,7 @@ export default function StaffRegisterPage() {
   );
 
   const handleNextClick = useCallback(async () => {
+    setTouchedOnNext(true);
     const valid = await trigger();
     if (valid) {
       setActiveTab("summary");
@@ -128,6 +133,12 @@ export default function StaffRegisterPage() {
     () => ({ ...getValues(), role: role ?? "" }),
     [getValues, role, activeTab] // <-- Add activeTab here!
   );
+
+  const getFieldError = useCallback((fieldName: keyof StaffRegisterFormData) => {
+      const fieldValue = watch(fieldName);
+      const hasValue = fieldValue && fieldValue.trim() !== "";
+      return (touchedFields[fieldName] || touchedOnNext) && !hasValue ? errors[fieldName] : undefined;
+    }, [touchedFields, touchedOnNext, errors, watch]);
 
   if (!shouldRender) return null;
 
@@ -168,8 +179,8 @@ export default function StaffRegisterPage() {
                   <StaffFormInput
                     name="first_name"
                     label="First Name"
-                    control={control}
-                    rules={STAFF_VALIDATION_RULES.name}
+                    register={register}
+                    rules={STAFF_VALIDATION_RULES.first_name}
                     errors={errors}
                     autoComplete="given-name"
                     placeholder="Enter first name"
@@ -177,8 +188,8 @@ export default function StaffRegisterPage() {
                   <StaffFormInput
                     name="middle_name"
                     label="Middle Name"
-                    control={control}
-                    rules={STAFF_VALIDATION_RULES.name}
+                    register={register}
+                    rules={STAFF_VALIDATION_RULES.middle_name}
                     errors={errors}
                     autoComplete="additional-name"
                     placeholder="Enter middle name"
@@ -186,8 +197,8 @@ export default function StaffRegisterPage() {
                   <StaffFormInput
                     name="last_name"
                     label="Last Name"
-                    control={control}
-                    rules={STAFF_VALIDATION_RULES.name}
+                    register={register}
+                    rules={STAFF_VALIDATION_RULES.last_name}
                     errors={errors}
                     autoComplete="family-name"
                     placeholder="Enter last name"
@@ -198,7 +209,7 @@ export default function StaffRegisterPage() {
                   <StaffFormInput
                     name="email"
                     label="Email"
-                    control={control}
+                    register={register}
                     rules={STAFF_VALIDATION_RULES.email}
                     errors={errors}
                     type="email"
@@ -208,13 +219,13 @@ export default function StaffRegisterPage() {
                   <StaffFormInput
                     name="assignment_id"
                     label="Staff ID"
-                    control={control}
+                    register={register}
                     rules={STAFF_VALIDATION_RULES.staffID}
                     errors={errors}
                     autoComplete="off"
                     placeholder="Enter staff ID"
                     inputMode="numeric"
-                    onChange={e => handleStaffIDChange(e as React.ChangeEvent<HTMLInputElement>, value => setValue("assignment_id", value))}
+                    onChange={handleStaffIDChange}
                   />
                 </div>
                 {/* Campus & Office row */}
@@ -236,7 +247,7 @@ export default function StaffRegisterPage() {
                           loading={loadingCampuses}
                           error={campusError}
                           required
-                          hasError={!!errors.campus_id}
+                          hasError={!!getFieldError("campus_id")}
                         />
                       )}
                     />
@@ -258,7 +269,7 @@ export default function StaffRegisterPage() {
                           loading={loadingOffices}
                           error={officeError}
                           required
-                          hasError={!!errors.office_id}
+                          hasError={!!getFieldError("office_id")}
                         />
                       )}
                     />

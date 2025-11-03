@@ -1,11 +1,11 @@
-import { Control, FieldErrors, FieldValues, RegisterOptions, Controller, Path } from "react-hook-form";
+import { UseFormRegister, FieldErrors, FieldValues, RegisterOptions, Path } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 type FormInputProps<T extends FieldValues = FieldValues> = {
   name: Path<T>;
   label: string;
-  control: Control<T>;
+  register: UseFormRegister<T>;
   rules?: RegisterOptions<T, Path<T>>;
   errors: FieldErrors<T>;
   required?: boolean;
@@ -14,7 +14,7 @@ type FormInputProps<T extends FieldValues = FieldValues> = {
 export const StudentFormInput = <T extends FieldValues>({
   name,
   label,
-  control,
+  register,
   rules,
   errors,
   required = true,
@@ -26,20 +26,13 @@ export const StudentFormInput = <T extends FieldValues>({
         {label} {required && <span className="text-red-500">*</span>}
       </span>
     </Label>
-    <Controller
-      name={name}
-      control={control}
-      rules={rules}
-      render={({ field }) => (
-        <Input
-          {...field}
-          id={name}
-          className={`h-11 text-base border-2 rounded-lg ${
-            errors[name] ? "border-red-400" : "border-gray-200"
-          } focus:border-ring`}
-          {...inputProps}
-        />
-      )}
+    <Input
+      {...register(name, rules)}
+      id={name}
+      className={`h-11 text-base border-2 rounded-lg ${
+        errors[name] ? "border-red-400" : "border-gray-200"
+      } focus:border-ring`}
+      {...inputProps}
     />
   </div>
 );
