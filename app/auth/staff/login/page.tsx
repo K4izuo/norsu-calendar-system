@@ -70,11 +70,11 @@ export default function StaffLoginPage() {
   }
 
   return (
-    <div className="min-h-[100dvh] w-full bg-gradient-to-br from-yellow-50 to-yellow-50 font-['Poppins'] flex items-center justify-center py-6 px-3 sm:px-4 lg:px-6 relative overflow-hidden">
+    <div className="min-h-[100dvh] w-full bg-gradient-to-br from-red-50 to-red-100 font-['Poppins'] flex items-center justify-center py-6 px-3 sm:px-4 lg:px-6 relative overflow-hidden">
 
-      <div className="absolute top-0 left-0 w-32 h-32 bg-yellow-400 rounded-full opacity-10 -translate-x-16 -translate-y-16"></div>
-      <div className="absolute bottom-0 right-0 w-48 h-48 bg-yellow-500 rounded-full opacity-10 translate-x-24 translate-y-24"></div>
-      <div className="absolute top-1/2 left-0 w-24 h-24 bg-yellow-300 rounded-full opacity-10 -translate-x-12"></div>
+      <div className="absolute top-0 left-0 w-32 h-32 bg-red-400 rounded-full opacity-10 -translate-x-16 -translate-y-16"></div>
+      <div className="absolute bottom-0 right-0 w-48 h-48 bg-red-500 rounded-full opacity-10 translate-x-24 translate-y-24"></div>
+      <div className="absolute top-1/2 left-0 w-24 h-24 bg-red-300 rounded-full opacity-10 -translate-x-12"></div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -82,7 +82,7 @@ export default function StaffLoginPage() {
         className="bg-white rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden w-[96%] max-w-4xl grid grid-cols-1 md:grid-cols-2 relative"
       >
         {/* Left Side */}
-        <div className="hidden md:flex bg-gradient-to-br from-yellow-400 to-yellow-600 p-4 sm:p-6 lg:p-8 text-white flex-col items-center justify-center relative min-h-[400px]">
+        <div className="hidden md:flex bg-gradient-to-br from-red-400 to-red-600 p-4 sm:p-6 lg:p-8 text-white flex-col items-center justify-center relative min-h-[400px]">
           <div className="absolute top-2 right-2 sm:top-4 sm:right-4 w-8 h-8 sm:w-12 sm:h-12 lg:w-16 lg:h-16 bg-white/10 rounded-full"></div>
           <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 lg:bottom-8 lg:left-8 w-6 h-6 sm:w-8 sm:h-8 lg:w-12 lg:h-12 bg-white/10 rounded-full"></div>
           <div className="space-y-6 text-center z-10 flex flex-col items-center justify-center h-full">
@@ -94,13 +94,13 @@ export default function StaffLoginPage() {
             </div>
             <div className="space-y-3">
               <h2 className="text-2xl sm:text-3xl font-bold">EduPortal Pro</h2>
-              <p className="text-yellow-100 text-lg">Staff Portal</p>
-              <p className="text-yellow-200 text-sm max-w-xs">
+              <p className="text-red-100 text-lg">Staff Portal</p>
+              <p className="text-red-200 text-sm max-w-xs">
                 Manage schedules, tasks, and collaborate with your team.
               </p>
             </div>
             <div className="mt-6 space-y-3">
-              <div className="flex items-center justify-center space-x-4 text-yellow-100">
+              <div className="flex items-center justify-center space-x-4 text-red-100">
                 <div className="flex items-center space-x-2">
                   <Users className="w-4 h-4" />
                   <span className="text-xs">Team</span>
@@ -165,7 +165,7 @@ export default function StaffLoginPage() {
                     id="remember"
                     checked={rememberMe}
                     onCheckedChange={checked => setRememberMe(checked === true)}
-                    className="border-2 border-gray-300 data-[state=checked]:bg-yellow-500 data-[state=checked]:border-yellow-500"
+                    className="border-2 border-gray-300 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
                   />
                   <label htmlFor="remember" className="text-sm text-gray-600 cursor-pointer">
                     Remember Me
@@ -173,7 +173,7 @@ export default function StaffLoginPage() {
                 </div>
                 <Button
                   variant="link"
-                  className="text-yellow-600 cursor-pointer hover:text-yellow-700 p-0 text-sm font-medium"
+                  className="text-red-600 cursor-pointer hover:text-red-700 p-0 text-sm font-medium"
                   type="button"
                 >
                   Forgot Password?
@@ -182,7 +182,7 @@ export default function StaffLoginPage() {
               {/* Login Button */}
               <Button
                 type="submit"
-                className="w-full cursor-pointer h-[50px] sm:h-[54px] font-semibold text-sm sm:text-base bg-gradient-to-r from-yellow-400 to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] mb-3.5 flex items-center justify-center gap-x-2"
+                className="w-full cursor-pointer h-[50px] sm:h-[54px] font-semibold text-sm sm:text-base bg-gradient-to-r from-red-400 to-red-600 hover:from-red-500 hover:to-red-700 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] mb-3.5 flex items-center justify-center gap-x-2"
                 disabled={isLoading}
               >
                 {isLoading ? (

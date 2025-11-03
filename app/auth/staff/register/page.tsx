@@ -80,15 +80,6 @@ export default function StaffRegisterPage() {
     }
   }, [role, router]);
 
-  // Numeric only for staff ID
-  const handleStaffIDChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const numericValue = e.target.value.replace(/\D/g, "");
-      setValue("assignment_id", numericValue);
-    },
-    [setValue]
-  );
-
   const onSubmit = useCallback(
     async (data: StaffRegisterFormData) => {
       try {
@@ -143,10 +134,10 @@ export default function StaffRegisterPage() {
   if (!shouldRender) return null;
 
   return (
-    <div className="min-h-[100dvh] w-full bg-gradient-to-br from-yellow-50 to-yellow-50 flex items-center justify-center py-6 px-2 sm:px-4 lg:px-6 relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-32 h-32 bg-yellow-400 rounded-full opacity-10 -translate-x-16 -translate-y-16"></div>
-      <div className="absolute bottom-0 right-0 w-48 h-48 bg-yellow-500 rounded-full opacity-10 translate-x-24 translate-y-24"></div>
-      <div className="absolute top-1/2 left-0 w-24 h-24 bg-yellow-300 rounded-full opacity-10 -translate-x-12"></div>
+    <div className="min-h-[100dvh] w-full bg-gradient-to-br from-red-50 to-red-100 flex items-center justify-center py-6 px-2 sm:px-4 lg:px-6 relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-32 h-32 bg-red-400 rounded-full opacity-10 -translate-x-16 -translate-y-16"></div>
+      <div className="absolute bottom-0 right-0 w-48 h-48 bg-red-500 rounded-full opacity-10 translate-x-24 translate-y-24"></div>
+      <div className="absolute top-1/2 left-0 w-24 h-24 bg-red-300 rounded-full opacity-10 -translate-x-12"></div>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -225,7 +216,6 @@ export default function StaffRegisterPage() {
                     autoComplete="off"
                     placeholder="Enter staff ID"
                     inputMode="numeric"
-                    onChange={handleStaffIDChange}
                   />
                 </div>
                 {/* Campus & Office row */}
@@ -288,7 +278,7 @@ export default function StaffRegisterPage() {
                     type="button"
                     onClick={handleNextClick}
                     variant="default"
-                    className="text-base bg-yellow-500 hover:bg-yellow-400 cursor-pointer py-2.5"
+                    className="text-base bg-red-500 hover:bg-red-400 cursor-pointer py-2.5"
                   >
                     Next
                   </Button>
@@ -302,7 +292,7 @@ export default function StaffRegisterPage() {
                   isFormValid={isValid}
                   agreed={agreed}
                   setAgreed={setAgreed}
-                  color="yellow"
+                  color="red"
                 />
                 <div className="flex justify-end gap-3">
                   <Button
@@ -318,7 +308,7 @@ export default function StaffRegisterPage() {
                     type="submit"
                     variant="default"
                     disabled={!isValid || isSubmitting || !agreed}
-                    className="text-base bg-yellow-500 hover:bg-yellow-400 cursor-pointer py-2.5"
+                    className="text-base bg-red-500 hover:bg-red-400 cursor-pointer py-2.5"
                   >
                     {isSubmitting ? (
                       <div className="flex items-center">

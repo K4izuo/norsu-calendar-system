@@ -5,25 +5,33 @@ import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
+import { UseFormRegister, FieldErrors, RegisterOptions } from "react-hook-form"
 
 // --- Shared Background Blobs Component ---
 export const BgBlobs = React.memo(({
   color = "blue",
 }: {
-  color?: "green" | "blue" | "yellow"
-}) => (
-  <>
-    <div
-      className={`absolute top-0 left-0 w-32 h-32 bg-${color}-600 rounded-full opacity-10 -translate-x-16 -translate-y-16`}
-    />
-    <div
-      className={`absolute bottom-0 right-0 w-48 h-48 bg-${color === "green" ? "emerald" : color === "yellow" ? "yellow" : "indigo"}-500 rounded-full opacity-10 translate-x-24 translate-y-24`}
-    />
-    <div
-      className={`absolute top-1/2 left-0 w-24 h-24 bg-${color}-500 rounded-full opacity-10 -translate-x-12`}
-    />
-  </>
-))
+  color?: "green" | "blue" | "red"
+}) => {
+  // Use static classes to ensure they're included in the build
+  const topLeftClass = color === "green" ? "bg-green-600" : color === "red" ? "bg-red-600" : "bg-blue-600"
+  const bottomRightClass = color === "green" ? "bg-green-500" : color === "red" ? "bg-red-500" : "bg-blue-500"
+  const middleLeftClass = color === "green" ? "bg-green-500" : color === "red" ? "bg-red-500" : "bg-blue-500"
+
+  return (
+    <>
+      <div
+        className={`absolute top-0 left-0 w-32 h-32 ${topLeftClass} rounded-full opacity-10 -translate-x-16 -translate-y-16`}
+      />
+      <div
+        className={`absolute bottom-0 right-0 w-48 h-48 ${bottomRightClass} rounded-full opacity-10 translate-x-24 translate-y-24`}
+      />
+      <div
+        className={`absolute top-1/2 left-0 w-24 h-24 ${middleLeftClass} rounded-full opacity-10 -translate-x-12`}
+      />
+    </>
+  )
+})
 
 BgBlobs.displayName = "BgBlobs"
 
@@ -34,52 +42,54 @@ export interface AccountFormData {
 }
 
 export interface AccountPageProps {
-  type: "student" | "faculty" | "staff" // <-- Add "staff" here
+  type: "student" | "faculty" | "staff"
   formData: AccountFormData
   activeTab: string
-  missingFields: Record<string, boolean>
   passwordError: string | null
   isSubmitting: boolean
   isFormValid: boolean
-  onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   onNextClick: () => void
   onBackClick: () => void
   onSubmit: () => void
+  register: UseFormRegister<AccountFormData>
+  errors: FieldErrors<AccountFormData>
+  validationRules: Record<keyof AccountFormData, RegisterOptions<AccountFormData>>
 }
 
-// --- Shared Account Page Layout Component ---
 export const AccountPageLayout = React.memo(({
   type,
   formData,
   activeTab,
-  missingFields,
   passwordError,
   isSubmitting,
   isFormValid,
-  onInputChange,
   onNextClick,
   onBackClick,
-  onSubmit
+  onSubmit,
+  register,
+  errors,
+  validationRules
 }: AccountPageProps) => {
   const isStudent = type === "student"
   const isFaculty = type === "faculty"
   const isStaff = type === "staff"
 
   // Set theme color and accent color based on type
-  const themeColor = isStudent ? "green" : isStaff ? "yellow" : "blue"
-  const accentColor = isStudent ? "emerald" : isStaff ? "yellow" : "indigo"
+  const themeColor = isStudent ? "green" : isStaff ? "red" : "blue"
+  const accentColor = isStudent ? "emerald" : isStaff ? "red" : "indigo"
   const titleText = `Create ${isStudent ? "Student" : isFaculty ? "Faculty" : "Staff"} Account`
 
   // Set background gradient based on type
   const bgGradient = isStudent
     ? "from-green-50 to-emerald-50"
     : isStaff
-      ? "from-yellow-50 to-yellow-200"
+      ? "from-red-50 to-red-100"
       : "from-blue-50 to-indigo-50"
 
   return (
     <div className={`min-h-[100dvh] w-full bg-gradient-to-br ${bgGradient} flex items-center justify-center py-6 px-2 sm:px-4 lg:px-6 relative font-['Poppins'] overflow-hidden`}>
-      <BgBlobs color={isStudent ? "green" : isStaff ? "yellow" : "blue"} />
+      <BgBlobs color={isStudent ? "green" : isStaff ? "red" : "blue"} />
+      
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -120,13 +130,11 @@ export const AccountPageLayout = React.memo(({
                     Username <span className="text-red-500">*</span>
                   </Label>
                   <Input
+                    {...register("username", validationRules.username)}
                     id="username"
-                    name="username"
                     autoComplete="username"
                     placeholder="Enter a username"
-                    value={formData.username}
-                    onChange={onInputChange}
-                    className={`h-12 sm:h-11 text-base border-2 rounded-lg ${missingFields.username ? "border-red-400" : "border-gray-200"} focus:border-ring`}
+                    className={`h-12 sm:h-11 text-base border-2 rounded-lg ${errors.username ? "border-red-400" : "border-gray-200"} focus:border-ring`}
                   />
                 </div>
                 <div className="flex-1 flex flex-col gap-1">
@@ -134,14 +142,12 @@ export const AccountPageLayout = React.memo(({
                     Password <span className="text-red-500">*</span>
                   </Label>
                   <Input
+                    {...register("password", validationRules.password)}
                     id="password"
-                    name="password"
                     type="password"
                     autoComplete="new-password"
                     placeholder="Enter password"
-                    value={formData.password}
-                    onChange={onInputChange}
-                    className={`h-12 sm:h-11 text-base border-2 rounded-lg ${missingFields.password ? "border-red-400" : "border-gray-200"} focus:border-ring`}
+                    className={`h-12 sm:h-11 text-base border-2 rounded-lg ${errors.password ? "border-red-400" : "border-gray-200"} focus:border-ring`}
                   />
                 </div>
                 <div className="flex-1 flex flex-col gap-1">
@@ -149,21 +155,19 @@ export const AccountPageLayout = React.memo(({
                     Confirm Password <span className="text-red-500">*</span>
                   </Label>
                   <Input
+                    {...register("confirmPassword", validationRules.confirmPassword)}
                     id="confirmPassword"
-                    name="confirmPassword"
                     type="password"
                     autoComplete="new-password"
                     placeholder="Re-enter password"
-                    value={formData.confirmPassword}
-                    onChange={onInputChange}
-                    className={`h-12 sm:h-11 text-base border-2 rounded-lg ${missingFields.confirmPassword ? "border-red-400" : "border-gray-200"} focus:border-ring`}
+                    className={`h-12 sm:h-11 text-base border-2 rounded-lg ${errors.confirmPassword || passwordError ? "border-red-400" : "border-gray-200"} focus:border-ring`}
                   />
                 </div>
                 {passwordError && (
                   <div className="text-red-500 text-sm mt-1">{passwordError}</div>
                 )}
               </div>
-              <div className="flex mb-1 justify-end">
+              <div className="flex mt-4 justify-end">
                 <Button
                   type="button"
                   onClick={onNextClick}
@@ -189,7 +193,7 @@ export const AccountPageLayout = React.memo(({
                 <div>
                   <p className="text-base text-gray-500">Password</p>
                   <p className="font-medium text-base">
-                    {formData.password || "Not provided"}
+                    {formData.password ? "••••••••" : "Not provided"}
                   </p>
                 </div>
               </div>

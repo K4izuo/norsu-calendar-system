@@ -12,7 +12,7 @@ type StaffSummaryProps = {
   isFormValid: boolean;
   agreed: boolean;
   setAgreed: React.Dispatch<React.SetStateAction<boolean>>;
-  color?: "emerald" | "indigo" | "yellow";
+  color?: "emerald" | "indigo" | "red";
 };
 
 export const StaffSummary = memo(function StaffSummary({
@@ -22,7 +22,7 @@ export const StaffSummary = memo(function StaffSummary({
   isFormValid,
   agreed,
   setAgreed,
-  color = "yellow",
+  color = "red",
 }: StaffSummaryProps) {
   const [termsOpen, setTermsOpen] = useState(false);
 
@@ -30,7 +30,7 @@ export const StaffSummary = memo(function StaffSummary({
     <>
       <div className="bg-gray-50 shadow-sm rounded-lg p-4">
         <div className="flex items-center mb-3">
-          <User className="w-6 h-6 text-yellow-500 mr-2" />
+          <User className="w-6 h-6 text-red-500 mr-2" />
           <h3 className="text-lg font-medium text-gray-700">Staff Information</h3>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -73,14 +73,14 @@ export const StaffSummary = memo(function StaffSummary({
                 setTermsOpen(true);
               }
             }}
-            className="data-[state=checked]:bg-yellow-500 data-[state=checked]:border-yellow-500 cursor-pointer"
+            className="data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500 cursor-pointer"
           />
           <span
             className="ml-3 text-base text-gray-700 cursor-pointer select-none"
             onClick={() => setTermsOpen(true)}
           >
             I have read and agree to the{" "}
-            <span className="underline text-yellow-600">Terms & Conditions</span>
+            <span className="underline text-red-600">Terms & Conditions</span>
           </span>
         </div>
         <TermsAndConditionModal
@@ -94,8 +94,8 @@ export const StaffSummary = memo(function StaffSummary({
       <div
         className={`mt-6 p-3 rounded-md flex items-center justify-center ${
           isFormValid
-            ? "bg-yellow-50 text-yellow-800"
-            : "bg-yellow-100 text-yellow-900"
+            ? "bg-red-50 text-red-800"
+            : "bg-red-100 text-red-900"
         }`}
       >
         {isFormValid ? (

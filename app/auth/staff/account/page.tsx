@@ -1,37 +1,27 @@
 "use client"
 
 import React from "react"
-// You need to create a useStaffAccountForm hook similar to useAccountRegForm
-import { useAccountForm } from "@/hooks/useAccountRegForm"
-import { AccountPageLayout } from "@/components/auth-register-form/account-page-form"
+import { AccountPageLayout } from "@/components/user-forms/account/account-page-form"
+import { ACCOUNT_VALIDATION_RULES } from "@/utils/account-validation-rules"
+import { useAccountForm } from "@/hooks/useAccountFormReg"
 
 export default function StaffAccountPage() {
-  const {
-    activeTab,
-    formData,
-    isSubmitting,
-    missingFields,
-    passwordError,
-    isFormValid,
-    handleInputChange,
-    handleNext,
-    handleBack,
-    handleSubmit
-  } = useAccountForm()
+  const { form, formData, activeTab, isSubmitting, isFormValid, handleNext, handleBack, onSubmit } = useAccountForm()
 
   return (
     <AccountPageLayout
       type="staff"
       formData={formData}
       activeTab={activeTab}
-      missingFields={missingFields}
-      passwordError={passwordError}
+      passwordError={null}
       isSubmitting={isSubmitting}
       isFormValid={isFormValid}
-      onInputChange={handleInputChange}
       onNextClick={handleNext}
       onBackClick={handleBack}
-      onSubmit={handleSubmit}
+      onSubmit={onSubmit}
+      register={form.register}
+      errors={form.formState.errors}
+      validationRules={ACCOUNT_VALIDATION_RULES}
     />
   )
 }
