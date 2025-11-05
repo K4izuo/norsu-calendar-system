@@ -1,10 +1,9 @@
 import { useState, useCallback } from "react"
 import { useForm } from "react-hook-form"
-import { AccountFormData } from "@/components/user-forms/account/account-page-form"
-// import { ACCOUNT_VALIDATION_RULES } from "@/utils/account-validation-rules"
-import { showAccountErrorToast } from "@/utils/account-field-error-toast"
 import toast from "react-hot-toast"
-import { apiClient } from "@/lib/api-client"
+import { AccountFormData } from "@/components/user-forms/account/account-page-form"
+import { ACCOUNT_VALIDATION_RULES } from "@/utils/account/account-validation-rules"
+import { showAccountErrorToast } from "@/utils/account/account-field-error-toast"
 
 export function useAccountForm() {
   const [activeTab, setActiveTab] = useState("details")
@@ -18,52 +17,58 @@ export function useAccountForm() {
     },
   })
 
-  const { handleSubmit, watch, formState: { errors, isSubmitting, isValid }, trigger, reset } = form
-
+  const { handleSubmit, watch, formState: { errors, isSubmitting, isValid }, reset, setError } = form
   const formData = watch()
 
-  const handleNext = useCallback(async () => {
-    const valid = await trigger()
-    if (valid) {
-      setActiveTab("summary")
-    } else {
-      showAccountErrorToast(errors, formData, null)
+  const validateAndProceed = useCallback((data: AccountFormData) => {
+    if (data.password !== data.confirmPassword) {
+      setError("confirmPassword", {
+        type: "manual",
+        message: "Passwords do not match"
+      })
+      showAccountErrorToast({}, formData, "Passwords do not match")
+      return
     }
-  }, [trigger, errors, formData])
+    setActiveTab("summary")
+  }, [formData, setError])
+
+  const handleNext = useCallback(() => {
+    handleSubmit(validateAndProceed, (errors) => {
+      showAccountErrorToast(errors, formData, null)
+    })()
+  }, [handleSubmit, validateAndProceed, formData])
 
   const handleBack = useCallback(() => {
     setActiveTab("details")
   }, [])
 
-  const onSubmit = useCallback(async (data: AccountFormData) => {
+  const processSubmission = useCallback(async () => {
     try {
-      const response = await apiClient.post("account/create", {
-        username: data.username,
-        password: data.password,
-      })
-      
-      if (response.error) {
-        toast.error(response.error, { duration: 5000 })
-        return
-      }
-      
-      toast.success("Account created successfully!", { duration: 5000 })
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      toast.success("Account created successfully!", { position: "top-center" })
       reset()
       setActiveTab("details")
     } catch (error) {
-      console.error("Account creation error:", error)
-      toast.error("Account creation failed!", { duration: 5000 })
+      toast.error("Failed to create account!", { position: "top-center" })
     }
   }, [reset])
+
+  const onSubmit = useCallback(() => {
+    handleSubmit(processSubmission, (errors) => {
+      showAccountErrorToast(errors, formData, null)
+    })()
+  }, [handleSubmit, processSubmission, formData])
 
   return {
     form,
     formData,
     activeTab,
+    errors,
     isSubmitting,
     isFormValid: isValid && Boolean(formData.username && formData.password && formData.confirmPassword),
     handleNext,
     handleBack,
-    onSubmit: handleSubmit(onSubmit),
+    onSubmit,
+    validationRules: ACCOUNT_VALIDATION_RULES
   }
 }

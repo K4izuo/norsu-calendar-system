@@ -13,8 +13,8 @@ import { useRole } from "@/contexts/user-role";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { apiClient } from "@/lib/api-client";
-import { showFieldErrorToast } from "@/utils/staff-field-error-toast";
-import { STAFF_VALIDATION_RULES } from "@/utils/staff-validation-rules";
+import { showFieldErrorToast } from "@/utils/staff/staff-register-error-toast";
+import { STAFF_VALIDATION_RULES } from "@/utils/staff/staff-register-validation-rules";
 import { StaffFormInput } from "@/components/user-forms/register/staff/staff-input-field";
 
 const TABS = [
@@ -34,31 +34,11 @@ export default function StaffRegisterPage() {
   const [activeTab, setActiveTab] = useState("details");
   const [agreed, setAgreed] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
-  const [touchedOnNext, setTouchedOnNext] = useState(false);
 
-  // Always call hooks first!
-  const {
-    campuses,
-    loading: loadingCampuses,
-    error: campusError,
-  } = useCampuses();
-  const {
-    offices,
-    loading: loadingOffices,
-    error: officeError,
-  } = useOffices();
+  const { campuses, loading: loadingCampuses, error: campusError } = useCampuses();
+  const { offices, loading: loadingOffices, error: officeError } = useOffices();
 
-  const {
-    control,
-    handleSubmit,
-    setValue,
-    getValues,
-    watch,
-    register,
-    formState: { errors, isSubmitting, isValid, touchedFields },
-    trigger,
-    reset,
-  } = useForm<StaffRegisterFormData>({
+  const form = useForm<StaffRegisterFormData>({
     mode: "onTouched",
     defaultValues: {
       first_name: "",
@@ -71,6 +51,11 @@ export default function StaffRegisterPage() {
       role: "",
     },
   });
+
+  const { control, handleSubmit, getValues, watch, register, formState: { errors, isSubmitting, isValid }, reset } = form;
+
+  // Watch all form data for real-time updates
+  const formData = watch();
 
   useEffect(() => {
     if (role === "staff") {
@@ -101,7 +86,6 @@ export default function StaffRegisterPage() {
         toast.success(successMsg, { duration: 5000 });
         reset();
         setActiveTab("details");
-        setTouchedOnNext(false);
       } catch (error) {
         console.error("Registration error:", error);
         toast.error("Registration failed!", { duration: 5000 });
@@ -110,26 +94,14 @@ export default function StaffRegisterPage() {
     [role, reset]
   );
 
-  const handleNextClick = useCallback(async () => {
-    setTouchedOnNext(true);
-    const valid = await trigger();
-    if (valid) {
-      setActiveTab("summary");
-    } else {
-      showFieldErrorToast(errors, { ...getValues(), role: role ?? "" });
-    }
-  }, [trigger, errors, getValues, role]);
-
-  const formDataWithRole = useMemo(
-    () => ({ ...getValues(), role: role ?? "" }),
-    [getValues, role, activeTab] // <-- Add activeTab here!
-  );
-
-  const getFieldError = useCallback((fieldName: keyof StaffRegisterFormData) => {
-      const fieldValue = watch(fieldName);
-      const hasValue = fieldValue && fieldValue.trim() !== "";
-      return (touchedFields[fieldName] || touchedOnNext) && !hasValue ? errors[fieldName] : undefined;
-    }, [touchedFields, touchedOnNext, errors, watch]);
+  const handleNext = useCallback(() => {
+    handleSubmit(
+      () => setActiveTab("summary"),
+      (errors) => {
+        showFieldErrorToast(errors, { ...getValues(), role: role ?? "" });
+      }
+    )();
+  }, [handleSubmit, getValues, role]);
 
   if (!shouldRender) return null;
 
@@ -237,7 +209,7 @@ export default function StaffRegisterPage() {
                           loading={loadingCampuses}
                           error={campusError}
                           required
-                          hasError={!!getFieldError("campus_id")}
+                          hasError={!!errors.campus_id}
                         />
                       )}
                     />
@@ -259,7 +231,7 @@ export default function StaffRegisterPage() {
                           loading={loadingOffices}
                           error={officeError}
                           required
-                          hasError={!!getFieldError("office_id")}
+                          hasError={!!errors.office_id}
                         />
                       )}
                     />
@@ -276,7 +248,7 @@ export default function StaffRegisterPage() {
                   </Button>
                   <Button
                     type="button"
-                    onClick={handleNextClick}
+                    onClick={handleNext}
                     variant="default"
                     className="text-base bg-red-500 hover:bg-red-400 cursor-pointer py-2.5"
                   >
@@ -286,7 +258,7 @@ export default function StaffRegisterPage() {
               </TabsContent>
               <TabsContent value="summary" className="space-y-6">
                 <StaffSummary
-                  formData={formDataWithRole}
+                  formData={{ ...formData, role: role ?? "" }}
                   campuses={campuses}
                   offices={offices}
                   isFormValid={isValid}

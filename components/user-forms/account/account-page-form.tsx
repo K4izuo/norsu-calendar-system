@@ -70,25 +70,74 @@ export const AccountPageLayout = React.memo(({
   errors,
   validationRules
 }: AccountPageProps) => {
-  const isStudent = type === "student"
-  const isFaculty = type === "faculty"
-  const isStaff = type === "staff"
+  
+  // Theme configuration
+  const themeConfig = {
+    student: {
+      color: "green",
+      accentColor: "emerald",
+      bgGradient: "from-green-50 to-emerald-50"
+    },
+    faculty: {
+      color: "blue",
+      accentColor: "indigo", 
+      bgGradient: "from-blue-50 to-indigo-50"
+    },
+    staff: {
+      color: "red",
+      accentColor: "red",
+      bgGradient: "from-red-50 to-red-100"
+    }
+  }
 
-  // Set theme color and accent color based on type
-  const themeColor = isStudent ? "green" : isStaff ? "red" : "blue"
-  const accentColor = isStudent ? "emerald" : isStaff ? "red" : "indigo"
-  const titleText = `Create ${isStudent ? "Student" : isFaculty ? "Faculty" : "Staff"} Account`
+  const theme = themeConfig[type]
+  const titleText = `Create ${type === "student" ? "Student" : type === "faculty" ? "Faculty" : "Staff"} Account`
 
-  // Set background gradient based on type
-  const bgGradient = isStudent
-    ? "from-green-50 to-emerald-50"
-    : isStaff
-      ? "from-red-50 to-red-100"
-      : "from-blue-50 to-indigo-50"
+  const getInputBorderClass = (fieldName: keyof AccountFormData) => {
+    const hasError = errors[fieldName] || (fieldName === "confirmPassword" && passwordError)
+    return hasError ? "border-red-400" : "border-gray-200"
+  }
+
+  const TabIndicator = ({ isActive, children }: { isActive: boolean; children: React.ReactNode }) => (
+    <div
+      className={`flex items-center justify-center py-2 px-2 rounded-md text-base font-medium transition-colors ${
+        isActive ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+      }`}
+      style={{ cursor: "default", minWidth: "100px" }}
+    >
+      {children}
+    </div>
+  )
+
+  const FormField = ({ 
+    name, 
+    label, 
+    type = "text", 
+    placeholder 
+  }: { 
+    name: keyof AccountFormData
+    label: string
+    type?: string
+    placeholder: string 
+  }) => (
+    <div className="flex-1 flex flex-col gap-1">
+      <Label className="inline-block select-none">
+        {label} <span className="text-red-500">*</span>
+      </Label>
+      <Input
+        {...register(name, validationRules[name])}
+        id={name}
+        type={type}
+        autoComplete={name === "username" ? "username" : "new-password"}
+        placeholder={placeholder}
+        className={`h-12 sm:h-11 text-base border-2 rounded-lg ${getInputBorderClass(name)} focus:border-ring`}
+      />
+    </div>
+  )
 
   return (
-    <div className={`min-h-[100dvh] w-full bg-gradient-to-br ${bgGradient} flex items-center justify-center py-6 px-2 sm:px-4 lg:px-6 relative font-['Poppins'] overflow-hidden`}>
-      <BgBlobs color={isStudent ? "green" : isStaff ? "red" : "blue"} />
+    <div className={`min-h-[100dvh] w-full bg-gradient-to-br ${theme.bgGradient} flex items-center justify-center py-6 px-2 sm:px-4 lg:px-6 relative font-['Poppins'] overflow-hidden`}>
+      <BgBlobs color={theme.color as "green" | "blue" | "red"} />
       
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -101,76 +150,36 @@ export const AccountPageLayout = React.memo(({
         </div>
         <Tabs value={activeTab} className="w-full">
           <div className="grid grid-cols-2 mb-4 bg-muted rounded-lg p-1 overflow-x-auto">
-            <div
-              className={`flex items-center justify-center py-2 px-2 rounded-md text-base font-medium transition-colors ${
-                activeTab === "details"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground"
-              }`}
-              style={{ cursor: "default", minWidth: "100px" }}
-            >
-              Account Details
-            </div>
-            <div
-              className={`flex items-center justify-center py-2 px-2 rounded-md text-base font-medium transition-colors ${
-                activeTab === "summary"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground"
-              }`}
-              style={{ cursor: "default", minWidth: "100px" }}
-            >
-              Summary
-            </div>
+            <TabIndicator isActive={activeTab === "details"}>Account Details</TabIndicator>
+            <TabIndicator isActive={activeTab === "summary"}>Summary</TabIndicator>
           </div>
           <TabsContent value="details" className="space-y-6">
-            <form className="flex flex-col gap-y-5" onSubmit={e => e.preventDefault()}>
+            <form className="flex flex-col gap-y-5" onSubmit={(e) => { e.preventDefault(); onNextClick(); }}>
               <div className="flex flex-col gap-4">
-                <div className="flex-1 flex flex-col gap-1">
-                  <Label className="inline-block select-none">
-                    Username <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    {...register("username", validationRules.username)}
-                    id="username"
-                    autoComplete="username"
-                    placeholder="Enter a username"
-                    className={`h-12 sm:h-11 text-base border-2 rounded-lg ${errors.username ? "border-red-400" : "border-gray-200"} focus:border-ring`}
-                  />
-                </div>
-                <div className="flex-1 flex flex-col gap-1">
-                  <Label htmlFor="password" className="inline-block select-none">
-                    Password <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    {...register("password", validationRules.password)}
-                    id="password"
-                    type="password"
-                    autoComplete="new-password"
-                    placeholder="Enter password"
-                    className={`h-12 sm:h-11 text-base border-2 rounded-lg ${errors.password ? "border-red-400" : "border-gray-200"} focus:border-ring`}
-                  />
-                </div>
-                <div className="flex-1 flex flex-col gap-1">
-                  <Label htmlFor="confirmPassword" className="inline-block select-none">
-                    Confirm Password <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    {...register("confirmPassword", validationRules.confirmPassword)}
-                    id="confirmPassword"
-                    type="password"
-                    autoComplete="new-password"
-                    placeholder="Re-enter password"
-                    className={`h-12 sm:h-11 text-base border-2 rounded-lg ${errors.confirmPassword || passwordError ? "border-red-400" : "border-gray-200"} focus:border-ring`}
-                  />
-                </div>
+                <FormField 
+                  name="username" 
+                  label="Username" 
+                  placeholder="Enter a username" 
+                />
+                <FormField 
+                  name="password" 
+                  label="Password" 
+                  type="password" 
+                  placeholder="Enter password" 
+                />
+                <FormField 
+                  name="confirmPassword" 
+                  label="Confirm Password" 
+                  type="password" 
+                  placeholder="Re-enter password" 
+                />
                 {passwordError && (
                   <div className="text-red-500 text-sm mt-1">{passwordError}</div>
                 )}
               </div>
               <div className="flex mt-4 justify-end">
                 <Button
-                  type="button"
-                  onClick={onNextClick}
+                  type="submit"
                   variant="default"
                   className="text-base cursor-pointer py-2.5"
                 >
@@ -182,7 +191,7 @@ export const AccountPageLayout = React.memo(({
           <TabsContent value="summary" className="space-y-6">
             <div className="bg-gray-50 shadow-sm rounded-lg p-4">
               <div className="flex items-center mb-3">
-                <User className={`w-6 h-6 text-${accentColor}-500 mr-2`} />
+                <User className={`w-6 h-6 text-${theme.accentColor}-500 mr-2`} />
                 <h3 className="text-lg font-medium text-gray-700">Account Information</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -200,7 +209,7 @@ export const AccountPageLayout = React.memo(({
             </div>
             <div className={`mt-6 p-3 rounded-md flex items-center justify-center ${
               isFormValid
-                ? `bg-${themeColor}-50 text-${themeColor}-800`
+                ? `bg-${theme.color}-50 text-${theme.color}-800`
                 : 'bg-yellow-50 text-yellow-800'
             }`}>
               {isFormValid ? (

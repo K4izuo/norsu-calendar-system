@@ -6,7 +6,6 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Control, FieldErrors, Controller } from "react-hook-form"
 import { ReservationFormData } from "@/interface/user-props"
-import { RESERVATION_VALIDATION_RULES } from "@/utils/reservation-validation-rules"
 
 interface Asset {
   id: string
@@ -20,6 +19,7 @@ interface Props {
   assets: Asset[]
   handleAssetChange: (value: string) => void
   selectedAsset?: Asset | null
+  validationRules: any
 }
 
 export function ReserveEventFormTab({
@@ -28,6 +28,7 @@ export function ReserveEventFormTab({
   assets,
   handleAssetChange,
   selectedAsset,
+  validationRules,
 }: Props) {
   const [currentTime, setCurrentTime] = useState(() => {
     const now = new Date();
@@ -47,11 +48,18 @@ export function ReserveEventFormTab({
       <div className="space-y-4 sm:space-y-5">
         <div>
           <Label htmlFor="title" className="text-base inline-block font-medium">Event Title<span className="text-red-500"> *</span></Label>
-          <Input
-            {...control.register("title", RESERVATION_VALIDATION_RULES.title)}
-            id="title"
-            placeholder="Enter event title"
-            className={`mt-1 border-2 text-base h-12 w-full ${errors.title ? "border-red-500 focus:border-red-500" : ""}`}
+          <Controller
+            name="title"
+            control={control}
+            rules={validationRules.title}
+            render={({ field }) => (
+              <Input
+                {...field}
+                id="title"
+                placeholder="Enter event title"
+                className={`mt-1 border-2 text-base h-12 w-full ${errors.title ? "border-red-500 focus:border-red-500" : ""}`}
+              />
+            )}
           />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -60,7 +68,7 @@ export function ReserveEventFormTab({
             <Controller
               name="asset"
               control={control}
-              rules={RESERVATION_VALIDATION_RULES.asset}
+              rules={validationRules.asset}
               render={({ field }) => (
                 <Select
                   value={selectedAsset?.id || ""}
@@ -108,7 +116,7 @@ export function ReserveEventFormTab({
             <Controller
               name="range"
               control={control}
-              rules={RESERVATION_VALIDATION_RULES.range}
+              rules={validationRules.range}
               render={({ field: { onChange, value, ...field } }) => (
                 <Input
                   {...field}
@@ -128,32 +136,53 @@ export function ReserveEventFormTab({
           </div>
           <div>
             <Label htmlFor="timeStart" className="text-base inline-block font-medium">Start Time<span className="text-red-500"> *</span></Label>
-            <Input
-              {...control.register("timeStart", RESERVATION_VALIDATION_RULES.timeStart)}
-              id="timeStart"
-              type="time"
-              defaultValue={currentTime}
-              className={`mt-1 border-2 text-base h-12 w-full ${errors.timeStart ? "border-red-500 focus:border-red-500" : ""}`}
+            <Controller
+              name="timeStart"
+              control={control}
+              rules={validationRules.timeStart}
+              render={({ field }) => (
+                <Input
+                  {...field}
+                  id="timeStart"
+                  type="time"
+                  defaultValue={currentTime}
+                  className={`mt-1 border-2 text-base h-12 w-full ${errors.timeStart ? "border-red-500 focus:border-red-500" : ""}`}
+                />
+              )}
             />
           </div>
           <div>
             <Label htmlFor="timeEnd" className="text-base inline-block font-medium">End Time<span className="text-red-500"> *</span></Label>
-            <Input
-              {...control.register("timeEnd", RESERVATION_VALIDATION_RULES.timeEnd)}
-              id="timeEnd"
-              type="time"
-              placeholder="Select end time"
-              className={`mt-1 border-2 text-base h-12 w-full ${errors.timeEnd ? "border-red-500 focus:border-red-500" : ""}`}
+            <Controller
+              name="timeEnd"
+              control={control}
+              rules={validationRules.timeEnd}
+              render={({ field }) => (
+                <Input
+                  {...field}
+                  id="timeEnd"
+                  type="time"
+                  placeholder="Select end time"
+                  className={`mt-1 border-2 text-base h-12 w-full ${errors.timeEnd ? "border-red-500 focus:border-red-500" : ""}`}
+                />
+              )}
             />
           </div>
         </div>
         <div>
           <Label htmlFor="description" className="text-base inline-block font-medium">Description<span className="text-red-500"> *</span></Label>
-          <Textarea
-            {...control.register("description", RESERVATION_VALIDATION_RULES.description)}
-            id="description"
-            placeholder="Enter event description"
-            className={`mt-1 border-2 min-h-[120px] text-base h-12 w-full ${errors.description ? "border-red-500 focus:border-red-500" : ""}`}
+          <Controller
+            name="description"
+            control={control}
+            rules={validationRules.description}
+            render={({ field }) => (
+              <Textarea
+                {...field}
+                id="description"
+                placeholder="Enter event description"
+                className={`mt-1 border-2 min-h-[120px] text-base h-12 w-full ${errors.description ? "border-red-500 focus:border-red-500" : ""}`}
+              />
+            )}
           />
         </div>
       </div>

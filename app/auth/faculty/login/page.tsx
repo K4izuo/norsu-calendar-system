@@ -1,81 +1,32 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
 import { motion } from "framer-motion"
-import { Lock, GraduationCap, BookOpen, Users, Award, Clock, User, Eye, EyeOff, Loader2 } from "lucide-react"
-import toast from "react-hot-toast"
-import { FacultyFormField } from "@/components/user-forms/login/faculty/faculty-form-field"
+import { GraduationCap, BookOpen, Users, Award, Clock } from "lucide-react"
+import { LoginFormLayout } from "@/components/user-forms/login/login-page-form"
+import { useLoginForm } from "@/hooks/useLoginForm"
 
-interface FormData {
-  username: string
-  password: string
-}
-
-export default function FacultyStaffLoginPage() {
-  const [showPassword, setShowPassword] = useState(false)
-  const [rememberMe, setRememberMe] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-
+export default function FacultyLoginPage() {
   const {
-    register,
+    form,
+    formData,
+    errors,
+    showPassword,
+    rememberMe,
+    isLoading,
+    handlePasswordToggle,
+    handleRememberMeChange,
     handleSubmit,
-    setError,
-    formState: { errors },
-    reset,
-  } = useForm<FormData>({
-    mode: "onChange",
-    defaultValues: { username: "", password: "" },
-  })
-
-  // Custom validation functions
-  const validateUsername = (username: string) =>
-    username.length >= 3 && /^[a-zA-Z0-9_]+$/.test(username)
-  const validatePassword = (password: string) => password.length >= 8
-
-  const onSubmit = async (data: FormData) => {
-    let hasError = false
-
-    if (!data.username.trim()) {
-      setError("username", { type: "manual", message: "Username is required" })
-      toast.error("Username is required", { position: "top-center" })
-      hasError = true
-    }
-    if (!data.password.trim()) {
-      setError("password", { type: "manual", message: "Password is required" })
-      toast.error("Password is required", { position: "top-center" })
-      hasError = true
-    }
-    if (data.username.trim() && !validateUsername(data.username)) {
-      setError("username", { type: "manual", message: "Username must be at least 3 characters long" })
-      toast.error("Username must be at least 3 characters long", { position: "top-center" })
-      hasError = true
-    }
-    if (data.password.trim() && !validatePassword(data.password)) {
-      setError("password", { type: "manual", message: "Password must be at least 8 characters long" })
-      toast.error("Password must be at least 8 characters long", { position: "top-center" })
-      hasError = true
-    }
-    if (hasError) return
-
-    setIsLoading(true)
-    setTimeout(() => {
-      setIsLoading(false)
-      toast.success("Login successful!", { position: "top-center" })
-      reset()
-      // window.location.href = "/dashboard"
-    }, 2000)
-  }
+    validationRules
+  } = useLoginForm()
 
   return (
     <div className="min-h-[100dvh] w-full bg-gradient-to-br from-blue-50 to-indigo-50 font-['Poppins'] flex items-center justify-center py-6 px-3 sm:px-4 lg:px-6 relative overflow-hidden">
       {/* Background decorative elements */}
-      <div className="absolute top-0 left-0 w-32 h-32 bg-blue-600 rounded-full opacity-10 -translate-x-16 -translate-y-16"></div>
-      <div className="absolute bottom-0 right-0 w-48 h-48 bg-indigo-500 rounded-full opacity-10 translate-x-24 translate-y-24"></div>
-      <div className="absolute top-1/2 left-0 w-24 h-24 bg-blue-500 rounded-full opacity-10 -translate-x-12"></div>
+      <div className="absolute top-0 left-0 w-48 h-48 bg-blue-600 rounded-full opacity-20 -translate-x-24 -translate-y-24"></div>
+      <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500 rounded-full opacity-10 translate-x-24 -translate-y-24"></div>
+      <div className="absolute bottom-0 right-0 w-48 h-48 bg-indigo-500 rounded-full opacity-20 translate-x-24 translate-y-24"></div>
+      <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500 rounded-full opacity-20 -translate-x-24 translate-y-24"></div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -126,87 +77,19 @@ export default function FacultyStaffLoginPage() {
         </div>
 
         {/* Right Side - Login Form */}
-        <div className="p-5 sm:p-8 w-full flex flex-col justify-center">
-          {/* Heading at the top */}
-          <div className="flex flex-col items-center mt-1.5 mb-7 gap-y-0.5">
-            <h1 className="text-2xl font-bold text-gray-800">Welcome</h1>
-            <p className="text-gray-600 text-sm">Please enter your login credentials</p>
-          </div>
-          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-y-6 max-w-md mx-auto w-full">
-            <div className="flex flex-col gap-y-2 w-full sm:w-[98%] md:w-[94%] mx-auto">
-              {/* Username Field */}
-              <FacultyFormField
-                id="username"
-                type="text"
-                placeholder="Username"
-                icon={User}
-                hasError={!!errors.username}
-                errorMessage={errors.username?.message}
-                autoComplete="username"
-                {...register("username")}
-              />
-
-              {/* Password Field */}
-              <FacultyFormField
-                id="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="Password"
-                icon={Lock}
-                hasError={!!errors.password}
-                errorMessage={errors.password?.message}
-                autoComplete="current-password"
-                {...register("password")}
-                rightElement={
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(v => !v)}
-                    className="absolute right-1 cursor-pointer top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
-                  >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
-                }
-              />
-
-              {/* Remember Me & Forgot Password */}
-              <div className="flex mb-4 items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="remember"
-                    checked={rememberMe}
-                    onCheckedChange={checked => setRememberMe(checked === true)}
-                    className="border-2 border-gray-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-                  />
-                  <label htmlFor="remember" className="text-sm text-gray-600 cursor-pointer">
-                    Remember Me
-                  </label>
-                </div>
-                <Button
-                  variant="link"
-                  className="text-blue-600 cursor-pointer hover:text-blue-700 p-0 text-sm font-medium"
-                  type="button"
-                >
-                  Forgot Password?
-                </Button>
-              </div>
-
-              {/* Login Button */}
-              <Button
-                type="submit"
-                className="w-full cursor-pointer h-[50px] sm:h-[54px] font-semibold text-sm sm:text-base bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] mb-3.5 flex items-center justify-center gap-x-2"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="animate-spin h-5 w-5" />
-                    Logging in...
-                  </>
-                ) : (
-                  "LOGIN"
-                )}
-              </Button>
-            </div>
-          </form>
-        </div>
+        <LoginFormLayout
+          type="faculty"
+          showPassword={showPassword}
+          rememberMe={rememberMe}
+          isLoading={isLoading}
+          formData={formData}
+          errors={errors}
+          onShowPasswordToggle={handlePasswordToggle}
+          onRememberMeChange={handleRememberMeChange}
+          onSubmit={handleSubmit}
+          register={form.register}
+          validationRules={validationRules}
+        />
       </motion.div>
     </div>
   )

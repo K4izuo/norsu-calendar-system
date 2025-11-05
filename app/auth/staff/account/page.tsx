@@ -1,12 +1,22 @@
 "use client"
 
-import React from "react"
+import type React from "react"
 import { AccountPageLayout } from "@/components/user-forms/account/account-page-form"
-import { ACCOUNT_VALIDATION_RULES } from "@/utils/account-validation-rules"
 import { useAccountForm } from "@/hooks/useAccountFormReg"
 
 export default function StaffAccountPage() {
-  const { form, formData, activeTab, isSubmitting, isFormValid, handleNext, handleBack, onSubmit } = useAccountForm()
+  const { 
+    form, 
+    formData, 
+    activeTab, 
+    errors,
+    isSubmitting, 
+    isFormValid, 
+    handleNext, 
+    handleBack, 
+    onSubmit,
+    validationRules
+  } = useAccountForm()
 
   return (
     <AccountPageLayout
@@ -21,7 +31,7 @@ export default function StaffAccountPage() {
       onSubmit={onSubmit}
       register={form.register}
       errors={form.formState.errors}
-      validationRules={ACCOUNT_VALIDATION_RULES}
+      validationRules={validationRules}
     />
   )
 }

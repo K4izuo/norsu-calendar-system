@@ -13,7 +13,8 @@ import { ReserveEventSummaryTab } from "@/components/modal/reserve-event-tab/eve
 import { ReservationFormData } from "@/interface/user-props"
 import { AssetsVenueModal } from "@/components/modal/reserve-event-assets/assets-venue-modal"
 import { AssetsVehicleModal } from "@/components/modal/reserve-event-assets/assets-vehicle-modal"
-import { showFormTabErrorToast, showAdditionalTabErrorToast } from "@/utils/reservation-field-error-toast"
+import { showFormTabErrorToast, showAdditionalTabErrorToast } from "@/utils/reserve-event/reservation-field-error-toast"
+import { RESERVATION_VALIDATION_RULES } from "@/utils/reserve-event/reservation-validation-rules"
 
 const infoTypes = [
   { value: "public", label: "Public" },
@@ -48,16 +49,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
     return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
   };
 
-  const {
-    control,
-    handleSubmit,
-    setValue,
-    getValues,
-    watch,
-    formState: { errors, isSubmitting },
-    trigger,
-    reset,
-  } = useForm<ReservationFormData>({
+  const form = useForm<ReservationFormData>({
     mode: "onTouched",
     reValidateMode: "onBlur",
     defaultValues: {
@@ -73,6 +65,8 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
       date: eventDate || "",
     },
   });
+
+  const { control, handleSubmit, setValue, getValues, watch, formState: { errors, isSubmitting }, reset } = form;
 
   const [showVenueModal, setShowVenueModal] = useState(false);
   const [showVehicleModal, setShowVehicleModal] = useState(false);
@@ -92,7 +86,6 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
   const [tagInput, setTagInput] = useState("");
   const [taggedPeople, setTaggedPeople] = useState<{ id: string; name: string }[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [hasInteractedWithAdditional, setHasInteractedWithAdditional] = useState(false);
 
   useEffect(() => {
     if (eventDate) {
@@ -205,7 +198,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
       values.category &&
       taggedPeople.length > 0
     );
-  }, [taggedPeople.length]);
+  }, [getValues, taggedPeople.length]);
 
   const onSubmitForm = useCallback(
     async (data: ReservationFormData) => {
@@ -239,26 +232,23 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
     [onSubmit, reset, onClose, taggedPeople]
   );
 
-  const handleFormTabNext = useCallback(async () => {
-    const formValid = await trigger(FORM_TAB_FIELDS as any);
+  const handleFormTabNext = useCallback(() => {
+    handleSubmit(
+      () => setActiveTab("additional"),
+      (errors) => {
+        showFormTabErrorToast(errors, getValues());
+      }
+    )();
+  }, [handleSubmit, getValues]);
 
-    if (formValid) {
-      setActiveTab("additional");
-    } else {
-      showFormTabErrorToast(errors, getValues());
-    }
-  }, [trigger, errors, getValues]);
-
-  const handleAdditionalTabNext = useCallback(async () => {
-    setHasInteractedWithAdditional(true);
-    const additionalValid = await trigger(ADDITIONAL_TAB_FIELDS as any);
-
-    if (additionalValid) {
-      setActiveTab("summary");
-    } else {
-      showAdditionalTabErrorToast(errors, getValues(), taggedPeople);
-    }
-  }, [trigger, errors, getValues, taggedPeople]);
+  const handleAdditionalTabNext = useCallback(() => {
+    handleSubmit(
+      () => setActiveTab("summary"),
+      (errors) => {
+        showAdditionalTabErrorToast(errors, getValues(), taggedPeople);
+      }
+    )();
+  }, [handleSubmit, getValues, taggedPeople]);
 
   const tabOrder = ["form", "additional", "summary"];
   const tabLabels: Record<string, string> = {
@@ -353,6 +343,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                     ]}
                     handleAssetChange={handleAssetChange}
                     selectedAsset={watchedAsset}
+                    validationRules={RESERVATION_VALIDATION_RULES}
                   />
                 </TabsContent>
 
@@ -370,7 +361,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                     handleTagSelect={handleTagSelect}
                     handleRemoveTag={handleRemoveTag}
                     setShowDropdown={setShowDropdown}
-                    hasInteracted={hasInteractedWithAdditional}
+                    validationRules={RESERVATION_VALIDATION_RULES}
                   />
                 </TabsContent>
 

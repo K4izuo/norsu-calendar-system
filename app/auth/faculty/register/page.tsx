@@ -13,8 +13,8 @@ import { useRole } from "@/contexts/user-role";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { apiClient } from "@/lib/api-client";
-import { showFieldErrorToast } from "@/utils/faculty-field-error-toast";
-import { FACULTY_VALIDATION_RULES } from "@/utils/faculty-validation-rules";
+import { showFieldErrorToast } from "@/utils/faculty/faculty-register-error-toast";
+import { FACULTY_VALIDATION_RULES } from "@/utils/faculty/faculty-register-validation-rules";
 import { FacultyFormInput } from "@/components/user-forms/register/faculty/faculty-input-field";
 
 const TABS = [
@@ -34,33 +34,13 @@ export default function FacultyRegisterPage() {
   const [activeTab, setActiveTab] = useState("details");
   const [agreed, setAgreed] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
-  const [touchedOnNext, setTouchedOnNext] = useState(false);
-
-  // Always call hooks first!
-  const {
-    campuses,
-    loading: loadingCampuses,
-    error: campusError,
-  } = useCampuses();
-  const {
-    offices,
-    loading: loadingOffices,
-    error: officeError,
-  } = useOffices();
   const [selectedCollege, setSelectedCollege] = useState("");
+
+  const { campuses, loading: loadingCampuses, error: campusError } = useCampuses();
+  const { offices, loading: loadingOffices, error: officeError } = useOffices();
   const { courses, loading: loadingCourses, error: courseError } = useCourses(selectedCollege);
 
-  const {
-    control,
-    handleSubmit,
-    setValue,
-    getValues,
-    watch,
-    register,
-    formState: { errors, isSubmitting, isValid, touchedFields },
-    trigger,
-    reset,
-  } = useForm<FacultyRegisterFormData>({
+  const form = useForm<FacultyRegisterFormData>({
     mode: "onTouched",
     defaultValues: {
       first_name: "",
@@ -75,6 +55,12 @@ export default function FacultyRegisterPage() {
     },
   });
 
+  const { control, handleSubmit, setValue, getValues, watch, register, formState: { errors, isSubmitting, isValid }, reset } = form;
+
+  // Watch all form data for real-time updates
+  const formData = watch();
+  const college_id = watch("college_id");
+
   useEffect(() => {
     if (role === "faculty") {
       setShouldRender(true);
@@ -82,8 +68,6 @@ export default function FacultyRegisterPage() {
       router.replace("/auth/register");
     }
   }, [role, router]);
-
-  const college_id = watch("college_id");
 
   React.useEffect(() => {
     setSelectedCollege(college_id);
@@ -111,7 +95,6 @@ export default function FacultyRegisterPage() {
         toast.success(successMsg, { duration: 5000 });
         reset();
         setActiveTab("details");
-        setTouchedOnNext(false);
       } catch (error) {
         console.error("Registration error:", error);
         toast.error("Registration failed!", { duration: 5000 });
@@ -120,26 +103,14 @@ export default function FacultyRegisterPage() {
     [role, reset]
   );
 
-  const handleNextClick = useCallback(async () => {
-    setTouchedOnNext(true);
-    const valid = await trigger(); // Validates all untouched fields
-    if (valid) {
-      setActiveTab("summary");
-    } else {
-      showFieldErrorToast(errors, { ...getValues(), role: role ?? "" });
-    }
-  }, [trigger, errors, getValues, role]);
-
-  const formDataWithRole = useMemo(
-    () => ({ ...getValues(), role: role ?? "" }),
-    [getValues, role]
-  );
-
-  const getFieldError = useCallback((fieldName: keyof FacultyRegisterFormData) => {
-    const fieldValue = watch(fieldName);
-    const hasValue = fieldValue && fieldValue.trim() !== "";
-    return (touchedFields[fieldName] || touchedOnNext) && !hasValue ? errors[fieldName] : undefined;
-  }, [touchedFields, touchedOnNext, errors, watch]);
+  const handleNext = useCallback(() => {
+    handleSubmit(
+      () => setActiveTab("summary"),
+      (errors) => {
+        showFieldErrorToast(errors, { ...getValues(), role: role ?? "" });
+      }
+    )();
+  }, [handleSubmit, getValues, role]);
 
   if (!shouldRender) return null;
 
@@ -246,7 +217,7 @@ export default function FacultyRegisterPage() {
                           loading={loadingCampuses}
                           error={campusError}
                           required
-                          hasError={!!getFieldError("campus_id")}
+                          hasError={!!errors.campus_id}
                         />
                       )}
                     />
@@ -268,7 +239,7 @@ export default function FacultyRegisterPage() {
                           loading={loadingOffices}
                           error={officeError}
                           required
-                          hasError={!!getFieldError("college_id")}
+                          hasError={!!errors.college_id}
                         />
                       )}
                     />
@@ -292,7 +263,7 @@ export default function FacultyRegisterPage() {
                       error={courseError}
                       required
                       disabled={!selectedCollege}
-                      hasError={!!getFieldError("degree_course_id")}
+                      hasError={!!errors.degree_course_id}
                     />
                   )}
                 />
@@ -307,7 +278,7 @@ export default function FacultyRegisterPage() {
                   </Button>
                   <Button
                     type="button"
-                    onClick={handleNextClick}
+                    onClick={handleNext}
                     variant="default"
                     className="text-base bg-indigo-600 hover:bg-indigo-500 cursor-pointer py-2.5"
                   >
@@ -317,7 +288,7 @@ export default function FacultyRegisterPage() {
               </TabsContent>
               <TabsContent value="summary" className="space-y-6">
                 <FacultySummary
-                  formData={formDataWithRole}
+                  formData={{ ...formData, role: role ?? "" }}
                   campuses={campuses}
                   offices={offices}
                   courses={courses}

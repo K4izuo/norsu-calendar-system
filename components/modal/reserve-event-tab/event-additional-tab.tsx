@@ -5,7 +5,6 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { X, User } from "lucide-react"
 import { Control, FieldErrors, Controller } from "react-hook-form"
 import { ReservationFormData } from "@/interface/user-props"
-import { RESERVATION_VALIDATION_RULES } from "@/utils/reservation-validation-rules"
 
 interface Props {
   control: Control<ReservationFormData>
@@ -20,12 +19,12 @@ interface Props {
   handleTagSelect: (person: { id: string; name: string }) => void
   handleRemoveTag: (id: string) => void
   setShowDropdown: (show: boolean) => void
-  hasInteracted: boolean
+  validationRules: any
 }
 
 export function ReserveEventAdditionalTab({
   control,
-  // errors,
+  errors,
   infoTypes,
   categories,
   tagInput,
@@ -36,7 +35,7 @@ export function ReserveEventAdditionalTab({
   handleTagSelect,
   handleRemoveTag,
   setShowDropdown,
-  hasInteracted,
+  validationRules,
 }: Props) {
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -46,8 +45,8 @@ export function ReserveEventAdditionalTab({
           <Controller
             name="people"
             control={control}
-            rules={RESERVATION_VALIDATION_RULES.people}
-            render={({ field, fieldState: { error, isTouched } }) => (
+            rules={validationRules.people}
+            render={({ field }) => (
               <div className="relative mt-1">
                 <Input
                   id="people"
@@ -59,7 +58,7 @@ export function ReserveEventAdditionalTab({
                     field.onBlur();
                     setTimeout(() => setShowDropdown(false), 150);
                   }}
-                  className={`h-12 border-2 text-base w-full ${(error && (isTouched || hasInteracted)) ? "border-red-500 focus:border-red-500" : ""}`}
+                  className={`h-12 border-2 text-base w-full ${errors.people ? "border-red-500 focus:border-red-500" : ""}`}
                   autoComplete="off"
                   onFocus={() => setShowDropdown(tagInput.length > 0)}
                 />
@@ -116,8 +115,8 @@ export function ReserveEventAdditionalTab({
           <Controller
             name="infoType"
             control={control}
-            rules={RESERVATION_VALIDATION_RULES.infoType}
-            render={({ field, fieldState: { error, isTouched } }) => (
+            rules={validationRules.infoType}
+            render={({ field }) => (
               <Select 
                 value={field.value} 
                 onValueChange={(value) => {
@@ -129,7 +128,7 @@ export function ReserveEventAdditionalTab({
               >
                 <SelectTrigger 
                   id="infoType" 
-                  className={`mt-1 cursor-pointer border-2 text-base w-full h-12 ${(error && (isTouched || hasInteracted)) ? "border-red-500 focus:border-red-500" : ""}`}
+                  className={`mt-1 cursor-pointer border-2 text-base w-full h-12 ${errors.infoType ? "border-red-500 focus:border-red-500" : ""}`}
                 >
                   <SelectValue placeholder="Select information type" />
                 </SelectTrigger>
@@ -152,8 +151,8 @@ export function ReserveEventAdditionalTab({
           <Controller
             name="category"
             control={control}
-            rules={RESERVATION_VALIDATION_RULES.category}
-            render={({ field, fieldState: { error, isTouched } }) => (
+            rules={validationRules.category}
+            render={({ field }) => (
               <Select 
                 value={field.value} 
                 onValueChange={(value) => {
@@ -165,7 +164,7 @@ export function ReserveEventAdditionalTab({
               >
                 <SelectTrigger 
                   id="category" 
-                  className={`mt-1 cursor-pointer border-2 text-base w-full h-12 ${(error && (isTouched || hasInteracted)) ? "border-red-500 focus:border-red-500" : ""}`}
+                  className={`mt-1 cursor-pointer border-2 text-base w-full h-12 ${errors.category ? "border-red-500 focus:border-red-500" : ""}`}
                 >
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>

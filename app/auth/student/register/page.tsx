@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useCallback, useState, useMemo } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -13,8 +13,8 @@ import { useRole } from "@/contexts/user-role";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { apiClient } from "@/lib/api-client";
-import { showFieldErrorToast } from "@/utils/student-field-error-toast";
-import { STUDENT_VALIDATION_RULES } from "@/utils/student-validation-rules";
+import { showFieldErrorToast } from "@/utils/student/std-register-error-toast";
+import { STUDENT_VALIDATION_RULES } from "@/utils/student/std-register-validation-rules";
 import { StudentFormInput } from "@/components/user-forms/register/student/student-input-field";
 
 const TABS = [
@@ -34,33 +34,13 @@ export default function StudentRegisterPage() {
   const [activeTab, setActiveTab] = useState("details");
   const [agreed, setAgreed] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
-  const [touchedOnNext, setTouchedOnNext] = useState(false);
-
-  // Always call hooks first!
-  const {
-    campuses,
-    loading: loadingCampuses,
-    error: campusError,
-  } = useCampuses();
-  const {
-    offices,
-    loading: loadingOffices,
-    error: officeError,
-  } = useOffices();
   const [selectedCollege, setSelectedCollege] = useState("");
+
+  const { campuses, loading: loadingCampuses, error: campusError } = useCampuses();
+  const { offices, loading: loadingOffices, error: officeError } = useOffices();
   const { courses, loading: loadingCourses, error: courseError } = useCourses(selectedCollege);
 
-  const {
-    control,
-    handleSubmit,
-    setValue,
-    getValues,
-    watch,
-    register,
-    formState: { errors, isSubmitting, isValid, touchedFields },
-    trigger,
-    reset,
-  } = useForm<StudentRegisterFormData>({
+  const form = useForm<StudentRegisterFormData>({
     mode: "onTouched",
     defaultValues: {
       first_name: "",
@@ -75,6 +55,12 @@ export default function StudentRegisterPage() {
     },
   });
 
+  const { control, handleSubmit, setValue, getValues, watch, register, formState: { errors, isSubmitting, isValid }, reset } = form;
+
+  // Watch all form data for real-time updates
+  const formData = watch();
+  const college_id = watch("college_id");
+
   useEffect(() => {
     if (role === "student") {
       setShouldRender(true);
@@ -82,8 +68,6 @@ export default function StudentRegisterPage() {
       router.replace("/auth/register");
     }
   }, [role, router]);
-
-  const college_id = watch("college_id");
 
   React.useEffect(() => {
     setSelectedCollege(college_id);
@@ -111,7 +95,6 @@ export default function StudentRegisterPage() {
         toast.success(successMsg, { duration: 5000 });
         reset();
         setActiveTab("details");
-        setTouchedOnNext(false);
       } catch (error) {
         console.error("Registration error:", error);
         toast.error("Registration failed!", { duration: 5000 });
@@ -120,26 +103,14 @@ export default function StudentRegisterPage() {
     [role, reset]
   );
 
-  const handleNextClick = useCallback(async () => {
-    setTouchedOnNext(true);
-    const valid = await trigger(); // Validates all untouched fields
-    if (valid) {
-      setActiveTab("summary");
-    } else {
-      showFieldErrorToast(errors, { ...getValues(), role: role ?? "" });
-    }
-  }, [trigger, errors, getValues, role]);
-
-  const formDataWithRole = useMemo(
-    () => ({ ...getValues(), role: role ?? "" }),
-    [getValues, role]
-  );
-
-  const getFieldError = useCallback((fieldName: keyof StudentRegisterFormData) => {
-      const fieldValue = watch(fieldName);
-      const hasValue = fieldValue && fieldValue.trim() !== "";
-      return (touchedFields[fieldName] || touchedOnNext) && !hasValue ? errors[fieldName] : undefined;
-    }, [touchedFields, touchedOnNext, errors, watch]);
+  const handleNext = useCallback(() => {
+    handleSubmit(
+      () => setActiveTab("summary"),
+      (errors) => {
+        showFieldErrorToast(errors, { ...getValues(), role: role ?? "" });
+      }
+    )();
+  }, [handleSubmit, getValues, role]);
 
   if (!shouldRender) return null;
 
@@ -246,7 +217,7 @@ export default function StudentRegisterPage() {
                           loading={loadingCampuses}
                           error={campusError}
                           required
-                          hasError={!!getFieldError("campus_id")}
+                          hasError={!!errors.campus_id}
                         />
                       )}
                     />
@@ -268,7 +239,7 @@ export default function StudentRegisterPage() {
                           loading={loadingOffices}
                           error={officeError}
                           required
-                          hasError={!!getFieldError("college_id")}
+                          hasError={!!errors.college_id}
                         />
                       )}
                     />
@@ -292,7 +263,7 @@ export default function StudentRegisterPage() {
                       error={courseError}
                       required
                       disabled={!selectedCollege}
-                      hasError={!!getFieldError("degree_course_id")}
+                      hasError={!!errors.degree_course_id}
                     />
                   )}
                 />
@@ -307,7 +278,7 @@ export default function StudentRegisterPage() {
                   </Button>
                   <Button
                     type="button"
-                    onClick={handleNextClick}
+                    onClick={handleNext}
                     variant="default"
                     className="text-base bg-green-700 hover:bg-green-600 cursor-pointer py-2.5"
                   >
@@ -317,7 +288,7 @@ export default function StudentRegisterPage() {
               </TabsContent>
               <TabsContent value="summary" className="space-y-6">
                 <StudentSummary
-                  formData={formDataWithRole}
+                  formData={{ ...formData, role: role ?? "" }}
                   campuses={campuses}
                   offices={offices}
                   courses={courses}
