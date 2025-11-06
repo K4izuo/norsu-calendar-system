@@ -179,9 +179,10 @@ export default function AdminCalendarTab() {
       </h1>
 
       {/* Calendar container */}
-      <div className="bg-white rounded-md shadow-md flex flex-col flex-1 p-3 sm:p-6 md:p-7.5">
+      <div className="bg-white rounded-md shadow-md flex flex-col flex-1 p-3 sm:p-6 md:p-7">
         {/* Calendar component */}
         <Calendar
+          role="admin"
           events={events}
           onDaySelect={handleDaySelect}
           getEventsForDate={getEventsForDate}
@@ -195,6 +196,7 @@ export default function AdminCalendarTab() {
 
         {/* Events List Modal */}
         <EventsListModal
+          role="admin"  // Add this line
           isOpen={modalOpen}
           onClose={handleCloseModal}
           title={
@@ -218,6 +220,7 @@ export default function AdminCalendarTab() {
 
         {/* Event Info Modal */}
         <EventInfoModal
+          role="admin"
           isOpen={eventInfoModalOpen}
           onClose={() => setEventInfoModalOpen(false)}
           event={selectedEvent}

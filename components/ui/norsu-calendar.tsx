@@ -11,8 +11,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CalendarDayType } from "@/interface/user-props";
+import { getRoleColors, UserRole } from "@/utils/role-colors";
 
-// Simplified props interface
+// Updated props interface
 export function Calendar<T>({
   events,
   onDaySelect,
@@ -20,6 +21,7 @@ export function Calendar<T>({
   initialDate = new Date(),
   isLoading = false,
   setLoading,
+  role, // Remove default value
   // Required props (not optional)
   currentMonth,
   currentYear,
@@ -27,21 +29,26 @@ export function Calendar<T>({
 }: {
   events: T[];
   onDaySelect: (day: CalendarDayType) => void;
-  getEventsForDate: (year: number, month: number, day: number) => { hasEvent: boolean; count: number };
+  getEventsForDate: (year: number, month: number, day: number) => {
+    hasEvent: boolean;
+    count: number;
+  };
   initialDate?: Date;
   isLoading?: boolean;
   setLoading?: (loading: boolean) => void;
+  role?: UserRole; // Keep as optional but no default
   currentMonth: number;
   currentYear: number;
   onMonthYearChange: (month: number, year: number) => void;
 }) {
   const today = useMemo(() => initialDate || new Date(), [initialDate]);
-  
-  // No internal state for month/year - use props directly
-  
+
+  // Get role-specific colors
+  const roleColors = useMemo(() => getRoleColors(role), [role]);
+
   // Animation direction state
-  const [direction, setDirection] = useState(0); 
-  
+  const [direction, setDirection] = useState(0);
+
   // Window width state for responsive rendering
   const [windowWidth, setWindowWidth] = useState(0);
 
@@ -127,10 +134,10 @@ export function Calendar<T>({
         i === today.getDate() &&
         currentMonth === today.getMonth() &&
         currentYear === today.getFullYear();
-        
+
       // Get events for this day using the provided function
       const { hasEvent, count } = getEventsForDate(currentYear, currentMonth, i);
-      
+
       days.push({
         date: i,
         currentMonth: true,
@@ -156,10 +163,23 @@ export function Calendar<T>({
     return days;
   }, [currentMonth, currentYear, today, getEventsForDate]);
 
-  const monthNames = useMemo(() => [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
-  ], []);
+  const monthNames = useMemo(
+    () => [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ],
+    []
+  );
 
   // Get current month name and year as a formatted string
   const currentMonthYear = useMemo(
@@ -351,14 +371,14 @@ export function Calendar<T>({
               transition={{ duration: 0.3 }}
             >
               <div className="relative h-16 w-16 flex items-center justify-center">
-                {/* Spinner rotates */}
+                {/* Spinner rotates with role-specific color */}
                 <motion.div
-                  className="absolute inset-0 h-16 w-16 rounded-full border-t-4 border-b-4 border-blue-500"
+                  className={`absolute inset-0 h-16 w-16 rounded-full border-t-4 border-b-4 ${roleColors.spinner}`}
                   animate={{ rotate: 360 }}
                   transition={{ duration: 1.5, ease: "linear", repeat: Infinity }}
                 />
-                {/* Icon stays still */}
-                <CalendarClock className="absolute inset-0 m-auto h-7 w-7 text-blue-500" />
+                {/* Icon stays still with role-specific color */}
+                <CalendarClock className={`absolute inset-0 m-auto h-7 w-7 ${roleColors.icon}`} />
               </div>
             </motion.div>
           ) : (
@@ -379,11 +399,11 @@ export function Calendar<T>({
                     className={`relative border rounded-md flex flex-col p-1 xs:p-1.5 sm:p-2 md:p-3 text-sm xs:text-base sm:text-lg md:text-xl font-medium
                       ${
                         day.currentMonth
-                          ? "text-gray-900 border-gray-200 cursor-pointer hover:bg-blue-50 active:bg-blue-100 hover:shadow-sm"
+                          ? `text-gray-900 border-2 ${day.hasEvent ? roleColors.eventDayBorder : "border-gray-200"} cursor-pointer ${roleColors.hoverBg} ${roleColors.activeBg} hover:shadow-sm`
                           : "text-gray-400 border-gray-100 bg-gray-50"
                       }
-                      ${day.isToday ? "border-blue-500 border-2" : ""}
-                      ${day.hasEvent && day.currentMonth ? "bg-blue-50" : ""}
+                      ${day.isToday ? `border-2` : ""}
+                      ${day.hasEvent && day.currentMonth ? roleColors.eventDayBg : ""}
                     `}
                     onClick={
                       day.currentMonth
@@ -415,7 +435,7 @@ export function Calendar<T>({
                       <span
                         className={`text-lg md:text-xl ${
                           day.isToday
-                            ? "text-blue-600 font-bold"
+                            ? `${roleColors.todayText} font-bold`
                             : day.currentMonth
                             ? ""
                             : "text-gray-400"
@@ -433,7 +453,7 @@ export function Calendar<T>({
                         <>
                           {/* Desktop/Tablet: Top-left calendar icon and count */}
                           <motion.div
-                            className="hidden sm:inline-flex items-center bg-blue-100 text-blue-700 px-1 sm:px-1.5 py-0.5 rounded-xl text-xs sm:text-sm md:text-base font-semibold absolute top-1 sm:top-2 left-1 sm:left-2"
+                            className={`hidden sm:inline-flex items-center ${roleColors.badgeColor} ${roleColors.todayText} px-1 sm:px-1.5 py-0.5 rounded-xl text-xs sm:text-sm md:text-base font-semibold absolute top-1 sm:top-2 left-1 sm:left-2`}
                             initial={{ scale: 0, opacity: 0 }}
                             animate={{
                               scale: 1,
@@ -468,7 +488,7 @@ export function Calendar<T>({
                               },
                             }}
                           >
-                            <div className="inline-flex items-center bg-blue-100 text-blue-700 px-1 py-0.5 rounded-xl text-xs xs:text-sm font-semibold w-min">
+                            <div className={`inline-flex items-center ${roleColors.badgeColor} ${roleColors.todayText} px-1 py-0.5 rounded-xl text-xs xs:text-sm font-semibold w-min`}>
                               <CalendarClock size={12} className="mr-0.5" />
                               <span>{day.eventCount}</span>
                             </div>
@@ -486,7 +506,7 @@ export function Calendar<T>({
                               },
                             }}
                           >
-                            <span className="text-blue-600 text-xs sm:text-sm md:text-base font-medium px-2 py-0.5 rounded pointer-events-auto translate-y-3">
+                            <span className={`${roleColors.todayText} text-xs sm:text-sm md:text-base font-medium px-2 py-0.5 rounded pointer-events-auto translate-y-3`}>
                               {day.eventCount === 1
                                 ? "See event"
                                 : "See events..."}

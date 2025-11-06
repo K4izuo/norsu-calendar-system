@@ -15,6 +15,30 @@ import { EventCardsList } from "@/components/events-ui/EventsCard"
 type EventStatus = "pending" | "approved" | "rejected"
 type Role = "student" | "faculty" | "staff" | "admin" | undefined
 
+// Role-based color mapping for loading state
+const getRoleLoadingColors = (role: Role) => {
+  const colorMap = {
+    student: {
+      spinner: "border-green-500",
+      icon: "text-green-500"
+    },
+    faculty: {
+      spinner: "border-blue-500",
+      icon: "text-blue-500"
+    },
+    staff: {
+      spinner: "border-purple-500",
+      icon: "text-purple-500"
+    },
+    admin: {
+      spinner: "border-gray-700",
+      icon: "text-gray-700"
+    }
+  };
+  
+  return colorMap[role || "student"] || colorMap.student; // Default to student colors
+};
+
 // Make this a regular function instead of using useCallback at module level
 const getStartedAgo = (eventDate: string, eventTime: string): string | null => {
   if (!eventDate || !eventTime) return null;
@@ -52,12 +76,15 @@ export function EventsListModal({
   eventDate,
   showRecent,
   setShowRecent,
-  // role,
+  role,
 }: EventsListModalProps & { showRecent: boolean; setShowRecent: React.Dispatch<React.SetStateAction<boolean>>; role?: Role }) {
   const [reserveModalOpen, setReserveModalOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [recentLoading, setRecentLoading] = useState(false)
   const recentLoadingTimeout = useRef<NodeJS.Timeout | null>(null)
+
+  // Get role-specific loading colors
+  const roleLoadingColors = getRoleLoadingColors(role);
 
   // Filter events by search term and mode
   const filteredEvents = React.useMemo(() => {
@@ -218,14 +245,14 @@ export function EventsListModal({
                     transition={{ duration: 0.3 }}
                   >
                     <div className="relative h-16 w-16 flex items-center justify-center">
-                      {/* Spinner rotates */}
+                      {/* Spinner rotates with role-specific color */}
                       <motion.div
-                        className="absolute inset-0 h-16 w-16 rounded-full border-t-4 border-b-4 border-blue-500"
+                        className={`absolute inset-0 h-16 w-16 rounded-full border-t-4 border-b-4 ${roleLoadingColors.spinner}`}
                         animate={{ rotate: 360 }}
                         transition={{ duration: 1.5, ease: "linear", repeat: Infinity }}
                       />
-                      {/* Icon stays still */}
-                      <CalendarClock className="absolute inset-0 m-auto h-7 w-7 text-blue-500" />
+                      {/* Icon stays still with role-specific color */}
+                      <CalendarClock className={`absolute inset-0 m-auto h-7 w-7 ${roleLoadingColors.icon}`} />
                     </div>
                   </motion.div>
                 ) : filteredEvents.length > 0 ? (

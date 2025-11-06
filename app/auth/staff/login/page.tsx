@@ -21,12 +21,12 @@ export default function StaffLoginPage() {
   } = useLoginForm()
 
   return (
-    <div className="min-h-[100dvh] w-full bg-gradient-to-br from-red-50 to-red-100 font-['Poppins'] flex items-center justify-center py-6 px-3 sm:px-4 lg:px-6 relative overflow-hidden">
+    <div className="min-h-[100dvh] w-full bg-gradient-to-br from-purple-50 to-purple-100 font-['Poppins'] flex items-center justify-center py-6 px-3 sm:px-4 lg:px-6 relative overflow-hidden">
 
-      <div className="absolute top-0 left-0 w-48 h-48 bg-red-400 rounded-full opacity-20 -translate-x-24 -translate-y-24"></div>
-      <div className="absolute top-0 right-0 w-48 h-48 bg-red-500 rounded-full opacity-10 translate-x-24 -translate-y-24"></div>
-      <div className="absolute bottom-0 right-0 w-48 h-48 bg-red-500 rounded-full opacity-20 translate-x-24 translate-y-24"></div>
-      <div className="absolute bottom-0 left-0 w-48 h-48 bg-red-300 rounded-full opacity-20 -translate-x-24 translate-y-24"></div>
+      <div className="absolute top-0 left-0 w-48 h-48 bg-purple-400 rounded-full opacity-20 -translate-x-24 -translate-y-24"></div>
+      <div className="absolute top-0 right-0 w-48 h-48 bg-purple-500 rounded-full opacity-10 translate-x-24 -translate-y-24"></div>
+      <div className="absolute bottom-0 right-0 w-48 h-48 bg-purple-500 rounded-full opacity-20 translate-x-24 translate-y-24"></div>
+      <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-300 rounded-full opacity-20 -translate-x-24 translate-y-24"></div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -34,7 +34,7 @@ export default function StaffLoginPage() {
         className="bg-white rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden w-[96%] max-w-4xl grid grid-cols-1 md:grid-cols-2 relative"
       >
         {/* Left Side */}
-        <div className="hidden md:flex bg-gradient-to-br from-red-400 to-red-600 p-4 sm:p-6 lg:p-8 text-white flex-col items-center justify-center relative min-h-[400px]">
+        <div className="hidden md:flex bg-gradient-to-br from-purple-400 to-purple-600 p-4 sm:p-6 lg:p-8 text-white flex-col items-center justify-center relative min-h-[400px]">
           <div className="absolute top-2 right-2 sm:top-4 sm:right-4 w-8 h-8 sm:w-12 sm:h-12 lg:w-16 lg:h-16 bg-white/10 rounded-full"></div>
           <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 lg:bottom-8 lg:left-8 w-6 h-6 sm:w-8 sm:h-8 lg:w-12 lg:h-12 bg-white/10 rounded-full"></div>
           <div className="space-y-6 text-center z-10 flex flex-col items-center justify-center h-full">
@@ -46,13 +46,13 @@ export default function StaffLoginPage() {
             </div>
             <div className="space-y-3">
               <h2 className="text-2xl sm:text-3xl font-bold">EduPortal Pro</h2>
-              <p className="text-red-100 text-lg">Staff Portal</p>
-              <p className="text-red-200 text-sm max-w-xs">
+              <p className="text-purple-100 text-lg">Staff Portal</p>
+              <p className="text-purple-200 text-sm max-w-xs">
                 Manage schedules, tasks, and collaborate with your team.
               </p>
             </div>
             <div className="mt-6 space-y-3">
-              <div className="flex items-center justify-center space-x-4 text-red-100">
+              <div className="flex items-center justify-center space-x-4 text-purple-100">
                 <div className="flex items-center space-x-2">
                   <Users className="w-4 h-4" />
                   <span className="text-xs">Team</span>

@@ -1,10 +1,16 @@
 import React from "react"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { X, User } from "lucide-react"
-import { Control, FieldErrors, Controller } from "react-hook-form"
+import { Control, FieldErrors, Controller, UseFormRegister, RegisterOptions } from "react-hook-form"
 import { ReservationFormData } from "@/interface/user-props"
+
+interface ValidationRules {
+  people: RegisterOptions<ReservationFormData, "people">
+  infoType: RegisterOptions<ReservationFormData, "infoType">
+  category: RegisterOptions<ReservationFormData, "category">
+}
 
 interface Props {
   control: Control<ReservationFormData>
@@ -19,7 +25,9 @@ interface Props {
   handleTagSelect: (person: { id: string; name: string }) => void
   handleRemoveTag: (id: string) => void
   setShowDropdown: (show: boolean) => void
-  validationRules: any
+  validationRules: ValidationRules
+  register: UseFormRegister<ReservationFormData>
+  peopleFieldRef: React.RefObject<HTMLInputElement | null>
 }
 
 export function ReserveEventAdditionalTab({
@@ -36,7 +44,18 @@ export function ReserveEventAdditionalTab({
   handleRemoveTag,
   setShowDropdown,
   validationRules,
+  peopleFieldRef,
 }: Props) {
+  const getFieldClass = (hasError: boolean) => 
+    `mt-1 cursor-pointer border-2 text-base w-full h-12 focus:border-ring ${
+      hasError ? "border-red-500 focus:border-red-500" : "border-gray-200"
+    }`
+
+  const filteredSuggestions = peopleSuggestions.filter(person =>
+    person.name.toLowerCase().includes(tagInput.toLowerCase()) &&
+    !taggedPeople.some(p => p.id === person.id)
+  )
+
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="space-y-4 sm:space-y-5">
@@ -46,44 +65,52 @@ export function ReserveEventAdditionalTab({
             name="people"
             control={control}
             rules={validationRules.people}
-            render={({ field }) => (
+            render={({ field, fieldState: { invalid, isTouched } }) => (
               <div className="relative mt-1">
                 <Input
-                  id="people"
-                  name="people"
+                  ref={peopleFieldRef}
                   placeholder="Type a name to tag..."
                   value={tagInput}
-                  onChange={handleTagInputChange}
+                  onChange={(e) => {
+                    handleTagInputChange(e);
+                    // Trigger validation on every change
+                    field.onChange(taggedPeople.map(p => p.name).join(', '));
+                  }}
                   onBlur={() => {
+                    // Mark field as touched and validate
                     field.onBlur();
+                    field.onChange(taggedPeople.map(p => p.name).join(', '));
                     setTimeout(() => setShowDropdown(false), 150);
                   }}
-                  className={`h-12 border-2 text-base w-full ${errors.people ? "border-red-500 focus:border-red-500" : ""}`}
+                  onFocus={() => {
+                    setShowDropdown(tagInput.length > 0);
+                    // Ensure field is marked as touched when focused
+                    field.onChange(taggedPeople.map(p => p.name).join(', '));
+                  }}
+                  className={`h-12 border-2 text-base w-full focus:border-ring transition-all duration-[95ms] ${
+                    (errors.people || (invalid && isTouched && taggedPeople.length === 0)) ? "border-red-500 focus:border-red-500" : "border-gray-200"
+                  }`}
                   autoComplete="off"
-                  onFocus={() => setShowDropdown(tagInput.length > 0)}
                 />
                 {showDropdown && (
                   <div className="absolute z-10 left-0 right-0 mt-1 bg-white border border-gray-200 rounded shadow-lg max-h-48 overflow-auto">
-                    {peopleSuggestions
-                      .filter(person =>
-                        person.name.toLowerCase().includes(tagInput.toLowerCase()) &&
-                        !taggedPeople.some(p => p.id === person.id)
-                      )
-                      .map(person => (
-                        <button
-                          key={person.id}
-                          type="button"
-                          className="flex items-center w-full px-3 py-2 text-left hover:bg-blue-50"
-                          onMouseDown={() => handleTagSelect(person)}
-                        >
-                          <User className="w-4 h-4 mr-2 text-blue-500" />
-                          {person.name}
-                        </button>
-                      ))}
-                    {peopleSuggestions.filter(person =>
-                      person.name.toLowerCase().includes(tagInput.toLowerCase()) &&
-                      !taggedPeople.some(p => p.id === person.id)
-                    ).length === 0 && (
+                    {filteredSuggestions.map(person => (
+                      <button
+                        key={person.id}
+                        type="button"
+                        className="flex items-center w-full px-3 py-2 text-left hover:bg-blue-50"
+                        onMouseDown={() => {
+                          handleTagSelect(person);
+                          // Update field value immediately when tag is selected
+                          const updatedPeople = [...taggedPeople, person];
+                          field.onChange(updatedPeople.map(p => p.name).join(', '));
+                        }}
+                      >
+                        <User className="w-4 h-4 mr-2 text-blue-500" />
+                        {person.name}
+                      </button>
+                    ))}
+                    {filteredSuggestions.length === 0 && (
                       <div className="px-3 py-2 text-gray-400">No matches found</div>
                     )}
                   </div>
@@ -92,12 +119,18 @@ export function ReserveEventAdditionalTab({
                   {taggedPeople.map(person => (
                     <span
                       key={person.id}
-                      className="px-3 py-1 rounded-lg text-sm font-medium border border-gray-300 text-gray-800 bg-transparent"
+                      className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium border border-gray-300 text-gray-800 bg-transparent"
                     >
+                      <User className="w-3 h-3 mr-1.5 text-gray-800" />
                       {person.name}
                       <button
                         type="button"
-                        onClick={() => handleRemoveTag(person.id)}
+                        onClick={() => {
+                          handleRemoveTag(person.id);
+                          // Update field value immediately when tag is removed
+                          const updatedPeople = taggedPeople.filter(p => p.id !== person.id);
+                          field.onChange(updatedPeople.map(p => p.name).join(', '));
+                        }}
                         className="ml-2 text-gray-500 hover:text-gray-700 focus:outline-none"
                         aria-label={`Remove ${person.name}`}
                       >
@@ -117,19 +150,8 @@ export function ReserveEventAdditionalTab({
             control={control}
             rules={validationRules.infoType}
             render={({ field }) => (
-              <Select 
-                value={field.value} 
-                onValueChange={(value) => {
-                  field.onChange(value);
-                  if (value) {
-                    field.onBlur();
-                  }
-                }}
-              >
-                <SelectTrigger 
-                  id="infoType" 
-                  className={`mt-1 cursor-pointer border-2 text-base w-full h-12 ${errors.infoType ? "border-red-500 focus:border-red-500" : ""}`}
-                >
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger id="infoType" className={getFieldClass(!!errors.infoType)}>
                   <SelectValue placeholder="Select information type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -153,19 +175,8 @@ export function ReserveEventAdditionalTab({
             control={control}
             rules={validationRules.category}
             render={({ field }) => (
-              <Select 
-                value={field.value} 
-                onValueChange={(value) => {
-                  field.onChange(value);
-                  if (value) {
-                    field.onBlur();
-                  }
-                }}
-              >
-                <SelectTrigger 
-                  id="category" 
-                  className={`mt-1 cursor-pointer border-2 text-base w-full h-12 ${errors.category ? "border-red-500 focus:border-red-500" : ""}`}
-                >
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger id="category" className={getFieldClass(!!errors.category)}>
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>

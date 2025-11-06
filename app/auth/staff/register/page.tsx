@@ -106,10 +106,12 @@ export default function StaffRegisterPage() {
   if (!shouldRender) return null;
 
   return (
-    <div className="min-h-[100dvh] w-full bg-gradient-to-br from-red-50 to-red-100 flex items-center justify-center py-6 px-2 sm:px-4 lg:px-6 relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-32 h-32 bg-red-400 rounded-full opacity-10 -translate-x-16 -translate-y-16"></div>
-      <div className="absolute bottom-0 right-0 w-48 h-48 bg-red-500 rounded-full opacity-10 translate-x-24 translate-y-24"></div>
-      <div className="absolute top-1/2 left-0 w-24 h-24 bg-red-300 rounded-full opacity-10 -translate-x-12"></div>
+    <div className="min-h-[100dvh] w-full bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center py-6 px-2 sm:px-4 lg:px-6 relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-48 h-48 bg-purple-400 rounded-full opacity-20 -translate-x-24 -translate-y-24"></div>
+      <div className="absolute top-0 right-0 w-48 h-48 bg-purple-500 rounded-full opacity-10 translate-x-24 -translate-y-24"></div>
+      <div className="absolute bottom-0 right-0 w-48 h-48 bg-purple-500 rounded-full opacity-20 translate-x-24 translate-y-24"></div>
+      <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-300 rounded-full opacity-20 -translate-x-24 translate-y-24"></div>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -250,7 +252,7 @@ export default function StaffRegisterPage() {
                     type="button"
                     onClick={handleNext}
                     variant="default"
-                    className="text-base bg-red-500 hover:bg-red-400 cursor-pointer py-2.5"
+                    className="text-base bg-purple-500 hover:bg-purple-400 cursor-pointer py-2.5"
                   >
                     Next
                   </Button>
@@ -264,7 +266,7 @@ export default function StaffRegisterPage() {
                   isFormValid={isValid}
                   agreed={agreed}
                   setAgreed={setAgreed}
-                  color="red"
+                  color="purple"
                 />
                 <div className="flex justify-end gap-3">
                   <Button
@@ -280,7 +282,7 @@ export default function StaffRegisterPage() {
                     type="submit"
                     variant="default"
                     disabled={!isValid || isSubmitting || !agreed}
-                    className="text-base bg-red-500 hover:bg-red-400 cursor-pointer py-2.5"
+                    className="text-base bg-purple-500 hover:bg-purple-400 cursor-pointer py-2.5"
                   >
                     {isSubmitting ? (
                       <div className="flex items-center">

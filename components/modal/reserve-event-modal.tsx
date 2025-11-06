@@ -36,13 +36,10 @@ interface ModalProps {
   eventDate?: string | undefined
 }
 
-// Tab field definitions for targeted validation
-const FORM_TAB_FIELDS = ["title", "asset", "timeStart", "timeEnd", "description", "range"] as const;
-const ADDITIONAL_TAB_FIELDS = ["people", "infoType", "category"] as const;
-
 export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: ModalProps) {
   const contentRef = useRef<HTMLDivElement>(null)
   const [activeTab, setActiveTab] = useState<string>("form")
+  const peopleFieldRef = useRef<HTMLInputElement>(null)
 
   const getCurrentTime = () => {
     const now = new Date();
@@ -51,7 +48,6 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
 
   const form = useForm<ReservationFormData>({
     mode: "onTouched",
-    reValidateMode: "onBlur",
     defaultValues: {
       title: "",
       asset: null,
@@ -66,7 +62,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
     },
   });
 
-  const { control, handleSubmit, setValue, getValues, watch, formState: { errors, isSubmitting }, reset } = form;
+  const { control, handleSubmit, setValue, getValues, watch, register, trigger, formState: { errors, isSubmitting }, reset } = form;
 
   const [showVenueModal, setShowVenueModal] = useState(false);
   const [showVehicleModal, setShowVehicleModal] = useState(false);
@@ -150,10 +146,14 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
     }
   }, [showVehicleModal]);
 
-  // Sync taggedPeople with form state for validation
+  // Update the useEffect for people sync
   useEffect(() => {
     const peopleValue = taggedPeople.map(p => p.name).join(', ');
-    setValue("people", peopleValue, { shouldDirty: false, shouldTouch: false });
+    setValue("people", peopleValue, { 
+      shouldDirty: taggedPeople.length > 0,
+      shouldValidate: true,
+      shouldTouch: true
+    });
   }, [taggedPeople, setValue]);
 
   const handleAssetChange = (value: string) => {
@@ -235,20 +235,29 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
   const handleFormTabNext = useCallback(() => {
     handleSubmit(
       () => setActiveTab("additional"),
-      (errors) => {
-        showFormTabErrorToast(errors, getValues());
-      }
+      (errors) => showFormTabErrorToast(errors, getValues())
     )();
   }, [handleSubmit, getValues]);
 
-  const handleAdditionalTabNext = useCallback(() => {
-    handleSubmit(
-      () => setActiveTab("summary"),
-      (errors) => {
-        showAdditionalTabErrorToast(errors, getValues(), taggedPeople);
+  const handleAdditionalTabNext = useCallback(async () => {
+    // Set people value for validation
+    setValue("people", taggedPeople.map(p => p.name).join(', '), { 
+      shouldValidate: true, 
+      shouldTouch: true 
+    });
+
+    const isValid = await trigger(['people', 'infoType', 'category']);
+    
+    if (isValid && taggedPeople.length > 0) {
+      setActiveTab("summary");
+    } else {
+      if (taggedPeople.length === 0) {
+        setValue("people", "", { shouldValidate: true, shouldTouch: true });
+        setTimeout(() => peopleFieldRef.current?.focus(), 100);
       }
-    )();
-  }, [handleSubmit, getValues, taggedPeople]);
+      showAdditionalTabErrorToast(errors, getValues(), taggedPeople);
+    }
+  }, [trigger, getValues, taggedPeople, setValue, errors]);
 
   const tabOrder = ["form", "additional", "summary"];
   const tabLabels: Record<string, string> = {
@@ -344,6 +353,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                     handleAssetChange={handleAssetChange}
                     selectedAsset={watchedAsset}
                     validationRules={RESERVATION_VALIDATION_RULES}
+                    register={register}
                   />
                 </TabsContent>
 
@@ -362,6 +372,8 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                     handleRemoveTag={handleRemoveTag}
                     setShowDropdown={setShowDropdown}
                     validationRules={RESERVATION_VALIDATION_RULES}
+                    register={register}
+                    peopleFieldRef={peopleFieldRef}
                   />
                 </TabsContent>
 

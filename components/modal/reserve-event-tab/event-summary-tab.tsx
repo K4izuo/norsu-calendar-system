@@ -1,13 +1,6 @@
 import React from "react"
-import { CalendarPlus2, Building, CalendarClock, Clock, FileText, CheckCircle2 } from "lucide-react"
-
+import { CalendarPlus2, Building, CalendarClock, Clock, FileText, CheckCircle2, User } from "lucide-react"
 import { ReservationFormData } from "@/interface/user-props"
-
-interface Asset {
-  id: string
-  name: string
-  capacity: string
-}
 
 interface Props {
   formData: ReservationFormData
@@ -50,8 +43,9 @@ export function ReserveEventSummaryTab({
                 taggedPeople.map(person => (
                   <span
                     key={person.id}
-                    className="px-3 py-1 rounded-lg text-sm font-medium border border-gray-300 text-gray-800 bg-transparent"
+                    className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium border border-gray-300 text-gray-800 bg-transparent"
                   >
+                    <User className="w-3 h-3 mr-1.5 text-gray-800" />
                     {person.name}
                   </span>
                 ))

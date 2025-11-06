@@ -52,10 +52,10 @@ export const LoginFormLayout = memo(function LoginFormLayout({
     },
     staff: {
       title: "Welcome Staff",
-      buttonStyle: "bg-gradient-to-r from-red-400 to-red-600 hover:from-red-500 hover:to-red-700",
-      checkboxStyle: "border-2 cursor-pointer border-gray-300 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500",
-      linkStyle: "text-red-600 cursor-pointer hover:text-red-700",
-      inputStyle: "border-gray-200 focus:border-red-500 focus:ring-red-500/20"
+      buttonStyle: "bg-gradient-to-r from-purple-400 to-purple-600 hover:from-purple-500 hover:to-purple-700",
+      checkboxStyle: "border-2 cursor-pointer border-gray-300 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500",
+      linkStyle: "text-purple-600 cursor-pointer hover:text-purple-700",
+      inputStyle: "border-gray-200 focus:border-purple-500 focus:ring-purple-500/20"
     },
     admin: {
       title: "Administrator Access",

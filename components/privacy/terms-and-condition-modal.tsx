@@ -10,7 +10,7 @@ type TermsAndConditionModalProps = {
   onClose: () => void;
   onAgree: () => void;
   agreed?: boolean; // <-- Add this
-  color?: "emerald" | "indigo" | "red";
+  color?: "emerald" | "indigo" | "purple";
 };
 
 const colorMap = {
@@ -24,10 +24,10 @@ const colorMap = {
     button: "bg-indigo-600 hover:bg-indigo-700",
     underline: "text-indigo-600",
   },
-  red: {
-    icon: "text-red-500",
-    button: "bg-red-500 hover:bg-red-600",
-    underline: "text-red-500",
+  purple: {
+    icon: "text-purple-500",
+    button: "bg-purple-500 hover:bg-purple-600",
+    underline: "text-purple-500",
   },
 };
 

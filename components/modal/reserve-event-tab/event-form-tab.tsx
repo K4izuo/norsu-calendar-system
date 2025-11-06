@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+import React, { useMemo } from "react"
 import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Control, FieldErrors, Controller } from "react-hook-form"
+import { Control, FieldErrors, Controller, UseFormRegister } from "react-hook-form"
 import { ReservationFormData } from "@/interface/user-props"
+import { EventFormInput } from "./event-input-field"
 
 interface Asset {
   id: string
@@ -20,6 +20,7 @@ interface Props {
   handleAssetChange: (value: string) => void
   selectedAsset?: Asset | null
   validationRules: any
+  register: UseFormRegister<ReservationFormData>
 }
 
 export function ReserveEventFormTab({
@@ -29,39 +30,24 @@ export function ReserveEventFormTab({
   handleAssetChange,
   selectedAsset,
   validationRules,
+  register,
 }: Props) {
-  const [currentTime, setCurrentTime] = useState(() => {
-    const now = new Date();
-    return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-  });
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = new Date();
-      setCurrentTime(`${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
+  // Memoize border classes to prevent recalculation
+  const getBorderClass = useMemo(() => {
+    return (fieldError: any) => fieldError ? "border-red-400" : "border-gray-200"
+  }, [])
 
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="space-y-4 sm:space-y-5">
-        <div>
-          <Label htmlFor="title" className="text-base inline-block font-medium">Event Title<span className="text-red-500"> *</span></Label>
-          <Controller
-            name="title"
-            control={control}
-            rules={validationRules.title}
-            render={({ field }) => (
-              <Input
-                {...field}
-                id="title"
-                placeholder="Enter event title"
-                className={`mt-1 border-2 text-base h-12 w-full ${errors.title ? "border-red-500 focus:border-red-500" : ""}`}
-              />
-            )}
-          />
-        </div>
+        <EventFormInput
+          name="title"
+          label="Event Title"
+          register={register}
+          rules={validationRules.title}
+          errors={errors}
+          placeholder="Enter event title"
+        />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex-1 min-w-0">
             <Label htmlFor="asset" className="text-base inline-block font-medium">Assets<span className="text-red-500"> *</span></Label>
@@ -74,7 +60,7 @@ export function ReserveEventFormTab({
                   value={selectedAsset?.id || ""}
                   onValueChange={handleAssetChange}
                 >
-                  <SelectTrigger id="asset" className={`mt-1 border-2 text-base w-full h-12 ${errors.asset ? "border-red-500 focus:border-red-500" : ""}`}>
+                  <SelectTrigger id="asset" className={`mt-1 border-2 text-base w-full h-12 focus:border-ring transition-all duration-[95ms] ${errors.asset ? "border-red-400" : "border-gray-200"}`}>
                     <SelectValue
                       placeholder="Select an asset"
                       {...(selectedAsset ? { children: selectedAsset.name } : {})}
@@ -129,62 +115,38 @@ export function ReserveEventFormTab({
                     onChange(val);
                   }}
                   min="1"
-                  className={`mt-1 border-2 h-12 text-base w-full ${errors.range ? "border-red-500 focus:border-red-500" : ""}`}
+                  className={`mt-1 border-2 h-12 text-base w-full focus:border-ring ${getBorderClass(errors.range)}`}
                 />
               )}
             />
           </div>
-          <div>
-            <Label htmlFor="timeStart" className="text-base inline-block font-medium">Start Time<span className="text-red-500"> *</span></Label>
-            <Controller
-              name="timeStart"
-              control={control}
-              rules={validationRules.timeStart}
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  id="timeStart"
-                  type="time"
-                  defaultValue={currentTime}
-                  className={`mt-1 border-2 text-base h-12 w-full ${errors.timeStart ? "border-red-500 focus:border-red-500" : ""}`}
-                />
-              )}
-            />
-          </div>
-          <div>
-            <Label htmlFor="timeEnd" className="text-base inline-block font-medium">End Time<span className="text-red-500"> *</span></Label>
-            <Controller
-              name="timeEnd"
-              control={control}
-              rules={validationRules.timeEnd}
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  id="timeEnd"
-                  type="time"
-                  placeholder="Select end time"
-                  className={`mt-1 border-2 text-base h-12 w-full ${errors.timeEnd ? "border-red-500 focus:border-red-500" : ""}`}
-                />
-              )}
-            />
-          </div>
-        </div>
-        <div>
-          <Label htmlFor="description" className="text-base inline-block font-medium">Description<span className="text-red-500"> *</span></Label>
-          <Controller
-            name="description"
-            control={control}
-            rules={validationRules.description}
-            render={({ field }) => (
-              <Textarea
-                {...field}
-                id="description"
-                placeholder="Enter event description"
-                className={`mt-1 border-2 min-h-[120px] text-base h-12 w-full ${errors.description ? "border-red-500 focus:border-red-500" : ""}`}
-              />
-            )}
+          <EventFormInput
+            name="timeStart"
+            label="Start Time"
+            register={register}
+            rules={validationRules.timeStart}
+            errors={errors}
+            type="time"
+          />
+          <EventFormInput
+            name="timeEnd"
+            label="End Time"
+            register={register}
+            rules={validationRules.timeEnd}
+            errors={errors}
+            type="time"
+            placeholder="Select end time"
           />
         </div>
+        <EventFormInput
+          name="description"
+          label="Description"
+          register={register}
+          rules={validationRules.description}
+          errors={errors}
+          placeholder="Enter event description"
+          isTextarea={true}
+        />
       </div>
     </div>
   )
