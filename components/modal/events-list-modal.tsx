@@ -13,7 +13,7 @@ import { EventCardsList } from "@/components/events-ui/EventsCard"
 
 // Simplified status types
 type EventStatus = "pending" | "approved" | "rejected"
-type Role = "student" | "faculty" | "staff" | "admin" | undefined
+type Role = "student" | "faculty" | "staff" | "admin" | "public" | undefined
 
 // Role-based color mapping for loading state
 const getRoleLoadingColors = (role: Role) => {
@@ -33,10 +33,14 @@ const getRoleLoadingColors = (role: Role) => {
     admin: {
       spinner: "border-gray-700",
       icon: "text-gray-700"
+    },
+    public: {
+      spinner: "border-teal-500",
+      icon: "text-teal-500"
     }
   };
   
-  return colorMap[role || "student"] || colorMap.student; // Default to student colors
+  return colorMap[role || "public"] || colorMap.student; // Default to student colors
 };
 
 // Make this a regular function instead of using useCallback at module level

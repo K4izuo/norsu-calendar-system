@@ -1,9 +1,20 @@
 // Role type definition
-export type UserRole = "student" | "faculty" | "staff" | "admin";
+export type UserRole = "student" | "faculty" | "staff" | "admin" | "public";
 
-// Color mapping function - Updated to handle undefined role
+// Color mapping function - Defaults to public
 export const getRoleColors = (role?: UserRole) => {
   const colorMap = {
+    public: {
+      spinner: "border-teal-500",
+      icon: "text-teal-500",
+      todayText: "text-teal-600",
+      todayBorder: "border-teal-500",
+      badgeColor: "bg-teal-50",
+      eventDayBg: "bg-teal-50",
+      eventDayBorder: "border-teal-300",
+      hoverBg: "hover:bg-teal-50",
+      activeBg: "active:bg-teal-100",
+    },
     student: {
       spinner: "border-green-500",
       icon: "text-green-500",
@@ -50,5 +61,5 @@ export const getRoleColors = (role?: UserRole) => {
     },
   };
 
-  return colorMap[role || "student"]; // Default to student colors if role is undefined
+  return colorMap[role || "public"]; // Default to public colors if role is undefined
 };

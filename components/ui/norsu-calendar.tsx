@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { CalendarDayType } from "@/interface/user-props";
 import { getRoleColors, UserRole } from "@/utils/role-colors";
+import { calendarVariants, headerVariants } from "@/utils/calendar-animations"
 
 // Updated props interface
 export function Calendar<T>({
@@ -186,54 +187,6 @@ export function Calendar<T>({
     () => `${monthNames[currentMonth]} ${currentYear}`,
     [currentMonth, currentYear, monthNames]
   );
-
-  // Animation variants
-  const calendarVariants = {
-    initial: (direction: number) => ({
-      x: direction * 30,
-      opacity: 0,
-    }),
-    animate: {
-      x: 0,
-      opacity: 1,
-      transition: {
-        x: { type: "spring" as const, stiffness: 300, damping: 30 },
-        opacity: { duration: 0.2 },
-      },
-    },
-    exit: (direction: number) => ({
-      x: direction * -30,
-      opacity: 0,
-      transition: {
-        x: { type: "spring" as const, stiffness: 300, damping: 30 },
-        opacity: { duration: 0.2 },
-      },
-    }),
-  };
-
-  // Header animation variants
-  const headerVariants = {
-    initial: (direction: number) => ({
-      y: direction * 10,
-      opacity: 0,
-    }),
-    animate: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        y: { type: "spring" as const, stiffness: 500, damping: 30 },
-        opacity: { duration: 0.2 },
-      },
-    },
-    exit: (direction: number) => ({
-      y: direction * -10,
-      opacity: 0,
-      transition: {
-        y: { type: "spring" as const, stiffness: 500, damping: 30 },
-        opacity: { duration: 0.2 },
-      },
-    }),
-  };
 
   // Update the window width state on mount and on resize
   useEffect(() => {

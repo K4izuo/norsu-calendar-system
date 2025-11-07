@@ -14,7 +14,7 @@ import {
 import { Button } from "../ui/button";
 
 // Role type definition
-type Role = "student" | "faculty" | "staff" | "admin" | undefined;
+type Role = "student" | "faculty" | "staff" | "admin" | "public" | undefined;
 
 // Role-based color mapping for loading state
 const getRoleLoadingColors = (role: Role) => {
@@ -35,9 +35,13 @@ const getRoleLoadingColors = (role: Role) => {
       spinner: "border-gray-800",
       icon: "text-gray-800",
     },
+    public: {
+      spinner: "border-teal-500",
+      icon: "text-teal-500",
+    },
   };
 
-  return colorMap[role || "student"] || colorMap.student; // Default to student colors
+  return colorMap[role || "public"] || colorMap.student; // Default to student colors
 };
 
 // Make the interface flexible to accept both number and string

@@ -10,8 +10,8 @@ import type { EventDetails, CalendarDayType } from "@/interface/user-props";
 
 export default function Home() {
   const upcomingEvents = [
-    { title: "Orientation Day", date: "2025-09-01" },
-    { title: "Midterm Exams", date: "2025-10-10" },
+    // { title: "Orientation Day", date: "2025-09-01" },
+    // { title: "Midterm Exams", date: "2025-10-10" },
     { title: "University Week", date: "2025-11-15" },
     { title: "Christmas Party", date: "2025-12-20" },
     { title: "Final Exams", date: "2026-01-15" },
@@ -276,6 +276,7 @@ export default function Home() {
               <div className="w-full bg-white rounded-md shadow-md flex flex-col items-start self-stretch p-6 gap-6 relative flex-1 min-h-0">
                 {/* Calendar component */}
                 <Calendar
+                  role="public"
                   events={[]}
                   onDaySelect={handleDaySelect}
                   getEventsForDate={getEventsForDate}
@@ -294,6 +295,7 @@ export default function Home() {
 
       {/* Events List Modal with table implementation */}
       <EventsListModal
+        role="public"
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         title={
@@ -320,6 +322,7 @@ export default function Home() {
 
       {/* Event Info Modal */}
       <EventInfoModal
+        role="public"
         isOpen={eventInfoModalOpen}
         onClose={() => setEventInfoModalOpen(false)}
         event={selectedEvent}

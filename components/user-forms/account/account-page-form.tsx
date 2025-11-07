@@ -130,7 +130,7 @@ export const AccountPageLayout = React.memo(({
         type={type}
         autoComplete={name === "username" ? "username" : "new-password"}
         placeholder={placeholder}
-        className={`h-12 sm:h-11 text-base border-2 rounded-lg ${getInputBorderClass(name)} focus:border-ring`}
+        className={`h-12 sm:h-11 text-base border-2 rounded-lg transition-all duration-[95ms] ${getInputBorderClass(name)} focus:border-ring`}
       />
     </div>
   )
