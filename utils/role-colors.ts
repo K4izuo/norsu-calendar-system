@@ -56,7 +56,7 @@ export const getRoleColors = (role?: UserRole) => {
       badgeColor: "bg-gray-50",
       eventDayBg: "bg-gray-100",
       eventDayBorder: "border-gray-400",
-      hoverBg: "hover:bg-gray-50",
+      hoverBg: "hover:bg-gray-100",
       activeBg: "active:bg-gray-100",
     },
   };

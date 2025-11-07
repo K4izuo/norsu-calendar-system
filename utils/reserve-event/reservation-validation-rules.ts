@@ -4,7 +4,12 @@ export const RESERVATION_VALIDATION_RULES = {
     minLength: { value: 3, message: "Title must be at least 3 characters" }
   },
   asset: {
-    required: "Asset is required"
+    required: "Asset is required",
+    validate: (value: { id: number | string; name: string; capacity: string } | null) => {
+      if (!value) return "Please select an asset";
+      if (!value.name) return "Asset must have a name";
+      return true;
+    }
   },
   timeStart: {
     required: "Start time is required"

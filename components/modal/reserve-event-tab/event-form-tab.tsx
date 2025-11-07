@@ -60,7 +60,7 @@ export function ReserveEventFormTab({
                   value={selectedAsset?.id || ""}
                   onValueChange={handleAssetChange}
                 >
-                  <SelectTrigger id="asset" className={`mt-1 border-2 text-base w-full h-12 focus:border-ring transition-all duration-[95ms] ${errors.asset ? "border-red-400" : "border-gray-200"}`}>
+                  <SelectTrigger id="asset" className={`mt-1 cursor-pointer border-2 text-base w-full h-12 focus:border-ring transition-all duration-[95ms] ${errors.asset ? "border-red-400" : "border-gray-200"}`}>
                     <SelectValue
                       placeholder="Select an asset"
                       {...(selectedAsset ? { children: selectedAsset.name } : {})}
@@ -70,7 +70,7 @@ export function ReserveEventFormTab({
                     <SelectGroup>
                       <SelectLabel className="text-base">Asset Type</SelectLabel>
                       {assets.map(asset => (
-                        <SelectItem key={asset.id} value={asset.id} className="text-base">
+                        <SelectItem key={asset.id} value={asset.id} className="text-base cursor-pointer">
                           {asset.name}
                         </SelectItem>
                       ))}

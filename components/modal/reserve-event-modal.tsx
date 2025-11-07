@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useRef, useState, useCallback } from "react"
+import React, { useEffect, useRef, useState, useCallback, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -15,6 +15,7 @@ import { AssetsVenueModal } from "@/components/modal/reserve-event-assets/assets
 import { AssetsVehicleModal } from "@/components/modal/reserve-event-assets/assets-vehicle-modal"
 import { showFormTabErrorToast, showAdditionalTabErrorToast } from "@/utils/reserve-event/reservation-field-error-toast"
 import { RESERVATION_VALIDATION_RULES } from "@/utils/reserve-event/reservation-validation-rules"
+import { useAssets } from "@/services/academicDataService" // Add this import
 
 const infoTypes = [
   { value: "public", label: "Public" },
@@ -40,6 +41,9 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
   const contentRef = useRef<HTMLDivElement>(null)
   const [activeTab, setActiveTab] = useState<string>("form")
   const peopleFieldRef = useRef<HTMLInputElement>(null)
+
+  // Add the useAssets hook
+  const { assets, loading: assetsLoading, error: assetsError } = useAssets();
 
   const getCurrentTime = () => {
     const now = new Date();
@@ -83,6 +87,15 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
   const [taggedPeople, setTaggedPeople] = useState<{ id: string; name: string }[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
 
+  // Transform assets data for the form select field (REMOVE FETCHED ASSETS)
+  const formattedAssets = useMemo(() => {
+    // Only show the original trigger options - no fetched assets
+    return [
+      { id: "assets venue", name: "Assets Venue", capacity: "" },
+      { id: "assets vehicle", name: "Assets Vehicle", capacity: "" }
+    ];
+  }, []);
+
   useEffect(() => {
     if (eventDate) {
       setValue("date", eventDate);
@@ -124,27 +137,45 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
     if (showVenueModal) {
       setLoadingVenueAssets(true);
       setTimeout(() => {
-        setVenueAssets([
-          { id: "a1", name: "Main Building, Room 101", capacity: "120 seats" },
-          { id: "a2", name: "Science Building, Room 203", capacity: "80 seats" },
-        ]);
+        if (assets && assets.length > 0) {
+          const venueAssetsData = assets.map(asset => ({
+            id: String(asset.id), // Convert database number to string
+            name: asset.asset_name,
+            capacity: asset.capacity ? `${asset.capacity} seats` : "Not specified"
+          }));
+          setVenueAssets(venueAssetsData);
+        } else {
+          setVenueAssets([
+            { id: "1", name: "Main Building, Room 101", capacity: "120 seats" },
+            { id: "2", name: "Science Building, Room 203", capacity: "80 seats" },
+          ]);
+        }
         setLoadingVenueAssets(false);
       }, 1000);
     }
-  }, [showVenueModal]);
+  }, [showVenueModal, assets]);
 
   useEffect(() => {
     if (showVehicleModal) {
       setLoadingVehicleAssets(true);
       setTimeout(() => {
-        setVehicleAssets([
-          { id: "v1", name: "School Bus", capacity: "50 seats" },
-          { id: "v2", name: "Van", capacity: "15 seats" },
-        ]);
+        if (assets && assets.length > 0) {
+          const vehicleAssetsData = assets.map(asset => ({
+            id: String(asset.id), // Convert database number to string
+            name: asset.asset_name,
+            capacity: asset.capacity ? `${asset.capacity} seats` : "Not specified"
+          }));
+          setVehicleAssets(vehicleAssetsData);
+        } else {
+          setVehicleAssets([
+            { id: "3", name: "School Bus", capacity: "50 seats" },
+            { id: "4", name: "Van", capacity: "15 seats" },
+          ]);
+        }
         setLoadingVehicleAssets(false);
       }, 1000);
     }
-  }, [showVehicleModal]);
+  }, [showVehicleModal, assets]);
 
   // Update the useEffect for people sync
   useEffect(() => {
@@ -157,8 +188,15 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
   }, [taggedPeople, setValue]);
 
   const handleAssetChange = (value: string) => {
-    if (value === "assets venue") setShowVenueModal(true);
-    if (value === "assets vehicle") setShowVehicleModal(true);
+    // Only handle modal triggers - no real asset selection from dropdown
+    if (value === "assets venue") {
+      setShowVenueModal(true);
+      return;
+    }
+    if (value === "assets vehicle") {
+      setShowVehicleModal(true);
+      return;
+    }
   };
 
   const handleAssetItemSelect = (asset: { id: string; name: string; capacity: string }) => {
@@ -346,10 +384,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                   <ReserveEventFormTab
                     control={control}
                     errors={errors}
-                    assets={[
-                      { id: "assets venue", name: "Assets Venue", capacity: "" },
-                      { id: "assets vehicle", name: "Assets Vehicle", capacity: "" }
-                    ]}
+                    assets={formattedAssets}
                     handleAssetChange={handleAssetChange}
                     selectedAsset={watchedAsset}
                     validationRules={RESERVATION_VALIDATION_RULES}
@@ -476,6 +511,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
           assets={venueAssets}
           onAssetSelect={handleAssetItemSelect}
           loading={loadingVenueAssets}
+          role="admin"
         />
 
         <AssetsVehicleModal
@@ -484,6 +520,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
           assets={vehicleAssets}
           onAssetSelect={handleAssetItemSelect}
           loading={loadingVehicleAssets}
+          role="admin"
         />
       </div>
     </AnimatePresence>

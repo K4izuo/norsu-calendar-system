@@ -1,4 +1,5 @@
 import { LucideIcon } from "lucide-react"
+import { AssetFormValue } from "@/types/asset"
 
 type EventStatus = "pending" | "approved" | "rejected"
 
@@ -66,12 +67,7 @@ export interface FacultyPageEventDetails {
 
 export interface ReservationFormData {
   title: string
-  asset: {
-    id: string
-    name: string
-    capacity: string
-    facilities?: string[]
-  } | null // <-- allow full asset object or null
+  asset: AssetFormValue | null
   timeStart: string
   timeEnd: string
   description: string
@@ -79,7 +75,21 @@ export interface ReservationFormData {
   people: string // comma-separated names
   infoType: string
   category: string
-  date?: string
+  date: string
+}
+
+// API payload type
+export interface ReservationAPIPayload {
+  title: string;
+  asset_id: number | null;
+  time_start: string;
+  time_end: string;
+  description: string;
+  range: number;
+  people: string;
+  info_type: string;
+  category: string;
+  date: string;
 }
 
 export interface StudentRegisterFormData {

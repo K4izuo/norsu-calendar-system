@@ -5,6 +5,11 @@ import toast from "react-hot-toast";
 export type Campus = { id: number; campus_name: string };
 export type Office = { id: number; office_name: string };
 export type Course = { id: number; degree_name: string };
+export type Asset = { 
+  id: number; 
+  asset_name: string; 
+  capacity: number;
+};
 export type OptionType = { value: string; label: string };
 
 // Helper function to determine error message based on error text and resource type
@@ -204,4 +209,55 @@ export const useCourses = (collegeId: string) => {
   }, [collegeId]); // Only collegeId as dependency
 
   return { courses, loading, error };
+};
+
+export const useAssets = () => {
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const dataFetchedRef = useRef(false);
+
+  useEffect(() => {
+    if (dataFetchedRef.current) return;
+    
+    let isMounted = true;
+    const toastId = "raw-asset-fetch";
+    setLoading(true);
+
+    apiClient.get<Asset[]>('assets/all')
+      .then(response => {
+        if (!isMounted) return;
+
+        if (response.error) {
+          const userErrorMessage = getErrorMessage(response.error, "Asset");
+          setError(`Asset Error: ${userErrorMessage}`);
+          toast.error(userErrorMessage, { id: toastId });
+          return;
+        }
+
+        if (!response.data || response.data.length === 0) {
+          setError("No assets found");
+          toast.error("No assets found", { id: toastId });
+          return;
+        }
+
+        setAssets(response.data); // Return raw Asset[] data instead of mapped OptionType[]
+        setError(null);
+        dataFetchedRef.current = true;
+      })
+      .catch(error => {
+        console.error("Error fetching raw assets:", error);
+        if (isMounted) {
+          setError("Asset Error: Failed to load asset list");
+          toast.error("Failed to load assets", { id: toastId });
+        }
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => { isMounted = false; };
+  }, []);
+
+  return { assets, loading, error };
 };
