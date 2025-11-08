@@ -15,7 +15,7 @@ export default function AuthRegisterPage() {
     setRole(null);
   }, [setRole]);
 
-  const navigateToRegistration = (path: string, role: "student" | "faculty" | "staff") => {
+  const navigateToRegistration = (path: string, role: "faculty" | "staff") => {
     setRole(role);
     router.push(path);
   };
@@ -54,26 +54,6 @@ export default function AuthRegisterPage() {
 
           {/* User Role Cards */}
           <div className="flex flex-col sm:flex-row gap-6 sm:gap-6 justify-center items-stretch w-full">
-            {/* Student Card */}
-            <div
-              tabIndex={0}
-              role="button"
-              className="bg-white border border-gray-200 rounded-xl shadow-md flex flex-col items-center px-6 py-6 sm:px-10 sm:py-8 w-full sm:w-72 transition-all duration-200 hover:shadow-xl hover:-translate-y-1 hover:border-green-400 group cursor-pointer outline-none"
-              onClick={() => navigateToRegistration("/auth/student/register", "student")}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  navigateToRegistration("/auth/student/register", "student");
-                }
-              }}
-            >
-              <User className="h-7 w-7 sm:h-8 sm:w-8 text-green-500 mb-3 group-hover:text-green-600 transition-colors duration-200" />
-              <span className="font-bold text-base sm:text-xl text-gray-800 mb-2 group-hover:text-green-600 transition-colors duration-200">
-                Student
-              </span>
-              <span className="text-sm sm:text-base text-gray-500 text-center mt-2">
-                Access your calendar and events.
-              </span>
-            </div>
             {/* Faculty Card */}
             <div
               tabIndex={0}

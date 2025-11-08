@@ -25,6 +25,7 @@ export function ReserveEventSummaryTab({
           <CalendarPlus2 className="text-gray-500 mr-2 h-6 w-6" />
           <h3 className="text-lg font-medium text-gray-700">Basic Information</h3>
         </div>
+        <div className="border-b border-gray-300 mb-4" /> {/* line below label */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <p className="text-base text-gray-500">Event Title</p>
@@ -67,10 +68,15 @@ export function ReserveEventSummaryTab({
           <Building className="text-gray-500 mr-2 h-6 w-6" />
           <h3 className="text-lg font-medium text-gray-700">Asset Information</h3>
         </div>
+        <div className="border-b border-gray-300 mb-4" /> {/* line below label */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
+            <p className="text-base text-gray-500">Asset Type</p>
+            <p className="font-medium text-base">{asset?.asset_type || "Not selected"}</p>
+          </div>
+          <div>
             <p className="text-base text-gray-500">Asset Name</p>
-            <p className="font-medium text-base">{asset?.name || "Not selected"}</p>
+            <p className="font-medium text-base">{asset?.asset_name || "Not selected"}</p>
           </div>
           <div>
             <p className="text-base text-gray-500">Capacity</p>
@@ -102,6 +108,7 @@ export function ReserveEventSummaryTab({
           <CalendarClock className="text-gray-500 mr-2 h-6 w-6" />
           <h3 className="text-lg font-medium text-gray-700">Time Details</h3>
         </div>
+        <div className="border-b border-gray-300 mb-4" /> {/* line below label */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <p className="text-base text-gray-500">Start Time</p>
@@ -125,6 +132,7 @@ export function ReserveEventSummaryTab({
             <FileText className="text-gray-500 mr-2 h-6 w-6" />
             <h3 className="text-lg font-medium text-gray-700">Additional Details</h3>
           </div>
+          <div className="border-b border-gray-300 mb-4" />
           <div>
             <p className="text-base text-gray-500">Full Description</p>
             <p className="mt-1 text-base">{formData.description}</p>

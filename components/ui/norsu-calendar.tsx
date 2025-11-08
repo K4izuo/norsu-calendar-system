@@ -16,7 +16,6 @@ import { calendarVariants, headerVariants } from "@/utils/calendar-animations"
 
 // Updated props interface
 export function Calendar<T>({
-  events,
   onDaySelect,
   getEventsForDate,
   initialDate = new Date(),
@@ -49,9 +48,6 @@ export function Calendar<T>({
 
   // Animation direction state
   const [direction, setDirection] = useState(0);
-
-  // Window width state for responsive rendering
-  const [windowWidth, setWindowWidth] = useState(0);
 
   // Navigation functions
   const goToPreviousMonth = useCallback(() => {
@@ -188,14 +184,6 @@ export function Calendar<T>({
     [currentMonth, currentYear, monthNames]
   );
 
-  // Update the window width state on mount and on resize
-  useEffect(() => {
-    setWindowWidth(window.innerWidth);
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
   return (
     <div className="flex flex-col w-full flex-1">
       {/* Calendar header */}
@@ -302,13 +290,7 @@ export function Calendar<T>({
                 key={day}
                 className="flex-1 text-xs xs:text-sm sm:text-base font-bold uppercase tracking-[1px] text-[#A8B2B9] text-center"
               >
-                {windowWidth === 0
-                  ? day // Initial render check
-                  : windowWidth < 400
-                  ? day.charAt(0)
-                  : windowWidth < 640
-                  ? day.slice(0, 1)
-                  : day}
+                {day}
               </div>
             ))}
           </div>
@@ -324,13 +306,11 @@ export function Calendar<T>({
               transition={{ duration: 0.3 }}
             >
               <div className="relative h-16 w-16 flex items-center justify-center">
-                {/* Spinner rotates with role-specific color */}
                 <motion.div
                   className={`absolute inset-0 h-16 w-16 rounded-full border-t-4 border-b-4 ${roleColors.spinner}`}
                   animate={{ rotate: 360 }}
                   transition={{ duration: 1.5, ease: "linear", repeat: Infinity }}
                 />
-                {/* Icon stays still with role-specific color */}
                 <CalendarClock className={`absolute inset-0 m-auto h-7 w-7 ${roleColors.icon}`} />
               </div>
             </motion.div>
@@ -343,7 +323,8 @@ export function Calendar<T>({
                 initial="initial"
                 animate="animate"
                 exit="exit"
-                className="grid grid-rows-5 grid-cols-7 w-full gap-1 xs:gap-1.5 sm:gap-2 md:gap-2.5 bg-white h-full"
+                // Use only Tailwind responsive gap classes, no JS logic
+                className="grid grid-rows-5 grid-cols-7 w-full gap-0.5 xs:gap-1 sm:gap-1.5 md:gap-2 bg-white h-full"
               >
                 {calendarDays.map((day, idx) => (
                   <motion.div

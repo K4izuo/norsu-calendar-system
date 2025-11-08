@@ -53,7 +53,7 @@ export const StaffFormSelectField = memo(function StaffFormSelectField({
       >
         <SelectTrigger
           id={id}
-          className={`h-11 cursor-pointer text-base border-2 rounded-lg w-full transition-all duration-[95ms] ${
+          className={`h-11 cursor-pointer text-base border-2 rounded-lg w-full transition-all duration-[90ms] ${
             hasError ? "border-red-400" : "border-gray-200"
           }`}
         >

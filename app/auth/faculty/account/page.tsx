@@ -9,7 +9,6 @@ export default function FacultyAccountPage() {
     form, 
     formData, 
     activeTab, 
-    errors,
     isSubmitting, 
     isFormValid, 
     handleNext, 

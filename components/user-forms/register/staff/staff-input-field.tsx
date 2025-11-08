@@ -29,7 +29,7 @@ export const StaffFormInput = <T extends FieldValues>({
     <Input
       {...register(name, rules)}
       id={name}
-      className={`h-11 text-base border-2 rounded-lg transition-all duration-[95ms] ${
+      className={`h-11 text-base border-2 rounded-lg transition-all duration-[90ms] ${
         errors[name] ? "border-red-400" : "border-gray-200"
       } focus:border-ring`}
       {...inputProps}

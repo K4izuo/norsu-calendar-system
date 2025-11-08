@@ -39,7 +39,7 @@ const getRoleLoadingColors = (role: Role) => {
       icon: "text-teal-500"
     }
   };
-  
+
   return colorMap[role || "public"] || colorMap.student; // Default to student colors
 };
 
@@ -82,6 +82,7 @@ export function EventsListModal({
   setShowRecent,
   role,
 }: EventsListModalProps & { showRecent: boolean; setShowRecent: React.Dispatch<React.SetStateAction<boolean>>; role?: Role }) {
+  const contentRef = useRef<HTMLDivElement>(null)
   const [reserveModalOpen, setReserveModalOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [recentLoading, setRecentLoading] = useState(false)
@@ -171,26 +172,28 @@ export function EventsListModal({
     <>
       <AnimatePresence>
         {isOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overscroll-none" onClick={onClose}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overscroll-none">
             <motion.div
               className="absolute inset-0 bg-black/60 sm:backdrop-blur-sm"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{
-                duration: 0.2,
+                duration: 0.25,
                 ease: [0.22, 1, 0.36, 1],
               }}
             />
 
+            {/* Modal content */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              ref={contentRef}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 4 }}
               transition={{
-                type: "spring",
-                duration: 0.3,
-                bounce: 0.1,
+                type: "tween",
+                duration: 0.25,
+                ease: [0.22, 1, 0.36, 1],
               }}
               className="relative max-w-[900px] bg-background rounded-2xl shadow-2xl w-[99%] sm:w-full sm:mx-4 overflow-hidden flex flex-col max-h-[88vh] border border-border/50"
               onClick={(e) => e.stopPropagation()}

@@ -67,7 +67,14 @@ export interface FacultyPageEventDetails {
 
 export interface ReservationFormData {
   title: string
-  asset: AssetFormValue | null
+  asset: {
+    id: number
+    asset_name: string
+    capacity: number
+    facilities?: string[]
+    asset_type?: string
+
+  }
   timeStart: string
   timeEnd: string
   description: string
@@ -90,18 +97,6 @@ export interface ReservationAPIPayload {
   info_type: string;
   category: string;
   date: string;
-}
-
-export interface StudentRegisterFormData {
-  first_name: string;
-  middle_name: string;
-  last_name: string;
-  email: string;
-  assignment_id: string; // <-- Changed from studentID
-  campus_id: string;
-  college_id: string;
-  degree_course_id: string;
-  role: string;
 }
 
 export interface FacultyRegisterFormData {

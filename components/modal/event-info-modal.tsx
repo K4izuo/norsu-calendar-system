@@ -169,7 +169,6 @@ export const EventInfoModal = React.memo(function EventInfoModal({
       {isOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-1.5 sm:p-4 overscroll-none"
-          onClick={onClose}
         >
           {/* Animated backdrop */}
           <motion.div

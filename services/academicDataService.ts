@@ -8,7 +8,9 @@ export type Course = { id: number; degree_name: string };
 export type Asset = { 
   id: number; 
   asset_name: string; 
+  asset_type: string;
   capacity: number;
+  location: string;
 };
 export type OptionType = { value: string; label: string };
 

@@ -106,7 +106,7 @@ export function ReserveEventAdditionalTab({
                           field.onChange(updatedPeople.map(p => p.name).join(', '));
                         }}
                       >
-                        <User className="w-4 h-4 mr-2 text-blue-500" />
+                        <User className="w-4 h-4 mr-2 text-gray-800" />
                         {person.name}
                       </button>
                     ))}

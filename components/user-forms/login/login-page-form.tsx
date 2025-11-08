@@ -7,7 +7,7 @@ import { UseFormRegister, FieldErrors, RegisterOptions } from "react-hook-form"
 import { LoginFormData } from "@/utils/login/login-validation-rules"
 
 interface LoginFormLayoutProps {
-  type: "student" | "faculty" | "staff" | "admin"
+  type: "faculty" | "staff" | "admin"
   showPassword: boolean
   rememberMe: boolean
   isLoading: boolean
@@ -36,13 +36,6 @@ export const LoginFormLayout = memo(function LoginFormLayout({
   
   // Theme configuration based on user type
   const themeConfig = {
-    student: {
-      title: "Welcome Student",
-      buttonStyle: "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700",
-      checkboxStyle: "border-2 cursor-pointer border-gray-300 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600",
-      linkStyle: "text-green-600 cursor-pointer hover:text-green-700",
-      inputStyle: "border-gray-200 focus:border-green-500 focus:ring-green-500/20"
-    },
     faculty: {
       title: "Welcome Faculty",
       buttonStyle: "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700",
@@ -71,7 +64,7 @@ export const LoginFormLayout = memo(function LoginFormLayout({
   const usernamePlaceholder = isAdmin ? "Admin Username" : "Username"
   const passwordPlaceholder = isAdmin ? "Admin Password" : "Password"
   const linkText = isAdmin ? "Contact IT Support" : "Forgot Password?"
-  const buttonHeight = type === "student" ? "h-12" : "h-[50px] sm:h-[54px]"
+  const buttonHeight = type === "faculty" ? "h-12" : "h-[50px] sm:h-[54px]"
   const labelStyle = isAdmin ? "text-sm text-gray-700 cursor-pointer" : "text-sm text-gray-600 cursor-pointer"
 
   const getInputFieldStyles = (hasError: boolean) => {
@@ -96,7 +89,7 @@ export const LoginFormLayout = memo(function LoginFormLayout({
                 type="text"
                 placeholder={usernamePlaceholder}
                 autoComplete="username"
-                className={`h-12 text-base sm:text-lg pl-[42px] pr-4 border-2 rounded-lg transition-all duration-[95ms] ${getInputFieldStyles(!!errors.username)} placeholder:text-gray-400`}
+                className={`h-12 text-base sm:text-lg pl-[42px] pr-4 border-2 rounded-lg transition-all duration-[90ms] ${getInputFieldStyles(!!errors.username)} placeholder:text-gray-400`}
               />
               <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
             </div>
@@ -111,7 +104,7 @@ export const LoginFormLayout = memo(function LoginFormLayout({
                 type={showPassword ? "text" : "password"}
                 placeholder={passwordPlaceholder}
                 autoComplete="current-password"
-                className={`h-12 text-base sm:text-lg pl-[42px] pr-12 border-2 rounded-lg transition-all duration-[95ms] ${getInputFieldStyles(!!errors.password)} placeholder:text-gray-400`}
+                className={`h-12 text-base sm:text-lg pl-[42px] pr-12 border-2 rounded-lg transition-all duration-[90ms] ${getInputFieldStyles(!!errors.password)} placeholder:text-gray-400`}
               />
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <button

@@ -5,9 +5,9 @@ export const RESERVATION_VALIDATION_RULES = {
   },
   asset: {
     required: "Asset is required",
-    validate: (value: { id: number | string; name: string; capacity: string } | null) => {
+    validate: (value: { id: number; asset_name: string; capacity: number } | null) => {
       if (!value) return "Please select an asset";
-      if (!value.name) return "Asset must have a name";
+      if (!value.asset_name) return "Asset must have a name";
       return true;
     }
   },

@@ -10,15 +10,10 @@ type TermsAndConditionModalProps = {
   onClose: () => void;
   onAgree: () => void;
   agreed?: boolean; // <-- Add this
-  color?: "emerald" | "indigo" | "purple";
+  color?: "indigo" | "purple";
 };
 
 const colorMap = {
-  emerald: {
-    icon: "text-emerald-500",
-    button: "bg-emerald-600 hover:bg-emerald-700",
-    underline: "text-emerald-600",
-  },
   indigo: {
     icon: "text-indigo-500",
     button: "bg-indigo-600 hover:bg-indigo-700",
@@ -36,9 +31,9 @@ export const TermsAndConditionModal: React.FC<TermsAndConditionModalProps> = ({
   onClose,
   onAgree,
   agreed = false, // <-- Use prop
-  color = "emerald",
+  color = "indigo",
 }) => {
-  const colors = colorMap[color] || colorMap.emerald;
+  const colors = colorMap[color] || colorMap.indigo;
   const [countdown, setCountdown] = useState(5);
 
   useEffect(() => {

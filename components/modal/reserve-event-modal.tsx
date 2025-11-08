@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState, useCallback, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { X } from "lucide-react"
+import { X, CalendarDays } from "lucide-react" // Add CalendarDays to your import
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { useForm } from "react-hook-form"
@@ -54,7 +54,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
     mode: "onTouched",
     defaultValues: {
       title: "",
-      asset: null,
+      asset: undefined,
       timeStart: getCurrentTime(),
       timeEnd: getCurrentTime(),
       description: "",
@@ -72,8 +72,8 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
   const [showVehicleModal, setShowVehicleModal] = useState(false);
   const [loadingVenueAssets, setLoadingVenueAssets] = useState(false);
   const [loadingVehicleAssets, setLoadingVehicleAssets] = useState(false);
-  const [venueAssets, setVenueAssets] = useState<{ id: string; name: string; capacity: string }[]>([]);
-  const [vehicleAssets, setVehicleAssets] = useState<{ id: string; name: string; capacity: string }[]>([]);
+  const [venueAssets, setVenueAssets] = useState<{ id: number; asset_name: string; asset_type: string; capacity: number, location: string }[]>([]);
+  const [vehicleAssets, setVehicleAssets] = useState<{ id: number; asset_name: string; asset_type: string; capacity: number, location: string }[]>([]);
 
   const peopleSuggestions = [
     { id: "1", name: "John Doe" },
@@ -91,8 +91,8 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
   const formattedAssets = useMemo(() => {
     // Only show the original trigger options - no fetched assets
     return [
-      { id: "assets venue", name: "Assets Venue", capacity: "" },
-      { id: "assets vehicle", name: "Assets Vehicle", capacity: "" }
+      { id: 1, asset_name: "Assets Venue", capacity: 0 },
+      { id: 2, asset_name: "Assets Vehicle", capacity: 0 }
     ];
   }, []);
 
@@ -139,15 +139,17 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
       setTimeout(() => {
         if (assets && assets.length > 0) {
           const venueAssetsData = assets.map(asset => ({
-            id: String(asset.id), // Convert database number to string
-            name: asset.asset_name,
-            capacity: asset.capacity ? `${asset.capacity} seats` : "Not specified"
+            id: asset.id, // Keep as number from database
+            asset_name: asset.asset_name,
+            asset_type: asset.asset_type,
+            capacity: asset.capacity || 0,
+            location: asset.location || "N/A"
           }));
           setVenueAssets(venueAssetsData);
         } else {
           setVenueAssets([
-            { id: "1", name: "Main Building, Room 101", capacity: "120 seats" },
-            { id: "2", name: "Science Building, Room 203", capacity: "80 seats" },
+            { id: 1, asset_name: "Main Building, Room 101", asset_type: "venue", capacity: 120, location: "Main Campus" },
+            { id: 2, asset_name: "Science Building, Room 203", asset_type: "venue", capacity: 80, location: "Science Campus" },
           ]);
         }
         setLoadingVenueAssets(false);
@@ -161,15 +163,17 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
       setTimeout(() => {
         if (assets && assets.length > 0) {
           const vehicleAssetsData = assets.map(asset => ({
-            id: String(asset.id), // Convert database number to string
-            name: asset.asset_name,
-            capacity: asset.capacity ? `${asset.capacity} seats` : "Not specified"
+            id: asset.id, // Keep as number from database
+            asset_name: asset.asset_name,
+            asset_type: asset.asset_type,
+            capacity: asset.capacity || 0,
+            location: asset.location || "N/A"
           }));
           setVehicleAssets(vehicleAssetsData);
         } else {
           setVehicleAssets([
-            { id: "3", name: "School Bus", capacity: "50 seats" },
-            { id: "4", name: "Van", capacity: "15 seats" },
+            { id: 3, asset_name: "School Bus", asset_type: "vehicle", capacity: 50, location: "Main Campus" },
+            { id: 4, asset_name: "Van", asset_type: "vehicle", capacity: 15, location: "Science Campus" },
           ]);
         }
         setLoadingVehicleAssets(false);
@@ -180,7 +184,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
   // Update the useEffect for people sync
   useEffect(() => {
     const peopleValue = taggedPeople.map(p => p.name).join(', ');
-    setValue("people", peopleValue, { 
+    setValue("people", peopleValue, {
       shouldDirty: taggedPeople.length > 0,
       shouldValidate: true,
       shouldTouch: true
@@ -188,18 +192,26 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
   }, [taggedPeople, setValue]);
 
   const handleAssetChange = (value: string) => {
-    // Only handle modal triggers - no real asset selection from dropdown
-    if (value === "assets venue") {
+    // If user clicks on the hidden selected asset item, ignore it
+    // if (value.startsWith('selected-')) {
+    //   return;
+    // }
+
+    // Convert string value back to number to match our formattedAssets
+    const numericValue = parseInt(value);
+
+    // Check against the actual IDs from formattedAssets (trigger options)
+    if (numericValue === 1) { // Assets Venue
       setShowVenueModal(true);
       return;
     }
-    if (value === "assets vehicle") {
+    if (numericValue === 2) { // Assets Vehicle  
       setShowVehicleModal(true);
       return;
     }
   };
 
-  const handleAssetItemSelect = (asset: { id: string; name: string; capacity: string }) => {
+  const handleAssetItemSelect = (asset: { id: number; asset_name: string; asset_type: string; capacity: number }) => {
     setValue("asset", asset, { shouldValidate: true, shouldTouch: true });
     setShowVenueModal(false);
     setShowVehicleModal(false);
@@ -279,13 +291,13 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
 
   const handleAdditionalTabNext = useCallback(async () => {
     // Set people value for validation
-    setValue("people", taggedPeople.map(p => p.name).join(', '), { 
-      shouldValidate: true, 
-      shouldTouch: true 
+    setValue("people", taggedPeople.map(p => p.name).join(', '), {
+      shouldValidate: true,
+      shouldTouch: true
     });
 
     const isValid = await trigger(['people', 'infoType', 'category']);
-    
+
     if (isValid && taggedPeople.length > 0) {
       setActiveTab("summary");
     } else {
@@ -312,7 +324,6 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
     <AnimatePresence>
       <div
         className="fixed inset-0 z-50 flex items-center justify-center p-4 overscroll-none"
-        onClick={onClose}
       >
         <motion.div
           className="absolute inset-0 bg-black/40"
@@ -320,7 +331,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{
-            duration: 0.28,
+            duration: 0.25,
             ease: [0.22, 1, 0.36, 1]
           }}
         />
@@ -332,7 +343,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
           exit={{ opacity: 0, y: 4 }}
           transition={{
             type: "tween",
-            duration: 0.28,
+            duration: 0.25,
             ease: [0.22, 1, 0.36, 1]
           }}
           className="relative w-full max-w-[900px] sm:mx-4 mx-[1px] max-h-[92vh] bg-white rounded-lg shadow-xl overflow-hidden flex flex-col"
@@ -346,9 +357,12 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
         >
           <div className="sticky top-0 bg-white z-10 p-4 sm:p-6 pb-4 sm:pb-6 border-b border-gray-200">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl sm:text-3xl font-semibold text-gray-800">
-                Reserve Event
-              </h2>
+              <div className="flex items-center gap-2">
+                <CalendarDays strokeWidth={2.5} className="w-8 h-8 text-gray-800" />
+                <h2 className="text-2xl sm:text-3xl font-semibold text-gray-800">
+                  Reservation Form
+                </h2>
+              </div>
               <Button
                 onClick={e => {
                   e.stopPropagation();

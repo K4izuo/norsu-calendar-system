@@ -11,24 +11,20 @@ import { UseFormRegister, FieldErrors, RegisterOptions } from "react-hook-form"
 export const BgBlobs = React.memo(({
   color = "blue",
 }: {
-  color?: "green" | "blue" | "red"
+  color?: "blue" | "purple"
 }) => {
   // Use static classes to ensure they're included in the build
-  const topLeftClass = color === "green" ? "bg-green-600" : color === "red" ? "bg-red-600" : "bg-blue-600"
-  const bottomRightClass = color === "green" ? "bg-green-500" : color === "red" ? "bg-red-500" : "bg-blue-500"
-  const middleLeftClass = color === "green" ? "bg-green-500" : color === "red" ? "bg-red-500" : "bg-blue-500"
+  const topLeftClass = color === "purple" ? "bg-purple-600" : "bg-blue-600"
+  const topRightClass = color === "purple" ? "bg-purple-500" : "bg-blue-500"
+  const bottomLeftClass = color === "purple" ? "bg-purple-400" : "bg-blue-400"
+  const bottomRightClass = color === "purple" ? "bg-purple-500" : "bg-blue-500"
 
   return (
     <>
-      <div
-        className={`absolute top-0 left-0 w-32 h-32 ${topLeftClass} rounded-full opacity-10 -translate-x-16 -translate-y-16`}
-      />
-      <div
-        className={`absolute bottom-0 right-0 w-48 h-48 ${bottomRightClass} rounded-full opacity-10 translate-x-24 translate-y-24`}
-      />
-      <div
-        className={`absolute top-1/2 left-0 w-24 h-24 ${middleLeftClass} rounded-full opacity-10 -translate-x-12`}
-      />
+      <div className={`absolute top-0 left-0 w-48 h-48 ${topLeftClass} rounded-full opacity-20 -translate-x-24 -translate-y-24`}></div>
+      <div className={`absolute top-0 right-0 w-48 h-48 ${topRightClass} rounded-full opacity-10 translate-x-24 -translate-y-24`}></div>
+      <div className={`absolute bottom-0 right-0 w-48 h-48 ${bottomRightClass} rounded-full opacity-20 translate-x-24 translate-y-24`}></div>
+      <div className={`absolute bottom-0 left-0 w-48 h-48 ${bottomLeftClass} rounded-full opacity-20 -translate-x-24 translate-y-24`}></div>
     </>
   )
 })
@@ -42,7 +38,7 @@ export interface AccountFormData {
 }
 
 export interface AccountPageProps {
-  type: "student" | "faculty" | "staff"
+  type: "faculty" | "staff"
   formData: AccountFormData
   activeTab: string
   passwordError: string | null
@@ -73,25 +69,20 @@ export const AccountPageLayout = React.memo(({
   
   // Theme configuration
   const themeConfig = {
-    student: {
-      color: "green",
-      accentColor: "emerald",
-      bgGradient: "from-green-50 to-emerald-50"
-    },
     faculty: {
       color: "blue",
       accentColor: "indigo", 
       bgGradient: "from-blue-50 to-indigo-50"
     },
     staff: {
-      color: "red",
-      accentColor: "red",
-      bgGradient: "from-red-50 to-red-100"
+      color: "purple",
+      accentColor: "purple",
+      bgGradient: "from-purple-50 to-purple-100"
     }
   }
 
   const theme = themeConfig[type]
-  const titleText = `Create ${type === "student" ? "Student" : type === "faculty" ? "Faculty" : "Staff"} Account`
+  const titleText = `Create ${type === "faculty" ? "Faculty" : "Staff"} Account`
 
   const getInputBorderClass = (fieldName: keyof AccountFormData) => {
     const hasError = errors[fieldName] || (fieldName === "confirmPassword" && passwordError)
@@ -130,14 +121,14 @@ export const AccountPageLayout = React.memo(({
         type={type}
         autoComplete={name === "username" ? "username" : "new-password"}
         placeholder={placeholder}
-        className={`h-12 sm:h-11 text-base border-2 rounded-lg transition-all duration-[95ms] ${getInputBorderClass(name)} focus:border-ring`}
+        className={`h-12 sm:h-11 text-base border-2 rounded-lg transition-all duration-[90ms] ${getInputBorderClass(name)} focus:border-ring`}
       />
     </div>
   )
 
   return (
     <div className={`min-h-[100dvh] w-full bg-gradient-to-br ${theme.bgGradient} flex items-center justify-center py-6 px-2 sm:px-4 lg:px-6 relative font-['Poppins'] overflow-hidden`}>
-      <BgBlobs color={theme.color as "green" | "blue" | "red"} />
+      <BgBlobs color={theme.color as "blue" | "purple"} />
       
       <motion.div
         initial={{ opacity: 0, y: 20 }}

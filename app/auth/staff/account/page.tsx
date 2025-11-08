@@ -9,7 +9,6 @@ export default function StaffAccountPage() {
     form, 
     formData, 
     activeTab, 
-    errors,
     isSubmitting, 
     isFormValid, 
     handleNext, 

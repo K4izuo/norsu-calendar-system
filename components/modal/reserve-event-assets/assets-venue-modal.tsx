@@ -2,15 +2,16 @@
 
 import React, { useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, X, CalendarClock } from "lucide-react";
+import { MapPinned, X, CalendarClock, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getRoleColors, UserRole } from "@/utils/role-colors";
 
 interface Asset {
-  id: string; // Change back to string for consistency
-  name: string;
-  capacity: string;
-  facilities?: string[];
+  id: number;
+  asset_name: string;
+  capacity: number;
+  asset_type: string;
+  location: string;
 }
 
 interface ModalProps {
@@ -54,13 +55,16 @@ export const AssetsVenueModal = React.memo(function AssetsVenueModal({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-1.5 sm:p-4 overscroll-none" onClick={onClose}>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-1.5 sm:p-4 overscroll-none">
         <motion.div
           className="absolute inset-0 bg-black/40"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+          transition={{
+            duration: 0.25,
+            ease: [0.22, 1, 0.36, 1]
+          }}
         />
 
         <motion.div
@@ -68,8 +72,12 @@ export const AssetsVenueModal = React.memo(function AssetsVenueModal({
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 4 }}
-          transition={{ type: "tween", duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-          className="relative max-w-[700px] max-h-[92vh] bg-white rounded-lg shadow-xl w-[94%] sm:w-full sm:mx-4 overflow-hidden flex flex-col"
+          transition={{
+            type: "tween",
+            duration: 0.25,
+            ease: [0.22, 1, 0.36, 1]
+          }}
+          className="relative max-w-[700px] max-h-[92vh] bg-white rounded-lg shadow-xl w-[94%] sm:w-xl sm:mx-4 overflow-hidden flex flex-col"
           style={{
             transform: "translateZ(0)",
             backfaceVisibility: "hidden",
@@ -124,24 +132,49 @@ export const AssetsVenueModal = React.memo(function AssetsVenueModal({
                       key={asset.id}
                       type="button"
                       variant="ghost"
-                      className={`w-full cursor-pointer text-left bg-gray-50 shadow-sm rounded-lg p-4 mb-4 ${roleColors.hoverBg} transition h-auto justify-start`}
+                      className={`w-full border border-gray-100 cursor-pointer text-left bg-gray-50 shadow-sm rounded-lg p-5 mb-4 ${roleColors.hoverBg} transition h-auto justify-start`}
                       onClick={() => { onAssetSelect(asset); onClose(); }}
                     >
                       <div className="w-full">
                         <div className="flex items-center mb-3">
-                          <MapPin className="text-gray-500 mr-2 h-5 w-5" />
-                          <h3 className="text-lg font-medium text-gray-700">
-                            {asset.name}
-                          </h3>
+                          <MapPinned className="text-gray-500 mr-2 h-5 w-5" />
+                          {/^https?:\/\//.test(asset.location) ? (
+                            <a
+                              href={asset.location}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-lg font-medium text-gray-700 hover:underline transition"
+                              onClick={e => e.stopPropagation()} // Prevent modal close on link click
+                            >
+                              {asset.asset_name}
+                            </a>
+                          ) : (
+                            <span className="text-lg font-medium text-gray-700">
+                              {asset.asset_name}
+                            </span>
+                          )}
                         </div>
+                        <div className="border-b border-gray-300 mb-5" />
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <p className="text-base text-gray-500">Capacity</p>
+                            <p className="text-base text-gray-500 flex items-center gap-1">
+                              <Users className="w-4 h-4 mr-1 text-gray-500" />
+                              Capacity
+                            </p>
                             <p className="font-medium text-base">
-                              {asset.capacity || "N/A"}
+                              {asset.capacity ? `${asset.capacity} seats` : "N/A"}
                             </p>
                           </div>
-                          {asset.facilities && (
+                          {/* <div>
+                            <p className="text-base text-gray-500 flex items-center gap-1">
+                              <MapPinned className="w-4 h-4 mr-1 text-gray-500" />
+                              Location
+                            </p>
+                            <p className="font-medium text-base">
+                              {asset.location || "N/A"}
+                            </p>
+                          </div> */}
+                          {/* {asset.facilities && (
                             <div>
                               <p className="text-base text-gray-500">Facilities</p>
                               <div className="flex flex-wrap gap-1 mt-1">
@@ -155,7 +188,7 @@ export const AssetsVenueModal = React.memo(function AssetsVenueModal({
                                 ))}
                               </div>
                             </div>
-                          )}
+                          )} */}
                         </div>
                       </div>
                     </Button>

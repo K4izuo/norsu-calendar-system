@@ -8,9 +8,9 @@ import { ReservationFormData } from "@/interface/user-props"
 import { EventFormInput } from "./event-input-field"
 
 interface Asset {
-  id: string
-  name: string
-  capacity: string
+  id: number
+  asset_name: string
+  capacity: number
 }
 
 interface Props {
@@ -57,21 +57,23 @@ export function ReserveEventFormTab({
               rules={validationRules.asset}
               render={({ field }) => (
                 <Select
-                  value={selectedAsset?.id || ""}
+                  value={selectedAsset ? `selected-${selectedAsset.id}` : ""}
                   onValueChange={handleAssetChange}
                 >
                   <SelectTrigger id="asset" className={`mt-1 cursor-pointer border-2 text-base w-full h-12 focus:border-ring transition-all duration-[95ms] ${errors.asset ? "border-red-400" : "border-gray-200"}`}>
-                    <SelectValue
-                      placeholder="Select an asset"
-                      {...(selectedAsset ? { children: selectedAsset.name } : {})}
-                    />
+                    <SelectValue placeholder="Select an asset" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
                       <SelectLabel className="text-base">Asset Type</SelectLabel>
+                      {selectedAsset && (
+                        <SelectItem key={`selected-${selectedAsset.id}`} value={`selected-${selectedAsset.id}`} className="text-base hidden cursor-pointer">
+                          {selectedAsset.asset_name}
+                        </SelectItem>
+                      )}
                       {assets.map(asset => (
-                        <SelectItem key={asset.id} value={asset.id} className="text-base cursor-pointer">
-                          {asset.name}
+                        <SelectItem key={asset.id} value={asset.id.toString()} className="text-base cursor-pointer">
+                          {asset.asset_name}
                         </SelectItem>
                       ))}
                     </SelectGroup>
