@@ -50,7 +50,7 @@ export default function FacultyLoginPage() {
 
             <div className="space-y-3">
               <h2 className="text-2xl sm:text-3xl font-bold">EduPortal Pro</h2>
-              <p className="text-blue-100 text-lg">Faculty & Staff Portal</p>
+              <p className="text-blue-100 text-lg">Faculty Portal</p>
               <p className="text-blue-200 text-sm max-w-xs">
                 Manage courses, track student progress, and collaborate with colleagues
               </p>

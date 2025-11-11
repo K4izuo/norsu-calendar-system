@@ -28,7 +28,7 @@ export default function AuthLoginPage() {
 
       {/* Main Content */}
       <main className="flex-1 flex justify-center items-center px-2">
-        <section className="bg-white rounded-xl shadow-lg p-4 sm:p-6 w-full max-w-md sm:max-w-4xl flex flex-col">
+        <section className="bg-white rounded-xl shadow-lg p-4 sm:p-6 w-full max-w-xl flex flex-col">
           <div className="flex flex-col items-center mb-5">
             <div className="flex items-center">
               <User className="h-7 w-7 sm:h-8 sm:w-8 text-gray-500 mr-2 sm:mr-3" />
@@ -40,7 +40,7 @@ export default function AuthLoginPage() {
           <hr className="border-t border-gray-200 mb-6" />
 
           {/* User Role Cards */}
-          <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 justify-center items-stretch w-full">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-stretch w-full">
             {/* Faculty Card */}
             <div
               tabIndex={0}

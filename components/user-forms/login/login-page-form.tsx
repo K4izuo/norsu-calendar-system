@@ -89,7 +89,7 @@ export const LoginFormLayout = memo(function LoginFormLayout({
                 type="text"
                 placeholder={usernamePlaceholder}
                 autoComplete="username"
-                className={`h-12 text-base sm:text-lg pl-[42px] pr-4 border-2 rounded-lg transition-all duration-[90ms] ${getInputFieldStyles(!!errors.username)} placeholder:text-gray-400`}
+                className={`h-12 text-base sm:text-lg pl-[42px] pr-4 border-2 rounded-lg ${getInputFieldStyles(!!errors.username)} placeholder:text-gray-400`}
               />
               <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
             </div>
