@@ -13,7 +13,7 @@ export default function StaffLoginPage() {
     errors,
     showPassword,
     rememberMe,
-    isLoading,
+    isLoading: formLoading,
     handlePasswordToggle,
     handleRememberMeChange,
     handleSubmit,
@@ -75,7 +75,7 @@ export default function StaffLoginPage() {
           type="staff"
           showPassword={showPassword}
           rememberMe={rememberMe}
-          isLoading={isLoading}
+          isLoading={formLoading}
           formData={formData}
           errors={errors}
           onShowPasswordToggle={handlePasswordToggle}

@@ -3,7 +3,7 @@ import { AccountFormData } from "@/components/user-forms/account/account-page-fo
 
 export const ACCOUNT_VALIDATION_RULES: Record<keyof AccountFormData, RegisterOptions<AccountFormData>> = {
   username: {
-    required: "Username is required",
+    required: "Username field is required",
     minLength: { value: 3, message: "Username must be at least 3 characters long" },
     pattern: { 
       value: /^[a-zA-Z0-9_]+$/, 
@@ -11,7 +11,7 @@ export const ACCOUNT_VALIDATION_RULES: Record<keyof AccountFormData, RegisterOpt
     }
   },
   password: {
-    required: "Password is required",
+    required: "Password field is required",
     minLength: { value: 8, message: "Password must be at least 8 characters long" },
     pattern: {
       value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
@@ -19,7 +19,7 @@ export const ACCOUNT_VALIDATION_RULES: Record<keyof AccountFormData, RegisterOpt
     }
   },
   confirmPassword: {
-    required: "Please confirm your password",
+    required: "Please confirm your password field",
     validate: (value, formValues) => 
       value === formValues.password || "Passwords do not match"
   }

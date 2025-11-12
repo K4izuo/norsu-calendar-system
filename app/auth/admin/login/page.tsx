@@ -13,7 +13,7 @@ export default function AdminLoginPage() {
     errors,
     showPassword,
     rememberMe,
-    isLoading,
+    isLoading: formLoading,
     handlePasswordToggle,
     handleRememberMeChange,
     handleSubmit,
@@ -79,7 +79,7 @@ export default function AdminLoginPage() {
           type="admin"
           showPassword={showPassword}
           rememberMe={rememberMe}
-          isLoading={isLoading}
+          isLoading={formLoading}
           formData={formData}
           errors={errors}
           onShowPasswordToggle={handlePasswordToggle}

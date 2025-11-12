@@ -36,19 +36,29 @@ export const useLoginForm = () => {
     
     try {
       // Simulate API call
-      const response = await apiClient.post<{ message?: string }, LoginFormData>(
+      const response = await apiClient.post<{ role?: number }, LoginFormData>(
         "users/login",
         data
       );
+
       if (response.error) {
         toast.error(response.error, { position: "top-center" })
         return
       }
+
       toast.success("Login successful!", { position: "top-center" })
+      
+      switch(response.data?.role) {
+        case 2: router.replace("/pages/faculty/dashboard"); break;
+        case 3: router.replace("/pages/staff/dashboard"); break;
+        case 4: router.replace("/pages/admin/dashboard"); break;
+        default: router.replace("/pages/admin/dashboard"); break;
+      }
+      
       reset()
       setShowPassword(false)
       setRememberMe(false)
-      router.replace("/pages/admin/dashboard")
+
     } catch (error) {
       toast.error("Login failed!", { position: "top-center" })
     } finally {

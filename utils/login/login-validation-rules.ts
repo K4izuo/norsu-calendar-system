@@ -7,7 +7,7 @@ export interface LoginFormData {
 
 export const LOGIN_VALIDATION_RULES: Record<keyof LoginFormData, RegisterOptions<LoginFormData>> = {
   username: {
-    required: "Username is required",
+    required: "Username field is required",
     minLength: { value: 3, message: "Username must be at least 3 characters long" },
     pattern: { 
       value: /^[a-zA-Z0-9_]+$/, 
@@ -15,7 +15,7 @@ export const LOGIN_VALIDATION_RULES: Record<keyof LoginFormData, RegisterOptions
     }
   },
   password: {
-    required: "Password is required",
+    required: "Password field is required",
     minLength: { value: 8, message: "Password must be at least 8 characters long" }
   }
 } as const

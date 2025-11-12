@@ -202,7 +202,7 @@ export default function AdminCalendarTab() {
           title={
             selectedDay
               ? selectedDay.currentMonth
-                ? `Admin Events on ${monthNames[currentMonth]} ${selectedDay.date}, ${currentYear}`
+                ? `Events on ${monthNames[currentMonth]} ${selectedDay.date}, ${currentYear}`
                 : `${selectedDay.date} ${monthNames[currentMonth]}, ${currentYear} (Outside current month)`
               : ""
           }

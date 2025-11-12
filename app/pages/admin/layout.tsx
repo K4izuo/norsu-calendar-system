@@ -9,7 +9,6 @@ import {
   Calendar,
   CalendarClock,
   ChevronRight,
-  Menu,
   Search,
   Bell,
   User,
@@ -143,46 +142,30 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Enhanced navbar with sidebar toggle */}
         <div className="flex-none h-[80px] py-2 px-4 items-center bg-white shadow-sm w-full z-10 flex">
           <div className="flex items-center justify-between w-full">
-            {/* Left side: Sidebar toggle and page title */}
-            <div className="flex items-center">
-              <Button
-                onClick={() => setSidebarOpen(!sidebarOpen)} 
-                variant="ghost"
-                size="icon"
-                className="relative cursor-pointer bg-white h-12 w-12 rounded-full hover:bg-gray-100 mr-4"
-                aria-label="Toggle sidebar"
-              >
-                <Menu className="size-6 text-gray-600" />
-              </Button>
-              
-              {/* <h2 className="text-xl font-semibold text-gray-800">
-                {activeTab === "dashboard" ? "Admin Dashboard" : 
-                 activeTab === "calendar" ? "Events Calendar" : 
-                 "Asset Management System"}
-              </h2> */}
-            </div>
-            
-            {/* Right side: Search, notifications, user */}
-            <div className="flex items-center gap-3">
-              {/* Search bar - increased width */}
-              <div className="relative hidden md:block mr-3 w-80"> {/* Changed mr-1.5 to mr-3 for balance */}
+            {/* Left side: Search input (moved from right side) */}
+            <div className="flex items-center ml-2">
+              <div className="relative w-80">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   <Search size={18} className="text-gray-400" />
                 </div>
                 <Input
-                  type="search" 
-                  className="block h-10 w-full pl-10 pr-3 py-2 border border-gray-300 rounded-full bg-gray-50 focus:ring-gray-500 focus:border-gray-500 text-sm"
+                  type="search"
+                  id="search"
+                  className="block h-11 w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:ring-gray-500 focus:border-gray-500 text-sm"
                   placeholder="Search..."
                 />
               </div>
-              
+            </div>
+            
+            {/* Right side: Notifications, user */}
+            <div className="flex items-center gap-3">
               {/* Icon group with consistent styling */}
-              <div className="flex items-center gap-3"> {/* Changed gap-2 to gap-3 for consistency */}
+              <div className="flex items-center gap-3">
                 {/* Messages */}
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  className="relative cursor-pointer bg-white h-12 w-12 rounded-full hover:bg-gray-100"
+                  className="relative cursor-pointer bg-white h-12 w-12 rounded-full border border-transparent hover:border-gray-300 hover:bg-white"
                 >
                   <Mail className="size-6 text-gray-600" />
                   <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-green-500 rounded-full"></span>
@@ -192,7 +175,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  className="relative cursor-pointer bg-white h-12 w-12 rounded-full hover:bg-gray-100"
+                  className="relative cursor-pointer bg-white h-12 w-12 rounded-full border border-transparent hover:border-gray-300 hover:bg-white"
                 >
                   <Bell className="size-6 text-gray-600" />
                   <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-red-500 rounded-full"></span>
@@ -200,7 +183,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </div>
               
               {/* User profile - with balanced spacing */}
-              <div className="flex items-center ml-3 mr-4"> {/* Changed ml-2 mr-3 to ml-4 mr-4 */}
+              <div className="flex items-center ml-3 mr-4">
                 <button className="flex items-center space-x-2">
                   <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center">
                     <User size={20} className="text-white" />

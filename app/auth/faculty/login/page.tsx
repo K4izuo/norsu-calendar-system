@@ -13,7 +13,7 @@ export default function FacultyLoginPage() {
     errors,
     showPassword,
     rememberMe,
-    isLoading,
+    isLoading: formLoading,
     handlePasswordToggle,
     handleRememberMeChange,
     handleSubmit,
@@ -81,7 +81,7 @@ export default function FacultyLoginPage() {
           type="faculty"
           showPassword={showPassword}
           rememberMe={rememberMe}
-          isLoading={isLoading}
+          isLoading={formLoading}
           formData={formData}
           errors={errors}
           onShowPasswordToggle={handlePasswordToggle}

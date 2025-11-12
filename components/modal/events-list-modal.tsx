@@ -4,6 +4,13 @@ import React, { useRef, useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { CalendarPlus, Clock, CalendarClock, Search, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 // import { Badge } from "@/components/ui/badge"
 import { ReserveEventModal } from "@/components/modal/reserve-event-modal"
 import type { EventsListModalProps, EventDetails, ReservationFormData } from "@/interface/user-props"
@@ -145,11 +152,10 @@ export function EventsListModal({
     onEventClick?.(event)
   }, [onEventClick])
 
-  const handleRecentClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation()
+  const handleSelectChange = useCallback((value: string) => {
     if (!recentLoading) {
       setRecentLoading(true)
-      setShowRecent((r) => !r)
+      setShowRecent(value === "past")
       if (recentLoadingTimeout.current) clearTimeout(recentLoadingTimeout.current)
       recentLoadingTimeout.current = setTimeout(() => setRecentLoading(false), 1200)
     }
@@ -216,7 +222,7 @@ export function EventsListModal({
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
                     <Input
                       type="text"
-                      className="pl-10 h-11 bg-background border-border focus:border-primary focus:ring-primary/20"
+                      className="pl-10 h-11 bg-background border-border focus:border-primary focus:ring-primary/20 transition-all duration-[90ms]"
                       placeholder="Search events..."
                       value={searchTerm}
                       onChange={e => setSearchTerm(e.target.value)}
@@ -230,15 +236,24 @@ export function EventsListModal({
                       <CalendarPlus className="w-4 h-4" />
                       Reserve Event
                     </Button>
-                    <Button
-                      variant="outline"
-                      onClick={handleRecentClick}
+                    <Select
+                      value={showRecent ? "past" : "upcoming"}
+                      onValueChange={handleSelectChange}
                       disabled={recentLoading}
-                      className="h-11 cursor-pointer px-6 border-border hover:bg-muted bg-transparent"
                     >
-                      <Clock className="w-4 h-4" />
-                      {showRecent ? "Current Events" : "Past Events"}
-                    </Button>
+                      <SelectTrigger className="h-11 cursor-pointer px-3 border border-gray-300 hover:bg-muted bg-transparent">
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-4 h-4" />
+                          <SelectValue>
+                            {showRecent ? "Past Events" : "Upcoming Events"}
+                          </SelectValue>
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem className="cursor-pointer" value="current">Upcoming Events</SelectItem>
+                        <SelectItem className="cursor-pointer" value="past">Past Events</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </div>

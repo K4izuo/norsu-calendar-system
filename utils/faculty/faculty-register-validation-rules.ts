@@ -1,37 +1,37 @@
 export const FACULTY_VALIDATION_RULES = {
   first_name: {
-    required: "First name is required",
+    required: "First name field is required",
     minLength: { value: 3, message: "Please input your real first name" },
     pattern: { value: /^[A-Za-z\s]+$/, message: "Letters only" }
   },
   middle_name: {
-    required: "Middle name is required",
+    required: "Middle name field is required",
     minLength: { value: 3, message: "Please input your real middle name" },
     pattern: { value: /^[A-Za-z\s]+$/, message: "Letters only" }
   },
   last_name: {
-    required: "Last name is required",
+    required: "Last name field is required",
     minLength: { value: 3, message: "Please input your real last name" },
     pattern: { value: /^[A-Za-z\s]+$/, message: "Letters only" }
   },
   email: {
-    required: "Email is required",
+    required: "Email field is required",
     pattern: {
       value: /^[A-Za-z0-9._%+-]+@(gmail\.com|yahoo\.com|outlook\.com|[a-z]+\.edu\.ph)$/,
       message: "Please enter a valid email address"
     }
   },
   facultyID: {
-    required: "Faculty ID is required",
+    required: "Faculty ID field is required",
     minLength: { value: 8, message: "Please input your real faculty ID" }
   },
   campus: {
-    required: "Campus is required"
+    required: "Campus field is required"
   },
   college: {
-    required: "College is required"
+    required: "College field is required"
   },
   course: {
-    required: "Course is required"
+    required: "Course field is required"
   }
 } as const;
