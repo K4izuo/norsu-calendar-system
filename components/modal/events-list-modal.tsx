@@ -16,7 +16,7 @@ import { ReserveEventModal } from "@/components/modal/reserve-event-modal"
 import type { EventsListModalProps, EventDetails, ReservationFormData } from "@/interface/user-props"
 // import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Input } from "../ui/input"
-import { EventCardsList } from "@/components/events-ui/EventsCard"
+import { EventCardsList } from "@/components/ui/events-list-card"
 
 // Simplified status types
 type EventStatus = "pending" | "approved" | "rejected"
@@ -242,7 +242,7 @@ export function EventsListModal({
                       disabled={recentLoading}
                     >
                       <SelectTrigger className="h-11 cursor-pointer px-3 border border-gray-300 hover:bg-muted bg-transparent">
-                        <div className="flex items-center gap-2">
+                        <div className="flex text-sm sm:text-base font-medium items-center gap-2">
                           <Clock className="w-4 h-4" />
                           <SelectValue>
                             {showRecent ? "Past Events" : "Upcoming Events"}

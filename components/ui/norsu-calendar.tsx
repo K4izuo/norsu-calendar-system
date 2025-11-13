@@ -187,7 +187,7 @@ export function Calendar<T>({
   return (
     <div className="flex flex-col w-full flex-1">
       {/* Calendar header */}
-      <div className="w-full grid grid-cols-3 items-center mb-3 sm:mb-5 relative">
+      <div className="w-full grid grid-cols-3 items-center mb-5 sm:mb-6 relative">
         {/* Left: arrow, today, select */}
         <div className="flex items-center gap-1.5 sm:gap-2.5 justify-start relative">
           {/* Arrow buttons group for desktop/tablet */}
@@ -283,7 +283,7 @@ export function Calendar<T>({
       {/* Calendar table */}
       <div className="flex flex-col w-full flex-1">
         {/* Calendar table header */}
-        <div className="w-full px-0 pb-2 sm:pb-3">
+        <div className="w-full px-0 pb-4">
           <div className="grid grid-cols-7 w-full">
             {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map((day) => (
               <div
@@ -324,7 +324,7 @@ export function Calendar<T>({
                 animate="animate"
                 exit="exit"
                 // Use only Tailwind responsive gap classes, no JS logic
-                className="grid grid-rows-5 grid-cols-7 w-full gap-0.5 xs:gap-1 sm:gap-1.5 md:gap-2 bg-white h-full"
+                className="grid grid-rows-5 grid-cols-7 w-full gap-1 sm:gap-1.5 md:gap-2 bg-white h-full"
               >
                 {calendarDays.map((day, idx) => (
                   <motion.div

@@ -1,4 +1,6 @@
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
+import { getAuthToken, setAuthToken, setUserRole, removeAuthToken } from './auth';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
 
 type RequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
@@ -28,12 +30,14 @@ export const apiClient = {
     customOptions: Omit<RequestOptions, 'body'> = {}
   ): Promise<ApiResponse<T>> {
     const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
+    const token = getAuthToken();
     
     const options: RequestInit = {
       method,
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
         ...customOptions.headers,
       },
       credentials: customOptions.credentials || 'include',
@@ -43,8 +47,29 @@ export const apiClient = {
     try {
       const response = await fetch(url, options);
       
+      // Handle 401 Unauthorized - remove token and redirect to login
+      if (response.status === 401) {
+        removeAuthToken();
+        if (typeof window !== 'undefined') {
+          window.location.href = '/auth/login';
+        }
+        return {
+          data: null,
+          error: 'Unauthorized',
+          status: 401
+        };
+      }
+      
       // Parse response data if available
       const responseData = response.status !== 204 ? await response.json().catch(() => null) : null;
+      
+      // Store token and role if returned from login/register
+      if (responseData?.token) {
+        setAuthToken(responseData.token);
+      }
+      if (responseData?.role) {
+        setUserRole(responseData.role);
+      }
       
       if (!response.ok) {
         return {

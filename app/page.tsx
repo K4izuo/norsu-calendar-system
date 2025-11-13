@@ -273,7 +273,7 @@ export default function Home() {
 
             {/* Main content */}
             <div className="flex-1 flex flex-col items-start justify-center">
-              <div className="w-full bg-white rounded-md shadow-md flex flex-col items-start self-stretch p-6 gap-6 relative flex-1 min-h-0">
+              <div className="w-full bg-white rounded-md shadow-md flex flex-col items-start self-stretch p-4 sm:p-6 gap-6 relative flex-1 min-h-0">
                 {/* Calendar component */}
                 <Calendar
                   role="public"
