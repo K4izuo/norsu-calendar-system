@@ -151,7 +151,7 @@ export function ReserveEventAdditionalTab({
             rules={validationRules.infoType}
             render={({ field }) => (
               <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger id="infoType" className={getFieldClass(!!errors.infoType)}>
+                <SelectTrigger id="infoType" className={`${getFieldClass(!!errors.infoType)} transition-all duration-[90ms]`}>
                   <SelectValue placeholder="Select information type" />
                 </SelectTrigger>
                 <SelectContent>

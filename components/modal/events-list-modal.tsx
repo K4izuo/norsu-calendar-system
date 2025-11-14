@@ -242,7 +242,7 @@ export function EventsListModal({
                       disabled={recentLoading}
                     >
                       <SelectTrigger className="h-11 cursor-pointer px-3 border border-gray-300 hover:bg-muted bg-transparent">
-                        <div className="flex text-sm sm:text-base font-medium items-center gap-2">
+                        <div className="flex text-sm font-medium items-center gap-2">
                           <Clock className="w-4 h-4" />
                           <SelectValue>
                             {showRecent ? "Past Events" : "Upcoming Events"}

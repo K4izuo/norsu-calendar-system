@@ -1,3 +1,4 @@
+// hooks/useLoginForm.ts
 import React from "react"
 import { useForm } from "react-hook-form"
 import toast from "react-hot-toast"
@@ -6,116 +7,102 @@ import { showLoginErrorToast } from "@/utils/login/login-field-error-toast"
 import { apiClient } from "@/lib/api-client"
 import { useRouter } from "next/navigation"
 
+const ROLE_ROUTES: Record<number, string> = {
+  2: "/pages/faculty/dashboard",
+  3: "/pages/staff/dashboard",
+  4: "/pages/admin/dashboard",
+};
+
+const showToast = (message: string, type: 'success' | 'error' = 'error') => {
+  const toastFn = type === 'success' ? toast.success : toast.error;
+  toastFn(message, { position: "top-center", duration: 4000 });
+};
+
+const handleValidationErrors = (
+  validationErrors: any,
+  setError: any,
+  setIsLoading: (loading: boolean) => void
+) => {
+  const { username, password } = validationErrors.errors || {};
+  
+  if (username && !password) {
+    setError('username', { type: 'manual', message: username[0] });
+    showToast(username[0]);
+  } else if (password && !username) {
+    setError('password', { type: 'manual', message: password[0] });
+    showToast(password[0]);
+  } else if (username && password) {
+    setError('username', { type: 'manual', message: username[0] });
+    setError('password', { type: 'manual', message: password[0] });
+    showToast('The provided credentials are incorrect.');
+  }
+  
+  setIsLoading(false);
+};
+
 export const useLoginForm = () => {
-  const [showPassword, setShowPassword] = React.useState(false)
-  const [rememberMe, setRememberMe] = React.useState(false)
-  const [isLoading, setIsLoading] = React.useState(false)
-  const router = useRouter()
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [rememberMe, setRememberMe] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const router = useRouter();
 
   const form = useForm<LoginFormData>({
     mode: "onTouched",
-    defaultValues: {
-      username: "",
-      password: "",
-    },
-  })
+    defaultValues: { username: "", password: "" },
+  });
 
-  const { handleSubmit, watch, formState: { errors }, reset, setError } = form
-  const formData = watch()
-
-  const handlePasswordToggle = () => {
-    setShowPassword(v => !v)
-  }
-
-  const handleRememberMeChange = (checked: boolean) => {
-    setRememberMe(checked)
-  }
+  const { handleSubmit, watch, formState: { errors }, reset, setError, clearErrors } = form;
+  const formData = watch();
 
   const onSubmit = async (data: LoginFormData) => {
-    setIsLoading(true)
+    setIsLoading(true);
+    clearErrors();
     
     try {
-      const response = await apiClient.post<{ token: string, user: any, role?: number }, LoginFormData>(
+      const response = await apiClient.post<{ token: string; user: any; role?: number }, LoginFormData>(
         "/users/login",
         data
       );
 
       if (response.error) {
-        // Parse Laravel validation errors
-        const errorMessage = response.error;
-        
-        // Check if it's a validation error with field-specific messages
         if (response.status === 422 && response.data) {
-          const validationErrors = response.data as any;
-          
-          // Handle username error
-          if (validationErrors.errors?.username) {
-            setError('username', { 
-              type: 'manual', 
-              message: validationErrors.errors.username[0] 
-            });
-            toast.error('Invalid username', { position: "top-center" });
-            return;
-          }
-          
-          // Handle password error
-          if (validationErrors.errors?.password) {
-            setError('password', { 
-              type: 'manual', 
-              message: validationErrors.errors.password[0] 
-            });
-            toast.error('Invalid password', { position: "top-center" });
-            return;
-          }
-        }
-        
-        // Check if error message contains specific field information
-        if (errorMessage.toLowerCase().includes('username')) {
-          setError('username', { type: 'manual', message: errorMessage });
-          toast.error('Invalid username', { position: "top-center" });
-        } else if (errorMessage.toLowerCase().includes('password')) {
-          setError('password', { type: 'manual', message: errorMessage });
-          toast.error('Invalid password', { position: "top-center" });
+          handleValidationErrors(response.data, setError, setIsLoading);
         } else {
-          // Generic error for both fields or unknown error
-          toast.error('The provided credentials are incorrect.', { position: "top-center" });
+          showToast(response.error);
+          setIsLoading(false);
         }
-        
         return;
       }
 
-      toast.success("Login successful!", { position: "top-center" })
-      
-      // Token and role are already set in apiClient
-      const role = response.data?.role;
-      
-      // Force refresh to trigger middleware with new token
-      router.refresh();
-      
-      switch(role) {
-        case 2: router.replace("/pages/faculty/dashboard"); break;
-        case 3: router.replace("/pages/staff/dashboard"); break;
-        case 4: router.replace("/pages/admin/dashboard"); break;
-        default: router.replace("/pages/admin/dashboard"); break;
+      // Store user data in localStorage for AuthContext
+      if (response.data?.user) {
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        localStorage.setItem('role', JSON.stringify(response.data.role));
       }
-      
-      reset()
-      setShowPassword(false)
-      setRememberMe(false)
 
+      showToast("Login successful!", 'success');
+      
+      const role = response.data?.role;
+      const redirectPath = role ? ROLE_ROUTES[role] : ROLE_ROUTES[4];
+      
+      router.refresh();
+      router.replace(redirectPath);
+      
+      reset();
+      setShowPassword(false);
+      setRememberMe(false);
     } catch (error) {
-      toast.error("Login failed! Please try again.", { position: "top-center" })
-    } finally {
-      setIsLoading(false)
+      showToast("Login failed! Please try again.");
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     handleSubmit(onSubmit, (errors) => {
-      showLoginErrorToast(errors, formData)
-    })()
-  }
+      showLoginErrorToast(errors, formData);
+    })();
+  };
 
   return {
     form,
@@ -124,9 +111,9 @@ export const useLoginForm = () => {
     showPassword,
     rememberMe,
     isLoading,
-    handlePasswordToggle,
-    handleRememberMeChange,
+    handlePasswordToggle: () => setShowPassword(v => !v),
+    handleRememberMeChange: (checked: boolean) => setRememberMe(checked),
     handleSubmit: handleFormSubmit,
     validationRules: LOGIN_VALIDATION_RULES
-  }
-}
+  };
+};

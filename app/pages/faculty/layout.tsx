@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { usePathname } from "next/navigation";
 import { 
   LayoutDashboard, 
@@ -16,10 +16,15 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AuthContext } from "@/contexts/auth-context";
+import { UserProfileModal } from "@/components/modal/user-profile-modal";
 
 export default function FacultyLayout({ children }: { children: React.ReactNode }) {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const pathname = usePathname();
+  const auth = useContext(AuthContext);
+  const user = auth?.user;
   
   useEffect(() => {
     if (pathname?.includes("/asset-management")) {
@@ -161,11 +166,14 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
               
               {/* User profile - with balanced spacing */}
               <div className="flex items-center ml-3 mr-4">
-                <button className="flex items-center space-x-2">
+                <button 
+                  className="flex items-center space-x-2"
+                  onClick={() => setIsProfileModalOpen(true)}
+                >
                   <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center">
                     <User size={20} className="text-white" />
                   </div>
-                  <span className="hidden md:inline-block text-sm font-medium text-gray-700">Administrator</span>
+                  <span className="hidden md:inline-block text-sm font-medium text-gray-700">{user?.first_name} {user?.last_name || ""}</span>
                 </button>
               </div>
             </div>
@@ -176,6 +184,52 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
           {children}
         </div>
       </div>
+
+      {/* User Profile Modal */}
+      <UserProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        title="User Profile"
+      >
+        <div className="space-y-6">
+          {/* Profile Information */}
+          <div className="bg-gray-50 shadow-sm rounded-lg p-4">
+            <h3 className="text-md font-medium text-gray-700 mb-3">
+              Profile Information
+            </h3>
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm text-gray-500">Name</p>
+                <p className="text-gray-800 font-medium">{user?.first_name} {user?.last_name || ""}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Email</p>
+                <p className="text-gray-800">{user?.email || "N/A"}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Username</p>
+                <p className="text-gray-800">{user?.username || "N/A"}</p>
+              </div>
+              {user?.role && (
+                <div>
+                  <p className="text-sm text-gray-500">Role</p>
+                  <p className="text-gray-800 capitalize">{user.role}</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Account Settings */}
+          <div className="bg-gray-50 shadow-sm rounded-lg p-4">
+            <h3 className="text-md font-medium text-gray-700 mb-3">
+              Account Settings
+            </h3>
+            <p className="text-gray-600">
+              Additional account settings and preferences can be configured here.
+            </p>
+          </div>
+        </div>
+      </UserProfileModal>
     </div>
   );
 }

@@ -10,19 +10,16 @@ import {
   Users,
   Info,
   X,
+  User,
 } from "lucide-react";
 import { Button } from "../ui/button";
 
 // Role type definition
-type Role = "student" | "faculty" | "staff" | "admin" | "public" | undefined;
+type Role = "faculty" | "staff" | "admin" | "public" | undefined;
 
 // Role-based color mapping for loading state
 const getRoleLoadingColors = (role: Role) => {
   const colorMap = {
-    student: {
-      spinner: "border-green-500",
-      icon: "text-green-500",
-    },
     faculty: {
       spinner: "border-blue-500",
       icon: "text-blue-500",
@@ -41,7 +38,7 @@ const getRoleLoadingColors = (role: Role) => {
     },
   };
 
-  return colorMap[role || "public"] || colorMap.student; // Default to student colors
+  return colorMap[role || "public"]; // Default to public colors
 };
 
 // Make the interface flexible to accept both number and string
@@ -210,11 +207,10 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                     Event Information
                   </h2>
                   {startedAgoText && (
-                    <span className={`text-sm font-medium ${
-                      startedAgoText === "Upcoming" 
-                        ? "text-blue-600 bg-blue-50" 
-                        : "text-amber-600 bg-amber-50"
-                    } px-2 py-0.5 rounded-full inline-flex items-center`}>
+                    <span className={`text-sm font-medium ${startedAgoText === "Upcoming"
+                      ? "text-blue-600 bg-blue-50"
+                      : "text-amber-600 bg-amber-50"
+                      } px-2 py-0.5 rounded-full inline-flex items-center`}>
                       <Clock className="w-3 h-3 mr-1" />
                       {startedAgoText}
                     </span>
@@ -283,7 +279,21 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                       </div>
                       <div>
                         <p className="text-sm text-gray-500">People Tag</p>
-                        <p className="font-medium">{event.peopleTag || "—"}</p>
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          {event.peopleTag && event.peopleTag.length > 0 ? (
+                            event.peopleTag.map((person) => (
+                              <span
+                                key={person}
+                                className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium border border-gray-300 text-gray-800 bg-transparent"
+                              >
+                                <User className="w-3 h-3 mr-1.5 text-gray-800" />
+                                {person}
+                              </span>
+                            ))
+                          ) : (
+                            <p className="font-medium">None</p>
+                          )}
+                        </div>
                       </div>
                       <div>
                         <p className="text-sm text-gray-500">
@@ -315,18 +325,18 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                         <p className="text-sm text-gray-500">Date</p>
                         <p className="font-medium">{event.date}</p>
                       </div>
-                      <div>
+                      {/* <div>
                         <p className="text-sm text-gray-500">Organizer</p>
                         <p className="font-medium">{event.organizer}</p>
-                      </div>
+                      </div> */}
                       {assetFacilities && (
-                        <div className="md:col-span-2">
+                        <div>
                           <p className="text-sm text-gray-500">Facilities</p>
                           <div className="flex flex-wrap gap-1 mt-1">
                             {assetFacilities.map((facility, index) => (
                               <span
                                 key={index}
-                                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-200 text-gray-700"
                               >
                                 {facility}
                               </span>

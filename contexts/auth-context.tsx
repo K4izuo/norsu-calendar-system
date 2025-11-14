@@ -2,26 +2,29 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { apiClient } from '@/lib/api-client';
+import { getAuthToken, removeAuthToken } from '@/lib/auth';
 
-type Role = 'student' | 'faculty' | 'staff' | null;
+type Role = 'faculty' | 'staff';
 
 interface User {
   id: string;
   email: string;
-  name: string;
+  first_name: string;
+  last_name: string;
+  username: string;
   role: Role;
-  // Add other user properties as needed
 }
 
 interface AuthContextType {
-  user: User | null;
+  user: User;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (userData: User) => void;
   logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -29,59 +32,73 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Check for stored user on initial load
+  // Fetch user data from backend if token exists
   useEffect(() => {
-    const checkAuth = () => {
+    const fetchUserData = async () => {
       try {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-          const userData = JSON.parse(storedUser);
+        const token = getAuthToken();
+        
+        if (!token) {
+          setIsLoading(false);
+          return;
+        }
+
+        // Fetch fresh user data from backend
+        const response = await apiClient.get<{ user: User; role: number }>('/me');
+
+        if (response.error || !response.data) {
+          // Token invalid, clear everything
+          removeAuthToken();
+          localStorage.removeItem('user');
+          setUser(null);
+        } else {
+          // Update localStorage with fresh data
+          const userData = response.data.user;
+          localStorage.setItem('user', JSON.stringify(userData));
           setUser(userData);
         }
       } catch (error) {
-        console.error('Error restoring auth state:', error);
+        console.error('Error fetching user data:', error);
+        removeAuthToken();
+        localStorage.removeItem('user');
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
     };
 
-    checkAuth();
+    fetchUserData();
   }, []);
 
   // Handle route protection
   useEffect(() => {
     if (!isLoading) {
-      // Define public and protected routes
       const authRoutes = ['/auth/login', '/auth/register', '/auth/student/register', '/auth/faculty/register', '/auth/staff/register'];
-      const protectedRoutes = ['/dashboard', '/calendar', '/profile']; // Add your protected routes
+      const protectedRoutes = ['/pages/faculty', '/pages/staff', '/pages/admin', '/dashboard', '/calendar', '/profile'];
       
       if (user && authRoutes.some(route => pathname?.startsWith(route))) {
-        // Redirect authenticated users away from auth pages
-        router.replace('/dashboard');
+        router.replace('/pages/admin/dashboard');
       } else if (!user && protectedRoutes.some(route => pathname?.startsWith(route))) {
-        // Redirect unauthenticated users away from protected pages
         router.replace('/auth/login');
       }
     }
   }, [user, isLoading, pathname, router]);
 
-  // Login function
   const login = (userData: User) => {
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
-    router.replace('/pages/admin/dashboard');
   };
 
-  // Logout function
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
+    removeAuthToken();
     router.replace('/auth/login');
   };
 
   return (
     <AuthContext.Provider value={{
-      user,
+      user: user as User, // Type assertion to fix linter error
       isAuthenticated: !!user,
       isLoading,
       login,

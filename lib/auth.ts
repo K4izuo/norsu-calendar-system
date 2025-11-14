@@ -1,29 +1,29 @@
-// lib/auth.ts
-export const getAuthToken = () => {
+const getCookie = (name: string): string | null => {
   if (typeof window === 'undefined') return null;
-  return document.cookie
+  
+  const cookie = document.cookie
     .split('; ')
-    .find(row => row.startsWith('auth-token='))
-    ?.split('=')[1];
+    .find(row => row.startsWith(`${name}=`));
+    
+  return cookie ? cookie.split('=')[1] : null;
 };
 
-export const setAuthToken = (token: string) => {
-  document.cookie = `auth-token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+const setCookie = (name: string, value: string, days: number = 7): void => {
+  const maxAge = 60 * 60 * 24 * days;
+  document.cookie = `${name}=${value}; path=/; max-age=${maxAge}; SameSite=Lax`;
 };
+
+const deleteCookie = (name: string): void => {
+  document.cookie = `${name}=; path=/; max-age=0`;
+};
+
+export const getAuthToken = () => getCookie('auth-token');
+export const getUserRole = () => getCookie('user-role');
+
+export const setAuthToken = (token: string) => setCookie('auth-token', token);
+export const setUserRole = (role: string | number) => setCookie('user-role', String(role));
 
 export const removeAuthToken = () => {
-  document.cookie = 'auth-token=; path=/; max-age=0';
-  document.cookie = 'user-role=; path=/; max-age=0';
-};
-
-export const getUserRole = () => {
-  if (typeof window === 'undefined') return null;
-  return document.cookie
-    .split('; ')
-    .find(row => row.startsWith('user-role='))
-    ?.split('=')[1];
-};
-
-export const setUserRole = (role: string | number) => {
-  document.cookie = `user-role=${role}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+  deleteCookie('auth-token');
+  deleteCookie('user-role');
 };

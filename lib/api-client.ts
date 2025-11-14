@@ -1,6 +1,6 @@
 import { getAuthToken, setAuthToken, setUserRole, removeAuthToken } from './auth';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
+const API_BASE_URL = 'http://127.0.0.1:8000/api';
 
 type RequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
@@ -16,30 +16,43 @@ type ApiResponse<T> = {
   status: number;
 };
 
-/**
- * Centralized API client for making requests to the backend
- */
+const buildUrl = (endpoint: string): string => {
+  const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  return `${API_BASE_URL}${path}`;
+};
+
+const buildHeaders = (token: string | null, customHeaders?: Record<string, string>) => ({
+  'Accept': 'application/json',
+  'Content-Type': 'application/json',
+  ...(token && { 'Authorization': `Bearer ${token}` }),
+  ...customHeaders,
+});
+
+const handleUnauthorized = () => {
+  removeAuthToken();
+  if (typeof window !== 'undefined') {
+    window.location.href = '/auth/login';
+  }
+};
+
+const storeAuthData = (responseData: any) => {
+  if (responseData?.token) setAuthToken(responseData.token);
+  if (responseData?.role) setUserRole(responseData.role);
+};
+
 export const apiClient = {
-  /**
-   * Core request method
-   */
   async request<T, D = unknown>(
     endpoint: string, 
     method: RequestMethod = 'GET', 
     data?: D, 
     customOptions: Omit<RequestOptions, 'body'> = {}
   ): Promise<ApiResponse<T>> {
-    const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
     const token = getAuthToken();
+    const url = buildUrl(endpoint);
     
     const options: RequestInit = {
       method,
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` }),
-        ...customOptions.headers,
-      },
+      headers: buildHeaders(token, customOptions.headers),
       credentials: customOptions.credentials || 'include',
       ...(data && { body: JSON.stringify(data) })
     };
@@ -47,43 +60,26 @@ export const apiClient = {
     try {
       const response = await fetch(url, options);
       
-      // Handle 401 Unauthorized - remove token and redirect to login
       if (response.status === 401) {
-        removeAuthToken();
-        if (typeof window !== 'undefined') {
-          window.location.href = '/auth/login';
-        }
-        return {
-          data: null,
-          error: 'Unauthorized',
-          status: 401
-        };
+        handleUnauthorized();
+        return { data: null, error: 'Unauthorized', status: 401 };
       }
       
-      // Parse response data if available
-      const responseData = response.status !== 204 ? await response.json().catch(() => null) : null;
+      const responseData = response.status !== 204 
+        ? await response.json().catch(() => null) 
+        : null;
       
-      // Store token and role if returned from login/register
-      if (responseData?.token) {
-        setAuthToken(responseData.token);
-      }
-      if (responseData?.role) {
-        setUserRole(responseData.role);
-      }
+      storeAuthData(responseData);
       
       if (!response.ok) {
         return {
-          data: null,
+          data: responseData as T,
           error: responseData?.message || `${response.status}: ${response.statusText}`,
           status: response.status
         };
       }
 
-      return {
-        data: responseData,
-        error: null,
-        status: response.status
-      };
+      return { data: responseData, error: null, status: response.status };
     } catch (error) {
       return {
         data: null,
@@ -93,7 +89,6 @@ export const apiClient = {
     }
   },
 
-  // Convenience methods
   get<T>(endpoint: string, options?: RequestOptions): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, 'GET', undefined, options);
   },
