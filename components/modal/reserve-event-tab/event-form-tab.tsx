@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Control, FieldErrors, Controller, UseFormRegister } from "react-hook-form"
+import { Control, FieldErrors, Controller, UseFormRegister, FieldErrorsImpl, Merge, FieldError, RegisterOptions } from "react-hook-form"
 import { ReservationFormData } from "@/interface/user-props"
 import { EventFormInput } from "./event-input-field"
 
@@ -19,7 +19,7 @@ interface Props {
   assets: Asset[]
   handleAssetChange: (value: string) => void
   selectedAsset?: Asset | null
-  validationRules: any
+  validationRules: Record<string, Record<string, unknown>>
   register: UseFormRegister<ReservationFormData>
 }
 
@@ -34,17 +34,18 @@ export function ReserveEventFormTab({
 }: Props) {
   // Memoize border classes to prevent recalculation
   const getBorderClass = useMemo(() => {
-    return (fieldError: any) => fieldError ? "border-red-400" : "border-gray-200"
+    return (fieldError: FieldError | Merge<FieldError, FieldErrorsImpl<Asset>> | undefined) => 
+      fieldError ? "border-red-400" : "border-gray-200"
   }, [])
 
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="space-y-4 sm:space-y-5">
         <EventFormInput
-          name="title"
+          name="title_name"
           label="Event Title"
           register={register}
-          rules={validationRules.title}
+          rules={validationRules.title_name}
           errors={errors}
           placeholder="Enter event title"
         />
@@ -123,18 +124,18 @@ export function ReserveEventFormTab({
             />
           </div>
           <EventFormInput
-            name="timeStart"
+            name="time_start"
             label="Start Time"
             register={register}
-            rules={validationRules.timeStart}
+            rules={validationRules.time_start}
             errors={errors}
             type="time"
           />
           <EventFormInput
-            name="timeEnd"
+            name="time_end"
             label="End Time"
             register={register}
-            rules={validationRules.timeEnd}
+            rules={validationRules.time_end}
             errors={errors}
             type="time"
             placeholder="Select end time"

@@ -187,7 +187,7 @@ export function Calendar<T>({
   return (
     <div className="flex flex-col w-full flex-1">
       {/* Calendar header */}
-      <div className="w-full grid grid-cols-3 items-center mb-5 sm:mb-6 relative">
+      <div className="w-full grid grid-cols-3 items-center mb-5 sm:mb-7 relative">
         {/* Left: arrow, today, select */}
         <div className="flex items-center gap-1.5 sm:gap-2.5 justify-start relative">
           {/* Arrow buttons group for desktop/tablet */}
@@ -216,7 +216,7 @@ export function Calendar<T>({
           </div>
           {/* Today button */}
           <motion.button
-            className="h-8 sm:h-9 min-h-0 px-2 sm:px-3 flex items-center justify-center rounded-sm bg-white border border-gray-300 text-gray-700 text-sm sm:text-base font-semibold shadow-none hover:bg-gray-100 transition-colors"
+            className="h-8 cursor-pointer sm:h-9 min-h-0 px-2 sm:px-3 flex items-center justify-center rounded-sm bg-white border border-gray-300 text-gray-700 text-sm sm:text-base font-semibold shadow-none hover:bg-gray-100 transition-colors"
             aria-label="Today"
             type="button"
             onClick={goToToday}
@@ -271,7 +271,7 @@ export function Calendar<T>({
         <div className="flex items-center justify-end">
           <div className="flex items-center bg-white border border-gray-300 rounded-sm overflow-hidden">
             <motion.button
-              className="px-2 sm:px-4 rounded-sm min-w-[50px] sm:min-w-[64px] py-1 sm:py-2 text-sm sm:text-lg font-semibold text-gray-700 bg-white focus:outline-none hover:bg-gray-100 transition-colors"
+              className="px-2 cursor-pointer sm:px-4 rounded-sm min-w-[50px] sm:min-w-[64px] py-1 sm:py-1 text-sm sm:text-lg font-semibold text-gray-700 bg-white focus:outline-none hover:bg-gray-100 transition-colors"
               whileHover={{ backgroundColor: "#f3f4f6" }}
             >
               Month

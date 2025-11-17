@@ -29,12 +29,12 @@ export function ReserveEventSummaryTab({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <p className="text-base text-gray-500">Event Title</p>
-            <p className="font-medium text-base">{formData.title || "Not provided"}</p>
+            <p className="font-medium text-base">{formData.title_name || "Not provided"}</p>
           </div>
           <div>
             <p className="text-base text-gray-500">Information Type</p>
             <p className="font-medium text-base">
-              {infoTypes.find(type => type.value === formData.infoType)?.label || "Not provided"}
+              {infoTypes.find(type => type.value === formData.info_type)?.label || "Not provided"}
             </p>
           </div>
           <div>
@@ -114,14 +114,14 @@ export function ReserveEventSummaryTab({
             <p className="text-base text-gray-500">Start Time</p>
             <div className="flex items-center">
               <Clock className="h-4 w-4 mr-1.5 text-gray-500" />
-              <p className="font-medium text-base">{formData.timeStart || "Not specified"}</p>
+              <p className="font-medium text-base">{formData.time_start || "Not specified"}</p>
             </div>
           </div>
           <div>
             <p className="text-base text-gray-500">End Time</p>
             <div className="flex items-center">
               <Clock className="h-4 w-4 mr-1.5 text-gray-500" />
-              <p className="font-medium text-base">{formData.timeEnd || "Not specified"}</p>
+              <p className="font-medium text-base">{formData.time_end || "Not specified"}</p>
             </div>
           </div>
         </div>

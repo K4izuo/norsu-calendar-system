@@ -6,8 +6,7 @@ import { Eye, User, Lock, EyeOff, Loader2 } from "lucide-react"
 import { UseFormRegister, FieldErrors, RegisterOptions } from "react-hook-form"
 import { LoginFormData } from "@/utils/login/login-validation-rules"
 
-interface LoginFormLayoutProps {
-  type: "faculty" | "staff" | "admin"
+interface AdminLoginFormProps {
   showPassword: boolean
   rememberMe: boolean
   isLoading: boolean
@@ -20,8 +19,7 @@ interface LoginFormLayoutProps {
   validationRules: Record<keyof LoginFormData, RegisterOptions<LoginFormData>>
 }
 
-export const LoginFormLayout = memo(function LoginFormLayout({
-  type,
+export const AdminLoginForm = memo(function AdminLoginForm({
   showPassword,
   rememberMe,
   isLoading,
@@ -31,52 +29,17 @@ export const LoginFormLayout = memo(function LoginFormLayout({
   onSubmit,
   register,
   validationRules
-}: LoginFormLayoutProps) {
-  const isAdmin = type === "admin"
-  
-  // Theme configuration based on user type
-  const themeConfig = {
-    faculty: {
-      title: "Welcome Faculty",
-      buttonStyle: "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700",
-      checkboxStyle: "border-2 cursor-pointer border-gray-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600",
-      linkStyle: "text-blue-600 cursor-pointer hover:text-blue-700",
-      inputStyle: "border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
-    },
-    staff: {
-      title: "Welcome Staff",
-      buttonStyle: "bg-gradient-to-r from-purple-400 to-purple-600 hover:from-purple-500 hover:to-purple-700",
-      checkboxStyle: "border-2 cursor-pointer border-gray-300 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500",
-      linkStyle: "text-purple-600 cursor-pointer hover:text-purple-700",
-      inputStyle: "border-gray-200 focus:border-purple-500 focus:ring-purple-500/20"
-    },
-    admin: {
-      title: "Administrator Access",
-      buttonStyle: "bg-gradient-to-r from-gray-400 via-gray-500 to-gray-700 hover:from-gray-500 hover:to-gray-800 text-white",
-      checkboxStyle: "border-2 cursor-pointer border-gray-300 data-[state=checked]:bg-blue-100 data-[state=checked]:border-blue-400",
-      linkStyle: "text-gray-600 hover:text-gray-800 cursor-pointer",
-      inputStyle: "border-gray-200 focus:border-gray-500 focus:ring-gray-500/20"
-    }
-  }
-
-  const theme = themeConfig[type]
-  const description = isAdmin ? "Please enter your admin credentials" : "Please enter your login credentials"
-  const usernamePlaceholder = isAdmin ? "Admin Username" : "Username"
-  const passwordPlaceholder = isAdmin ? "Admin Password" : "Password"
-  const linkText = isAdmin ? "Contact IT Support" : "Forgot Password?"
-  const buttonHeight = type === "faculty" ? "h-12" : "h-[50px] sm:h-[54px]"
-  const labelStyle = isAdmin ? "text-sm text-gray-700 cursor-pointer" : "text-sm text-gray-600 cursor-pointer"
-
+}: AdminLoginFormProps) {
   const getInputFieldStyles = (hasError: boolean) => {
-    return hasError ? "border-red-400 focus:border-red-500 focus:ring-red-200" : theme.inputStyle
+    return hasError ? "border-red-400 focus:border-red-500 focus:ring-red-200" : "border-gray-200 focus:border-gray-500 focus:ring-gray-500/20"
   }
 
   return (
-    <div className={`p-5 sm:p-8 w-full flex flex-col justify-center ${isAdmin ? "bg-white" : ""}`}>
+    <div className="p-5 sm:p-8 w-full flex flex-col justify-center">
       {/* Heading at the top */}
       <div className="flex flex-col items-center mt-1.5 mb-7 gap-y-0.5">
-        <h1 className="text-2xl font-bold text-gray-800">{theme.title}</h1>
-        <p className="text-gray-600 text-sm">{description}</p>
+        <h1 className="text-2xl font-bold text-gray-800">Administrator Access</h1>
+        <p className="text-gray-600 text-sm">Please enter your admin credentials</p>
       </div>
       <form onSubmit={onSubmit} className="flex flex-col gap-y-6 max-w-md mx-auto w-full">
         <div className="flex flex-col gap-y-2 w-full sm:w-[98%] md:w-[94%] mx-auto">
@@ -87,7 +50,7 @@ export const LoginFormLayout = memo(function LoginFormLayout({
                 {...register("username", validationRules.username)}
                 id="username"
                 type="text"
-                placeholder={usernamePlaceholder}
+                placeholder="Username"
                 autoComplete="username"
                 className={`h-12 text-base sm:text-lg pl-[42px] pr-4 border-2 rounded-lg ${getInputFieldStyles(!!errors.username)} placeholder:text-gray-400`}
               />
@@ -102,9 +65,9 @@ export const LoginFormLayout = memo(function LoginFormLayout({
                 {...register("password", validationRules.password)}
                 id="password"
                 type={showPassword ? "text" : "password"}
-                placeholder={passwordPlaceholder}
+                placeholder="Password"
                 autoComplete="current-password"
-                className={`h-12 text-base sm:text-lg pl-[42px] pr-12 border-2 rounded-lg transition-all duration-[90ms] ${getInputFieldStyles(!!errors.password)} placeholder:text-gray-400`}
+                className={`h-12 text-base sm:text-lg pl-[42px] pr-12 border-2 rounded-lg ${getInputFieldStyles(!!errors.password)} placeholder:text-gray-400`}
               />
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <button
@@ -118,31 +81,31 @@ export const LoginFormLayout = memo(function LoginFormLayout({
           </div>
 
           {/* Remember Me & Forgot Password */}
-          <div className="flex mb-4 items-center justify-between">
+          <div className="flex mb-3 items-center justify-between">
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="remember"
                 checked={rememberMe}
                 onCheckedChange={checked => onRememberMeChange(checked === true)}
-                className={theme.checkboxStyle}
+                className="border-2 cursor-pointer border-gray-300 data-[state=checked]:bg-gray-600 data-[state=checked]:border-gray-600"
               />
-              <label htmlFor="remember" className={labelStyle}>
+              <label htmlFor="remember" className="text-sm text-gray-700 cursor-pointer">
                 Remember Me
               </label>
             </div>
             <Button
               variant="link"
-              className={`${theme.linkStyle} p-0 text-sm font-medium`}
+              className="text-gray-600 hover:text-gray-800 cursor-pointer p-0 text-sm font-medium"
               type="button"
             >
-              {linkText}
+              Contact IT Support
             </Button>
           </div>
 
           {/* Login Button */}
           <Button
             type="submit"
-            className={`w-full cursor-pointer ${buttonHeight} font-semibold text-sm sm:text-base ${theme.buttonStyle} rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] mb-3 flex items-center justify-center gap-x-2`}
+            className="w-full cursor-pointer h-[50px] sm:h-[54px] font-semibold text-sm sm:text-base bg-gradient-to-r from-gray-400 via-gray-500 to-gray-700 hover:from-gray-500 hover:to-gray-800 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] mb-3 flex items-center justify-center gap-x-2"
             disabled={isLoading}
           >
             {isLoading ? (
@@ -160,4 +123,4 @@ export const LoginFormLayout = memo(function LoginFormLayout({
   )
 })
 
-LoginFormLayout.displayName = "LoginFormLayout"
+AdminLoginForm.displayName = "AdminLoginForm"

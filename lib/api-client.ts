@@ -97,6 +97,10 @@ export const apiClient = {
     return this.request<T, D>(endpoint, 'POST', data, options);
   },
 
+  logout<T>(endpoint: string): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, 'POST');
+  },
+
   put<T, D>(endpoint: string, data: D, options?: RequestOptions): Promise<ApiResponse<T>> {
     return this.request<T, D>(endpoint, 'PUT', data, options);
   },

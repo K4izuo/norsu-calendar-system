@@ -3,7 +3,7 @@
 import type React from "react"
 import { motion } from "framer-motion"
 import { Users, Clock, Award, GraduationCap, BookOpen } from "lucide-react"
-import { LoginFormLayout } from "@/components/user-forms/login/login-page-form"
+import { LoginFormLayout } from "@/components/user-forms/login/faculty-staff-login-form"
 import { useLoginForm } from "@/hooks/useLoginForm"
 
 export default function StaffLoginPage() {
@@ -34,7 +34,7 @@ export default function StaffLoginPage() {
         className="bg-white rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden w-[96%] max-w-4xl grid grid-cols-1 md:grid-cols-2 relative"
       >
         {/* Left Side */}
-        <div className="hidden md:flex bg-gradient-to-br from-purple-400 to-purple-600 p-4 sm:p-6 lg:p-8 text-white flex-col items-center justify-center relative min-h-[400px]">
+        <div className="hidden md:flex bg-gradient-to-br from-purple-400 to-purple-600 p-4 sm:p-6 lg:p-8 text-white flex-col items-center justify-center relative min-h-[380px]">
           <div className="absolute top-2 right-2 sm:top-4 sm:right-4 w-8 h-8 sm:w-12 sm:h-12 lg:w-16 lg:h-16 bg-white/10 rounded-full"></div>
           <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 lg:bottom-8 lg:left-8 w-6 h-6 sm:w-8 sm:h-8 lg:w-12 lg:h-12 bg-white/10 rounded-full"></div>
           <div className="space-y-6 text-center z-10 flex flex-col items-center justify-center h-full">

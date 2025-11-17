@@ -7,8 +7,8 @@ import { Control, FieldErrors, Controller, UseFormRegister, RegisterOptions } fr
 import { ReservationFormData } from "@/interface/user-props"
 
 interface ValidationRules {
-  people: RegisterOptions<ReservationFormData, "people">
-  infoType: RegisterOptions<ReservationFormData, "infoType">
+  people_tag: RegisterOptions<ReservationFormData, "people_tag">
+  info_type: RegisterOptions<ReservationFormData, "info_type">
   category: RegisterOptions<ReservationFormData, "category">
 }
 
@@ -62,9 +62,9 @@ export function ReserveEventAdditionalTab({
         <div>
           <Label htmlFor="people" className="text-base inline-block font-medium">People Tag<span className="text-red-500"> *</span></Label>
           <Controller
-            name="people"
+            name="people_tag"
             control={control}
-            rules={validationRules.people}
+            rules={validationRules.people_tag}
             render={({ field, fieldState: { invalid, isTouched } }) => (
               <div className="relative mt-1">
                 <Input
@@ -88,7 +88,7 @@ export function ReserveEventAdditionalTab({
                     field.onChange(taggedPeople.map(p => p.name).join(', '));
                   }}
                   className={`h-12 border-2 text-base w-full focus:border-ring transition-all duration-[95ms] ${
-                    (errors.people || (invalid && isTouched && taggedPeople.length === 0)) ? "border-red-500 focus:border-red-500" : "border-gray-200"
+                    (errors.people_tag || (invalid && isTouched && taggedPeople.length === 0)) ? "border-red-500 focus:border-red-500" : "border-gray-200"
                   }`}
                   autoComplete="off"
                 />
@@ -146,12 +146,12 @@ export function ReserveEventAdditionalTab({
         <div>
           <Label htmlFor="infoType" className="text-base inline-block font-medium">Information Type<span className="text-red-500"> *</span></Label>
           <Controller
-            name="infoType"
+            name="info_type"
             control={control}
-            rules={validationRules.infoType}
+            rules={validationRules.info_type}
             render={({ field }) => (
               <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger id="infoType" className={`${getFieldClass(!!errors.infoType)} transition-all duration-[90ms]`}>
+                <SelectTrigger id="infoType" className={`${getFieldClass(!!errors.info_type)} transition-all duration-[90ms]`}>
                   <SelectValue placeholder="Select information type" />
                 </SelectTrigger>
                 <SelectContent>

@@ -3,23 +3,23 @@ import type { FieldErrors } from "react-hook-form";
 import type { ReservationFormData } from "@/interface/user-props";
 
 const FIELD_LABELS: Record<string, string> = {
-  title: "Event title",
+  title_name: "Event title",
   asset: "Asset selection",
   timeEnd: "End time",
   description: "Description",
-  people: "People tag", // Add people tag label
+  peopleTag: "People tag", // Add people tag label
   infoType: "Information type",
   category: "Category",
 };
 
-const FORM_FIELDS = ["title", "asset", "timeEnd", "description"];
+const FORM_FIELDS = ["title_name", "asset", "timeEnd", "description"];
 const ADDITIONAL_FIELDS = ["people", "infoType", "category"]; // Put people first for priority
 
 function isMissingField(field: string, values: ReservationFormData): boolean {
   const value = values[field as keyof ReservationFormData];
   
   if (field === "asset") return !value;
-  if (field === "timeEnd") return !value || value === values.timeStart;
+  if (field === "timeEnd") return !value || value === values.time_start;
   if (typeof value === "string") return !value.trim();
   return !value;
 }

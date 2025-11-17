@@ -2,27 +2,33 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { usePathname } from "next/navigation";
-import { 
-  LayoutDashboard, 
+import {
+  LayoutDashboard,
   Calendar,
   CalendarClock,
   ChevronRight,
   Search,
   Bell,
-  User,
+  CircleUserRound,
   Mail,
   Users
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AuthContext } from "@/contexts/auth-context";
+// import { UserProfileModal } from "@/components/modal/user-profile-modal";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import UserProfile from "@/components/ui/user-profile";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [sidebarOpen, setSidebarOpen] = useState(true); // Add toggle state
   const pathname = usePathname();
-  
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const auth = useContext(AuthContext);
+  const user = auth?.user;
+
   useEffect(() => {
     if (pathname?.includes("/asset-management")) {
       setActiveTab("asset-management");
@@ -34,7 +40,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       setActiveTab("dashboard");
     }
   }, [pathname]);
-  
+
   return (
     <div className="flex h-screen overflow-hidden bg-gray-100">
       {/* Sidebar with overflow-y-auto to handle its own scrolling if needed */}
@@ -65,13 +71,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <nav>
             <ul className="space-y-2">
               <li>
-                <Link 
-                  href="/pages/admin/dashboard" 
-                  className={`flex items-center px-3 py-3 rounded-md transition-all ${
-                    activeTab === "dashboard" 
-                      ? "bg-white text-gray-900" 
-                      : "text-white hover:bg-gray-800"
-                  }`}
+                <Link
+                  href="/pages/admin/dashboard"
+                  className={`flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "dashboard"
+                    ? "bg-white text-gray-900"
+                    : "text-white hover:bg-gray-800"
+                    }`}
                 >
                   <LayoutDashboard size={20} className="mr-3" />
                   <span className="font-medium">Dashboard</span>
@@ -80,15 +85,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   )}
                 </Link>
               </li>
-              
+
               <li>
-                <Link 
-                  href="/pages/admin/calendar" 
-                  className={`flex items-center px-3 py-3 rounded-md transition-all ${
-                    activeTab === "calendar" 
-                      ? "bg-white text-gray-900" 
-                      : "text-white hover:bg-gray-800"
-                  }`}
+                <Link
+                  href="/pages/admin/calendar"
+                  className={`flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "calendar"
+                    ? "bg-white text-gray-900"
+                    : "text-white hover:bg-gray-800"
+                    }`}
                 >
                   <Calendar size={20} className="mr-3" />
                   <span className="font-medium">Calendar</span>
@@ -100,13 +104,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
               {/* Accounts tab below Calendar */}
               <li>
-                <Link 
-                  href="/pages/admin/accounts" 
-                  className={`flex items-center px-3 py-3 rounded-md transition-all ${
-                    activeTab === "accounts" 
-                      ? "bg-white text-gray-900" 
-                      : "text-white hover:bg-gray-800"
-                  }`}
+                <Link
+                  href="/pages/admin/accounts"
+                  className={`flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "accounts"
+                    ? "bg-white text-gray-900"
+                    : "text-white hover:bg-gray-800"
+                    }`}
                 >
                   <Users size={20} className="mr-3" />
                   <span className="font-medium">Accounts</span>
@@ -115,15 +118,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   )}
                 </Link>
               </li>
-              
+
               <li>
-                <Link 
-                  href="/pages/admin/asset-management" 
-                  className={`flex items-center px-3 py-3 rounded-md transition-all ${
-                    activeTab === "asset-management" 
-                      ? "bg-white text-gray-900" 
-                      : "text-white hover:bg-gray-800"
-                  }`}
+                <Link
+                  href="/pages/admin/asset-management"
+                  className={`flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "asset-management"
+                    ? "bg-white text-gray-900"
+                    : "text-white hover:bg-gray-800"
+                    }`}
                 >
                   <CalendarClock size={20} className="mr-3" />
                   <span className="font-medium">Asset Management</span>
@@ -136,7 +138,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </nav>
         </div>
       </div>
-      
+
       {/* Main content with its own overflow handling */}
       <div className="flex-1 flex flex-col overflow-y-auto">
         {/* Enhanced navbar with sidebar toggle */}
@@ -156,24 +158,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 />
               </div>
             </div>
-            
+
             {/* Right side: Notifications, user */}
             <div className="flex items-center gap-3">
               {/* Icon group with consistent styling */}
               <div className="flex items-center gap-3">
                 {/* Messages */}
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="icon"
                   className="relative cursor-pointer bg-white h-12 w-12 rounded-full border border-transparent hover:border-gray-300 hover:bg-white"
                 >
                   <Mail className="size-6 text-gray-600" />
                   <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-green-500 rounded-full"></span>
                 </Button>
-                
+
                 {/* Notifications */}
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="icon"
                   className="relative cursor-pointer bg-white h-12 w-12 rounded-full border border-transparent hover:border-gray-300 hover:bg-white"
                 >
@@ -181,20 +183,34 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-red-500 rounded-full"></span>
                 </Button>
               </div>
-              
+
               {/* User profile - with balanced spacing */}
-              <div className="flex items-center ml-3 mr-4">
-                <button className="flex items-center space-x-2">
-                  <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center">
-                    <User size={20} className="text-white" />
-                  </div>
-                  <span className="hidden md:inline-block text-sm font-medium text-gray-700">Administrator</span>
-                </button>
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="cursor-pointer bg-white h-12 w-12 rounded-full border border-transparent hover:border-gray-300 hover:bg-white focus:outline-none"
+                  >
+                    <CircleUserRound className="size-7 text-gray-600" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  sideOffset={8}
+                  className="w-[280px] sm:w-80 bg-background border-border rounded-lg shadow-lg"
+                >
+                  <UserProfile
+                    name={`${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim()}
+                    role={user?.role}
+                    avatar="https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-01-n0x8HFv8EUetf9z6ht0wScJKoTHqf8.png"
+                  />
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
-        
+
         <div className="flex-1 p-6.5 overflow-y-auto">
           {children}
         </div>

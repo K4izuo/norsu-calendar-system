@@ -66,7 +66,7 @@ export interface FacultyPageEventDetails {
 }
 
 export interface ReservationFormData {
-  title: string
+  title_name: string
   asset: {
     id: number
     asset_name: string
@@ -75,29 +75,29 @@ export interface ReservationFormData {
     asset_type?: string
 
   }
-  timeStart: string
-  timeEnd: string
+  time_start: string
+  time_end: string
   description: string
   range: number
-  people: string // comma-separated names
-  infoType: string
+  people_tag: string // comma-separated names
+  info_type: string
   category: string
   date: string
 }
 
-// API payload type
-export interface ReservationAPIPayload {
-  title: string;
-  asset_id: number | null;
-  time_start: string;
-  time_end: string;
-  description: string;
-  range: number;
-  people: string;
-  info_type: string;
-  category: string;
-  date: string;
-}
+// // API payload type
+// export interface ReservationAPIPayload {
+//   title: string;
+//   asset_id: number | null;
+//   time_start: string;
+//   time_end: string;
+//   description: string;
+//   range: number;
+//   people: string;
+//   info_type: string;
+//   category: string;
+//   date: string;
+// }
 
 export interface FacultyRegisterFormData {
   first_name: string;

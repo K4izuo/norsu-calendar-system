@@ -53,14 +53,14 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
   const form = useForm<ReservationFormData>({
     mode: "onTouched",
     defaultValues: {
-      title: "",
+      title_name: "",
       asset: undefined,
-      timeStart: getCurrentTime(),
-      timeEnd: getCurrentTime(),
+      time_start: getCurrentTime(),
+      time_end: getCurrentTime(),
       description: "",
       range: 1,
-      people: "",
-      infoType: "",
+      people_tag: "",
+      info_type: "",
       category: "",
       date: eventDate || "",
     },
@@ -105,8 +105,8 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
   useEffect(() => {
     if (isOpen) {
       const currentTime = getCurrentTime();
-      setValue("timeStart", currentTime);
-      setValue("timeEnd", currentTime);
+      setValue("time_start", currentTime);
+      setValue("time_end", currentTime);
     }
   }, [isOpen, setValue]);
 
@@ -184,7 +184,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
   // Update the useEffect for people sync
   useEffect(() => {
     const peopleValue = taggedPeople.map(p => p.name).join(', ');
-    setValue("people", peopleValue, {
+    setValue("people_tag", peopleValue, {
       shouldDirty: taggedPeople.length > 0,
       shouldValidate: true,
       shouldTouch: true
@@ -237,14 +237,14 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
   const isFormValid = useCallback((): boolean => {
     const values = getValues();
     return Boolean(
-      values.title &&
+      values.title_name &&
       values.asset &&
-      values.timeStart &&
-      values.timeEnd &&
-      values.timeEnd > values.timeStart &&
+      values.time_start &&
+      values.time_end &&
+      values.time_end > values.time_start &&
       values.description &&
       values.range &&
-      values.infoType &&
+      values.info_type &&
       values.category &&
       taggedPeople.length > 0
     );
@@ -291,18 +291,18 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
 
   const handleAdditionalTabNext = useCallback(async () => {
     // Set people value for validation
-    setValue("people", taggedPeople.map(p => p.name).join(', '), {
+    setValue("people_tag", taggedPeople.map(p => p.name).join(', '), {
       shouldValidate: true,
       shouldTouch: true
     });
 
-    const isValid = await trigger(['people', 'infoType', 'category']);
+    const isValid = await trigger(['people_tag', 'info_type', 'category']);
 
     if (isValid && taggedPeople.length > 0) {
       setActiveTab("summary");
     } else {
       if (taggedPeople.length === 0) {
-        setValue("people", "", { shouldValidate: true, shouldTouch: true });
+        setValue("people_tag", "", { shouldValidate: true, shouldTouch: true });
         setTimeout(() => peopleFieldRef.current?.focus(), 100);
       }
       showAdditionalTabErrorToast(errors, getValues(), taggedPeople);
