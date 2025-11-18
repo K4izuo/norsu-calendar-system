@@ -22,7 +22,7 @@ import { AuthContext } from "@/contexts/auth-context";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import UserProfile from "@/components/ui/user-profile";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function StaffLayout({ children }: { children: React.ReactNode }) {
   const [activeTab, setActiveTab] = useState("dashboard");
   const pathname = usePathname();
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -44,7 +44,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="flex h-screen overflow-hidden bg-gray-100">
       {/* Sidebar with overflow-y-auto to handle its own scrolling if needed */}
-      <div className="flex-none w-64 bg-gray-900 text-white flex flex-col overflow-y-auto">
+      <div className="flex-none w-64 bg-purple-900 text-white flex flex-col overflow-y-auto">
         <div className="flex-none h-[80px] py-2 px-4 items-center justify-center flex">
           <div className="flex items-center justify-center w-full">
             <Image
@@ -57,14 +57,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             />
             <div className="flex flex-col ml-3">
               <h1 className="font-semibold text-base text-white truncate">
-                Admin
+                Staff
               </h1>
             </div>
           </div>
         </div>
 
         <div className="flex-none px-4 pb-0 pt-0">
-          <span className="h-[2px] w-full block bg-gradient-to-r from-gray-700 via-white to-gray-700 rounded-full opacity-70"></span>
+          <span className="h-[2px] w-full block bg-gradient-to-r from-purple-700 via-purple-400 to-purple-700 rounded-full opacity-70"></span>
         </div>
 
         <div className="flex-1 px-4 py-6 overflow-y-auto">
@@ -72,10 +72,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <ul className="space-y-2">
               <li>
                 <Link
-                  href="/pages/admin/dashboard"
+                  href="/page/staff/dashboard"
                   className={`flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "dashboard"
-                    ? "bg-white text-gray-900"
-                    : "text-white hover:bg-gray-800"
+                    ? "bg-purple-700 text-white"
+                    : "text-purple-100 hover:bg-purple-800 hover:text-white"
                     }`}
                 >
                   <LayoutDashboard size={20} className="mr-3" />
@@ -88,10 +88,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
               <li>
                 <Link
-                  href="/pages/admin/calendar"
+                  href="/page/staff/calendar"
                   className={`flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "calendar"
-                    ? "bg-white text-gray-900"
-                    : "text-white hover:bg-gray-800"
+                    ? "bg-purple-700 text-white"
+                    : "text-purple-100 hover:bg-purple-800 hover:text-white"
                     }`}
                 >
                   <Calendar size={20} className="mr-3" />
@@ -105,10 +105,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               {/* Accounts tab below Calendar */}
               <li>
                 <Link
-                  href="/pages/admin/accounts"
+                  href="/page/staff/accounts"
                   className={`flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "accounts"
-                    ? "bg-white text-gray-900"
-                    : "text-white hover:bg-gray-800"
+                    ? "bg-purple-700 text-white"
+                    : "text-purple-100 hover:bg-purple-800 hover:text-white"
                     }`}
                 >
                   <Users size={20} className="mr-3" />
@@ -121,10 +121,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
               <li>
                 <Link
-                  href="/pages/admin/asset-management"
+                  href="/page/staff/asset-management"
                   className={`flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "asset-management"
-                    ? "bg-white text-gray-900"
-                    : "text-white hover:bg-gray-800"
+                    ? "bg-purple-700 text-white"
+                    : "text-purple-100 hover:bg-purple-800 hover:text-white"
                     }`}
                 >
                   <CalendarClock size={20} className="mr-3" />
@@ -184,7 +184,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </Button>
               </div>
 
-              {/* User profile - with balanced spacing */}
+              {/* User profile */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button

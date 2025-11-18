@@ -27,7 +27,7 @@ function isMissingField(field: string, values: ReservationFormData): boolean {
 function getErrorMessage(field: string, errors: FieldErrors<ReservationFormData>): string {
   const error = errors[field as keyof ReservationFormData];
   if (error?.message) return error.message as string;
-  return `${FIELD_LABELS[field]} is missing`;
+  return `${FIELD_LABELS[field]} is required`;
 }
 
 export function showFormTabErrorToast(
@@ -47,7 +47,7 @@ export function showFormTabErrorToast(
     .length;
 
   if (otherMissingCount > 0) {
-    const fieldText = otherMissingCount === 1 ? "field is missing" : "fields are missing";
+    const fieldText = otherMissingCount === 1 ? "field is required" : "fields are required";
     toast.error(`${message} and ${otherMissingCount} other ${fieldText}`);
   } else {
     toast.error(message);
@@ -68,10 +68,10 @@ export function showAdditionalTabErrorToast(
       .length;
 
     if (otherMissingCount > 0) {
-      const fieldText = otherMissingCount === 1 ? "field is missing" : "fields are missing";
-      toast.error(`People tag is missing and ${otherMissingCount} other ${fieldText}`);
+      const fieldText = otherMissingCount === 1 ? "field is required" : "fields are required";
+      toast.error(`People tag is required and ${otherMissingCount} other ${fieldText}`);
     } else {
-      toast.error("People tag is missing");
+      toast.error("People tag is required");
     }
     return;
   }
@@ -90,7 +90,7 @@ export function showAdditionalTabErrorToast(
       .length;
 
     if (otherMissingCount > 0) {
-      const fieldText = otherMissingCount === 1 ? "field is missing" : "fields are missing";
+      const fieldText = otherMissingCount === 1 ? "field is required" : "fields are required";
       toast.error(`${message} and ${otherMissingCount} other ${fieldText}`);
     } else {
       toast.error(message);

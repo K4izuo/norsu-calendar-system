@@ -14,15 +14,15 @@ const PUBLIC_ROUTES = [
 ];
 
 const ROLE_DASHBOARDS = {
-  "2": "/pages/faculty/dashboard/",
-  "3": "/pages/staff/dashboard/",
-  "4": "/pages/admin/dashboard/",
+  "2": "/page/faculty/dashboard/",
+  "3": "/page/staff/dashboard/",
+  "4": "/page/admin/dashboard/",
 };
 
 const ROLE_ROOTS = {
-  "2": "/pages/faculty/",
-  "3": "/pages/staff/",
-  "4": "/pages/admin/",
+  "2": "/page/faculty/",
+  "3": "/page/staff/",
+  "4": "/page/admin/",
 };
 
 export function middleware(request: NextRequest) {

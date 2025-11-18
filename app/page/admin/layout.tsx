@@ -4,42 +4,47 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useContext } from "react";
 import { usePathname } from "next/navigation";
-import { 
-  LayoutDashboard, 
+import {
+  LayoutDashboard,
   Calendar,
   CalendarClock,
   ChevronRight,
   Search,
   Bell,
-  User,
-  Mail
+  CircleUserRound,
+  Mail,
+  Users
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AuthContext } from "@/contexts/auth-context";
-import { UserProfileModal } from "@/components/modal/user-profile-modal";
+// import { UserProfileModal } from "@/components/modal/user-profile-modal";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import UserProfile from "@/components/ui/user-profile";
 
-export default function FacultyLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const pathname = usePathname();
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const auth = useContext(AuthContext);
   const user = auth?.user;
-  
+
   useEffect(() => {
     if (pathname?.includes("/asset-management")) {
       setActiveTab("asset-management");
     } else if (pathname?.includes("/calendar")) {
       setActiveTab("calendar");
+    } else if (pathname?.includes("/accounts")) {
+      setActiveTab("accounts");
     } else {
       setActiveTab("dashboard");
     }
   }, [pathname]);
-  
+
   return (
     <div className="flex h-screen overflow-hidden bg-gray-100">
       {/* Sidebar with overflow-y-auto to handle its own scrolling if needed */}
-      <div className="flex-none w-64 bg-blue-900 text-white flex flex-col overflow-y-auto">
+      <div className="flex-none w-64 bg-gray-900 text-white flex flex-col overflow-y-auto">
         <div className="flex-none h-[80px] py-2 px-4 items-center justify-center flex">
           <div className="flex items-center justify-center w-full">
             <Image
@@ -52,27 +57,26 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
             />
             <div className="flex flex-col ml-3">
               <h1 className="font-semibold text-base text-white truncate">
-                Faculty
+                Admin
               </h1>
             </div>
           </div>
         </div>
 
         <div className="flex-none px-4 pb-0 pt-0">
-          <span className="h-[2px] w-full block bg-gradient-to-r from-blue-700 via-white to-blue-700 rounded-full opacity-70"></span>
+          <span className="h-[2px] w-full block bg-gradient-to-r from-gray-700 via-white to-gray-700 rounded-full opacity-70"></span>
         </div>
 
         <div className="flex-1 px-4 py-6 overflow-y-auto">
           <nav>
             <ul className="space-y-2">
               <li>
-                <Link 
-                  href="/pages/faculty/dashboard" 
-                  className={`flex items-center px-3 py-3 rounded-md transition-all ${
-                    activeTab === "dashboard" 
-                      ? "bg-white text-blue-900" 
-                      : "text-white hover:bg-blue-800"
-                  }`}
+                <Link
+                  href="/page/admin/dashboard"
+                  className={`flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "dashboard"
+                    ? "bg-white text-gray-900"
+                    : "text-white hover:bg-gray-800"
+                    }`}
                 >
                   <LayoutDashboard size={20} className="mr-3" />
                   <span className="font-medium">Dashboard</span>
@@ -81,15 +85,14 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
                   )}
                 </Link>
               </li>
-              
+
               <li>
-                <Link 
-                  href="/pages/faculty/calendar" 
-                  className={`flex items-center px-3 py-3 rounded-md transition-all ${
-                    activeTab === "calendar" 
-                      ? "bg-white text-blue-900" 
-                      : "text-white hover:bg-blue-800"
-                  }`}
+                <Link
+                  href="/page/admin/calendar"
+                  className={`flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "calendar"
+                    ? "bg-white text-gray-900"
+                    : "text-white hover:bg-gray-800"
+                    }`}
                 >
                   <Calendar size={20} className="mr-3" />
                   <span className="font-medium">Calendar</span>
@@ -98,15 +101,31 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
                   )}
                 </Link>
               </li>
-              
+
+              {/* Accounts tab below Calendar */}
               <li>
-                <Link 
-                  href="/pages/faculty/asset-management" 
-                  className={`flex items-center px-3 py-3 rounded-md transition-all ${
-                    activeTab === "asset-management" 
-                      ? "bg-white text-blue-900" 
-                      : "text-white hover:bg-blue-800"
-                  }`}
+                <Link
+                  href="/page/admin/accounts"
+                  className={`flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "accounts"
+                    ? "bg-white text-gray-900"
+                    : "text-white hover:bg-gray-800"
+                    }`}
+                >
+                  <Users size={20} className="mr-3" />
+                  <span className="font-medium">Accounts</span>
+                  {activeTab === "accounts" && (
+                    <ChevronRight size={16} className="ml-auto" />
+                  )}
+                </Link>
+              </li>
+
+              <li>
+                <Link
+                  href="/page/admin/asset-management"
+                  className={`flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "asset-management"
+                    ? "bg-white text-gray-900"
+                    : "text-white hover:bg-gray-800"
+                    }`}
                 >
                   <CalendarClock size={20} className="mr-3" />
                   <span className="font-medium">Asset Management</span>
@@ -119,12 +138,13 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
           </nav>
         </div>
       </div>
-      
+
       {/* Main content with its own overflow handling */}
       <div className="flex-1 flex flex-col overflow-y-auto">
+        {/* Enhanced navbar with sidebar toggle */}
         <div className="flex-none h-[80px] py-2 px-4 items-center bg-white shadow-sm w-full z-10 flex">
           <div className="flex items-center justify-between w-full">
-            {/* Left side: Search input */}
+            {/* Left side: Search input (moved from right side) */}
             <div className="flex items-center ml-2">
               <div className="relative w-80">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -138,24 +158,24 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
                 />
               </div>
             </div>
-            
+
             {/* Right side: Notifications, user */}
             <div className="flex items-center gap-3">
               {/* Icon group with consistent styling */}
               <div className="flex items-center gap-3">
                 {/* Messages */}
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="icon"
                   className="relative cursor-pointer bg-white h-12 w-12 rounded-full border border-transparent hover:border-gray-300 hover:bg-white"
                 >
                   <Mail className="size-6 text-gray-600" />
                   <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-green-500 rounded-full"></span>
                 </Button>
-                
+
                 {/* Notifications */}
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="icon"
                   className="relative cursor-pointer bg-white h-12 w-12 rounded-full border border-transparent hover:border-gray-300 hover:bg-white"
                 >
@@ -163,73 +183,38 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
                   <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-red-500 rounded-full"></span>
                 </Button>
               </div>
-              
+
               {/* User profile - with balanced spacing */}
-              <div className="flex items-center ml-3 mr-4">
-                <button 
-                  className="flex items-center space-x-2"
-                  onClick={() => setIsProfileModalOpen(true)}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="cursor-pointer bg-white h-12 w-12 rounded-full border border-transparent hover:border-gray-300 hover:bg-white focus:outline-none"
+                  >
+                    <CircleUserRound className="size-7 text-gray-600" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  sideOffset={8}
+                  className="w-[280px] sm:w-80 bg-background border-border rounded-lg shadow-lg"
                 >
-                  <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center">
-                    <User size={20} className="text-white" />
-                  </div>
-                  <span className="hidden md:inline-block text-sm font-medium text-gray-700">{user?.first_name} {user?.last_name || ""}</span>
-                </button>
-              </div>
+                  <UserProfile
+                    name={`${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim()}
+                    role={user?.role}
+                    avatar="https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-01-n0x8HFv8EUetf9z6ht0wScJKoTHqf8.png"
+                  />
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
-        
+
         <div className="flex-1 p-6.5 overflow-y-auto">
           {children}
         </div>
       </div>
-
-      {/* User Profile Modal */}
-      <UserProfileModal
-        isOpen={isProfileModalOpen}
-        onClose={() => setIsProfileModalOpen(false)}
-        title="User Profile"
-      >
-        <div className="space-y-6">
-          {/* Profile Information */}
-          <div className="bg-gray-50 shadow-sm rounded-lg p-4">
-            <h3 className="text-md font-medium text-gray-700 mb-3">
-              Profile Information
-            </h3>
-            <div className="space-y-3">
-              <div>
-                <p className="text-sm text-gray-500">Name</p>
-                <p className="text-gray-800 font-medium">{user?.first_name} {user?.last_name || ""}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Email</p>
-                <p className="text-gray-800">{user?.email || "N/A"}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Username</p>
-                <p className="text-gray-800">{user?.username || "N/A"}</p>
-              </div>
-              {user?.role && (
-                <div>
-                  <p className="text-sm text-gray-500">Role</p>
-                  <p className="text-gray-800 capitalize">{user.role}</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Account Settings */}
-          <div className="bg-gray-50 shadow-sm rounded-lg p-4">
-            <h3 className="text-md font-medium text-gray-700 mb-3">
-              Account Settings
-            </h3>
-            <p className="text-gray-600">
-              Additional account settings and preferences can be configured here.
-            </p>
-          </div>
-        </div>
-      </UserProfileModal>
     </div>
   );
 }

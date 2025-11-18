@@ -91,7 +91,7 @@ export default function UserProfile({
 
             {/* Profile Info */}
             <div className="flex-1">
-              <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{name}</h2>
+              <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">{name}</h2>
               <p className="text-zinc-600 dark:text-zinc-400">{role}</p>
             </div>
           </div>

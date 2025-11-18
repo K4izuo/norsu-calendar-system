@@ -1,21 +1,18 @@
 "use client"
 
-import React, { useEffect, useRef, useState, useCallback, useMemo } from "react"
+import React, { useEffect, useRef, useState, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { X, CalendarDays } from "lucide-react" // Add CalendarDays to your import
+import { X, CalendarDays } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
-import { useForm } from "react-hook-form"
-import toast from "react-hot-toast"
 import { ReserveEventFormTab } from "@/components/modal/reserve-event-tab/event-form-tab"
 import { ReserveEventAdditionalTab } from "@/components/modal/reserve-event-tab/event-additional-tab"
 import { ReserveEventSummaryTab } from "@/components/modal/reserve-event-tab/event-summary-tab"
 import { ReservationFormData } from "@/interface/user-props"
 import { AssetsVenueModal } from "@/components/modal/reserve-event-assets/assets-venue-modal"
 import { AssetsVehicleModal } from "@/components/modal/reserve-event-assets/assets-vehicle-modal"
-import { showFormTabErrorToast, showAdditionalTabErrorToast } from "@/utils/reserve-event/reservation-field-error-toast"
-import { RESERVATION_VALIDATION_RULES } from "@/utils/reserve-event/reservation-validation-rules"
-import { useAssets } from "@/services/academicDataService" // Add this import
+import { useAssets } from "@/services/academicDataService"
+import { useReserveEventForm } from "@/hooks/useReserveEventForm"
 
 const infoTypes = [
   { value: "public", label: "Public" },
@@ -39,37 +36,39 @@ interface ModalProps {
 
 export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: ModalProps) {
   const contentRef = useRef<HTMLDivElement>(null)
-  const [activeTab, setActiveTab] = useState<string>("form")
-  const peopleFieldRef = useRef<HTMLInputElement>(null)
 
-  // Add the useAssets hook
   const { assets, loading: assetsLoading, error: assetsError } = useAssets();
 
-  const getCurrentTime = () => {
-    const now = new Date();
-    return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-  };
+  const {
+    control,
+    errors,
+    isSubmitting,
+    register,
+    activeTab,
+    setActiveTab,
+    showVenueModal,
+    setShowVenueModal,
+    showVehicleModal,
+    setShowVehicleModal,
+    tagInput,
+    taggedPeople,
+    showDropdown,
+    setShowDropdown,
+    peopleFieldRef,
+    watchedAsset,
+    getValues,
+    handleAssetChange,
+    handleAssetItemSelect,
+    handleTagInputChange,
+    handleTagSelect,
+    handleRemoveTag,
+    isFormValid,
+    handleFormTabNext,
+    handleAdditionalTabNext,
+    handleFormSubmit,
+    validationRules
+  } = useReserveEventForm({ eventDate, onSubmit, onClose, isOpen });
 
-  const form = useForm<ReservationFormData>({
-    mode: "onTouched",
-    defaultValues: {
-      title_name: "",
-      asset: undefined,
-      time_start: getCurrentTime(),
-      time_end: getCurrentTime(),
-      description: "",
-      range: 1,
-      people_tag: "",
-      info_type: "",
-      category: "",
-      date: eventDate || "",
-    },
-  });
-
-  const { control, handleSubmit, setValue, getValues, watch, register, trigger, formState: { errors, isSubmitting }, reset } = form;
-
-  const [showVenueModal, setShowVenueModal] = useState(false);
-  const [showVehicleModal, setShowVehicleModal] = useState(false);
   const [loadingVenueAssets, setLoadingVenueAssets] = useState(false);
   const [loadingVehicleAssets, setLoadingVehicleAssets] = useState(false);
   const [venueAssets, setVenueAssets] = useState<{ id: number; asset_name: string; asset_type: string; capacity: number, location: string }[]>([]);
@@ -83,32 +82,12 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
     { id: "5", name: "Maria Garcia" },
   ];
 
-  const [tagInput, setTagInput] = useState("");
-  const [taggedPeople, setTaggedPeople] = useState<{ id: string; name: string }[]>([]);
-  const [showDropdown, setShowDropdown] = useState(false);
-
-  // Transform assets data for the form select field (REMOVE FETCHED ASSETS)
   const formattedAssets = useMemo(() => {
-    // Only show the original trigger options - no fetched assets
     return [
       { id: 1, asset_name: "Assets Venue", capacity: 0 },
       { id: 2, asset_name: "Assets Vehicle", capacity: 0 }
     ];
   }, []);
-
-  useEffect(() => {
-    if (eventDate) {
-      setValue("date", eventDate);
-    }
-  }, [eventDate, setValue]);
-
-  useEffect(() => {
-    if (isOpen) {
-      const currentTime = getCurrentTime();
-      setValue("time_start", currentTime);
-      setValue("time_end", currentTime);
-    }
-  }, [isOpen, setValue]);
 
   useEffect(() => {
     if (isOpen) {
@@ -128,18 +107,12 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
   }, [isOpen, onClose])
 
   useEffect(() => {
-    if (isOpen) {
-      setActiveTab("form")
-    }
-  }, [isOpen])
-
-  useEffect(() => {
     if (showVenueModal) {
       setLoadingVenueAssets(true);
       setTimeout(() => {
         if (assets && assets.length > 0) {
           const venueAssetsData = assets.map(asset => ({
-            id: asset.id, // Keep as number from database
+            id: asset.id,
             asset_name: asset.asset_name,
             asset_type: asset.asset_type,
             capacity: asset.capacity || 0,
@@ -163,7 +136,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
       setTimeout(() => {
         if (assets && assets.length > 0) {
           const vehicleAssetsData = assets.map(asset => ({
-            id: asset.id, // Keep as number from database
+            id: asset.id,
             asset_name: asset.asset_name,
             asset_type: asset.asset_type,
             capacity: asset.capacity || 0,
@@ -181,142 +154,12 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
     }
   }, [showVehicleModal, assets]);
 
-  // Update the useEffect for people sync
-  useEffect(() => {
-    const peopleValue = taggedPeople.map(p => p.name).join(', ');
-    setValue("people_tag", peopleValue, {
-      shouldDirty: taggedPeople.length > 0,
-      shouldValidate: true,
-      shouldTouch: true
-    });
-  }, [taggedPeople, setValue]);
-
-  const handleAssetChange = (value: string) => {
-    // If user clicks on the hidden selected asset item, ignore it
-    // if (value.startsWith('selected-')) {
-    //   return;
-    // }
-
-    // Convert string value back to number to match our formattedAssets
-    const numericValue = parseInt(value);
-
-    // Check against the actual IDs from formattedAssets (trigger options)
-    if (numericValue === 1) { // Assets Venue
-      setShowVenueModal(true);
-      return;
-    }
-    if (numericValue === 2) { // Assets Vehicle  
-      setShowVehicleModal(true);
-      return;
-    }
-  };
-
-  const handleAssetItemSelect = (asset: { id: number; asset_name: string; asset_type: string; capacity: number }) => {
-    setValue("asset", asset, { shouldValidate: true, shouldTouch: true });
-    setShowVenueModal(false);
-    setShowVehicleModal(false);
-  };
-
-  const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTagInput(e.target.value);
-    setShowDropdown(e.target.value.length > 0);
-  };
-
-  const handleTagSelect = (person: { id: string; name: string }) => {
-    if (!taggedPeople.some(p => p.id === person.id)) {
-      setTaggedPeople([...taggedPeople, person]);
-      setTagInput("");
-      setShowDropdown(false);
-    }
-  };
-
-  const handleRemoveTag = (id: string) => {
-    setTaggedPeople(taggedPeople.filter(p => p.id !== id));
-  };
-
-  const isFormValid = useCallback((): boolean => {
-    const values = getValues();
-    return Boolean(
-      values.title_name &&
-      values.asset &&
-      values.time_start &&
-      values.time_end &&
-      values.time_end > values.time_start &&
-      values.description &&
-      values.range &&
-      values.info_type &&
-      values.category &&
-      taggedPeople.length > 0
-    );
-  }, [getValues, taggedPeople.length]);
-
-  const onSubmitForm = useCallback(
-    async (data: ReservationFormData) => {
-      try {
-        const formDataWithPeople = {
-          ...data,
-          people: taggedPeople.map(p => p.name).join(', '),
-        };
-
-        await new Promise(resolve => setTimeout(resolve, 1500));
-
-        if (onSubmit) {
-          onSubmit(formDataWithPeople);
-        }
-
-        toast.success("Event reserved successfully!");
-
-        reset();
-        setTaggedPeople([]);
-        setTagInput("");
-
-        setTimeout(() => {
-          onClose();
-        }, 1000);
-
-      } catch (error) {
-        console.error("Reservation error:", error);
-        toast.error("Failed to reserve event. Please try again.");
-      }
-    },
-    [onSubmit, reset, onClose, taggedPeople]
-  );
-
-  const handleFormTabNext = useCallback(() => {
-    handleSubmit(
-      () => setActiveTab("additional"),
-      (errors) => showFormTabErrorToast(errors, getValues())
-    )();
-  }, [handleSubmit, getValues]);
-
-  const handleAdditionalTabNext = useCallback(async () => {
-    // Set people value for validation
-    setValue("people_tag", taggedPeople.map(p => p.name).join(', '), {
-      shouldValidate: true,
-      shouldTouch: true
-    });
-
-    const isValid = await trigger(['people_tag', 'info_type', 'category']);
-
-    if (isValid && taggedPeople.length > 0) {
-      setActiveTab("summary");
-    } else {
-      if (taggedPeople.length === 0) {
-        setValue("people_tag", "", { shouldValidate: true, shouldTouch: true });
-        setTimeout(() => peopleFieldRef.current?.focus(), 100);
-      }
-      showAdditionalTabErrorToast(errors, getValues(), taggedPeople);
-    }
-  }, [trigger, getValues, taggedPeople, setValue, errors]);
-
   const tabOrder = ["form", "additional", "summary"];
   const tabLabels: Record<string, string> = {
     form: "Event Details",
     additional: "Additional Info",
     summary: "Summary",
   };
-
-  const watchedAsset = watch("asset");
 
   if (!isOpen) return null;
 
@@ -376,7 +219,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
             </div>
           </div>
 
-          <form className="flex flex-col flex-1" onSubmit={handleSubmit(onSubmitForm)}>
+          <form className="flex flex-col flex-1" onSubmit={handleFormSubmit}>
             <div className="overflow-y-auto p-4 sm:p-6 pt-2 sm:pt-4 flex-1 max-h-[calc(91vh-155px)]">
               <Tabs value={activeTab} className="w-full">
                 <div className="grid grid-cols-3 mb-4 sm:mb-4 bg-muted rounded-lg p-1 overflow-x-auto">
@@ -401,7 +244,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                     assets={formattedAssets}
                     handleAssetChange={handleAssetChange}
                     selectedAsset={watchedAsset}
-                    validationRules={RESERVATION_VALIDATION_RULES}
+                    validationRules={validationRules}
                     register={register}
                   />
                 </TabsContent>
@@ -420,7 +263,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                     handleTagSelect={handleTagSelect}
                     handleRemoveTag={handleRemoveTag}
                     setShowDropdown={setShowDropdown}
-                    validationRules={RESERVATION_VALIDATION_RULES}
+                    validationRules={validationRules}
                     register={register}
                     peopleFieldRef={peopleFieldRef}
                   />
