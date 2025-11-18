@@ -80,6 +80,7 @@ export default function StaffRegisterPage() {
           toast.error(errorMessage, { duration: 5000 });
           return;
         }
+        
         const successMsg = response.data?.role
           ? ROLE_SUCCESS_MESSAGES[response.data.role] ?? "Registration successful!"
           : "Registration successful!";

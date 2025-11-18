@@ -68,6 +68,8 @@ export function ReserveEventAdditionalTab({
             render={({ field, fieldState: { invalid, isTouched } }) => (
               <div className="relative mt-1">
                 <Input
+                  name="people_tag"
+                  id="people_tag"
                   ref={peopleFieldRef}
                   placeholder="Type a name to tag..."
                   value={tagInput}
@@ -151,7 +153,7 @@ export function ReserveEventAdditionalTab({
             rules={validationRules.info_type}
             render={({ field }) => (
               <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger id="infoType" className={`${getFieldClass(!!errors.info_type)} transition-all duration-[90ms]`}>
+                <SelectTrigger id="infoType" name="info_type" className={`${getFieldClass(!!errors.info_type)} transition-all duration-[90ms]`}>
                   <SelectValue placeholder="Select information type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -176,7 +178,7 @@ export function ReserveEventAdditionalTab({
             rules={validationRules.category}
             render={({ field }) => (
               <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger id="category" className={getFieldClass(!!errors.category)}>
+                <SelectTrigger id="category" name="category" className={getFieldClass(!!errors.category)}>
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>

@@ -43,6 +43,7 @@ export function ReserveEventFormTab({
       <div className="space-y-4 sm:space-y-5">
         <EventFormInput
           name="title_name"
+          id="title_name"
           label="Event Title"
           register={register}
           rules={validationRules.title_name}
@@ -125,6 +126,7 @@ export function ReserveEventFormTab({
           </div>
           <EventFormInput
             name="time_start"
+            id="time_start"
             label="Start Time"
             register={register}
             rules={validationRules.time_start}
@@ -133,6 +135,7 @@ export function ReserveEventFormTab({
           />
           <EventFormInput
             name="time_end"
+            id="time_end"
             label="End Time"
             register={register}
             rules={validationRules.time_end}
@@ -143,6 +146,7 @@ export function ReserveEventFormTab({
         </div>
         <EventFormInput
           name="description"
+          id="description"
           label="Description"
           register={register}
           rules={validationRules.description}

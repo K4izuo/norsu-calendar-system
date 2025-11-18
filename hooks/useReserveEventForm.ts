@@ -5,6 +5,7 @@ import toast from "react-hot-toast"
 import { ReservationFormData, ReservationAPIPayload } from "@/interface/user-props"
 import { RESERVATION_VALIDATION_RULES } from "@/utils/reserve-event/reservation-validation-rules"
 import { showFormTabErrorToast, showAdditionalTabErrorToast } from "@/utils/reserve-event/reservation-field-error-toast"
+import { apiClient } from "@/lib/api-client"
 
 interface UseReserveEventFormProps {
   eventDate?: string | undefined
@@ -152,42 +153,61 @@ export const useReserveEventForm = ({ eventDate, onSubmit, onClose, isOpen }: Us
   const onSubmitForm = useCallback(
     async (data: ReservationFormData) => {
       try {
-        const { asset, people_tag, ...rest } = data;
-        const formDataWithPeople: ReservationAPIPayload = {
-          ...rest,
-          asset_id: asset?.id ?? 0,
-          people_tag: taggedPeople.map(p => p.name).join(', '),
+        // Normalize times to "HH:mm" (fixes your H:i validation)
+        const normalizeTime = (t: string) => {
+          const [hour, minute] = t.split(":");
+          return `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}`;
         };
 
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        const { asset, people_tag, ...rest } = data;
 
-        if (onSubmit) {
-          onSubmit(formDataWithPeople);
-        }
+        // Final payload you're actually sending
+        const formDataWithPeople: ReservationAPIPayload = {
+          ...rest,
+          time_start: normalizeTime(rest.time_start),
+          time_end: normalizeTime(rest.time_end),
+          asset_id: asset?.id ?? 0,
+          people_tag: taggedPeople.map(p => p.name).join(", "),
+        };
+
+        // Correct API call — using the actual payload
+        const response = await apiClient.post<
+          { reservation: any; message: string },
+          ReservationAPIPayload
+        >("/event/reservation", formDataWithPeople);
+
+        if (response.error) {
+          toast.error(typeof response.error === "string" ? response.error : "Reservation failed.");
+          return;
+        }        
 
         toast.success("Event reservation sent successfully!");
 
         const currentTime = getCurrentTime();
-        reset({
-          title_name: "",
-          asset: undefined,
-          time_start: currentTime,
-          time_end: currentTime,
-          description: "",
-          range: 1,
-          people_tag: "",
-          info_type: "",
-          category: "",
-          date: eventDate || "",
-        }, {
-          keepErrors: false,
-          keepDirty: false,
-          keepIsSubmitted: false,
-          keepTouched: false,
-          keepIsValid: false,
-          keepSubmitCount: false,
-        });
-        
+
+        reset(
+          {
+            title_name: "",
+            asset: undefined,
+            time_start: currentTime,
+            time_end: currentTime,
+            description: "",
+            range: 1,
+            people_tag: "",
+            info_type: "",
+            category: "",
+            date: eventDate || "",
+          },
+          {
+            keepErrors: false,
+            keepDirty: false,
+            keepIsSubmitted: false,
+            keepTouched: false,
+            keepIsValid: false,
+            keepSubmitCount: false,
+          }
+        );
+
         setTaggedPeople([]);
         setTagInput("");
         setActiveTab("form");
@@ -201,7 +221,7 @@ export const useReserveEventForm = ({ eventDate, onSubmit, onClose, isOpen }: Us
         toast.error("Failed to reserve event. Please try again.");
       }
     },
-    [onSubmit, reset, onClose, taggedPeople, eventDate]
+    [reset, onClose, taggedPeople, eventDate]
   );
 
   const handleFormTabNext = useCallback(() => {

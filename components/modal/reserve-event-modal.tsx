@@ -8,11 +8,11 @@ import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { ReserveEventFormTab } from "@/components/modal/reserve-event-tab/event-form-tab"
 import { ReserveEventAdditionalTab } from "@/components/modal/reserve-event-tab/event-additional-tab"
 import { ReserveEventSummaryTab } from "@/components/modal/reserve-event-tab/event-summary-tab"
-import { ReservationFormData } from "@/interface/user-props"
 import { AssetsVenueModal } from "@/components/modal/reserve-event-assets/assets-venue-modal"
 import { AssetsVehicleModal } from "@/components/modal/reserve-event-assets/assets-vehicle-modal"
 import { useAssets } from "@/services/academicDataService"
 import { useReserveEventForm } from "@/hooks/useReserveEventForm"
+import { ReservationAPIPayload } from "@/interface/user-props"
 
 const infoTypes = [
   { value: "public", label: "Public" },
@@ -30,7 +30,7 @@ const categories = [
 interface ModalProps {
   isOpen: boolean
   onClose: () => void
-  onSubmit?: (data: ReservationFormData) => void
+  onSubmit?: (data: ReservationAPIPayload) => void
   eventDate?: string | undefined
 }
 
@@ -211,7 +211,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
                   e.stopPropagation();
                   onClose();
                 }}
-                className="p-2 bg-white cursor-pointer rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-200"
+                className="p-2 shadow-none bg-white cursor-pointer rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-200"
                 aria-label="Close"
               >
                 <X className="w-6 h-6 text-gray-500" />

@@ -18,7 +18,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AuthContext } from "@/contexts/auth-context";
-// import { UserProfileModal } from "@/components/modal/user-profile-modal";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import UserProfile from "@/components/ui/user-profile";
 
@@ -28,6 +27,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const auth = useContext(AuthContext);
   const user = auth?.user;
+  const [mounted, setMounted] = useState(false); // ✅ Add this
+
+  // ✅ Add this useEffect to ensure client-side only rendering
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (pathname?.includes("/asset-management")) {
@@ -185,28 +190,31 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </div>
 
               {/* User profile - with balanced spacing */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="cursor-pointer bg-white h-12 w-12 rounded-full border border-transparent hover:border-gray-300 hover:bg-white focus:outline-none"
+              {/* ✅ Only render DropdownMenu after mount (client-side only) */}
+              {mounted && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="cursor-pointer bg-white h-12 w-12 rounded-full border border-transparent hover:border-gray-300 hover:bg-white focus:outline-none"
+                    >
+                      <CircleUserRound className="size-7 text-gray-600" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    sideOffset={8}
+                    className="w-[280px] sm:w-80 bg-background border-border rounded-lg shadow-lg"
                   >
-                    <CircleUserRound className="size-7 text-gray-600" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="end"
-                  sideOffset={8}
-                  className="w-[280px] sm:w-80 bg-background border-border rounded-lg shadow-lg"
-                >
-                  <UserProfile
-                    name={`${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim()}
-                    role={user?.role}
-                    avatar="https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-01-n0x8HFv8EUetf9z6ht0wScJKoTHqf8.png"
-                  />
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    <UserProfile
+                      name={`${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim()}
+                      role={user?.role}
+                      avatar="https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-01-n0x8HFv8EUetf9z6ht0wScJKoTHqf8.png"
+                    />
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
           </div>
         </div>
