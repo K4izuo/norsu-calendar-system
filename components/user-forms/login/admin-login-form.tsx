@@ -10,6 +10,7 @@ interface AdminLoginFormProps {
   showPassword: boolean
   rememberMe: boolean
   isLoading: boolean
+  isSuccess: boolean
   formData: LoginFormData
   errors: FieldErrors<LoginFormData>
   onShowPasswordToggle: () => void
@@ -23,6 +24,7 @@ export const AdminLoginForm = memo(function AdminLoginForm({
   showPassword,
   rememberMe,
   isLoading,
+  isSuccess,
   errors,
   onShowPasswordToggle,
   onRememberMeChange,
@@ -106,7 +108,7 @@ export const AdminLoginForm = memo(function AdminLoginForm({
           <Button
             type="submit"
             className="w-full cursor-pointer h-[50px] sm:h-[54px] font-semibold text-sm sm:text-base bg-gradient-to-r from-gray-400 via-gray-500 to-gray-700 hover:from-gray-500 hover:to-gray-800 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] mb-3 flex items-center justify-center gap-x-2"
-            disabled={isLoading}
+            disabled={isLoading || isSuccess}
           >
             {isLoading ? (
               <>

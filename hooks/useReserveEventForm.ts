@@ -1,4 +1,3 @@
-// hooks/useReserveEventForm.ts
 import React, { useCallback, useEffect, useState, useRef } from "react"
 import { useForm } from "react-hook-form"
 import toast from "react-hot-toast"
@@ -6,6 +5,26 @@ import { ReservationFormData, ReservationAPIPayload } from "@/interface/user-pro
 import { RESERVATION_VALIDATION_RULES } from "@/utils/reserve-event/reservation-validation-rules"
 import { showFormTabErrorToast, showAdditionalTabErrorToast } from "@/utils/reserve-event/reservation-field-error-toast"
 import { apiClient } from "@/lib/api-client"
+
+interface ReservationResponse {
+  reservation: {
+    id: number
+    title_name: string
+    asset_id: number
+    time_start: string
+    time_end: string
+    description: string
+    range: number
+    people_tag: string
+    info_type: string
+    category: string
+    date: string
+    status: string
+    created_at: string
+    updated_at: string
+  }
+  message: string
+}
 
 interface UseReserveEventFormProps {
   eventDate?: string | undefined
@@ -154,8 +173,9 @@ export const useReserveEventForm = ({ eventDate, onSubmit, onClose, isOpen }: Us
     async (data: ReservationFormData) => {
       try {
         // Normalize times to "HH:mm" (fixes your H:i validation)
-        const normalizeTime = (t: string) => {
-          const [hour, minute] = t.split(":");
+        const normalizeTime = (time: string): string => {
+          if (!time) return "00:00";
+          const [hour, minute] = time.split(":");
           return `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}`;
         };
 
@@ -172,14 +192,14 @@ export const useReserveEventForm = ({ eventDate, onSubmit, onClose, isOpen }: Us
 
         // Correct API call — using the actual payload
         const response = await apiClient.post<
-          { reservation: any; message: string },
+          { reservation: ReservationResponse; message: string },
           ReservationAPIPayload
         >("/event/reservation", formDataWithPeople);
 
         if (response.error) {
           toast.error(typeof response.error === "string" ? response.error : "Reservation failed.");
           return;
-        }        
+        }
 
         toast.success("Event reservation sent successfully!");
 

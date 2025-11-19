@@ -11,6 +11,7 @@ interface LoginFormLayoutProps {
   showPassword: boolean
   rememberMe: boolean
   isLoading: boolean
+  isSuccess: boolean
   formData: LoginFormData
   errors: FieldErrors<LoginFormData>
   onShowPasswordToggle: () => void
@@ -25,6 +26,7 @@ export const LoginFormLayout = memo(function LoginFormLayout({
   showPassword,
   rememberMe,
   isLoading,
+  isSuccess,
   errors,
   onShowPasswordToggle,
   onRememberMeChange,
@@ -129,7 +131,7 @@ export const LoginFormLayout = memo(function LoginFormLayout({
           <Button
             type="submit"
             className={`w-full cursor-pointer ${buttonHeight} font-semibold text-sm sm:text-base ${theme.buttonStyle} rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] mb-3 flex items-center justify-center gap-x-2`}
-            disabled={isLoading}
+            disabled={isLoading || isSuccess}
           >
             {isLoading ? (
               <>

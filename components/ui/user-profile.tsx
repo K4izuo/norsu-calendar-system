@@ -47,30 +47,34 @@ export default function UserProfile({
   ]
 
   const handleLogout = async () => {
+    const loadingToast = toast.loading("Logging out...")
+
     try {
-      // Call your Laravel logout endpoint using the API client
       const response = await apiClient.logout<{ message: string }>('/logout')
+
+      // Always remove loading
+      toast.dismiss(loadingToast)
 
       if (response.error) {
         toast.error(response.error || 'Logout failed')
         return
       }
 
-      // Remove auth token from cookies/storage
       removeAuthToken()
 
-      // Clear auth context if you have a logout function
       if (auth?.logout) {
         auth.logout()
       }
 
-      // Show success message - access message from response.data
       toast.success(response.data?.message || 'Logged out successfully')
 
-      // Redirect to login page
-      router.push('/login')
+      router.push('/')
     } catch (error) {
       console.error('Logout error:', error)
+
+      // Remove loading toast before showing error
+      toast.dismiss(loadingToast)
+
       toast.error('An error occurred during logout')
     }
   }

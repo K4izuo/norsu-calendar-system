@@ -1,29 +1,69 @@
-const getCookie = (name: string): string | null => {
-  if (typeof window === 'undefined') return null;
-  
-  const cookie = document.cookie
-    .split('; ')
-    .find(row => row.startsWith(`${name}=`));
+// lib/auth.ts
+export const setAuthToken = (token: string, expiresAt?: string) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('auth-token', token);
     
-  return cookie ? cookie.split('=')[1] : null;
+    // Set cookie with expiry
+    const expires = expiresAt ? new Date(expiresAt) : new Date(Date.now() + 15 * 60 * 1000);
+    document.cookie = `auth-token=${token}; path=/; expires=${expires.toUTCString()}; SameSite=Strict`;
+    
+    // Store expiry timestamp
+    document.cookie = `token-expiry=${expires.toISOString()}; path=/; expires=${expires.toUTCString()}; SameSite=Strict`;
+  }
 };
 
-const setCookie = (name: string, value: string, days: number = 7): void => {
-  const maxAge = 60 * 60 * 24 * days;
-  document.cookie = `${name}=${value}; path=/; max-age=${maxAge}; SameSite=Lax`;
+export const setUserRole = (role: number) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('user-role', role.toString());
+    
+    // Set cookie without expiry (will expire with token)
+    const expires = new Date(Date.now() + 15 * 60 * 1000);
+    document.cookie = `user-role=${role}; path=/; expires=${expires.toUTCString()}; SameSite=Strict`;
+  }
 };
 
-const deleteCookie = (name: string): void => {
-  document.cookie = `${name}=; path=/; max-age=0`;
+export const getAuthToken = (): string | null => {
+  if (typeof window !== 'undefined') {
+    // Check localStorage first
+    const token = localStorage.getItem('auth-token');
+    
+    // Verify token hasn't expired
+    const cookies = document.cookie.split(';');
+    const expiryCookie = cookies.find(c => c.trim().startsWith('token-expiry='));
+    
+    if (expiryCookie) {
+      const expiryValue = expiryCookie.split('=')[1];
+      const expiryDate = new Date(expiryValue);
+      
+      if (expiryDate <= new Date()) {
+        // Token expired, clear everything
+        removeAuthToken();
+        return null;
+      }
+    }
+    
+    return token;
+  }
+  return null;
 };
 
-export const getAuthToken = () => getCookie('auth-token');
-export const getUserRole = () => getCookie('user-role');
-
-export const setAuthToken = (token: string) => setCookie('auth-token', token);
-export const setUserRole = (role: string | number) => setCookie('user-role', String(role));
+export const getUserRole = (): string | null => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('user-role');
+  }
+  return null;
+};
 
 export const removeAuthToken = () => {
-  deleteCookie('auth-token');
-  deleteCookie('user-role');
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('auth-token');
+    localStorage.removeItem('user-role');
+    localStorage.removeItem('user');
+    localStorage.removeItem('role');
+    
+    // Clear cookies
+    document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    document.cookie = 'user-role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    document.cookie = 'token-expiry=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  }
 };

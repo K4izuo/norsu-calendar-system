@@ -1,5 +1,5 @@
 import React from "react"
-import { CalendarPlus2, Building, CalendarClock, Clock, FileText, CheckCircle2, User } from "lucide-react"
+import { CalendarPlus2, MapPin, CalendarClock, Clock, FileText, CheckCircle2, User } from "lucide-react"
 import { ReservationFormData } from "@/interface/user-props"
 
 interface Props {
@@ -65,21 +65,29 @@ export function ReserveEventSummaryTab({
       </div>
       <div className="bg-gray-50 shadow-sm rounded-lg p-4">
         <div className="flex items-center mb-3">
-          <Building className="text-gray-500 mr-2 h-6 w-6" />
+          <MapPin className="text-gray-500 mr-2 h-6 w-6" />
           <h3 className="text-lg font-medium text-gray-700">Asset Information</h3>
         </div>
         <div className="border-b border-gray-300 mb-4" /> {/* line below label */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
+          {/* <div>
             <p className="text-base text-gray-500">Asset Type</p>
             <p className="font-medium text-base">{asset?.asset_type || "Not selected"}</p>
-          </div>
+          </div> */}
           <div>
             <p className="text-base text-gray-500">Asset Name</p>
             <p className="font-medium text-base">{asset?.asset_name || "Not selected"}</p>
           </div>
           <div>
             <p className="text-base text-gray-500">Capacity</p>
+            <p className="font-medium text-base">{asset?.capacity || "N/A"}</p>
+          </div>
+          <div>
+            <p className="text-base text-gray-500">Date</p>
+            <p className="font-medium text-base">{asset?.capacity || "N/A"}</p>
+          </div>
+          <div>
+            <p className="text-base text-gray-500">Facilities</p>
             <p className="font-medium text-base">{asset?.capacity || "N/A"}</p>
           </div>
           <div>
