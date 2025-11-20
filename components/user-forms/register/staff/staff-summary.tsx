@@ -22,7 +22,6 @@ export const StaffSummary = memo(function StaffSummary({
   isFormValid,
   agreed,
   setAgreed,
-  color = "purple",
 }: StaffSummaryProps) {
   const [termsOpen, setTermsOpen] = useState(false);
 
@@ -88,7 +87,7 @@ export const StaffSummary = memo(function StaffSummary({
           onClose={() => setTermsOpen(false)}
           onAgree={() => setAgreed(true)}
           agreed={agreed}
-          color={color}
+          color="purple"
         />
       </div>
       <div

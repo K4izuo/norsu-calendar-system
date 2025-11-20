@@ -19,7 +19,7 @@ export default function FacultyAccountPage() {
 
   return (
     <AccountPageLayout
-      type="faculty"
+      type="dean"
       formData={formData}
       activeTab={activeTab}
       passwordError={null}

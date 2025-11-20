@@ -1,20 +1,20 @@
 import toast from "react-hot-toast";
 import type { FieldErrors } from "react-hook-form";
-import type { FacultyRegisterFormData } from "@/interface/user-props";
+import type { DeanRegisterFormData } from "@/interface/user-props";
 
-export const FIELD_LABELS: Record<keyof FacultyRegisterFormData, string> = {
+export const FIELD_LABELS: Record<keyof DeanRegisterFormData, string> = {
   first_name: "First name",
   middle_name: "Middle name",
   last_name: "Last name",
   email: "Email",
-  assignment_id: "Faculty ID",
+  assignment_id: "Dean ID",
   campus_id: "Campus",
   college_id: "College",
   degree_course_id: "Course",
   role: "Role",
 };
 
-export const REQUIRED_FIELDS: Array<keyof FacultyRegisterFormData> = [
+export const REQUIRED_FIELDS: Array<keyof DeanRegisterFormData> = [
   "first_name",
   "middle_name",
   "last_name",
@@ -33,8 +33,8 @@ export const SELECT_FIELDS = [
 ] as const;
 
 export function showFieldErrorToast(
-  errors: FieldErrors<FacultyRegisterFormData>,
-  values: FacultyRegisterFormData
+  errors: FieldErrors<DeanRegisterFormData>,
+  values: DeanRegisterFormData
 ) {
   const missingFields = REQUIRED_FIELDS.filter(field => !values[field]);
   if (missingFields.length === REQUIRED_FIELDS.length) {
@@ -42,7 +42,7 @@ export function showFieldErrorToast(
     return;
   }
 
-  const errorKeys = Object.keys(errors) as Array<keyof FacultyRegisterFormData>;
+  const errorKeys = Object.keys(errors) as Array<keyof DeanRegisterFormData>;
 
   if (errorKeys.length > 0) {
     const firstErrorKey = errorKeys[0];

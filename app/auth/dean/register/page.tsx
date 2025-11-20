@@ -1,34 +1,34 @@
 "use client"
 
-import React, { useEffect, useCallback, useState, useMemo } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { FacultyRegisterFormData } from "@/interface/user-props";
+import { DeanRegisterFormData } from "@/interface/user-props";
 import { useCampuses, useOffices, useCourses } from "@/services/academicDataService";
-import { FacultyFormSelectField } from "@/components/user-forms/register/faculty/faculty-select-field";
-import { FacultySummary } from "@/components/user-forms/register/faculty/faculty-summary";
+import { DeanFormSelectField } from "@/components/user-forms/register/dean/dean-select-field";
+import { DeanSummary } from "@/components/user-forms/register/dean/dean-summary";
 import { useRole } from "@/contexts/user-role";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { apiClient } from "@/lib/api-client";
-import { showFieldErrorToast } from "@/utils/faculty/faculty-register-error-toast";
-import { FACULTY_VALIDATION_RULES } from "@/utils/faculty/faculty-register-validation-rules";
-import { FacultyFormInput } from "@/components/user-forms/register/faculty/faculty-input-field";
+import { showFieldErrorToast } from "@/utils/dean/dean-register-error-toast";
+import { DEAN_VALIDATION_RULES } from "@/utils/dean/dean-register-validation-rules";
+import { DeanFormInput } from "@/components/user-forms/register/dean/dean-input-field";
 
 const TABS = [
-  { value: "details", label: "Faculty Details" },
+  { value: "details", label: "Dean Details" },
   { value: "summary", label: "Summary" }
 ] as const;
 
 const ROLE_SUCCESS_MESSAGES: Record<number, string> = {
   1: "Student registration successful!",
-  2: "Faculty registration successful!",
+  2: "Dean registration successful!",
   3: "Staff registration successful!"
 };
 
-export default function FacultyRegisterPage() {
+export default function DeanRegisterPage() {
   const router = useRouter();
   const { role } = useRole();
   const [activeTab, setActiveTab] = useState("details");
@@ -40,7 +40,7 @@ export default function FacultyRegisterPage() {
   const { offices, loading: loadingOffices, error: officeError } = useOffices();
   const { courses, loading: loadingCourses, error: courseError } = useCourses(selectedCollege);
 
-  const form = useForm<FacultyRegisterFormData>({
+  const form = useForm<DeanRegisterFormData>({
     mode: "onTouched",
     defaultValues: {
       first_name: "",
@@ -62,7 +62,7 @@ export default function FacultyRegisterPage() {
   const college_id = watch("college_id");
 
   useEffect(() => {
-    if (role === "faculty") {
+    if (role === "dean") {
       setShouldRender(true);
     } else {
       router.replace("/auth/register");
@@ -75,11 +75,11 @@ export default function FacultyRegisterPage() {
   }, [college_id, setValue]);
 
   const onSubmit = useCallback(
-    async (data: FacultyRegisterFormData) => {
+    async (data: DeanRegisterFormData) => {
       try {
-        const response = await apiClient.post<{ role?: number }, FacultyRegisterFormData>(
+        const response = await apiClient.post<{ role?: number }, DeanRegisterFormData>(
           "users/store",
-          { ...data, role: role || "faculty" }
+          { ...data, role: role || "dean" }
         );
         if (response.error) {
           const errorMessage =
@@ -126,7 +126,7 @@ export default function FacultyRegisterPage() {
       >
         <div className="p-4 sm:p-8 w-full flex flex-col justify-center">
           <div className="flex flex-col items-center mt-1.5 mb-7 gap-y-0.5">
-            <h1 className="text-2xl font-bold text-gray-800">Faculty Registration</h1>
+            <h1 className="text-2xl font-bold text-gray-800">Dean Registration</h1>
             <p className="text-gray-600 text-sm">Fill in your details to register</p>
           </div>
           <Tabs value={activeTab} className="w-full">
@@ -147,54 +147,54 @@ export default function FacultyRegisterPage() {
               <TabsContent value="details" className="space-y-6">
                 {/* Name row */}
                 <div className="flex flex-col gap-3 sm:flex-row">
-                  <FacultyFormInput
+                  <DeanFormInput
                     name="first_name"
                     label="First Name"
                     register={register}
-                    rules={FACULTY_VALIDATION_RULES.first_name}
+                    rules={DEAN_VALIDATION_RULES.first_name}
                     errors={errors}
                     autoComplete="given-name"
                     placeholder="Enter first name"
                   />
-                  <FacultyFormInput
+                  <DeanFormInput
                     name="middle_name"
                     label="Middle Name"
                     register={register}
-                    rules={FACULTY_VALIDATION_RULES.middle_name}
+                    rules={DEAN_VALIDATION_RULES.middle_name}
                     errors={errors}
                     autoComplete="additional-name"
                     placeholder="Enter middle name"
                   />
-                  <FacultyFormInput
+                  <DeanFormInput
                     name="last_name"
                     label="Last Name"
                     register={register}
-                    rules={FACULTY_VALIDATION_RULES.last_name}
+                    rules={DEAN_VALIDATION_RULES.last_name}
                     errors={errors}
                     autoComplete="family-name"
                     placeholder="Enter last name"
                   />
                 </div>
-                {/* Email & Faculty ID row */}
+                {/* Email & Dean ID row */}
                 <div className="flex flex-col gap-3 sm:flex-row">
-                  <FacultyFormInput
+                  <DeanFormInput
                     name="email"
                     label="Email"
                     register={register}
-                    rules={FACULTY_VALIDATION_RULES.email}
+                    rules={DEAN_VALIDATION_RULES.email}
                     errors={errors}
                     type="email"
                     autoComplete="email"
                     placeholder="Enter email"
                   />
-                  <FacultyFormInput
+                  <DeanFormInput
                     name="assignment_id"
-                    label="Faculty ID"
+                    label="Dean ID"
                     register={register}
-                    rules={FACULTY_VALIDATION_RULES.facultyID}
+                    rules={DEAN_VALIDATION_RULES.deanID}
                     errors={errors}
                     autoComplete="off"
-                    placeholder="Enter faculty ID"
+                    placeholder="Enter dean ID"
                     inputMode="numeric"
                   />
                 </div>
@@ -204,9 +204,9 @@ export default function FacultyRegisterPage() {
                     <Controller
                       name="campus_id"
                       control={control}
-                      rules={FACULTY_VALIDATION_RULES.campus}
+                      rules={DEAN_VALIDATION_RULES.campus}
                       render={({ field }) => (
-                        <FacultyFormSelectField
+                        <DeanFormSelectField
                           id="campus_id"
                           name="campus_id"
                           label="Campus"
@@ -226,9 +226,9 @@ export default function FacultyRegisterPage() {
                     <Controller
                       name="college_id"
                       control={control}
-                      rules={FACULTY_VALIDATION_RULES.college}
+                      rules={DEAN_VALIDATION_RULES.college}
                       render={({ field }) => (
-                        <FacultyFormSelectField
+                        <DeanFormSelectField
                           id="college_id"
                           name="college_id"
                           label="College"
@@ -249,9 +249,9 @@ export default function FacultyRegisterPage() {
                 <Controller
                   name="degree_course_id"
                   control={control}
-                  rules={FACULTY_VALIDATION_RULES.course}
+                  rules={DEAN_VALIDATION_RULES.course}
                   render={({ field }) => (
-                    <FacultyFormSelectField
+                    <DeanFormSelectField
                       id="degree_course_id"
                       name="degree_course_id"
                       label="Course"
@@ -287,7 +287,7 @@ export default function FacultyRegisterPage() {
                 </div>
               </TabsContent>
               <TabsContent value="summary" className="space-y-6">
-                <FacultySummary
+                <DeanSummary
                   formData={{ ...formData, role: role ?? "" }}
                   campuses={campuses}
                   offices={offices}

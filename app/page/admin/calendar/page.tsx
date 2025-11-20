@@ -11,12 +11,12 @@ import { AdminEventDetails } from "@/interface/user-props";
 const fetchAdminEvents = async (): Promise<AdminEventDetails[]> => {
   // Simulate API call
   await new Promise(resolve => setTimeout(resolve, 1000));
-  
+
   return [
     {
       id: 1,
       title: "Admin Meeting",
-      date: "2025-10-16",
+      date: "2025-11-24",
       time: "10:00-12:00",
       location: "Admin Building, Room 101",
       attendeeCount: 15,
@@ -33,6 +33,24 @@ const fetchAdminEvents = async (): Promise<AdminEventDetails[]> => {
     },
     {
       id: 2,
+      title: "Admin Meeting",
+      date: "2025-11-24",
+      time: "10:00-12:00",
+      location: "Admin Building, Room 101",
+      attendeeCount: 15,
+      category: "Administrative",
+      infoType: "Internal",
+      description: "Monthly administrative meeting to discuss university policies.",
+      peopleTag: ["admin", "management"],
+      registrationStatus: "open",
+      organizer: "Admin Office",
+      capacity: "20",
+      registrationDeadline: "2025-10-14",
+      approvalStatus: "approved",
+      createdBy: "System Administrator"
+    },
+    {
+      id: 3,
       title: "Budget Planning Session",
       date: "2025-10-20",
       time: "14:00-16:00",
@@ -74,7 +92,7 @@ export default function AdminCalendarTab() {
   useEffect(() => {
     setEventsListLoading(true);
     setLoading(true); // Set calendar loading to true
-    
+
     fetchAdminEvents()
       .then(data => {
         setEvents(data);
@@ -102,17 +120,17 @@ export default function AdminCalendarTab() {
   // Memoized selected day events
   const selectedDayEvents = useCallback(() => {
     if (!selectedDay || !selectedDay.currentMonth) return [];
-    
+
     const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(selectedDay.date).padStart(2, "0")}`;
-    
+
     return events.filter((event) => event.date === dateStr);
   }, [events, selectedDay, currentMonth, currentYear])();
-  
+
   // Event click handler
   const handleEventClick = useCallback((event: AdminEventDetails) => {
     setEventInfoLoading(true);
     setEventInfoModalOpen(true);
-    
+
     // Simulate fetching detailed event info
     setTimeout(() => {
       setSelectedEvent(event);
@@ -124,40 +142,40 @@ export default function AdminCalendarTab() {
   const handleCloseModal = useCallback(() => {
     setModalOpen(false);
   }, []);
-  
+
   // Calendar day selection handler
   const handleDaySelect = useCallback((day: CalendarDayType) => {
     // Reset to current events before opening modal
     setShowRecent(false);
-    
+
     // Update selected day
     setSelectedDay(day);
-    
+
     // Show loading animation
     setEventsListLoading(true);
-    
+
     // Open modal
     setModalOpen(true);
-    
+
     // Simulate API call for events on this date
     const fetchData = async () => {
       try {
         const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(day.date).padStart(2, "0")}`;
-        
+
         // In a real implementation, you'd fetch events for this specific date
         // const response = await fetch(`/api/admin/events?date=${dateStr}`);
         // const data = await response.json();
-        
+
         // Simulated delay
         await new Promise(resolve => setTimeout(resolve, Math.random() * 600 + 200));
-        
+
       } catch (error) {
         console.error("Error fetching admin event details:", error);
       } finally {
         setEventsListLoading(false);
       }
     };
-    
+
     fetchData();
   }, [currentMonth, currentYear]);
 

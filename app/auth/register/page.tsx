@@ -15,7 +15,7 @@ export default function AuthRegisterPage() {
     setRole(null);
   }, [setRole]);
 
-  const navigateToRegistration = (path: string, role: "faculty" | "staff") => {
+  const navigateToRegistration = (path: string, role: "dean" | "staff") => {
     setRole(role);
     router.push(path);
   };
@@ -54,21 +54,21 @@ export default function AuthRegisterPage() {
 
           {/* User Role Cards */}
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-stretch w-full">
-            {/* Faculty Card */}
+            {/* Dean Card */}
             <div
               tabIndex={0}
               role="button"
               className="bg-white border border-gray-200 rounded-xl shadow-md flex flex-col items-center px-6 py-6 sm:px-10 sm:py-8 w-full sm:w-72 transition-all duration-200 hover:shadow-xl hover:-translate-y-1 hover:border-blue-400 group cursor-pointer outline-none"
-              onClick={() => navigateToRegistration("/auth/faculty/register", "faculty")}
+              onClick={() => navigateToRegistration("/auth/dean/register", "dean")}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
-                  navigateToRegistration("/auth/faculty/register", "faculty");
+                  navigateToRegistration("/auth/dean/register", "dean");
                 }
               }}
             >
               <User className="h-7 w-7 sm:h-8 sm:w-8 text-blue-500 mb-3 group-hover:text-blue-600 transition-colors duration-200" />
               <span className="font-bold text-base sm:text-xl text-gray-800 mb-2 group-hover:text-blue-600 transition-colors duration-200">
-                Faculty
+                Dean
               </span>
               <span className="text-sm sm:text-base text-gray-500 text-center mt-2">
                 Manage schedules and activities.

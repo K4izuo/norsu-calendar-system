@@ -2,12 +2,12 @@ import React, { memo } from "react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
-import { Eye, User, Lock, EyeOff, Loader2 } from "lucide-react"
+import { Eye, User, Lock, EyeOff, Loader2, Check } from "lucide-react"
 import { UseFormRegister, FieldErrors, RegisterOptions } from "react-hook-form"
 import { LoginFormData } from "@/utils/login/login-validation-rules"
 
 interface LoginFormLayoutProps {
-  type: "faculty" | "staff"
+  type: "dean" | "staff"
   showPassword: boolean
   rememberMe: boolean
   isLoading: boolean
@@ -36,8 +36,8 @@ export const LoginFormLayout = memo(function LoginFormLayout({
 }: LoginFormLayoutProps) {
   // Theme configuration based on user type
   const themeConfig = {
-    faculty: {
-      title: "Welcome Faculty",
+    dean: {
+      title: "Welcome Dean",
       buttonStyle: "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700",
       checkboxStyle: "border-2 cursor-pointer border-gray-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600",
       linkStyle: "text-blue-600 cursor-pointer hover:text-blue-700",
@@ -53,7 +53,7 @@ export const LoginFormLayout = memo(function LoginFormLayout({
   }
 
   const theme = themeConfig[type]
-  const buttonHeight = type === "faculty" ? "h-12" : "h-[50px] sm:h-[54px]"
+  const buttonHeight = type === "dean" ? "h-12" : "h-[50px] sm:h-[54px]"
 
   const getInputFieldStyles = (hasError: boolean) => {
     return hasError ? "border-red-400 focus:border-red-500 focus:ring-red-200" : theme.inputStyle
@@ -77,7 +77,8 @@ export const LoginFormLayout = memo(function LoginFormLayout({
                 type="text"
                 placeholder="Username"
                 autoComplete="username"
-                className={`h-12 text-base sm:text-lg pl-[42px] pr-4 border-2 rounded-lg ${getInputFieldStyles(!!errors.username)} placeholder:text-gray-400`}
+                disabled={isLoading || isSuccess}
+                className={`h-12 text-base sm:text-lg pl-[42px] pr-4 border-2 rounded-lg ${getInputFieldStyles(!!errors.username)} placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed`}
               />
               <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
             </div>
@@ -92,13 +93,15 @@ export const LoginFormLayout = memo(function LoginFormLayout({
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 autoComplete="current-password"
-                className={`h-12 text-base sm:text-lg pl-[42px] pr-12 border-2 rounded-lg ${getInputFieldStyles(!!errors.password)} placeholder:text-gray-400`}
+                disabled={isLoading || isSuccess}
+                className={`h-12 text-base sm:text-lg pl-[42px] pr-12 border-2 rounded-lg ${getInputFieldStyles(!!errors.password)} placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed`}
               />
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <button
                 type="button"
                 onClick={onShowPasswordToggle}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer hover:text-gray-600 transition-colors focus:outline-none"
+                disabled={isLoading || isSuccess}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer hover:text-gray-600 transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
@@ -112,7 +115,8 @@ export const LoginFormLayout = memo(function LoginFormLayout({
                 id="remember"
                 checked={rememberMe}
                 onCheckedChange={checked => onRememberMeChange(checked === true)}
-                className={theme.checkboxStyle}
+                disabled={isLoading || isSuccess}
+                className={`${theme.checkboxStyle} disabled:opacity-50 disabled:cursor-not-allowed`}
               />
               <label htmlFor="remember" className="text-sm text-gray-600 cursor-pointer">
                 Remember Me
@@ -122,6 +126,7 @@ export const LoginFormLayout = memo(function LoginFormLayout({
               variant="link"
               className={`${theme.linkStyle} p-0 text-sm font-medium`}
               type="button"
+              disabled={isLoading || isSuccess}
             >
               Forgot Password?
             </Button>
@@ -130,13 +135,22 @@ export const LoginFormLayout = memo(function LoginFormLayout({
           {/* Login Button */}
           <Button
             type="submit"
-            className={`w-full cursor-pointer ${buttonHeight} font-semibold text-sm sm:text-base ${theme.buttonStyle} rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] mb-3 flex items-center justify-center gap-x-2`}
+            className={`w-full ${buttonHeight} font-semibold text-sm sm:text-base rounded-lg shadow-lg transition-all duration-200 mb-3 flex items-center justify-center gap-x-2 ${
+              isLoading || isSuccess
+                ? 'bg-gray-400 cursor-not-allowed opacity-70'
+                : `cursor-pointer ${theme.buttonStyle} hover:shadow-xl transform hover:scale-[1.02]`
+            }`}
             disabled={isLoading || isSuccess}
           >
             {isLoading ? (
               <>
                 <Loader2 className="animate-spin h-5 w-5" />
                 Logging in...
+              </>
+            ) : isSuccess ? (
+              <>
+                <Check className="h-5 w-5" />
+                Login Successful
               </>
             ) : (
               "LOGIN"

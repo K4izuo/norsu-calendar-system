@@ -38,7 +38,7 @@ export interface AccountFormData {
 }
 
 export interface AccountPageProps {
-  type: "faculty" | "staff"
+  type: "dean" | "staff"
   formData: AccountFormData
   activeTab: string
   passwordError: string | null
@@ -69,7 +69,7 @@ export const AccountPageLayout = React.memo(({
   
   // Theme configuration
   const themeConfig = {
-    faculty: {
+    dean: {
       color: "blue",
       accentColor: "indigo", 
       bgGradient: "from-blue-50 to-indigo-50"
@@ -82,7 +82,7 @@ export const AccountPageLayout = React.memo(({
   }
 
   const theme = themeConfig[type]
-  const titleText = `Create ${type === "faculty" ? "Faculty" : "Staff"} Account`
+  const titleText = `Create ${type === "dean" ? "dean" : "Staff"} Account`
 
   const getInputBorderClass = (fieldName: keyof AccountFormData) => {
     const hasError = errors[fieldName] || (fieldName === "confirmPassword" && passwordError)

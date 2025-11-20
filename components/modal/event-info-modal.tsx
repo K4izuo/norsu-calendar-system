@@ -255,7 +255,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
             ) : (
               <div
                 className="overflow-y-auto custom-scrollbar p-4 sm:p-6 pt-4 sm:pt-6"
-                style={{ maxHeight: "calc(80vh - 85px)" }}
+                style={{ maxHeight: "calc(88vh - 85px)" }}
               >
                 <div className="space-y-6">
                   {/* Basic Information Section */}

@@ -41,6 +41,23 @@ export interface ReservationAPIPayload {
   date: string
 }
 
+export interface Reservation {
+  id: number
+  title_name: string
+  asset_id: number
+  time_start: string
+  time_end: string
+  description: string
+  range: number
+  people_tag: string
+  info_type: string
+  category: string
+  date: string
+  status: string
+  created_at: string
+  updated_at: string
+}
+
 export interface EventsListModalProps {
   isOpen: boolean
   onClose: () => void
@@ -99,7 +116,7 @@ export interface ReservationFormData {
   date: string
 }
 
-export interface FacultyRegisterFormData {
+export interface DeanRegisterFormData {
   first_name: string
   middle_name: string
   last_name: string

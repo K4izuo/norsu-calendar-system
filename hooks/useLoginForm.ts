@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation"
 import { setAuthToken, setUserRole } from "@/lib/auth"
 
 const ROLE_ROUTES: Record<number, string> = {
-  2: "/page/faculty/dashboard",
+  2: "/page/dean/dashboard",
   3: "/page/staff/dashboard",
   4: "/page/admin/dashboard",
 };
@@ -126,7 +126,8 @@ export const useLoginForm = () => {
       const redirectPath = role ? ROLE_ROUTES[role] : ROLE_ROUTES[4];
       
       router.refresh();
-      router.replace(redirectPath);
+      // router.replace(redirectPath);
+      window.location.href = redirectPath;
       
       reset();
       setShowPassword(false);

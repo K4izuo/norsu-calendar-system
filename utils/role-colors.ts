@@ -1,5 +1,5 @@
 // Role type definition
-export type UserRole = "faculty" | "staff" | "admin" | "public";
+export type UserRole = "dean" | "staff" | "admin" | "public";
 
 // Color mapping function - Defaults to public
 export const getRoleColors = (role?: UserRole) => {
@@ -15,7 +15,7 @@ export const getRoleColors = (role?: UserRole) => {
       hoverBg: "hover:bg-teal-50",
       activeBg: "active:bg-teal-100",
     },
-    faculty: {
+    dean: {
       spinner: "border-blue-500",
       icon: "text-blue-500",
       todayText: "text-blue-600",

@@ -1,4 +1,4 @@
-export const FACULTY_VALIDATION_RULES = {
+export const DEAN_VALIDATION_RULES = {
   first_name: {
     required: "First name field is required",
     minLength: { value: 3, message: "Please input your real first name" },
@@ -21,9 +21,9 @@ export const FACULTY_VALIDATION_RULES = {
       message: "Please enter a valid email address"
     }
   },
-  facultyID: {
-    required: "Faculty ID field is required",
-    minLength: { value: 8, message: "Please input your real faculty ID" }
+  deanID: {
+    required: "Dean ID field is required",
+    minLength: { value: 8, message: "Please input your real dean ID" }
   },
   campus: {
     required: "Campus field is required"

@@ -5,21 +5,21 @@ const PUBLIC_ROUTES = [
   '/',
   '/auth/login',
   '/auth/register',
-  '/auth/faculty/login',
-  '/auth/faculty/register',
+  '/auth/dean/login',
+  '/auth/dean/register',
   '/auth/staff/login',
   '/auth/staff/register',
   '/auth/admin/login',
 ];
 
 const ROLE_DASHBOARDS = {
-  "2": "/page/faculty/dashboard",
+  "2": "/page/dean/dashboard",
   "3": "/page/staff/dashboard",
   "4": "/page/admin/dashboard",
 };
 
 const ROLE_ROOTS = {
-  "2": "/page/faculty",
+  "2": "/page/dean",
   "3": "/page/staff",
   "4": "/page/admin",
 };
@@ -41,9 +41,12 @@ export function middleware(request: NextRequest) {
   // Check if token has expired
   const isTokenExpired = tokenExpiry ? new Date(tokenExpiry) <= new Date() : false;
 
-  // If token is expired, clear it and redirect to main page
+  // If token is expired, clear it and redirect to main page with error flag
   if (isTokenExpired && !isPublic) {
-    const response = NextResponse.redirect(new URL('/', request.url));
+    const url = new URL('/', request.url);
+    url.searchParams.set('error', 'session_expired'); // Add error parameter
+    
+    const response = NextResponse.redirect(url);
     response.cookies.delete('auth-token');
     response.cookies.delete('user-role');
     response.cookies.delete('token-expiry');
@@ -61,7 +64,10 @@ export function middleware(request: NextRequest) {
 
   // Protected routes - require valid authentication
   if (!token || !role || isTokenExpired) {
-    const response = NextResponse.redirect(new URL('/', request.url));
+    const url = new URL('/', request.url);
+    url.searchParams.set('error', 'unauthorized'); // Add error parameter
+    
+    const response = NextResponse.redirect(url);
     // Clear expired/invalid tokens
     response.cookies.delete('auth-token');
     response.cookies.delete('user-role');

@@ -3,10 +3,10 @@
 import type React from "react"
 import { motion } from "framer-motion"
 import { GraduationCap, BookOpen, Users, Award, Clock } from "lucide-react"
-import { LoginFormLayout } from "@/components/user-forms/login/faculty-staff-login-form"
+import { LoginFormLayout } from "@/components/user-forms/login/dean-staff-login-form"
 import { useLoginForm } from "@/hooks/useLoginForm"
 
-export default function FacultyLoginPage() {
+export default function DeanLoginPage() {
   const {
     form,
     formData,
@@ -14,6 +14,7 @@ export default function FacultyLoginPage() {
     showPassword,
     rememberMe,
     isLoading: formLoading,
+    isSuccess,
     handlePasswordToggle,
     handleRememberMeChange,
     handleSubmit,
@@ -50,7 +51,7 @@ export default function FacultyLoginPage() {
 
             <div className="space-y-3">
               <h2 className="text-2xl sm:text-3xl font-bold">EduPortal Pro</h2>
-              <p className="text-blue-100 text-lg">Faculty Portal</p>
+              <p className="text-blue-100 text-lg">Dean Portal</p>
               <p className="text-blue-200 text-sm max-w-xs">
                 Manage courses, track student progress, and collaborate with colleagues
               </p>
@@ -78,10 +79,11 @@ export default function FacultyLoginPage() {
 
         {/* Right Side - Login Form */}
         <LoginFormLayout
-          type="faculty"
+          type="dean"
           showPassword={showPassword}
           rememberMe={rememberMe}
           isLoading={formLoading}
+          isSuccess={isSuccess}
           formData={formData}
           errors={errors}
           onShowPasswordToggle={handlePasswordToggle}

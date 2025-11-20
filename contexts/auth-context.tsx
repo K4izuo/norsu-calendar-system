@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
 import { getAuthToken, removeAuthToken } from '@/lib/auth';
 
-type Role = 'faculty' | 'staff';
+type Role = 'dean' | 'staff';
 
 interface User {
   id: string;
@@ -73,8 +73,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Handle route protection
   useEffect(() => {
     if (!isLoading) {
-      const authRoutes = ['/auth/login', '/auth/register', '/auth/student/register', '/auth/faculty/register', '/auth/staff/register'];
-      const protectedRoutes = ['/pages/faculty', '/pages/staff', '/pages/admin', '/dashboard', '/calendar', '/profile'];
+      const authRoutes = ['/auth/login', '/auth/register', '/auth/student/register', '/auth/dean/register', '/auth/staff/register'];
+      const protectedRoutes = ['/pages/dean', '/pages/staff', '/pages/admin', '/dashboard', '/calendar', '/profile'];
       
       if (user && authRoutes.some(route => pathname?.startsWith(route))) {
         router.replace('/pages/admin/dashboard');

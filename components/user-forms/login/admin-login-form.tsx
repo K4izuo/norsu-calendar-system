@@ -2,7 +2,7 @@ import React, { memo } from "react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
-import { Eye, User, Lock, EyeOff, Loader2 } from "lucide-react"
+import { Eye, User, Lock, EyeOff, Loader2, Check } from "lucide-react"
 import { UseFormRegister, FieldErrors, RegisterOptions } from "react-hook-form"
 import { LoginFormData } from "@/utils/login/login-validation-rules"
 
@@ -54,7 +54,8 @@ export const AdminLoginForm = memo(function AdminLoginForm({
                 type="text"
                 placeholder="Username"
                 autoComplete="username"
-                className={`h-12 text-base sm:text-lg pl-[42px] pr-4 border-2 rounded-lg ${getInputFieldStyles(!!errors.username)} placeholder:text-gray-400`}
+                disabled={isLoading || isSuccess}
+                className={`h-12 text-base sm:text-lg pl-[42px] pr-4 border-2 rounded-lg ${getInputFieldStyles(!!errors.username)} placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed`}
               />
               <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
             </div>
@@ -69,13 +70,15 @@ export const AdminLoginForm = memo(function AdminLoginForm({
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 autoComplete="current-password"
-                className={`h-12 text-base sm:text-lg pl-[42px] pr-12 border-2 rounded-lg ${getInputFieldStyles(!!errors.password)} placeholder:text-gray-400`}
+                disabled={isLoading || isSuccess}
+                className={`h-12 text-base sm:text-lg pl-[42px] pr-12 border-2 rounded-lg ${getInputFieldStyles(!!errors.password)} placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed`}
               />
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <button
                 type="button"
                 onClick={onShowPasswordToggle}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer hover:text-gray-600 transition-colors focus:outline-none"
+                disabled={isLoading || isSuccess}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer hover:text-gray-600 transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
@@ -89,7 +92,8 @@ export const AdminLoginForm = memo(function AdminLoginForm({
                 id="remember"
                 checked={rememberMe}
                 onCheckedChange={checked => onRememberMeChange(checked === true)}
-                className="border-2 cursor-pointer border-gray-300 data-[state=checked]:bg-gray-600 data-[state=checked]:border-gray-600"
+                disabled={isLoading || isSuccess}
+                className="border-2 cursor-pointer border-gray-300 data-[state=checked]:bg-gray-600 data-[state=checked]:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <label htmlFor="remember" className="text-sm text-gray-700 cursor-pointer">
                 Remember Me
@@ -99,6 +103,7 @@ export const AdminLoginForm = memo(function AdminLoginForm({
               variant="link"
               className="text-gray-600 hover:text-gray-800 cursor-pointer p-0 text-sm font-medium"
               type="button"
+              disabled={isLoading || isSuccess}
             >
               Contact IT Support
             </Button>
@@ -107,13 +112,22 @@ export const AdminLoginForm = memo(function AdminLoginForm({
           {/* Login Button */}
           <Button
             type="submit"
-            className="w-full cursor-pointer h-[50px] sm:h-[54px] font-semibold text-sm sm:text-base bg-gradient-to-r from-gray-400 via-gray-500 to-gray-700 hover:from-gray-500 hover:to-gray-800 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] mb-3 flex items-center justify-center gap-x-2"
+            className={`w-full h-[50px] sm:h-[54px] font-semibold text-sm sm:text-base text-white rounded-lg shadow-lg transition-all duration-200 mb-3 flex items-center justify-center gap-x-2 ${
+              isLoading || isSuccess
+                ? 'bg-gray-400 cursor-not-allowed opacity-70'
+                : 'cursor-pointer bg-gradient-to-r from-gray-400 via-gray-500 to-gray-700 hover:from-gray-500 hover:to-gray-800 hover:shadow-xl transform hover:scale-[1.02]'
+            }`}
             disabled={isLoading || isSuccess}
           >
             {isLoading ? (
               <>
                 <Loader2 className="animate-spin h-5 w-5" />
                 Logging in...
+              </>
+            ) : isSuccess ? (
+              <>
+                <Check className="h-5 w-5" />
+                Login Successful
               </>
             ) : (
               "LOGIN"

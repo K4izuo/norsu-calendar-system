@@ -4,10 +4,9 @@ import { LogOut, Settings, UserRoundCog } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { useContext } from "react"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { AuthContext } from "@/contexts/auth-context"
-import { toast } from "react-hot-toast" // or your toast library
+import { toast } from "react-hot-toast"
 import { apiClient } from "@/lib/api-client"
 import { removeAuthToken } from "@/lib/auth"
 
@@ -31,7 +30,6 @@ export default function UserProfile({
   avatar,
 }: Partial<UserProfileProps>) {
   const auth = useContext(AuthContext)
-  const router = useRouter()
 
   const menuItems: MenuItem[] = [
     {
@@ -52,7 +50,6 @@ export default function UserProfile({
     try {
       const response = await apiClient.logout<{ message: string }>('/logout')
 
-      // Always remove loading
       toast.dismiss(loadingToast)
 
       if (response.error) {
@@ -60,6 +57,7 @@ export default function UserProfile({
         return
       }
 
+      // Clear all auth data
       removeAuthToken()
 
       if (auth?.logout) {
@@ -68,13 +66,13 @@ export default function UserProfile({
 
       toast.success(response.data?.message || 'Logged out successfully')
 
-      router.push('/')
+      // Use window.location.href to force a full page reload and clear navigation history
+      // This prevents the back button from accessing protected pages
+      window.location.href = '/'
+      
     } catch (error) {
       console.error('Logout error:', error)
-
-      // Remove loading toast before showing error
       toast.dismiss(loadingToast)
-
       toast.error('An error occurred during logout')
     }
   }

@@ -157,7 +157,7 @@ export default function FacultyEventsTab() {
       <div className="bg-white rounded-md shadow-md flex flex-col flex-1 p-3 sm:p-6 md:p-7">
         {/* Calendar component with month/year change handler */}
         <Calendar
-          role="faculty"
+          role="dean"
           events={events}
           onDaySelect={handleDaySelect}
           getEventsForDate={getEventsForDate}

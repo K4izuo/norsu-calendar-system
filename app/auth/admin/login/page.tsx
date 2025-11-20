@@ -14,6 +14,7 @@ export default function AdminLoginPage() {
     showPassword,
     rememberMe,
     isLoading: formLoading,
+    isSuccess,
     handlePasswordToggle,
     handleRememberMeChange,
     handleSubmit,
@@ -79,6 +80,7 @@ export default function AdminLoginPage() {
           showPassword={showPassword}
           rememberMe={rememberMe}
           isLoading={formLoading}
+          isSuccess={isSuccess}
           formData={formData}
           errors={errors}
           onShowPasswordToggle={handlePasswordToggle}

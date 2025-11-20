@@ -3,7 +3,7 @@
 import type React from "react"
 import { motion } from "framer-motion"
 import { Users, Clock, Award, GraduationCap, BookOpen } from "lucide-react"
-import { LoginFormLayout } from "@/components/user-forms/login/faculty-staff-login-form"
+import { LoginFormLayout } from "@/components/user-forms/login/dean-staff-login-form"
 import { useLoginForm } from "@/hooks/useLoginForm"
 
 export default function StaffLoginPage() {
@@ -14,6 +14,7 @@ export default function StaffLoginPage() {
     showPassword,
     rememberMe,
     isLoading: formLoading,
+    isSuccess,
     handlePasswordToggle,
     handleRememberMeChange,
     handleSubmit,
@@ -76,6 +77,7 @@ export default function StaffLoginPage() {
           showPassword={showPassword}
           rememberMe={rememberMe}
           isLoading={formLoading}
+          isSuccess={isSuccess}
           formData={formData}
           errors={errors}
           onShowPasswordToggle={handlePasswordToggle}

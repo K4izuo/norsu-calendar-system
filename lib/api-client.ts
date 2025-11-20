@@ -30,9 +30,6 @@ const buildHeaders = (token: string | null, customHeaders?: Record<string, strin
 
 const handleUnauthorized = () => {
   removeAuthToken();
-  if (typeof window !== 'undefined') {
-    window.location.href = '/auth/login';
-  }
 };
 
 const storeAuthData = (responseData: any) => {

@@ -1,12 +1,12 @@
 import React, { memo, useState } from "react";
 import { User } from "lucide-react";
-import { FacultyRegisterFormData } from "@/interface/user-props";
+import { DeanRegisterFormData } from "@/interface/user-props";
 import { OptionType } from "@/services/academicDataService";
 import { TermsAndConditionModal } from "@/components/privacy/terms-and-condition-modal";
 import { Checkbox } from "@/components/ui/checkbox";
 
-type FacultySummaryProps = {
-  formData: FacultyRegisterFormData;
+type DeanSummaryProps = {
+  formData: DeanRegisterFormData;
   campuses: OptionType[];
   offices: OptionType[];
   courses: OptionType[];
@@ -16,7 +16,7 @@ type FacultySummaryProps = {
   color?: "emerald" | "indigo" | "yellow";
 };
 
-export const FacultySummary = memo(function FacultySummary({
+export const DeanSummary = memo(function DeanSummary({
   formData,
   campuses,
   offices,
@@ -24,8 +24,7 @@ export const FacultySummary = memo(function FacultySummary({
   isFormValid,
   agreed,
   setAgreed,
-  color = "indigo", // <-- Default to indigo for faculty
-}: FacultySummaryProps) {
+}: DeanSummaryProps) {
   const [termsOpen, setTermsOpen] = useState(false);
 
   return (
@@ -33,7 +32,7 @@ export const FacultySummary = memo(function FacultySummary({
       <div className="bg-gray-50 shadow-sm rounded-lg p-4">
         <div className="flex items-center mb-3">
           <User className="w-6 h-6 text-indigo-500 mr-2" />
-          <h3 className="text-lg font-medium text-gray-700">Faculty Information</h3>
+          <h3 className="text-lg font-medium text-gray-700">Dean Information</h3>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -48,7 +47,7 @@ export const FacultySummary = memo(function FacultySummary({
             <p className="font-medium text-base">{formData.email || "Not provided"}</p>
           </div>
           <div>
-            <p className="text-base text-gray-500">Faculty ID</p>
+            <p className="text-base text-gray-500">Dean ID</p>
             <p className="font-medium text-base">{formData.assignment_id || "Not provided"}</p>
           </div>
           <div>
@@ -97,7 +96,7 @@ export const FacultySummary = memo(function FacultySummary({
           onClose={() => setTermsOpen(false)}
           onAgree={() => setAgreed(true)}
           agreed={agreed}
-          color={color} // always indigo by default
+          color="indigo"
         />
       </div>
       <div

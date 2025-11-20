@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState, useRef } from "react"
 import { useForm } from "react-hook-form"
 import toast from "react-hot-toast"
-import { ReservationFormData, ReservationAPIPayload } from "@/interface/user-props"
+import { ReservationFormData, ReservationAPIPayload, Reservation } from "@/interface/user-props"
 import { RESERVATION_VALIDATION_RULES } from "@/utils/reserve-event/reservation-validation-rules"
 import { showFormTabErrorToast, showAdditionalTabErrorToast } from "@/utils/reserve-event/reservation-field-error-toast"
 import { apiClient } from "@/lib/api-client"
@@ -38,13 +38,14 @@ const getCurrentTime = () => {
   return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 };
 
-export const useReserveEventForm = ({ eventDate, onSubmit, onClose, isOpen }: UseReserveEventFormProps) => {
+export const useReserveEventForm = ({ eventDate, onClose, isOpen }: UseReserveEventFormProps) => {
   const [activeTab, setActiveTab] = useState<string>("form");
   const [showVenueModal, setShowVenueModal] = useState(false);
   const [showVehicleModal, setShowVehicleModal] = useState(false);
   const [tagInput, setTagInput] = useState("");
   const [taggedPeople, setTaggedPeople] = useState<{ id: string; name: string }[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [allReservations, setAllReservations] = useState<Reservation[]>([]);
 
   const peopleFieldRef = useRef<HTMLInputElement>(null);
 
@@ -169,6 +170,20 @@ export const useReserveEventForm = ({ eventDate, onSubmit, onClose, isOpen }: Us
     );
   }, [getValues, taggedPeople.length]);
 
+  const handleNewReservation = useCallback((newReservation: Reservation) => {
+    setAllReservations((prevReservations) => {
+      
+      const reservationExists = prevReservations.some((reservation) => reservation.id === newReservation.id);
+      if (reservationExists) {
+        return prevReservations.map((reservation) =>
+          reservation.id === newReservation.id ? newReservation : reservation
+        );
+      }
+
+      return [...prevReservations, newReservation];
+    })
+  }, []);
+
   const onSubmitForm = useCallback(
     async (data: ReservationFormData) => {
       try {
@@ -192,7 +207,7 @@ export const useReserveEventForm = ({ eventDate, onSubmit, onClose, isOpen }: Us
 
         // Correct API call — using the actual payload
         const response = await apiClient.post<
-          { reservation: ReservationResponse; message: string },
+          ReservationResponse,
           ReservationAPIPayload
         >("/event/reservation", formDataWithPeople);
 
@@ -201,6 +216,10 @@ export const useReserveEventForm = ({ eventDate, onSubmit, onClose, isOpen }: Us
           return;
         }
 
+        if (response.data?.reservation) {
+          handleNewReservation(response.data.reservation);
+        }
+        
         toast.success("Event reservation sent successfully!");
 
         const currentTime = getCurrentTime();

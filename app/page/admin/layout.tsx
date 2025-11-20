@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useMemo } from "react";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { AuthContext } from "@/contexts/auth-context";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import UserProfile from "@/components/ui/user-profile";
-import { TokenExpiryMonitor } from "@/lib/token-expiry-monitor"; // ✅ Import the monitor
+import { TokenExpiryMonitor } from "@/lib/token-expiry-monitor";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -28,6 +28,41 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const auth = useContext(AuthContext);
   const user = auth?.user;
+
+  // Get user data with fallback to localStorage
+  const userData = useMemo(() => {
+    // If context has user data, use it
+    if (user?.first_name || user?.last_name) {
+      return {
+        name: `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim(),
+        role: user.role
+      };
+    }
+
+    // Fallback to localStorage while context is loading
+    try {
+      const storedUser = localStorage.getItem('user');
+      const storedRole = localStorage.getItem('role');
+      
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        const roleMap: Record<number, string> = {
+          2: "Faculty",
+          3: "Staff",
+          4: "Admin"
+        };
+        
+        return {
+          name: `${parsedUser.first_name ?? ""} ${parsedUser.last_name ?? ""}`.trim() || parsedUser.username || "User",
+          role: storedRole ? roleMap[JSON.parse(storedRole)] || "User" : "User"
+        };
+      }
+    } catch (error) {
+      console.error('Error loading user data from localStorage:', error);
+    }
+
+    return { name: "User", role: "User" };
+  }, [user]);
 
   useEffect(() => {
     if (pathname?.includes("/asset-management")) {
@@ -43,7 +78,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <>
-      {/* ✅ Add TokenExpiryMonitor at the top */}
       <TokenExpiryMonitor />
       
       <div className="flex h-screen overflow-hidden bg-gray-100">
@@ -205,8 +239,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       className="w-[280px] sm:w-80 bg-background border-border rounded-lg shadow-lg"
                     >
                       <UserProfile
-                        name={`${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim()}
-                        role={user?.role}
+                        name={userData.name}
+                        role={userData.role}
                         avatar="https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-01-n0x8HFv8EUetf9z6ht0wScJKoTHqf8.png"
                       />
                     </DropdownMenuContent>

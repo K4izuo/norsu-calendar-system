@@ -11,7 +11,7 @@ type FormInputProps<T extends FieldValues = FieldValues> = {
   required?: boolean;
 } & React.InputHTMLAttributes<HTMLInputElement>;
 
-export const FacultyFormInput = <T extends FieldValues>({
+export const DeanFormInput = <T extends FieldValues>({
   name,
   label,
   register,

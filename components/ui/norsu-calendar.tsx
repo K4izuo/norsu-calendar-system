@@ -358,7 +358,7 @@ export function Calendar<T>({
                         ? {
                             scale: 1.02,
                             boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-                            transition: { duration: 0.2 },
+                            transition: { duration: 0.1 },
                           }
                         : {}
                     }

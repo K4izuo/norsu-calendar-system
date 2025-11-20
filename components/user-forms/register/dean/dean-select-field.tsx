@@ -24,7 +24,7 @@ type FormSelectFieldProps = {
   hasError?: boolean;
 };
 
-export const FacultyFormSelectField = memo(function FacultyFormSelectField({
+export const DeanFormSelectField = memo(function DeanFormSelectField({
   id,
   name,
   label,
