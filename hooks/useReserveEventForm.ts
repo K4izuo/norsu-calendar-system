@@ -22,6 +22,7 @@ interface ReservationResponse {
     status: string
     created_at: string
     updated_at: string
+    reserve_by_user: number
   }
   message: string
 }
@@ -31,6 +32,7 @@ interface UseReserveEventFormProps {
   onSubmit?: (data: ReservationAPIPayload) => void
   onClose: () => void
   isOpen: boolean
+  onNewReservation?: (reservation: Reservation) => void
 }
 
 const getCurrentTime = () => {
@@ -38,14 +40,13 @@ const getCurrentTime = () => {
   return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 };
 
-export const useReserveEventForm = ({ eventDate, onClose, isOpen }: UseReserveEventFormProps) => {
+export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservation }: UseReserveEventFormProps) => {
   const [activeTab, setActiveTab] = useState<string>("form");
   const [showVenueModal, setShowVenueModal] = useState(false);
   const [showVehicleModal, setShowVehicleModal] = useState(false);
   const [tagInput, setTagInput] = useState("");
   const [taggedPeople, setTaggedPeople] = useState<{ id: string; name: string }[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [allReservations, setAllReservations] = useState<Reservation[]>([]);
 
   const peopleFieldRef = useRef<HTMLInputElement>(null);
 
@@ -170,20 +171,6 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen }: UseReserveEv
     );
   }, [getValues, taggedPeople.length]);
 
-  const handleNewReservation = useCallback((newReservation: Reservation) => {
-    setAllReservations((prevReservations) => {
-      
-      const reservationExists = prevReservations.some((reservation) => reservation.id === newReservation.id);
-      if (reservationExists) {
-        return prevReservations.map((reservation) =>
-          reservation.id === newReservation.id ? newReservation : reservation
-        );
-      }
-
-      return [...prevReservations, newReservation];
-    })
-  }, []);
-
   const onSubmitForm = useCallback(
     async (data: ReservationFormData) => {
       try {
@@ -194,15 +181,34 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen }: UseReserveEv
           return `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}`;
         };
 
+        // Ensure date is in YYYY-MM-DD format for backend
+        const normalizeDate = (dateStr: string): string => {
+          if (!dateStr) return "";
+
+          // If already in YYYY-MM-DD format, return as-is
+          if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+            return dateStr;
+          }
+
+          // Parse and format
+          const date = new Date(dateStr);
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, "0");
+          const day = String(date.getDate()).padStart(2, "0");
+          return `${year}-${month}-${day}`;
+        };
+
         const { asset, people_tag, ...rest } = data;
 
         // Final payload you're actually sending
-        const formDataWithPeople: ReservationAPIPayload = {
+        const formDataWithPeople = {
           ...rest,
           time_start: normalizeTime(rest.time_start),
           time_end: normalizeTime(rest.time_end),
+          date: normalizeDate(rest.date), // Normalize the date to YYYY-MM-DD
           asset_id: asset?.id ?? 0,
           people_tag: taggedPeople.map(p => p.name).join(", "),
+          reserve_by_user: 1, // TODO: Replace with actual authenticated user ID
         };
 
         // Correct API call — using the actual payload
@@ -212,14 +218,19 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen }: UseReserveEv
         >("/event/reservation", formDataWithPeople);
 
         if (response.error) {
-          toast.error(typeof response.error === "string" ? response.error : "Reservation failed.");
+          // Display detailed error message
+          const errorMsg = typeof response.error === "string"
+            ? response.error
+            : JSON.stringify(response.error);
+          toast.error(`Reservation failed: ${errorMsg}`);
+          console.error("Reservation error response:", response);
           return;
         }
 
         if (response.data?.reservation) {
-          handleNewReservation(response.data.reservation);
+          onNewReservation?.(response.data.reservation);
         }
-        
+
         toast.success("Event reservation sent successfully!");
 
         const currentTime = getCurrentTime();
@@ -260,7 +271,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen }: UseReserveEv
         toast.error("Failed to reserve event. Please try again.");
       }
     },
-    [reset, onClose, taggedPeople, eventDate]
+    [reset, onClose, taggedPeople, eventDate, onNewReservation]
   );
 
   const handleFormTabNext = useCallback(() => {

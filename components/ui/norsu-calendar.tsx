@@ -324,7 +324,7 @@ export function Calendar<T>({
                 animate="animate"
                 exit="exit"
                 // Use only Tailwind responsive gap classes, no JS logic
-                className="grid grid-rows-5 grid-cols-7 w-full gap-1 sm:gap-1.5 md:gap-2 bg-white h-full"
+                className="grid grid-rows-5 grid-cols-7 w-full gap-1 sm:gap-1.5 md:gap-1.5 lg:gap-2 bg-white h-full"
               >
                 {calendarDays.map((day, idx) => (
                   <motion.div
@@ -367,7 +367,7 @@ export function Calendar<T>({
                     {/* Only show date number if it's a real day */}
                     <div className="flex justify-end items-start w-full mb-2">
                       <span
-                        className={`text-lg md:text-xl ${
+                        className={`text-sm md:text-md lg:text-xl ${
                           day.isToday
                             ? `${roleColors.todayText} font-bold`
                             : day.currentMonth
@@ -440,10 +440,10 @@ export function Calendar<T>({
                               },
                             }}
                           >
-                            <span className={`${roleColors.todayText} text-xs sm:text-sm md:text-base font-medium px-2 py-0.5 rounded pointer-events-auto translate-y-3`}>
+                            <span className={`${roleColors.todayText} text-xs sm:text-xs md:text-base lg:text-lg font-medium px-2 py-0.5 rounded pointer-events-auto translate-y-3`}>
                               {day.eventCount === 1
-                                ? "See event"
-                                : "See events..."}
+                                ? "Event"
+                                : "Events..."}
                             </span>
                           </motion.div>
                         </>

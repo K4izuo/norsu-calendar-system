@@ -1,6 +1,6 @@
 import React from "react"
 import { Badge } from "@/components/ui/badge"
-import { CalendarClock, Clock, MapPin, User, Layers, FileText } from "lucide-react"
+import { CalendarClock, Clock, MapPin, Users, Layers, FileText } from "lucide-react"
 import type { EventCardsListProps } from "@/interface/user-props"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
@@ -14,11 +14,12 @@ export const EventCardsList = React.memo(function EventCardsList({
   return (
     <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
       {events.map((event, index) => {
-        const startedAgo = getStartedAgo(event.date, event.time)
+        const reservation_time = `${event.time_start} - ${event.time_end}`
+        const startedAgo = getStartedAgo(event.date, event.time_start, event.time_end)
         const status = getStatus(event)
-        const reservedBy = event.reservedBy || "Unknown"
-        const approvedBy = event.approvedBy || "Unknown"
-        const rejectedBy = event.rejectedBy || "Unknown"
+        const reservedBy = event.reserve_by || "Unknown"
+        const approvedBy = event.approved_by || "Unknown"
+        const rejectedBy = event.rejected_by || "Unknown"
 
         let tooltipText = ""
         if (status === "pending") tooltipText = `Reserved by: ${reservedBy}`
@@ -35,7 +36,7 @@ export const EventCardsList = React.memo(function EventCardsList({
             <div className="flex items-start justify-between mb-5">
               <div className="flex items-center gap-2">
                 <h3 className="text-xl font-semibold text-card-foreground group-hover:text-primary transition-colors text-pretty">
-                  {event.title}
+                  {event.title_name}
                 </h3>
                 {startedAgo && (
                   <span className="ml-2 text-xs text-gray-600 font-semibold bg-gray-100 rounded px-2 py-0.5">
@@ -70,34 +71,34 @@ export const EventCardsList = React.memo(function EventCardsList({
               </div>
               <div className="flex items-center text-muted-foreground">
                 <Clock className="h-4 w-4 mr-3 text-primary" />
-                <span className="text-base font-medium">{event.time}</span>
+                <span className="text-base font-medium">{reservation_time}</span>
               </div>
               <div className="flex items-center text-muted-foreground">
                 <MapPin className="h-4 w-4 mr-3 text-primary" />
-                <span className="text-base font-medium truncate">{event.location}</span>
+                <span className="text-base font-medium truncate">{event.asset?.asset_name}</span>
               </div>
               <div className="flex items-center text-muted-foreground">
-                <User className="h-4 w-4 mr-3 text-primary" />
+                <Users className="h-4 w-4 mr-3 text-primary" />
                 <span className="text-base font-medium">
-                  {event.attendeeCount?.toString() || event.capacity} attendees
+                  {event.asset?.capacity} capacity
                 </span>
               </div>
               <div className="flex items-center text-muted-foreground">
                 <Layers className="h-4 w-4 mr-3 text-primary" />
                 <span className="text-sm font-medium">
-                  {event.category || "General"}
+                  {event.category}
                 </span>
               </div>
               <div className="flex items-center text-muted-foreground">
                 <FileText className="h-4 w-4 mr-3 text-primary" />
-                <span className="text-base font-medium">{event.infoType || "—"}</span>
+                <span className="text-base font-medium">{event.info_type || "—"}</span>
               </div>
             </div>
 
-            {event.peopleTag && event.peopleTag.length > 0 && (
+            {event.people_tag && event.people_tag.length > 0 && (
               <div className="mb-4">
                 <div className="flex flex-wrap gap-2">
-                  {event.peopleTag.map((tag, tagIndex) => (
+                  {event.people_tag.map((tag, tagIndex) => (
                     <Badge
                       key={tagIndex}
                       variant="secondary"

@@ -126,8 +126,8 @@ export const AdminLoginForm = memo(function AdminLoginForm({
               </>
             ) : isSuccess ? (
               <>
-                <Check className="h-5 w-5" />
-                Login Successful
+                {/* <Check className="h-5 w-5" /> */}
+                LOGIN
               </>
             ) : (
               "LOGIN"

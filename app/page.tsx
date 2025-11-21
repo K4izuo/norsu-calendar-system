@@ -12,7 +12,7 @@ import { toast } from "react-hot-toast"; // Import toast
 
 export default function Home() {
   const searchParams = useSearchParams();
-  
+
   const upcomingEvents = [
     { title: "University Week", date: "2025-11-15" },
     { title: "Christmas Party", date: "2025-12-20" },
@@ -41,12 +41,12 @@ export default function Home() {
   // Check for error parameter and show toast
   useEffect(() => {
     const error = searchParams?.get('error');
-    
+
     if (error === 'session_expired') {
       toast.error("Session Expired. You don't have permission to view that page. Please log in again.", {
         duration: 5000,
       });
-      
+
       // Remove the error parameter from URL without page reload
       if (typeof window !== 'undefined') {
         const url = new URL(window.location.href);
@@ -54,10 +54,10 @@ export default function Home() {
         window.history.replaceState({}, '', url.toString());
       }
     } else if (error === 'unauthorized') {
-      toast.error("Access Denied. You don't have permission to view that page. Please log in again.", {
+      toast.error("Access Denied. You don't have permission to view that page. Please log in.", {
         duration: 5000,
       });
-      
+
       // Remove the error parameter from URL without page reload
       if (typeof window !== 'undefined') {
         const url = new URL(window.location.href);
@@ -133,7 +133,9 @@ export default function Home() {
       "Student Center",
     ];
 
-    return Array.from({ length: dayEvents.count }, (_, i) => {
+    const events: EventDetails[] = [];
+
+    for (let i = 0; i < dayEvents.count; i++) {
       const eventTypeIndex = (selectedDay.date + i) % eventTypes.length;
       const locationIndex = (i + selectedDay.date * 2) % locations.length;
       const eventType = eventTypes[eventTypeIndex];
@@ -141,53 +143,56 @@ export default function Home() {
       const startHour = now.getHours() - 1;
       const endHour = now.getHours();
 
-      const startTime = `${startHour > 12 ? startHour - 12 : startHour}:${
-        i % 2 === 0 ? "00" : "30"
-      } ${startHour >= 12 ? "PM" : "AM"}`;
-      const endTime = `${endHour > 12 ? endHour - 12 : endHour}:${
-        i % 2 === 0 ? "30" : "00"
-      } ${endHour >= 12 ? "PM" : "AM"}`;
+      const startTime = `${startHour > 12 ? startHour - 12 : startHour}:${i % 2 === 0 ? "00" : "30"
+        } ${startHour >= 12 ? "PM" : "AM"}`;
+      const endTime = `${endHour > 12 ? endHour - 12 : endHour}:${i % 2 === 0 ? "30" : "00"
+        } ${endHour >= 12 ? "PM" : "AM"}`;
 
-      return {
+      events.push({
         id: selectedDay.date * 100 + i,
-        title:
+        title_name:
           dayEvents.count > 1 ? `${eventType.title} ${i + 1}` : dayEvents.title,
         date: `${currentYear}-${String(currentMonth + 1).padStart(
           2,
           "0"
         )}-${String(selectedDay.date).padStart(2, "0")}`,
-        time: `${startTime} - ${endTime}`,
-        location: locations[locationIndex],
+        time_start: startTime,
+        time_end: endTime,
+        asset: {
+          id: locationIndex + 1,
+          asset_name: locations[locationIndex],
+          capacity: 60 + i * 20,
+          facilities: ["Wi-Fi", "Projector", "Air Conditioning"],
+          asset_type: "Room"
+        },
+        category: eventType.category,
+        info_type: i % 2 === 0 ? "Public" : "Private",
         description:
           "This event provides an opportunity for faculty and staff to engage with important university matters, share ideas, and collaborate on academic initiatives.",
-        organizer:
-          i % 2 === 0 ? "Faculty of Science" : "Department of Education",
-        capacity: `${60 + i * 20} seats`,
-        facilities: ["Wi-Fi", "Projector", "Air Conditioning"],
-        registrationStatus: i % 3 === 0 ? "Closed" : "Open",
-        attendeeCount: 30 + i * 5,
-        registrationDeadline: `${monthNames[currentMonth]} ${Math.max(
-          1,
-          selectedDay.date - 2
-        )}, ${currentYear}`,
-        requirements:
-          i % 2 === 0
-            ? "Please bring your university ID and laptop"
-            : undefined,
-        category: eventType.category,
-        peopleTag: [
+        people_tag: [
           i % 2 === 0 ? "John Doe" : "Jane Smith",
           i % 3 === 0 ? "Alice Johnson" : "Bob Lee",
         ],
-        finishedOn:
+        range: 1,
+        registration_status: (i % 3 === 0 ? "REJECTED" : i % 2 === 0 ? "APPROVED" : "PENDING") as "PENDING" | "APPROVED" | "REJECTED",
+        registration_deadline: `${monthNames[currentMonth]} ${Math.max(
+          1,
+          selectedDay.date - 2
+        )}, ${currentYear}`,
+        reserve_by: i % 2 === 0 ? "Faculty of Science" : "Department of Education",
+        approved_by: i % 2 === 0 ? "Dean Johnson" : undefined,
+        rejected_by: i % 3 === 0 ? "Admin Smith" : undefined,
+        finished_on:
           i % 3 === 0
             ? `${currentYear}-${String(currentMonth + 1).padStart(
-                2,
-                "0"
-              )}-${String(selectedDay.date).padStart(2, "0")}`
+              2,
+              "0"
+            )}-${String(selectedDay.date).padStart(2, "0")}`
             : undefined,
-      } as EventDetails;
-    });
+      });
+    }
+
+    return events;
   }, [eventsMap, currentMonth, currentYear, selectedDay, monthNames]);
 
   // Open event info modal with the selected event
@@ -344,9 +349,9 @@ export default function Home() {
         eventDate={
           selectedDay && selectedDay.currentMonth
             ? `${currentYear}-${String(currentMonth + 1).padStart(
-                2,
-                "0"
-              )}-${String(selectedDay.date).padStart(2, "0")}`
+              2,
+              "0"
+            )}-${String(selectedDay.date).padStart(2, "0")}`
             : ""
         }
       />

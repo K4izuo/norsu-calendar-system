@@ -3,16 +3,17 @@
 import React, { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Calendar,
+  NotebookPen,
   CalendarClock,
   Clock,
   MapPin,
-  Users,
+  CalendarPlus2,
   Info,
   X,
   User,
 } from "lucide-react";
 import { Button } from "../ui/button";
+import { EventDetails } from "@/interface/user-props"
 
 // Role type definition
 type Role = "faculty" | "staff" | "admin" | "public" | undefined;
@@ -41,34 +42,6 @@ const getRoleLoadingColors = (role: Role) => {
   return colorMap[role || "public"]; // Default to public colors
 };
 
-// Make the interface flexible to accept both number and string
-interface EventDetails {
-  id: number;
-  title: string;
-  date: string;
-  time: string;
-  organizer: string;
-  location: string;
-  capacity: string;
-  facilities?: string[];
-  registrationStatus: string;
-  attendeeCount: number;
-  registrationDeadline: string;
-  description: string;
-  requirements?: string;
-  category?: string;
-  peopleTag?: string[];
-  infoType?: string;
-  approvedBy?: string;
-  rejectedBy?: string;
-  asset?: {
-    id: string;
-    name: string;
-    capacity: string;
-    facilities?: string[];
-  }; // <-- add asset field
-}
-
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -78,28 +51,28 @@ interface ModalProps {
 }
 
 // Convert to pure functions (not hooks)
-const getStatus = (event: EventDetails): "pending" | "approved" | "rejected" => {
-  if (!event.registrationStatus) return "pending";
-  const status = event.registrationStatus.toLowerCase();
-  if (status === "open") return "approved";
-  if (status === "closed") return "rejected";
-  return status === "pending" || status === "approved" || status === "rejected"
-    ? (status as "pending" | "approved" | "rejected")
-    : "pending";
+const getStatus = (event: EventDetails): "PENDING" | "APPROVED" | "REJECTED" => {
+  if (!event.registration_status) return "PENDING";
+  const status = event.registration_status.toLowerCase();
+  if (status === "open") return "APPROVED";
+  if (status === "closed") return "REJECTED";
+  return status === "PENDING" || status === "APPROVED" || status === "REJECTED"
+    ? (status as "PENDING" | "APPROVED" | "REJECTED")
+    : "PENDING";
 };
 
-const getStatusColor = (status: "pending" | "approved" | "rejected") => {
-  if (status === "approved") return "bg-green-100 text-green-800";
-  if (status === "pending") return "bg-yellow-100 text-yellow-800";
-  if (status === "rejected") return "bg-red-100 text-red-800";
+const getStatusColor = (status: "PENDING" | "APPROVED" | "REJECTED") => {
+  if (status === "APPROVED") return "bg-green-100 text-green-800";
+  if (status === "PENDING") return "bg-yellow-100 text-yellow-800";
+  if (status === "REJECTED") return "bg-red-100 text-red-800";
   return "bg-gray-100 text-gray-800";
 };
 
 // Added getStartedAgo function
-const getStartedAgo = (eventDate: string, eventTime: string): string | null => {
-  if (!eventDate || !eventTime) return null;
+const getStartedAgo = (eventDate: string, time_start: string, time_end: string): string | null => {
+  if (!eventDate || !time_start) return null;
   try {
-    const [startTimeRaw] = eventTime.split("-");
+    const [startTimeRaw] = time_start.split("-");
     const startTime = startTimeRaw.trim();
     const eventStart = new Date(`${eventDate} ${startTime}`);
     if (isNaN(eventStart.getTime())) return null;
@@ -153,13 +126,13 @@ export const EventInfoModal = React.memo(function EventInfoModal({
   }, [isOpen, onClose]);
 
   // Get the started ago text if event exists
-  const startedAgoText = event ? getStartedAgo(event.date, event.time) : null;
+  const startedAgoText = event ? getStartedAgo(event.date, event.time_start, event.time_end) : null;
 
   // Asset information
   const asset = event?.asset;
-  const assetName = asset?.name || event?.location || "Not specified";
-  const assetCapacity = asset?.capacity || event?.capacity || "N/A";
-  const assetFacilities = asset?.facilities || event?.facilities;
+  const assetName = asset?.asset_name || "Not specified";
+  const assetCapacity = asset?.capacity || "N/A";
+  const assetFacilities = asset?.facilities;
 
   return (
     <AnimatePresence>
@@ -261,7 +234,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                   {/* Basic Information Section */}
                   <div className="bg-gray-50 shadow-sm rounded-lg p-4">
                     <div className="flex items-center mb-3">
-                      <Users className="text-gray-500 mr-2 h-5 w-5" />
+                      <CalendarPlus2 className="text-gray-500 mr-2 h-5 w-5" />
                       <h3 className="text-lg font-medium text-gray-700">
                         Basic Information
                       </h3>
@@ -270,19 +243,19 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <p className="text-base text-gray-500">Event Title</p>
-                        <p className="font-medium text-base">{event.title}</p>
+                        <p className="font-medium text-base">{event.title_name}</p>
                       </div>
                       <div>
-                        <p className="text-base text-gray-500">Category</p>
-                        <p className="font-medium text-base">
-                          {event.category || "General"}
+                        <p className="text-base text-gray-500">
+                          Information Type
                         </p>
+                        <p className="font-medium text-base">{event.info_type || "—"}</p>
                       </div>
                       <div>
                         <p className="text-base text-gray-500">People Tag</p>
                         <div className="flex flex-wrap gap-2 mt-1">
-                          {event.peopleTag && event.peopleTag.length > 0 ? (
-                            event.peopleTag.map((person) => (
+                          {event.people_tag && event.people_tag.length > 0 ? (
+                            event.people_tag.map((person) => (
                               <span
                                 key={person}
                                 className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium border border-gray-300 text-gray-800 bg-transparent"
@@ -297,10 +270,10 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                         </div>
                       </div>
                       <div>
-                        <p className="text-base text-gray-500">
-                          Information Type
+                        <p className="text-base text-gray-500">Category</p>
+                        <p className="font-medium text-base">
+                          {event.category || "General"}
                         </p>
-                        <p className="font-medium text-base">{event.infoType || "—"}</p>
                       </div>
                     </div>
                   </div>
@@ -346,19 +319,19 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                           </div>
                         </div>
                       )}
-                      <div>
-                        <p className="text-base text-gray-500">Rservation Range</p>
+                      {/* <div>
+                        <p className="text-base text-gray-500">Facilities</p>
                         <p className="font-medium text-base">{event.date}</p>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
 
                   {/* Registration Details */}
                   <div className="bg-gray-50 shadow-sm rounded-lg p-4">
                     <div className="flex items-center mb-3">
-                      <Calendar className="text-gray-500 mr-2 h-5 w-5" />
+                      <NotebookPen className="text-gray-500 mr-2 h-5 w-5" />
                       <h3 className="text-lg font-medium text-gray-700">
-                        Registration Details
+                        Reservation Details
                       </h3>
                     </div>
                     <div className="border-b border-gray-300 mb-4" />
@@ -374,33 +347,31 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                             getStatus(event).slice(1)}
                         </span>
                         <span className="text-base text-gray-600">
-                          {getStatus(event) === "pending" &&
-                            ` by: ${event.organizer || "—"}`}
-                          {getStatus(event) === "approved" &&
-                            ` by: ${event.approvedBy || "—"}`}
-                          {getStatus(event) === "rejected" &&
-                            ` by: ${event.rejectedBy || "—"}`}
+                          {getStatus(event) === "PENDING" &&
+                            ` by: ${event.reserve_by || "—"}`}
+                          {getStatus(event) === "APPROVED" &&
+                            ` by: ${event.approved_by || "—"}`}
+                          {getStatus(event) === "REJECTED" &&
+                            ` by: ${event.rejected_by || "—"}`}
                         </span>
                       </div>
                       <div>
-                        <p className="text-base text-gray-500">
-                          Current Attendees
-                        </p>
-                        <p className="font-medium text-base">{event.attendeeCount}</p>
+                        <p className="text-base text-gray-500">Reservation Range</p>
+                        <p className="font-medium text-base">{event.date}</p>
                       </div>
                       <div>
                         <p className="text-base text-gray-500">
                           Registration Deadline
                         </p>
                         <p className="font-medium text-base">
-                          {event.registrationDeadline}
+                          {event.registration_deadline}
                         </p>
                       </div>
                       <div>
                         <p className="text-base text-gray-500">Time</p>
                         <div className="flex items-center">
                           <Clock className="h-4 w-4 mr-1.5 text-gray-500" />
-                          <p className="font-medium text-base">{event.time}</p>
+                          <p className="font-medium text-base">{`${event.time_start} - ${event.time_end}`}</p>
                         </div>
                       </div>
                     </div>
@@ -420,12 +391,6 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                         <p className="text-base text-gray-500">Description</p>
                         <p className="mt-1 text-base">{event.description}</p>
                       </div>
-                      {event.requirements && (
-                        <div>
-                          <p className="text-base text-gray-500">Requirements</p>
-                          <p className="mt-1 text-base">{event.requirements}</p>
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>

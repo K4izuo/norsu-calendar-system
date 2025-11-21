@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select"
 // import { Badge } from "@/components/ui/badge"
 import { ReserveEventModal } from "@/components/modal/reserve-event-modal"
-import type { EventsListModalProps, EventDetails, ReservationAPIPayload } from "@/interface/user-props"
+import type { EventsListModalProps, EventDetails, ReservationAPIPayload, Reservation } from "@/interface/user-props"
 // import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Input } from "../ui/input"
 import { EventCardsList } from "@/components/ui/events-list-card"
@@ -88,7 +88,15 @@ export function EventsListModal({
   showRecent,
   setShowRecent,
   role,
-}: EventsListModalProps & { showRecent: boolean; setShowRecent: React.Dispatch<React.SetStateAction<boolean>>; role?: Role }) {
+  allReservations,
+  onNewReservation,
+}: EventsListModalProps & {
+  showRecent: boolean;
+  setShowRecent: React.Dispatch<React.SetStateAction<boolean>>;
+  role?: Role;
+  allReservations?: Reservation[];
+  onNewReservation?: (reservation: Reservation) => void;
+}) {
   const contentRef = useRef<HTMLDivElement>(null)
   const [reserveModalOpen, setReserveModalOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
@@ -104,10 +112,10 @@ export function EventsListModal({
       // Show only past events (finishedOn matches eventDate)
       return events.filter(
         event =>
-          event.finishedOn === eventDate &&
+          event.finished_on === eventDate &&
           (
-            event.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            event.peopleTag?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+            event.title_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            event.people_tag?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
           )
       )
     } else {
@@ -116,8 +124,8 @@ export function EventsListModal({
         event =>
           event.date === eventDate &&
           (
-            event.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            event.peopleTag?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+            event.title_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            event.people_tag?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
           )
       )
     }
@@ -133,9 +141,9 @@ export function EventsListModal({
   }
 
   const getStatus = (event: EventDetails): EventStatus => {
-    if (!event.registrationStatus) return "pending"
+    if (!event.registration_status) return "pending"
 
-    const status = event.registrationStatus.toLowerCase()
+    const status = event.registration_status.toLowerCase()
     if (status === "open") return "approved"
     if (status === "closed") return "rejected"
 
@@ -315,6 +323,7 @@ export function EventsListModal({
         onClose={() => setReserveModalOpen(false)}
         onSubmit={handleSubmitReservation}
         eventDate={eventDate}
+        onNewReservation={onNewReservation}
       />
     </>
   )

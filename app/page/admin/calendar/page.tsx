@@ -4,83 +4,24 @@ import React, { useEffect, useState, useCallback } from "react";
 import { Calendar } from "@/components/ui/norsu-calendar";
 import { EventsListModal } from "@/components/modal/events-list-modal";
 import { EventInfoModal } from "@/components/modal/event-info-modal";
-import { CalendarDayType } from "@/interface/user-props";
-import { AdminEventDetails } from "@/interface/user-props";
-
-// Mock function to fetch admin events - replace with actual API
-const fetchAdminEvents = async (): Promise<AdminEventDetails[]> => {
-  // Simulate API call
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
-  return [
-    {
-      id: 1,
-      title: "Admin Meeting",
-      date: "2025-11-24",
-      time: "10:00-12:00",
-      location: "Admin Building, Room 101",
-      attendeeCount: 15,
-      category: "Administrative",
-      infoType: "Internal",
-      description: "Monthly administrative meeting to discuss university policies.",
-      peopleTag: ["admin", "management"],
-      registrationStatus: "open",
-      organizer: "Admin Office",
-      capacity: "20",
-      registrationDeadline: "2025-10-14",
-      approvalStatus: "approved",
-      createdBy: "System Administrator"
-    },
-    {
-      id: 2,
-      title: "Admin Meeting",
-      date: "2025-11-24",
-      time: "10:00-12:00",
-      location: "Admin Building, Room 101",
-      attendeeCount: 15,
-      category: "Administrative",
-      infoType: "Internal",
-      description: "Monthly administrative meeting to discuss university policies.",
-      peopleTag: ["admin", "management"],
-      registrationStatus: "open",
-      organizer: "Admin Office",
-      capacity: "20",
-      registrationDeadline: "2025-10-14",
-      approvalStatus: "approved",
-      createdBy: "System Administrator"
-    },
-    {
-      id: 3,
-      title: "Budget Planning Session",
-      date: "2025-10-20",
-      time: "14:00-16:00",
-      location: "Finance Department",
-      attendeeCount: 8,
-      category: "Finance",
-      infoType: "Confidential",
-      description: "Annual budget planning for academic departments.",
-      peopleTag: ["admin", "finance"],
-      registrationStatus: "open",
-      organizer: "Finance Director",
-      capacity: "10",
-      registrationDeadline: "2025-10-18",
-      approvalStatus: "approved",
-      createdBy: "Finance Department"
-    }
-  ];
-};
+import { EventDetails, CalendarDayType, Reservation } from "@/interface/user-props";
+import { apiClient } from "@/lib/api-client";
 
 export default function AdminCalendarTab() {
   // Modal states
   const [modalOpen, setModalOpen] = useState(false);
   const [eventInfoModalOpen, setEventInfoModalOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<AdminEventDetails | undefined>(undefined);
+  const [selectedEvent, setSelectedEvent] = useState<EventDetails | undefined>(undefined);
   const [selectedDay, setSelectedDay] = useState<CalendarDayType | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  
+  // Reservations state
+  const [allReservations, setAllReservations] = useState<Reservation[]>([]);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  // Events state
-  const [events, setEvents] = useState<AdminEventDetails[]>([]);
+  // Loading states
   const [loading, setLoading] = useState(false);
   const [eventInfoLoading, setEventInfoLoading] = useState(false);
   const [eventsListLoading, setEventsListLoading] = useState(false);
@@ -88,29 +29,96 @@ export default function AdminCalendarTab() {
   // Show recent events state
   const [showRecent, setShowRecent] = useState(false);
 
-  // Fetch events on mount
+  // Fetch reservations function with lastUpdate parameter
+  const fetchReservations = useCallback(async () => {
+    try {
+      setLoading(true);
+
+      // Build URL with lastUpdate query parameter
+      const url = lastUpdate
+        ? `/reservations/all?lastUpdate=${encodeURIComponent(lastUpdate.toISOString())}`
+        : "/reservations/all";
+
+      const response = await apiClient.get<Reservation[]>(url); // Changed from { reservations: Reservation[] }
+
+      if (response.error) {
+        setError(response.error);
+        return;
+      }
+
+      // Check if response.data is an array directly
+      if (response.data && Array.isArray(response.data)) {
+        setAllReservations(response.data);
+        setLastUpdate(new Date()); // Update timestamp after successful fetch
+        setError(null);
+      } else {
+        setError("Unexpected response format from server");
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setError(`Error fetching reservations: ${errorMessage}`);
+    } finally {
+      setLoading(false);
+    }
+  }, [lastUpdate]);
+
+  // Handle new reservation from modal
+  const handleNewReservation = useCallback((newReservation: Reservation) => {
+    setAllReservations((prevReservations) => {
+      const reservationExists = prevReservations.some(
+        (reservation) => reservation.id === newReservation.id
+      );
+
+      if (reservationExists) {
+        // Update existing reservation
+        return prevReservations.map((reservation) =>
+          reservation.id === newReservation.id ? newReservation : reservation
+        );
+      }
+
+      // Add new reservation
+      return [...prevReservations, newReservation];
+    });
+
+    // Trigger immediate fetch after creation to sync with backend
+    fetchReservations();
+  }, [fetchReservations]);
+
+  // Initial fetch of reservations on mount
   useEffect(() => {
-    setEventsListLoading(true);
-    setLoading(true); // Set calendar loading to true
+    fetchReservations();
+  }, []); // Empty dependency - only run on mount
 
-    fetchAdminEvents()
-      .then(data => {
-        setEvents(data);
-      })
-      .catch(error => {
-        console.error("Error fetching admin events:", error);
-        setEvents([]);
-      })
-      .finally(() => {
-        setEventsListLoading(false);
-        setLoading(false); // Set calendar loading to false
-      });
-  }, []);
+  // Convert reservations to events format for calendar
+  const events: EventDetails[] = React.useMemo(() => {
+    
+    return allReservations.map(reservation => ({
+      id: reservation.id,
+      title_name: reservation.title_name,
+      date: reservation.date,
+      time_start: reservation.time_start,
+      time_end: reservation.time_end,
+      asset: {
+        id: reservation.asset_id,
+        asset_name: `Asset #${reservation.asset_id}`, // Changed to show asset ID
+        capacity: 0,
+      },
+      category: reservation.category,
+      info_type: reservation.info_type,
+      description: reservation.description,
+      people_tag: reservation.people_tag.split(", "),
+      range: reservation.range,
+      registration_status: reservation.status.toUpperCase() as "PENDING" | "APPROVED" | "REJECTED",
+      registration_deadline: reservation.date,
+      reserve_by: `User #${reservation.reserve_by_user}`, // Added reserve_by_user
+    }));
+  }, [allReservations]);
 
-  // Get events for a particular day - used by Calendar component
+  // Get events for a particular day
   const getEventsForDate = useCallback((year: number, month: number, day: number) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     const dayEvents = events.filter(event => event.date === dateStr);
+    
     return {
       hasEvent: dayEvents.length > 0,
       count: dayEvents.length
@@ -118,20 +126,21 @@ export default function AdminCalendarTab() {
   }, [events]);
 
   // Memoized selected day events
-  const selectedDayEvents = useCallback(() => {
+  const selectedDayEvents = React.useMemo(() => {
     if (!selectedDay || !selectedDay.currentMonth) return [];
 
     const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(selectedDay.date).padStart(2, "0")}`;
 
-    return events.filter((event) => event.date === dateStr);
-  }, [events, selectedDay, currentMonth, currentYear])();
+    const dayEvents = events.filter((event) => event.date === dateStr);
+    
+    return dayEvents;
+  }, [events, selectedDay, currentMonth, currentYear]);
 
   // Event click handler
-  const handleEventClick = useCallback((event: AdminEventDetails) => {
+  const handleEventClick = useCallback((event: EventDetails) => {
     setEventInfoLoading(true);
     setEventInfoModalOpen(true);
 
-    // Simulate fetching detailed event info
     setTimeout(() => {
       setSelectedEvent(event);
       setEventInfoLoading(false);
@@ -145,39 +154,16 @@ export default function AdminCalendarTab() {
 
   // Calendar day selection handler
   const handleDaySelect = useCallback((day: CalendarDayType) => {
-    // Reset to current events before opening modal
     setShowRecent(false);
-
-    // Update selected day
     setSelectedDay(day);
-
-    // Show loading animation
     setEventsListLoading(true);
-
-    // Open modal
     setModalOpen(true);
 
-    // Simulate API call for events on this date
-    const fetchData = async () => {
-      try {
-        const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(day.date).padStart(2, "0")}`;
-
-        // In a real implementation, you'd fetch events for this specific date
-        // const response = await fetch(`/api/admin/events?date=${dateStr}`);
-        // const data = await response.json();
-
-        // Simulated delay
-        await new Promise(resolve => setTimeout(resolve, Math.random() * 600 + 200));
-
-      } catch (error) {
-        console.error("Error fetching admin event details:", error);
-      } finally {
-        setEventsListLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [currentMonth, currentYear]);
+    // Simulate loading for UX
+    setTimeout(() => {
+      setEventsListLoading(false);
+    }, 300);
+  }, []);
 
   // Handle month/year changes
   const handleMonthYearChange = useCallback((month: number, year: number) => {
@@ -196,9 +182,16 @@ export default function AdminCalendarTab() {
         Admin Calendar
       </h1>
 
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+          <strong className="font-bold">Error: </strong>
+          <span className="block sm:inline">{error}</span>
+        </div>
+      )}
+
       {/* Calendar container */}
       <div className="bg-white rounded-md shadow-md flex flex-col flex-1 p-3 sm:p-6 md:p-7">
-        {/* Calendar component */}
         <Calendar
           role="admin"
           events={events}
@@ -214,7 +207,7 @@ export default function AdminCalendarTab() {
 
         {/* Events List Modal */}
         <EventsListModal
-          role="admin"  // Add this line
+          role="admin"
           isOpen={modalOpen}
           onClose={handleCloseModal}
           title={
@@ -234,6 +227,8 @@ export default function AdminCalendarTab() {
               ? `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(selectedDay.date).padStart(2, "0")}`
               : ""
           }
+          allReservations={allReservations}
+          onNewReservation={handleNewReservation}
         />
 
         {/* Event Info Modal */}

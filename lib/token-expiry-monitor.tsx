@@ -1,4 +1,3 @@
-// components/auth/TokenExpiryMonitor.tsx
 "use client";
 
 import { useEffect, useCallback } from 'react';

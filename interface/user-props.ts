@@ -1,30 +1,33 @@
-// user-props.ts
 import { LucideIcon } from "lucide-react"
-import { AssetFormValue } from "@/types/asset"
+// import { AssetFormValue } from "@/types/asset"
 
 type EventStatus = "pending" | "approved" | "rejected"
 
 export interface EventDetails {
   id: number
-  title: string
+  title_name: string
   date: string
-  time: string
-  organizer: string
-  location: string
-  capacity: string
-  facilities?: string[]
-  registrationStatus: string
-  attendeeCount: number
-  registrationDeadline: string
+  time_start: string
+  time_end: string
+  asset: {
+    id: number
+    asset_name: string
+    capacity: number
+    facilities?: string[]
+    asset_type?: string
+  }
+  category: string
+  info_type: string
   description: string
-  requirements?: string
-  category?: string
-  infoType?: string
-  peopleTag?: string[]
-  reservedBy?: string
-  approvedBy?: string
-  rejectedBy?: string
-  finishedOn?: string
+  people_tag: string[]
+  range: number
+  // organizer: string
+  registration_status: "PENDING" | "APPROVED" | "REJECTED"
+  registration_deadline: string
+  reserve_by?: string
+  approved_by?: string
+  rejected_by?: string
+  finished_on?: string
 }
 
 // Add this new interface for API payload
@@ -56,6 +59,7 @@ export interface Reservation {
   status: string
   created_at: string
   updated_at: string
+  reserve_by_user: number
 }
 
 export interface EventsListModalProps {
@@ -68,12 +72,14 @@ export interface EventsListModalProps {
   onEventClick?: (event: EventDetails) => void
   isLoading?: boolean
   eventDate?: string | undefined
+  allReservations?: Reservation[]
+  onNewReservation?: (reservation: Reservation) => void
 }
 
 export interface EventCardsListProps {
   events: EventDetails[]
   onEventClick?: (event: EventDetails) => void
-  getStartedAgo: (eventDate: string, eventTime: string) => string | null
+  getStartedAgo: (eventDate: string, time_start: string, time_end: string) => string | null
   getStatus: (event: EventDetails) => EventStatus
   getStatusColor: (status: EventStatus) => string
 }
@@ -160,24 +166,23 @@ export interface CalendarProps<T> {
   onMonthYearChange?: (month: number, year: number) => void
 }
 
-export type AdminEventDetails = {
-  id: number
-  title: string
-  date: string
-  time: string
-  location: string
-  attendeeCount: number
-  category?: string
-  infoType?: string
-  description: string
-  peopleTag?: string[]
-  registrationStatus: string
-  organizer: string
-  capacity: string
-  registrationDeadline: string
-  approvalStatus?: "pending" | "approved" | "rejected"
-  createdBy?: string
-}
+// export type AdminEventDetails = {
+//   id: number
+//   title_name: string
+//   date: string
+//   time: string
+//   location: string
+//   category?: string
+//   infoType?: string
+//   description: string
+//   peopleTag?: string[]
+//   registrationStatus: string
+//   organizer: string
+//   capacity: string
+//   registrationDeadline: string
+//   approvalStatus?: "pending" | "approved" | "rejected"
+//   createdBy?: string
+// }
 
 export type AdminFormFieldProps = {
   id: string

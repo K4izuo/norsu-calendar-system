@@ -12,7 +12,7 @@ import { AssetsVenueModal } from "@/components/modal/reserve-event-assets/assets
 import { AssetsVehicleModal } from "@/components/modal/reserve-event-assets/assets-vehicle-modal"
 import { useAssets } from "@/services/academicDataService"
 import { useReserveEventForm } from "@/hooks/useReserveEventForm"
-import { ReservationAPIPayload } from "@/interface/user-props"
+import { Reservation, ReservationAPIPayload } from "@/interface/user-props"
 
 const infoTypes = [
   { value: "public", label: "Public" },
@@ -32,9 +32,10 @@ interface ModalProps {
   onClose: () => void
   onSubmit?: (data: ReservationAPIPayload) => void
   eventDate?: string | undefined
+  onNewReservation?: (reservation: Reservation) => void
 }
 
-export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: ModalProps) {
+export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewReservation }: ModalProps) {
   const contentRef = useRef<HTMLDivElement>(null)
 
   const { assets, loading: assetsLoading, error: assetsError } = useAssets();
@@ -67,7 +68,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
     handleAdditionalTabNext,
     handleFormSubmit,
     validationRules
-  } = useReserveEventForm({ eventDate, onSubmit, onClose, isOpen });
+  } = useReserveEventForm({ eventDate, onSubmit, onClose, isOpen, onNewReservation });
 
   const [loadingVenueAssets, setLoadingVenueAssets] = useState(false);
   const [loadingVehicleAssets, setLoadingVehicleAssets] = useState(false);
@@ -189,7 +190,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate }: Moda
             duration: 0.25,
             ease: [0.22, 1, 0.36, 1]
           }}
-          className="relative w-full max-w-[900px] sm:mx-4 mx-[1px] max-h-[92vh] bg-white rounded-lg shadow-xl overflow-hidden flex flex-col"
+          className="relative w-full max-w-[864px] sm:mx-4 mx-[1px] max-h-[92vh] bg-white rounded-lg shadow-xl overflow-hidden flex flex-col"
           style={{
             transform: "translateZ(0)",
             backfaceVisibility: "hidden",
