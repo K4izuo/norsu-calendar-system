@@ -223,7 +223,6 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
             ? response.error
             : JSON.stringify(response.error);
           toast.error(`Reservation failed: ${errorMsg}`);
-          console.error("Reservation error response:", response);
           return;
         }
 

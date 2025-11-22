@@ -440,7 +440,7 @@ export function Calendar<T>({
                               },
                             }}
                           >
-                            <span className={`${roleColors.todayText} text-xs sm:text-xs md:text-base lg:text-lg font-medium px-2 py-0.5 rounded pointer-events-auto translate-y-3`}>
+                            <span className={`${roleColors.todayText} text-xs sm:text-xs md:text-sm lg:text-lg font-medium px-2 py-0.5 rounded pointer-events-auto translate-y-3`}>
                               {day.eventCount === 1
                                 ? "Event"
                                 : "Events..."}
