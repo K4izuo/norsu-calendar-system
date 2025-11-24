@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect, useContext, useMemo } from "react";
+import { useState, useEffect, useContext } from "react";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -22,47 +22,62 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/compon
 import UserProfile from "@/components/ui/user-profile";
 import { TokenExpiryMonitor } from "@/lib/token-expiry-monitor";
 
+interface UserData {
+  name: string;
+  role: string;
+}
+
+const ROLE_MAP: Record<number, string> = {
+  2: "Faculty",
+  3: "Staff",
+  4: "Admin"
+};
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [activeTab, setActiveTab] = useState("dashboard");
   const pathname = usePathname();
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  // const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const auth = useContext(AuthContext);
   const user = auth?.user;
 
-  // Get user data with fallback to localStorage
-  const userData = useMemo(() => {
-    // If context has user data, use it
+  // Proper state management - only set in useEffect
+  const [userData, setUserData] = useState<UserData>({
+    name: "User",
+    role: user?.role || "User"
+  });
+
+  // Single useEffect to handle all user data logic
+  useEffect(() => {
+    // Priority 1: Use context data if available
     if (user?.first_name || user?.last_name) {
-      return {
+      setUserData({
         name: `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim(),
-        role: user.role
-      };
+        role: user.role || "User"
+      });
+      return;
     }
 
-    // Fallback to localStorage while context is loading
+    // Priority 2: Fallback to localStorage (only runs client-side in useEffect)
     try {
       const storedUser = localStorage.getItem('user');
       const storedRole = localStorage.getItem('role');
       
       if (storedUser) {
         const parsedUser = JSON.parse(storedUser);
-        const roleMap: Record<number, string> = {
-          2: "Faculty",
-          3: "Staff",
-          4: "Admin"
-        };
+        const parsedRole = storedRole ? JSON.parse(storedRole) : null;
         
-        return {
-          name: `${parsedUser.first_name ?? ""} ${parsedUser.last_name ?? ""}`.trim() || parsedUser.username || "User",
-          role: storedRole ? roleMap[JSON.parse(storedRole)] || "User" : "User"
-        };
+        setUserData({
+          name: `${parsedUser.first_name ?? ""} ${parsedUser.last_name ?? ""}`.trim() 
+                || parsedUser.username 
+                || "User",
+          role: parsedRole ? (ROLE_MAP[parsedRole] || "User") : "User"
+        });
       }
     } catch (error) {
       console.error('Error loading user data from localStorage:', error);
+      // Keep default values on error
     }
-
-    return { name: "User", role: "User" };
-  }, [user]);
+  }, [user]); // Re-run when context user changes
 
   useEffect(() => {
     if (pathname?.includes("/asset-management")) {
@@ -223,28 +238,28 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </div>
 
                 {/* User profile - with balanced spacing */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="cursor-pointer bg-white h-12 w-12 rounded-full border border-transparent hover:border-gray-300 hover:bg-white focus:outline-none"
-                      >
-                        <CircleUserRound className="size-7 text-gray-600" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      align="end"
-                      sideOffset={8}
-                      className="w-[280px] sm:w-80 bg-background border-border rounded-lg shadow-lg"
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="cursor-pointer bg-white h-12 w-12 rounded-full border border-transparent hover:border-gray-300 hover:bg-white focus:outline-none"
                     >
-                      <UserProfile
-                        name={userData.name}
-                        role={userData.role}
-                        avatar="https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-01-n0x8HFv8EUetf9z6ht0wScJKoTHqf8.png"
-                      />
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                      <CircleUserRound className="size-7 text-gray-600" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    sideOffset={8}
+                    className="w-[280px] sm:w-80 bg-background border-border rounded-lg shadow-lg"
+                  >
+                    <UserProfile
+                      name={userData.name}
+                      role={userData.role}
+                      avatar="https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-01-n0x8HFv8EUetf9z6ht0wScJKoTHqf8.png"
+                    />
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </div>
