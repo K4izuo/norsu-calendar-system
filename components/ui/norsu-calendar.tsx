@@ -87,8 +87,8 @@ export function Calendar<T>({
       targetMonthYear > currentMonthYear
         ? 1
         : targetMonthYear < currentMonthYear
-        ? -1
-        : 0
+          ? -1
+          : 0
     );
     if (setLoading) setLoading(true);
     setTimeout(() => {
@@ -324,20 +324,19 @@ export function Calendar<T>({
                 animate="animate"
                 exit="exit"
                 // Use only Tailwind responsive gap classes, no JS logic
-                className="grid grid-rows-5 grid-cols-7 w-full gap-1 sm:gap-1.5 md:gap-1.5 lg:gap-2 bg-white h-full"
+                className="grid grid-rows-5 grid-cols-7 w-full gap-1 sm:gap-1.5 bg-white h-full"
               >
                 {calendarDays.map((day, idx) => (
                   <motion.div
                     key={day.key}
                     data-idx={idx}
-                    className={`relative border rounded-md flex flex-col p-1 xs:p-1.5 sm:p-2 md:p-3 text-sm xs:text-base sm:text-lg md:text-xl font-medium
-                      ${
-                        day.currentMonth
-                          ? `text-gray-900 border-2 ${day.hasEvent ? roleColors.eventDayBorder : "border-gray-200"} cursor-pointer ${roleColors.hoverBg} ${roleColors.activeBg} hover:shadow-sm`
-                          : "text-gray-400 border-gray-100 bg-gray-50"
+                    className={`relative border rounded-md flex flex-col p-1.5 sm:p-2 text-sm xs:text-base sm:text-lg md:text-xl font-medium
+                      ${day.currentMonth
+                        ? `text-gray-900 border-[1px] ${day.hasEvent ? roleColors.eventDayBorder : "border-gray-200"} cursor-pointer ${roleColors.hoverBg} hover:shadow-sm`
+                        : "text-gray-400 border-gray-100 bg-gray-50"
                       }
-                      ${day.isToday ? `border-2` : ""}
-                      ${day.hasEvent && day.currentMonth ? roleColors.eventDayBg : ""}
+                      ${day.isToday ? `border-[1px]` : ""}
+                      ${day.hasEvent && day.currentMonth}
                     `}
                     onClick={
                       day.currentMonth
@@ -356,24 +355,23 @@ export function Calendar<T>({
                     whileHover={
                       day.currentMonth
                         ? {
-                            scale: 1.02,
-                            boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-                            transition: { duration: 0.1 },
-                          }
+                          scale: 1.02,
+                          boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+                          transition: { duration: 0.1 },
+                        }
                         : {}
                     }
                     whileTap={day.currentMonth ? { scale: 0.98 } : {}}
                   >
                     {/* Only show date number if it's a real day */}
-                    <div className="flex justify-end items-start w-full mb-2">
+                    <div className="flex justify-end items-start w-full">
                       <span
-                        className={`text-sm md:text-md lg:text-xl ${
-                          day.isToday
+                        className={`text-sm md:text-md lg:text-lg ${day.isToday
                             ? `${roleColors.todayText} font-bold`
                             : day.currentMonth
-                            ? ""
-                            : "text-gray-400"
-                        }`}
+                              ? ""
+                              : "text-gray-400"
+                          }`}
                       >
                         {day.date}
                       </span>
@@ -387,7 +385,7 @@ export function Calendar<T>({
                         <>
                           {/* Desktop/Tablet: Top-left calendar icon and count */}
                           <motion.div
-                            className={`hidden sm:inline-flex items-center ${roleColors.badgeColor} ${roleColors.todayText} px-1 sm:px-1.5 py-0.5 rounded-xl text-xs sm:text-sm md:text-base font-semibold absolute top-1 sm:top-2 left-1 sm:left-2`}
+                            className={`hidden sm:inline-flex items-center ${roleColors.todayText} px-1 sm:px-1.5 py-0.5 rounded-xl text-xs sm:text-sm md:text-base font-semibold absolute top-1.5 left-[3px]`}
                             initial={{ scale: 0, opacity: 0 }}
                             animate={{
                               scale: 1,
@@ -422,7 +420,7 @@ export function Calendar<T>({
                               },
                             }}
                           >
-                            <div className={`inline-flex items-center ${roleColors.badgeColor} ${roleColors.todayText} px-1 py-0.5 rounded-xl text-xs xs:text-sm font-semibold w-min`}>
+                            <div className={`inline-flex items-center ${roleColors.todayText} px-1 py-0.5 rounded-xl text-xs xs:text-sm font-semibold w-min`}>
                               <CalendarClock size={12} className="mr-0.5" />
                               <span>{day.eventCount}</span>
                             </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { Calendar } from "@/components/ui/norsu-calendar";
 import { EventsListModal } from "@/components/modal/events-list-modal";
 import { EventInfoModal } from "@/components/modal/event-info-modal";
@@ -80,8 +80,6 @@ export default function AdminCalendarTab() {
       return [...prevReservations, newReservation];
     });
 
-    // Trigger immediate fetch after creation to sync with backend
-    fetchReservations();
   }, [fetchReservations]);
 
   // Initial fetch of reservations on mount
@@ -90,7 +88,7 @@ export default function AdminCalendarTab() {
   }, []); // Empty dependency - only run on mount
 
   // Convert reservations to events format for calendar
-  const events: EventDetails[] = React.useMemo(() => {
+  const events: EventDetails[] = useMemo(() => {
     
     return allReservations.map(reservation => ({
       id: reservation.id,
@@ -126,7 +124,7 @@ export default function AdminCalendarTab() {
   }, [events]);
 
   // Memoized selected day events
-  const selectedDayEvents = React.useMemo(() => {
+  const selectedDayEvents = useMemo(() => {
     if (!selectedDay || !selectedDay.currentMonth) return [];
 
     const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(selectedDay.date).padStart(2, "0")}`;

@@ -213,8 +213,8 @@ export function EventsListModal({
               onClick={(e) => e.stopPropagation()}
             >
               <div className="bg-card border-b border-border/100 p-4 sm:p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-foreground text-balance">{title}</h2>
+                <div className="flex items-center justify-between mb-4 sm:mb-6">
+                  <h2 className="text-lg sm:text-2xl font-bold text-foreground text-balance">{title}</h2>
                   <Button
                     variant="ghost"
                     size="sm"

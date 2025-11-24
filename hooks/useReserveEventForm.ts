@@ -260,10 +260,11 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         setTaggedPeople([]);
         setTagInput("");
         setActiveTab("form");
+        onClose();
 
-        setTimeout(() => {
-          onClose();
-        }, 1000);
+        // setTimeout(() => {
+        //   onClose();
+        // }, 1000);
 
       } catch (error) {
         console.error("Reservation error:", error);
