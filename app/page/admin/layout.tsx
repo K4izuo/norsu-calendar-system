@@ -13,7 +13,8 @@ import {
   Bell,
   CircleUserRound,
   Mail,
-  Users
+  Users,
+  University
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,10 +22,11 @@ import { AuthContext } from "@/contexts/auth-context";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import UserProfile from "@/components/ui/user-profile";
 import { TokenExpiryMonitor } from "@/lib/token-expiry-monitor";
+import toast from "react-hot-toast"
 
 interface UserData {
   name: string;
-  role: string;
+  role: number;
 }
 
 const ROLE_MAP: Record<number, string> = {
@@ -34,56 +36,68 @@ const ROLE_MAP: Record<number, string> = {
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState("dashboard");
   const pathname = usePathname();
-  // const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const auth = useContext(AuthContext);
   const user = auth?.user;
+  const [userData, setUserData] = useState<UserData | null>(null);
 
-  // Proper state management - only set in useEffect
-  const [userData, setUserData] = useState<UserData>({
-    name: "User",
-    role: user?.role || "User"
-  });
+  useEffect(() =>
+    setMounted(true),
+    []);
 
-  // Single useEffect to handle all user data logic
   useEffect(() => {
-    // Priority 1: Use context data if available
-    if (user?.first_name || user?.last_name) {
-      setUserData({
-        name: `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim(),
-        role: user.role || "User"
-      });
-      return;
-    }
-
-    // Priority 2: Fallback to localStorage (only runs client-side in useEffect)
     try {
-      const storedUser = localStorage.getItem('user');
-      const storedRole = localStorage.getItem('role');
-      
+      if (user) {
+        setUserData({
+          name:
+            `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim() ||
+            user.username ||
+            "User",
+          role: Number(user.role), // Ensure number
+        });
+        return;
+      }
+
+      const storedUser = localStorage.getItem("user");
+      const storedRole = localStorage.getItem("role");
+
       if (storedUser) {
         const parsedUser = JSON.parse(storedUser);
-        const parsedRole = storedRole ? JSON.parse(storedRole) : null;
-        
+        const parsedRole = storedRole ? Number(JSON.parse(storedRole)) : 0;
+
         setUserData({
-          name: `${parsedUser.first_name ?? ""} ${parsedUser.last_name ?? ""}`.trim() 
-                || parsedUser.username 
-                || "User",
-          role: parsedRole ? (ROLE_MAP[parsedRole] || "User") : "User"
+          name:
+            `${parsedUser.first_name ?? ""} ${parsedUser.last_name ?? ""}`.trim() ||
+            parsedUser.username ||
+            "User",
+          role: parsedRole,
         });
+        return;
       }
     } catch (error) {
-      console.error('Error loading user data from localStorage:', error);
-      // Keep default values on error
+      toast.error(
+        "Error loading user data: " +
+        (error instanceof Error ? error.message : "Unknown error")
+      );
     }
-  }, [user]); // Re-run when context user changes
+
+    // Fallback only if all fails
+    setUserData({
+      name: "User",
+      role: 0,
+    });
+  }, [user]);
+
 
   useEffect(() => {
     if (pathname?.includes("/asset-management")) {
       setActiveTab("asset-management");
     } else if (pathname?.includes("/calendar")) {
       setActiveTab("calendar");
+    } else if (pathname?.includes("/reservations")) {
+      setActiveTab("reservations");
     } else if (pathname?.includes("/accounts")) {
       setActiveTab("accounts");
     } else {
@@ -91,12 +105,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [pathname]);
 
+  if (!mounted || !userData) return null;
+
   return (
     <>
       <TokenExpiryMonitor />
-      
+
       <div className="flex h-screen overflow-hidden bg-gray-100">
-        {/* Sidebar with overflow-y-auto to handle its own scrolling if needed */}
         <div className="flex-none w-64 bg-gray-900 text-white flex flex-col overflow-y-auto">
           <div className="flex-none h-[80px] py-2 px-4 items-center justify-center flex">
             <div className="flex items-center justify-center w-full">
@@ -155,7 +170,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </Link>
                 </li>
 
-                {/* Accounts tab below Calendar */}
+                <li>
+                  <Link
+                    href="/page/admin/reservations"
+                    className={`flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "reservations"
+                      ? "bg-white text-gray-900"
+                      : "text-white hover:bg-gray-800"
+                      }`}
+                  >
+                    <University size={20} className="mr-3" />
+                    <span className="font-medium">Reservations</span>
+                    {activeTab === "reservations" && (
+                      <ChevronRight size={16} className="ml-auto" />
+                    )}
+                  </Link>
+                </li>
+
                 <li>
                   <Link
                     href="/page/admin/accounts"
@@ -192,12 +222,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </div>
 
-        {/* Main content with its own overflow handling */}
         <div className="flex-1 flex flex-col overflow-y-auto">
-          {/* Enhanced navbar with sidebar toggle */}
           <div className="flex-none h-[80px] py-2 px-4 items-center bg-white shadow-sm w-full z-10 flex">
             <div className="flex items-center justify-between w-full">
-              {/* Left side: Search input (moved from right side) */}
               <div className="flex items-center ml-2">
                 <div className="relative w-80">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -212,11 +239,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </div>
               </div>
 
-              {/* Right side: Notifications, user */}
               <div className="flex items-center gap-3">
-                {/* Icon group with consistent styling */}
                 <div className="flex items-center gap-3">
-                  {/* Messages */}
                   <Button
                     variant="ghost"
                     size="icon"
@@ -226,7 +250,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-green-500 rounded-full"></span>
                   </Button>
 
-                  {/* Notifications */}
                   <Button
                     variant="ghost"
                     size="icon"
@@ -237,29 +260,28 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </Button>
                 </div>
 
-                {/* User profile - with balanced spacing */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="cursor-pointer bg-white h-12 w-12 rounded-full border border-transparent hover:border-gray-300 hover:bg-white focus:outline-none"
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="cursor-pointer bg-white h-12 w-12 rounded-full border border-transparent hover:border-gray-300 hover:bg-white focus:outline-none"
+                      >
+                        <CircleUserRound className="size-7 text-gray-600" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="end"
+                      sideOffset={8}
+                      className="w-[280px] sm:w-80 bg-background border-border rounded-lg shadow-lg"
                     >
-                      <CircleUserRound className="size-7 text-gray-600" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="end"
-                    sideOffset={8}
-                    className="w-[280px] sm:w-80 bg-background border-border rounded-lg shadow-lg"
-                  >
-                    <UserProfile
-                      name={userData.name}
-                      role={userData.role}
-                      avatar="https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-01-n0x8HFv8EUetf9z6ht0wScJKoTHqf8.png"
-                    />
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                      <UserProfile
+                        name={userData.name}
+                        role={ROLE_MAP[userData.role] || "User"}
+                        avatar="https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-01-n0x8HFv8EUetf9z6ht0wScJKoTHqf8.png"
+                      />
+                    </DropdownMenuContent>
+                  </DropdownMenu>
               </div>
             </div>
           </div>

@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "react-hot-toast";
-import { AuthProvider } from '@/contexts/auth-context';
-import { RoleProvider } from '@/contexts/user-role';
+import ClientLayout from "./client-layout";
 
 const poppins = Poppins({
   weight: ["400", "500", "600", "700"],
@@ -13,9 +11,7 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   title: "NORSU Calendar",
-  description:
-    "Personal portfolio of CJ, a passionate Software Engineer based in Philippines specializing in modern web development.",
-  keywords: ["Software Engineer", "Web Developer", "React", "Next.js", "TypeScript", "Portfolio"],
+  description: "Negros Oriental State University Calendar System",
   authors: [{ name: "CJ" }],
   creator: "CJ",
 };
@@ -27,36 +23,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${poppins.className} custom-scrollbar min-h-screen bg-white antialiased`}
-      >
-        <AuthProvider>
-          <RoleProvider>
-            {children}
-          </RoleProvider>
-        </AuthProvider>
-        <Toaster 
-          position="top-right"
-          toastOptions={{
-            duration: 3000,
-            style: {
-              background: '#363636',
-              color: '#fff',
-            },
-            success: {
-              duration: 3000,
-              style: {
-                background: '#10B981',
-              },
-            },
-            error: {
-              duration: 4000,
-              style: {
-                background: '#EF4444',
-              },
-            },
-          }}
-        />
+      <body className={`${poppins.className} custom-scrollbar min-h-screen bg-white antialiased`}>
+        <ClientLayout>
+          {children}
+        </ClientLayout>
       </body>
     </html>
   );

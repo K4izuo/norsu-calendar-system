@@ -59,7 +59,7 @@ export const apiClient = {
       
       if (response.status === 401) {
         handleUnauthorized();
-        return { data: null, error: 'Unauthorized', status: 401 };
+        return { data: null, error: 'Unauthorized. Please log in again.', status: 401 };
       }
       
       const responseData = response.status !== 204 

@@ -7,7 +7,7 @@ export const getRoleColors = (role?: UserRole) => {
     public: {
       spinner: "border-teal-500",
       icon: "text-teal-500",
-      todayText: "text-teal-600",
+      todayText: "text-teal-500",
       todayBorder: "border-teal-500",
       badgeColor: "bg-teal-50",
       eventDayBg: "bg-teal-50",
@@ -40,7 +40,7 @@ export const getRoleColors = (role?: UserRole) => {
     admin: {
       spinner: "border-gray-800",
       icon: "text-gray-800",
-      todayText: "text-gray-800",
+      todayText: "text-gray-700",
       todayBorder: "border-gray-800",
       badgeColor: "bg-gray-100",
       eventDayBg: "bg-gray-100",

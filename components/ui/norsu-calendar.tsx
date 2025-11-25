@@ -332,7 +332,7 @@ export function Calendar<T>({
                     data-idx={idx}
                     className={`relative border rounded-md flex flex-col p-1.5 sm:p-2 text-sm xs:text-base sm:text-lg md:text-xl font-medium
                       ${day.currentMonth
-                        ? `text-gray-900 border-[1px] ${day.hasEvent ? roleColors.eventDayBorder : "border-gray-200"} cursor-pointer ${roleColors.hoverBg} hover:shadow-sm`
+                        ? `text-gray-900 border-[1px] ${day.hasEvent ? roleColors.eventDayBorder : "border-gray-300"} cursor-pointer ${roleColors.hoverBg} hover:shadow-sm`
                         : "text-gray-400 border-gray-100 bg-gray-50"
                       }
                       ${day.isToday ? `border-[1px]` : ""}
@@ -438,7 +438,7 @@ export function Calendar<T>({
                               },
                             }}
                           >
-                            <span className={`${roleColors.todayText} text-xs sm:text-xs md:text-sm lg:text-lg font-medium px-2 py-0.5 rounded pointer-events-auto translate-y-3`}>
+                            <span className={`${roleColors.todayText} text-xs sm:text-xs md:text-sm lg:text-base font-medium px-2 py-0.5 rounded pointer-events-auto translate-y-3`}>
                               {day.eventCount === 1
                                 ? "Event"
                                 : "Events..."}

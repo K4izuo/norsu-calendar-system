@@ -1,6 +1,6 @@
 import React from "react"
 import { Badge } from "@/components/ui/badge"
-import { CalendarClock, Clock, MapPin, Users, Layers, FileText } from "lucide-react"
+import { CalendarClock, Clock, MapPin, Users, Layers, FileText, User } from "lucide-react"
 import type { EventCardsListProps } from "@/interface/user-props"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
@@ -64,7 +64,7 @@ export const EventCardsList = React.memo(function EventCardsList({
               </TooltipProvider>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-5">
               <div className="flex items-center text-muted-foreground">
                 <CalendarClock className="h-4 w-4 mr-3 text-primary" />
                 <span className="text-base font-medium">{event.date}</span>
@@ -104,6 +104,7 @@ export const EventCardsList = React.memo(function EventCardsList({
                       variant="secondary"
                       className="text-sm bg-muted text-muted-foreground"
                     >
+                      <User className="h-4 w-4 text-primary" />
                       {tag}
                     </Badge>
                   ))}
