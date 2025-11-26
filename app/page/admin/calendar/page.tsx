@@ -7,6 +7,12 @@ import { EventInfoModal } from "@/components/modal/event-info-modal";
 import { EventDetails, CalendarDayType, Reservation } from "@/interface/user-props";
 import { apiClient } from "@/lib/api-client";
 
+interface Asset {
+  id: number;
+  asset_name: string;
+  capacity: number;
+}
+
 export default function AdminCalendarTab() {
   // Modal states
   const [modalOpen, setModalOpen] = useState(false);
@@ -15,11 +21,14 @@ export default function AdminCalendarTab() {
   const [selectedDay, setSelectedDay] = useState<CalendarDayType | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-  
+
   // Reservations state
   const [allReservations, setAllReservations] = useState<Reservation[]>([]);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Assets state - NEW
+  const [assets, setAssets] = useState<Map<number, Asset>>(new Map());
 
   // Loading states
   const [loading, setLoading] = useState(false);
@@ -28,6 +37,35 @@ export default function AdminCalendarTab() {
 
   // Show recent events state
   const [showRecent, setShowRecent] = useState(false);
+
+  // Fetch assets function - NEW
+  const fetchAssets = useCallback(async (assetIds: number[]) => {
+    const uniqueIds = [...new Set(assetIds)];
+    const missingIds = uniqueIds.filter(id => !assets.has(id));
+
+    if (missingIds.length === 0) return;
+
+    try {
+      // Fetch all missing assets
+      const assetPromises = missingIds.map(id =>
+        apiClient.get<Asset[]>(`/reservations/${id}`)
+      );
+
+      const responses = await Promise.all(assetPromises);
+
+      const newAssets = new Map(assets);
+      responses.forEach((response, index) => {
+        if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+          const asset = response.data[0];
+          newAssets.set(missingIds[index], asset);
+        }
+      });
+
+      setAssets(newAssets);
+    } catch (error) {
+      console.error('Error fetching assets:', error);
+    }
+  }, [assets]);
 
   // Fetch reservations function with lastUpdate parameter
   const fetchReservations = useCallback(async () => {
@@ -49,7 +87,12 @@ export default function AdminCalendarTab() {
       // Check if response.data is an array directly
       if (response.data && Array.isArray(response.data)) {
         setAllReservations(response.data);
-        setLastUpdate(new Date()); // Update timestamp after successful fetch
+
+        // Extract asset IDs and fetch assets - NEW
+        const assetIds = response.data.map(r => r.asset_id);
+        await fetchAssets(assetIds);
+
+        setLastUpdate(new Date());
         setError(null);
       } else {
         setError("Unexpected response format from server");
@@ -63,7 +106,7 @@ export default function AdminCalendarTab() {
   }, [lastUpdate]);
 
   // Handle new reservation from modal
-  const handleNewReservation = useCallback((newReservation: Reservation) => {
+  const handleNewReservation = useCallback(async (newReservation: Reservation) => {
     setAllReservations((prevReservations) => {
       const reservationExists = prevReservations.some(
         (reservation) => reservation.id === newReservation.id
@@ -80,6 +123,7 @@ export default function AdminCalendarTab() {
       return [...prevReservations, newReservation];
     });
 
+    await fetchAssets([newReservation.asset_id]);
   }, [fetchReservations]);
 
   // Initial fetch of reservations on mount
@@ -89,34 +133,37 @@ export default function AdminCalendarTab() {
 
   // Convert reservations to events format for calendar
   const events: EventDetails[] = useMemo(() => {
-    
-    return allReservations.map(reservation => ({
-      id: reservation.id,
-      title_name: reservation.title_name,
-      date: reservation.date,
-      time_start: reservation.time_start,
-      time_end: reservation.time_end,
-      asset: {
-        id: reservation.asset_id,
-        asset_name: `Asset #${reservation.asset_id}`, // Changed to show asset ID
-        capacity: 0,
-      },
-      category: reservation.category,
-      info_type: reservation.info_type,
-      description: reservation.description,
-      people_tag: reservation.people_tag.split(", "),
-      range: reservation.range,
-      registration_status: reservation.status.toUpperCase() as "PENDING" | "APPROVED" | "REJECTED",
-      registration_deadline: reservation.date,
-      reserve_by: `User #${reservation.reserve_by_user}`, // Added reserve_by_user
-    }));
-  }, [allReservations]);
+    return allReservations.map(reservation => {
+      const asset = assets.get(reservation.asset_id);
+
+      return {
+        id: reservation.id,
+        title_name: reservation.title_name,
+        date: reservation.date,
+        time_start: reservation.time_start,
+        time_end: reservation.time_end,
+        asset: {
+          id: reservation.asset_id,
+          asset_name: asset?.asset_name || `Asset #${reservation.asset_id}`,
+          capacity: asset?.capacity || 0,
+        },
+        category: reservation.category,
+        info_type: reservation.info_type,
+        description: reservation.description,
+        people_tag: reservation.people_tag.split(", "),
+        range: reservation.range,
+        registration_status: reservation.status.toUpperCase() as "PENDING" | "APPROVED" | "REJECTED",
+        registration_deadline: reservation.date,
+        reserve_by: `User #${reservation.reserve_by_user}`,
+      };
+    });
+  }, [allReservations, assets]);
 
   // Get events for a particular day
   const getEventsForDate = useCallback((year: number, month: number, day: number) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     const dayEvents = events.filter(event => event.date === dateStr);
-    
+
     return {
       hasEvent: dayEvents.length > 0,
       count: dayEvents.length
@@ -130,7 +177,7 @@ export default function AdminCalendarTab() {
     const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(selectedDay.date).padStart(2, "0")}`;
 
     const dayEvents = events.filter((event) => event.date === dateStr);
-    
+
     return dayEvents;
   }, [events, selectedDay, currentMonth, currentYear]);
 

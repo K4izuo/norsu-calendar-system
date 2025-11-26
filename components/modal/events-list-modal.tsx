@@ -20,7 +20,7 @@ import { EventCardsList } from "@/components/ui/events-list-card"
 
 // Simplified status types
 type EventStatus = "pending" | "approved" | "rejected"
-type Role = "student" | "faculty" | "staff" | "admin" | "public" | undefined
+type Role = "dean" | "staff" | "admin" | "public" | undefined
 
 // Role-based color mapping for loading state
 const getRoleLoadingColors = (role: Role) => {
@@ -29,7 +29,7 @@ const getRoleLoadingColors = (role: Role) => {
       spinner: "border-green-500",
       icon: "text-green-500"
     },
-    faculty: {
+    dean: {
       spinner: "border-blue-500",
       icon: "text-blue-500"
     },
@@ -47,7 +47,7 @@ const getRoleLoadingColors = (role: Role) => {
     }
   };
 
-  return colorMap[role || "public"] || colorMap.student; // Default to student colors
+  return colorMap[role || "public"] // Default to student colors
 };
 
 // Make this a regular function instead of using useCallback at module level
@@ -60,8 +60,30 @@ const getStartedAgo = (eventDate: string, eventTime: string): string | null => {
     if (isNaN(eventStart.getTime())) return null;
 
     const now = new Date();
-    if (eventStart > now) return "Upcoming";
 
+    // If event is in the future
+    if (eventStart > now) {
+      const diffMs = eventStart.getTime() - now.getTime();
+      // const diffMins = Math.floor(diffMs / 60000);
+
+      // If event is today but later
+      const isToday = eventStart.toDateString() === now.toDateString();
+
+      if (isToday) {
+        // Format time to 12-hour format with AM/PM
+        const hours = eventStart.getHours();
+        const minutes = eventStart.getMinutes();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const displayHours = hours % 12 || 12;
+        const displayMinutes = minutes.toString().padStart(2, '0');
+        return `Starts at ${displayHours}:${displayMinutes} ${ampm}`;
+      } else {
+        // Event is on a future date
+        return "Upcoming";
+      }
+    }
+
+    // Event has already started
     const diffMs = now.getTime() - eventStart.getTime();
     const diffMins = Math.floor(diffMs / 60000);
     if (diffMins < 1) return "Started just now";

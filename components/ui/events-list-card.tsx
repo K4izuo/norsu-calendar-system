@@ -80,7 +80,7 @@ export const EventCardsList = React.memo(function EventCardsList({
               <div className="flex items-center text-muted-foreground">
                 <Users className="h-4 w-4 mr-3 text-primary" />
                 <span className="text-base font-medium">
-                  {event.asset?.capacity} capacity
+                  {event.asset?.capacity}
                 </span>
               </div>
               <div className="flex items-center text-muted-foreground">

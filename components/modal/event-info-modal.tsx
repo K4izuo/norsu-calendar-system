@@ -69,17 +69,39 @@ const getStatusColor = (status: "PENDING" | "APPROVED" | "REJECTED") => {
 };
 
 // Added getStartedAgo function
-const getStartedAgo = (eventDate: string, time_start: string, time_end: string): string | null => {
-  if (!eventDate || !time_start) return null;
+const getStartedAgo = (eventDate: string, eventTime: string): string | null => {
+  if (!eventDate || !eventTime) return null;
   try {
-    const [startTimeRaw] = time_start.split("-");
+    const [startTimeRaw] = eventTime.split("-");
     const startTime = startTimeRaw.trim();
     const eventStart = new Date(`${eventDate} ${startTime}`);
     if (isNaN(eventStart.getTime())) return null;
 
     const now = new Date();
-    if (eventStart > now) return "Upcoming";
 
+    // If event is in the future
+    if (eventStart > now) {
+      const diffMs = eventStart.getTime() - now.getTime();
+      // const diffMins = Math.floor(diffMs / 60000);
+
+      // If event is today but later
+      const isToday = eventStart.toDateString() === now.toDateString();
+
+      if (isToday) {
+        // Format time to 12-hour format with AM/PM
+        const hours = eventStart.getHours();
+        const minutes = eventStart.getMinutes();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const displayHours = hours % 12 || 12;
+        const displayMinutes = minutes.toString().padStart(2, '0');
+        return `Starts at ${displayHours}:${displayMinutes} ${ampm}`;
+      } else {
+        // Event is on a future date
+        return "Upcoming";
+      }
+    }
+
+    // Event has already started
     const diffMs = now.getTime() - eventStart.getTime();
     const diffMins = Math.floor(diffMs / 60000);
     if (diffMins < 1) return "Started just now";
@@ -126,7 +148,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
   }, [isOpen, onClose]);
 
   // Get the started ago text if event exists
-  const startedAgoText = event ? getStartedAgo(event.date, event.time_start, event.time_end) : null;
+  const startedAgoText = event ? getStartedAgo(event.date, event.time_start) : null;
 
   // Asset information
   const asset = event?.asset;
@@ -357,7 +379,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                       </div>
                       <div>
                         <p className="text-base text-gray-500">Reservation Range</p>
-                        <p className="font-medium text-base">{event.date}</p>
+                        <p className="font-medium text-base">{`${event.range} ${event.range === 1 ? 'day' : 'days'}`}</p>
                       </div>
                       <div>
                         <p className="text-base text-gray-500">

@@ -21,6 +21,18 @@ import { AuthContext } from "@/contexts/auth-context";
 // import { UserProfileModal } from "@/components/modal/user-profile-modal";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import UserProfile from "@/components/ui/user-profile";
+import toast from "react-hot-toast"
+
+interface UserData {
+  name: string;
+  role: number;
+}
+
+const ROLE_MAP: Record<number, string> = {
+  2: "Faculty",
+  3: "Staff",
+  4: "Admin"
+};
 
 export default function StaffLayout({ children }: { children: React.ReactNode }) {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -28,6 +40,50 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const auth = useContext(AuthContext);
   const user = auth?.user;
+  const [userData, setUserData] = useState<UserData>({
+    name: "User",
+    role: 3
+  });
+
+  useEffect(() => {
+    try {
+      if (user) {
+        const roleValue = typeof user.role === 'string' ? parseInt(user.role, 10) : Number(user.role);
+
+        setUserData({
+          name:
+            `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim() ||
+            user.username ||
+            "User",
+          role: roleValue || 3,
+        });
+        return;
+      }
+
+      const storedUser = localStorage.getItem("user");
+      const storedRole = localStorage.getItem("role");
+
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        const parsedRole = storedRole ? Number(JSON.parse(storedRole)) : 3;
+
+        setUserData({
+          name:
+            `${parsedUser.first_name ?? ""} ${parsedUser.last_name ?? ""}`.trim() ||
+            parsedUser.username ||
+            "User",
+          role: parsedRole || 3,
+        });
+        return;
+      }
+    } catch (error) {
+      console.error("Error loading user data:", error);
+      toast.error(
+        "Error loading user data: " +
+        (error instanceof Error ? error.message : "Unknown error")
+      );
+    }
+  }, [user]);
 
   useEffect(() => {
     if (pathname?.includes("/asset-management")) {
@@ -201,8 +257,8 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
                   className="w-[280px] sm:w-80 bg-background border-border rounded-lg shadow-lg"
                 >
                   <UserProfile
-                    name={`${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim()}
-                    role={user?.role}
+                    name={userData.name}
+                    role={ROLE_MAP[userData.role] || "User"}
                     avatar="https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-01-n0x8HFv8EUetf9z6ht0wScJKoTHqf8.png"
                   />
                 </DropdownMenuContent>

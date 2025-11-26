@@ -54,7 +54,7 @@ export default function Home() {
         window.history.replaceState({}, '', url.toString());
       }
     } else if (error === 'unauthorized') {
-      toast.error("Access Denied. You don't have permission to view that page. Please log in.", {
+      toast.error("Access Denied. You don't have permission to view that page. Please log in again.", {
         duration: 5000,
       });
 

@@ -367,10 +367,10 @@ export function Calendar<T>({
                     <div className="flex justify-end items-start w-full">
                       <span
                         className={`text-sm md:text-md lg:text-lg ${day.isToday
-                            ? `${roleColors.todayText} font-bold`
-                            : day.currentMonth
-                              ? ""
-                              : "text-gray-400"
+                          ? `${roleColors.todayText} font-bold`
+                          : day.currentMonth
+                            ? ""
+                            : "text-gray-400"
                           }`}
                       >
                         {day.date}
@@ -391,10 +391,9 @@ export function Calendar<T>({
                               scale: 1,
                               opacity: 1,
                               transition: {
-                                delay: Math.min(0.01 * idx + 0.1, 0.4),
-                                type: "spring",
-                                stiffness: 500,
-                                damping: 15,
+                                delay: Math.min(0.01 * idx + 0.1, 0.3),
+                                duration: 0.2,
+                                ease: "easeOut"
                               },
                             }}
                           >
@@ -413,10 +412,9 @@ export function Calendar<T>({
                               scale: 1,
                               opacity: 1,
                               transition: {
-                                delay: Math.min(0.01 * idx + 0.1, 0.4),
-                                type: "spring",
-                                stiffness: 500,
-                                damping: 15,
+                                delay: Math.min(0.01 * idx + 0.1, 0.3),
+                                duration: 0.2,
+                                ease: "easeOut"
                               },
                             }}
                           >
@@ -433,7 +431,7 @@ export function Calendar<T>({
                             animate={{
                               opacity: 1,
                               transition: {
-                                delay: Math.min(0.01 * idx + 0.2, 0.5),
+                                delay: Math.min(0.01 * idx + 0.2, 0.4),
                                 duration: 0.3,
                               },
                             }}
