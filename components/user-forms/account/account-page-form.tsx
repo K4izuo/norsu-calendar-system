@@ -127,7 +127,7 @@ export const AccountPageLayout = React.memo(({
   )
 
   return (
-    <div className={`min-h-[100dvh] w-full bg-gradient-to-br ${theme.bgGradient} flex items-center justify-center py-6 px-2 sm:px-4 lg:px-6 relative font-['Poppins'] overflow-hidden`}>
+    <div className={`min-h-dvh w-full bg-linear-to-br ${theme.bgGradient} flex items-center justify-center py-6 px-2 sm:px-4 lg:px-6 relative font-['Poppins'] overflow-hidden`}>
       <BgBlobs color={theme.color as "blue" | "purple"} />
       
       <motion.div

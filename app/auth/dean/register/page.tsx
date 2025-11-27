@@ -115,7 +115,7 @@ export default function DeanRegisterPage() {
   if (!shouldRender) return null;
 
   return (
-    <div className="min-h-[100dvh] w-full bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center py-6 px-2 sm:px-4 lg:px-6 relative overflow-hidden">
+    <div className="min-h-dvh w-full bg-linear-to-br from-blue-50 to-indigo-50 flex items-center justify-center py-6 px-2 sm:px-4 lg:px-6 relative overflow-hidden">
       <div className="absolute top-0 left-0 w-32 h-32 bg-blue-600 rounded-full opacity-10 -translate-x-16 -translate-y-16"></div>
       <div className="absolute bottom-0 right-0 w-48 h-48 bg-indigo-500 rounded-full opacity-10 translate-x-24 translate-y-24"></div>
       <div className="absolute top-1/2 left-0 w-24 h-24 bg-blue-500 rounded-full opacity-10 -translate-x-12"></div>

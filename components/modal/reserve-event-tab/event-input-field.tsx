@@ -24,7 +24,7 @@ export const EventFormInput = <T extends FieldValues>({
   className,
   ...inputProps
 }: EventFormInputProps<T>) => {
-  const inputClassName = `h-12 text-base border-2 rounded-lg focus:border-ring transition-all duration-[90ms] ${
+  const inputClassName = `h-12 text-base border-2 rounded-lg focus:border-ring transition-all duration-90 ${
     errors[name] ? "border-red-400" : "border-gray-200"
   }`;
 

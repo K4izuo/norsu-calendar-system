@@ -123,7 +123,7 @@ export default function UserProfile({
               type="button"
               onClick={handleLogout}
               className="w-full cursor-pointer bg-white shadow-none flex items-center justify-between p-2 
-                                hover:bg-zinc-100 dark:hover:bg-zinc-800/100 
+                                hover:bg-zinc-100 dark:hover:bg-zinc-800 
                                 rounded-lg transition-colors duration-200"
             >
               <div className="flex items-center gap-2">

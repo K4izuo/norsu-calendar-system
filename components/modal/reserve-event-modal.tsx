@@ -190,7 +190,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
             duration: 0.25,
             ease: [0.22, 1, 0.36, 1]
           }}
-          className="relative w-full max-w-[864px] sm:mx-4 mx-[1px] max-h-[92vh] bg-white rounded-lg shadow-xl overflow-hidden flex flex-col"
+          className="relative w-full max-w-[864px] sm:mx-4 mx-px max-h-[92vh] bg-white rounded-lg shadow-xl overflow-hidden flex flex-col"
           style={{
             transform: "translateZ(0)",
             backfaceVisibility: "hidden",

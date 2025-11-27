@@ -22,7 +22,7 @@ export default function StaffLoginPage() {
   } = useLoginForm()
 
   return (
-    <div className="min-h-[100dvh] w-full bg-gradient-to-br from-purple-50 to-purple-100 font-['Poppins'] flex items-center justify-center py-6 px-3 sm:px-4 lg:px-6 relative overflow-hidden">
+    <div className="min-h-dvh w-full bg-linear-to-br from-purple-50 to-purple-100 font-['Poppins'] flex items-center justify-center py-6 px-3 sm:px-4 lg:px-6 relative overflow-hidden">
 
       <div className="absolute top-0 left-0 w-48 h-48 bg-purple-400 rounded-full opacity-20 -translate-x-24 -translate-y-24"></div>
       <div className="absolute top-0 right-0 w-48 h-48 bg-purple-500 rounded-full opacity-10 translate-x-24 -translate-y-24"></div>
@@ -35,7 +35,7 @@ export default function StaffLoginPage() {
         className="bg-white rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden w-[96%] max-w-4xl grid grid-cols-1 md:grid-cols-2 relative"
       >
         {/* Left Side */}
-        <div className="hidden md:flex bg-gradient-to-br from-purple-400 to-purple-600 p-4 sm:p-6 lg:p-8 text-white flex-col items-center justify-center relative min-h-[380px]">
+        <div className="hidden md:flex bg-linear-to-br from-purple-400 to-purple-600 p-4 sm:p-6 lg:p-8 text-white flex-col items-center justify-center relative min-h-[380px]">
           <div className="absolute top-2 right-2 sm:top-4 sm:right-4 w-8 h-8 sm:w-12 sm:h-12 lg:w-16 lg:h-16 bg-white/10 rounded-full"></div>
           <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 lg:bottom-8 lg:left-8 w-6 h-6 sm:w-8 sm:h-8 lg:w-12 lg:h-12 bg-white/10 rounded-full"></div>
           <div className="space-y-6 text-center z-10 flex flex-col items-center justify-center h-full">

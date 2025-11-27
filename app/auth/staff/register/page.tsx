@@ -107,7 +107,7 @@ export default function StaffRegisterPage() {
   if (!shouldRender) return null;
 
   return (
-    <div className="min-h-[100dvh] w-full bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center py-6 px-2 sm:px-4 lg:px-6 relative overflow-hidden">
+    <div className="min-h-dvh w-full bg-linear-to-r from-purple-50 to-purple-100 flex items-center justify-center py-6 px-2 sm:px-4 lg:px-6 relative overflow-hidden">
       <div className="absolute top-0 left-0 w-48 h-48 bg-purple-400 rounded-full opacity-20 -translate-x-24 -translate-y-24"></div>
       <div className="absolute top-0 right-0 w-48 h-48 bg-purple-500 rounded-full opacity-10 translate-x-24 -translate-y-24"></div>
       <div className="absolute bottom-0 right-0 w-48 h-48 bg-purple-500 rounded-full opacity-20 translate-x-24 translate-y-24"></div>

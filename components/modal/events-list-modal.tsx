@@ -182,15 +182,8 @@ export function EventsListModal({
       <AnimatePresence>
         {isOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overscroll-none">
-            <motion.div
+            <div
               className="absolute inset-0 bg-black/60 sm:backdrop-blur-sm"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{
-                duration: 0.25,
-                ease: [0.22, 1, 0.36, 1],
-              }}
             />
 
             {/* Modal content */}
@@ -207,7 +200,7 @@ export function EventsListModal({
               className="relative max-w-[864px] bg-background rounded-2xl shadow-2xl w-[99%] sm:w-full sm:mx-4 overflow-hidden flex flex-col max-h-[88vh] border border-border/50"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="bg-card border-b border-border/100 p-4 sm:p-6">
+              <div className="bg-card border-b border-border p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4 sm:mb-6">
                   <h2 className="text-lg sm:text-2xl font-bold text-foreground text-balance">{title}</h2>
                   <Button
@@ -225,7 +218,7 @@ export function EventsListModal({
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
                     <Input
                       type="text"
-                      className="pl-10 h-11 bg-background border-border focus:border-primary focus:ring-primary/20 transition-all duration-[90ms]"
+                      className="pl-10 h-11 bg-background border-border focus:border-primary focus:ring-primary/20 transition-all duration-90"
                       placeholder="Search events..."
                       value={searchTerm}
                       onChange={e => setSearchTerm(e.target.value)}

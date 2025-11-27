@@ -86,7 +86,7 @@ export const AssetsVenueModal = React.memo(function AssetsVenueModal({
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="sticky top-0 bg-white z-10 p-4 sm:p-6 pb-4 sm:pb-6 border-b border-gray-200 flex-shrink-0">
+          <div className="sticky top-0 bg-white z-10 p-4 sm:p-6 pb-4 sm:pb-6 border-b border-gray-200 shrink-0">
             <div className="flex justify-between items-center">
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
                 <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">

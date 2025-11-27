@@ -1,5 +1,8 @@
+"use client";
+
 import { Boxes } from "lucide-react";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { ClientOnly } from "@/components/ui/client-only";
 
 export default function AdminAssetsChart() {
   return (
@@ -9,33 +12,36 @@ export default function AdminAssetsChart() {
           <Boxes className="w-6 h-6 text-gray-800" />
           <h1 className="text-lg font-semibold text-gray-800">Assets Overview</h1>
         </div>
-        <Select defaultValue="assets">
-          <SelectTrigger className="w-[120px] cursor-pointer h-8 border-gray-300">
-            <span className="flex items-center gap-2">
-              <SelectValue placeholder="Select type" />
-            </span>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="assets" className="cursor-pointer">
+
+        <ClientOnly>
+          <Select defaultValue="assets">
+            <SelectTrigger className="w-[120px] cursor-pointer h-8 border-gray-300">
               <span className="flex items-center gap-2">
-                <span className="w-3 h-3 bg-blue-500 rounded-full"></span>
-                Assets
+                <SelectValue placeholder="Select type" />
               </span>
-            </SelectItem>
-            <SelectItem value="liabilities" className="cursor-pointer">
-              <span className="flex items-center gap-2">
-                <span className="w-3 h-3 bg-red-500 rounded-full"></span>
-                Liabilities
-              </span>
-            </SelectItem>
-            <SelectItem value="inventory" className="cursor-pointer">
-              <span className="flex items-center gap-2">
-                <span className="w-3 h-3 bg-green-500 rounded-full"></span>
-                Inventory
-              </span>
-            </SelectItem>
-          </SelectContent>
-        </Select>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="assets" className="cursor-pointer">
+                <span className="flex items-center gap-2">
+                  <span className="w-3 h-3 bg-blue-500 rounded-full"></span>
+                  Assets
+                </span>
+              </SelectItem>
+              <SelectItem value="liabilities" className="cursor-pointer">
+                <span className="flex items-center gap-2">
+                  <span className="w-3 h-3 bg-red-500 rounded-full"></span>
+                  Liabilities
+                </span>
+              </SelectItem>
+              <SelectItem value="inventory" className="cursor-pointer">
+                <span className="flex items-center gap-2">
+                  <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+                  Inventory
+                </span>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </ClientOnly>
       </div>
       {/* Chart goes here */}
     </div>

@@ -89,7 +89,7 @@ export function ReserveEventAdditionalTab({
                     // Ensure field is marked as touched when focused
                     field.onChange(taggedPeople.map(p => p.name).join(', '));
                   }}
-                  className={`h-12 border-2 text-base w-full focus:border-ring transition-all duration-[95ms] ${
+                  className={`h-12 border-2 text-base w-full focus:border-ring transition-all duration-90 ${
                     (errors.people_tag || (invalid && isTouched && taggedPeople.length === 0)) ? "border-red-500 focus:border-red-500" : "border-gray-200"
                   }`}
                   autoComplete="off"
@@ -153,7 +153,7 @@ export function ReserveEventAdditionalTab({
             rules={validationRules.info_type}
             render={({ field }) => (
               <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger id="infoType" name="info_type" className={`${getFieldClass(!!errors.info_type)} transition-all duration-[90ms]`}>
+                <SelectTrigger id="infoType" name="info_type" className={`${getFieldClass(!!errors.info_type)} transition-all duration-90`}>
                   <SelectValue placeholder="Select information type" />
                 </SelectTrigger>
                 <SelectContent>

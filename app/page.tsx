@@ -257,7 +257,7 @@ export default function Home() {
           </p>
         </div>
         {/* Auth buttons */}
-        <div className="flex items-center space-x-1 flex-shrink-0 mt-2 sm:mt-0 w-full sm:w-auto justify-center sm:justify-end">
+        <div className="flex items-center space-x-1 shrink-0 mt-2 sm:mt-0 w-full sm:w-auto justify-center sm:justify-end">
           <Button
             variant="ghost"
             className="cursor-pointer text-base sm:text-lg md:text-xl px-2"

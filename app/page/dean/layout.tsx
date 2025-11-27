@@ -59,7 +59,7 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
         </div>
 
         <div className="flex-none px-4 pb-0 pt-0">
-          <span className="h-[2px] w-full block bg-gradient-to-r from-blue-700 via-white to-blue-700 rounded-full opacity-70"></span>
+          <span className="h-[2px] w-full block bg-linear-to-r from-blue-700 via-white to-blue-700 rounded-full opacity-70"></span>
         </div>
 
         <div className="flex-1 px-4 py-6 overflow-y-auto">

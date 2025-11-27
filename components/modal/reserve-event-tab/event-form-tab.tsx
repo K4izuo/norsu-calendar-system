@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Control, FieldErrors, Controller, UseFormRegister, FieldErrorsImpl, Merge, FieldError, RegisterOptions } from "react-hook-form"
+import { Control, FieldErrors, Controller, UseFormRegister, FieldErrorsImpl, Merge, FieldError } from "react-hook-form"
 import { ReservationFormData } from "@/interface/user-props"
 import { EventFormInput } from "./event-input-field"
 
@@ -62,7 +62,7 @@ export function ReserveEventFormTab({
                   value={selectedAsset ? `selected-${selectedAsset.id}` : ""}
                   onValueChange={handleAssetChange}
                 >
-                  <SelectTrigger id="asset" className={`mt-1 cursor-pointer border-2 text-base w-full h-12 focus:border-ring transition-all duration-[95ms] ${errors.asset ? "border-red-400" : "border-gray-200"}`}>
+                  <SelectTrigger id="asset" className={`mt-1 cursor-pointer border-2 text-base w-full h-12 focus:border-ring transition-all duration-90 ${errors.asset ? "border-red-400" : "border-gray-200"}`}>
                     <SelectValue placeholder="Select an asset" />
                   </SelectTrigger>
                   <SelectContent>
