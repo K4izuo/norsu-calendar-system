@@ -149,8 +149,8 @@ export const LoginFormLayout = memo(function LoginFormLayout({
               </>
             ) : isSuccess ? (
               <>
-                <Check className="h-5 w-5" />
-                Login Successful
+                {/* <Check className="h-5 w-5" /> */}
+                LOGIN
               </>
             ) : (
               "LOGIN"

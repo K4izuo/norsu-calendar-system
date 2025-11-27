@@ -17,38 +17,11 @@ import type { EventsListModalProps, EventDetails, ReservationAPIPayload, Reserva
 // import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Input } from "../ui/input"
 import { EventCardsList } from "@/components/ui/events-list-card"
+import { getRoleColors } from "@/utils/role-colors"
 
 // Simplified status types
 type EventStatus = "pending" | "approved" | "rejected"
 type Role = "dean" | "staff" | "admin" | "public" | undefined
-
-// Role-based color mapping for loading state
-const getRoleLoadingColors = (role: Role) => {
-  const colorMap = {
-    student: {
-      spinner: "border-green-500",
-      icon: "text-green-500"
-    },
-    dean: {
-      spinner: "border-blue-500",
-      icon: "text-blue-500"
-    },
-    staff: {
-      spinner: "border-purple-500",
-      icon: "text-purple-500"
-    },
-    admin: {
-      spinner: "border-gray-700",
-      icon: "text-gray-700"
-    },
-    public: {
-      spinner: "border-teal-500",
-      icon: "text-teal-500"
-    }
-  };
-
-  return colorMap[role || "public"] // Default to student colors
-};
 
 // Make this a regular function instead of using useCallback at module level
 const getStartedAgo = (eventDate: string, eventTime: string): string | null => {
@@ -126,7 +99,7 @@ export function EventsListModal({
   const recentLoadingTimeout = useRef<NodeJS.Timeout | null>(null)
 
   // Get role-specific loading colors
-  const roleLoadingColors = getRoleLoadingColors(role);
+  const roleLoadingColors = getRoleColors(role);
 
   // Filter events by search term and mode
   const filteredEvents = React.useMemo(() => {
