@@ -236,7 +236,7 @@ export default function AdminCalendarTab() {
       )}
 
       {/* Calendar container */}
-      <div className="bg-white rounded-md shadow-sm flex flex-col flex-1 p-3 sm:p-6 md:p-7">
+      <div className="bg-white rounded-md shadow-sm flex flex-col flex-1 p-3 sm:p-6 md:p-6.5">
         <Calendar
           role="admin"
           events={events}
