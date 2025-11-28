@@ -281,8 +281,8 @@ export default function Home() {
       {/* Main container */}
       <div className="w-full flex flex-col flex-1">
         {/* Content area */}
-        <div className="flex-1 flex justify-center p-3.5 sm:p-6 md:p-6 lg:p-8">
-          <div className="w-full flex flex-col lg:flex-row gap-4 lg:gap-8 flex-1">
+        <div className="flex-1 flex justify-center p-3.5 sm:p-6 md:p-6">
+          <div className="w-full flex flex-col lg:flex-row gap-4 lg:gap-6 flex-1">
             {/* Sidebar */}
             <div className="w-full lg:w-[320px] h-[400px] lg:h-[502px] bg-white rounded-md shadow-md flex flex-col p-4 sm:p-6">
               <h2 className="text-2xl font-semibold mb-4 text-gray-700 text-center">

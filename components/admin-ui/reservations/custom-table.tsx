@@ -83,7 +83,7 @@ export function ReservationsTable() {
       <div className="rounded-md overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow className="bg-gray-100 hover:bg-muted">
+            <TableRow className="bg-gray-100 hover:bg-gray-100">
               <TableHead className="h-12 px-6 py-3 text-sm font-medium text-muted-foreground text-left">
                 Event name
               </TableHead>

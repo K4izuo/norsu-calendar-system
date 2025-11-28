@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { X, CalendarDays } from "lucide-react"
+import { X, CalendarDays, Edit } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { ReserveEventFormTab } from "@/components/modal/reserve-event-tab/event-form-tab"
@@ -12,7 +12,7 @@ import { AssetsVenueModal } from "@/components/modal/reserve-event-assets/assets
 import { AssetsVehicleModal } from "@/components/modal/reserve-event-assets/assets-vehicle-modal"
 import { useAssets } from "@/services/academicDataService"
 import { useReserveEventForm } from "@/hooks/useReserveEventForm"
-import { Reservation, ReservationAPIPayload } from "@/interface/user-props"
+import { Reservation, ReservationAPIPayload, EventDetails } from "@/interface/user-props"
 
 const infoTypes = [
   { value: "public", label: "Public" },
@@ -33,9 +33,11 @@ interface ModalProps {
   onSubmit?: (data: ReservationAPIPayload) => void
   eventDate?: string | undefined
   onNewReservation?: (reservation: Reservation) => void
+  editMode?: boolean
+  eventData?: EventDetails
 }
 
-export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewReservation }: ModalProps) {
+export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewReservation, editMode = false, eventData }: ModalProps) {
   const contentRef = useRef<HTMLDivElement>(null)
 
   const { assets, loading: assetsLoading, error: assetsError } = useAssets();
@@ -67,8 +69,10 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
     handleFormTabNext,
     handleAdditionalTabNext,
     handleFormSubmit,
-    validationRules
-  } = useReserveEventForm({ eventDate, onSubmit, onClose, isOpen, onNewReservation });
+    validationRules,
+    setValue,
+    setTaggedPeople
+  } = useReserveEventForm({ eventDate, onSubmit, onClose, isOpen, onNewReservation, editMode, eventData });
 
   const [loadingVenueAssets, setLoadingVenueAssets] = useState(false);
   const [loadingVehicleAssets, setLoadingVehicleAssets] = useState(false);
@@ -89,6 +93,32 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
       { id: 2, asset_name: "Assets Vehicle", capacity: 0 }
     ];
   }, []);
+
+  // Populate form with edit data
+  useEffect(() => {
+    if (editMode && eventData && isOpen) {
+      setValue('title_name', eventData.title_name || '');
+      setValue('description', eventData.description || '');
+      setValue('time_start', eventData.time_start || '');
+      setValue('time_end', eventData.time_end || '');
+      setValue('range', eventData.range || 1);
+      setValue('info_type', eventData.info_type || '');
+      setValue('category', eventData.category || '');
+      
+      if (eventData.asset) {
+        setValue('asset', eventData.asset);
+      }
+      
+      if (eventData.people_tag && eventData.people_tag.length > 0) {
+        const people = eventData.people_tag.map((name, index) => ({
+          id: `edit-${index}`,
+          name: name
+        }));
+        setTaggedPeople(people);
+        setValue('people_tag', eventData.people_tag.join(', '));
+      }
+    }
+  }, [editMode, eventData, isOpen, setValue, setTaggedPeople]);
 
   useEffect(() => {
     if (isOpen) {
@@ -202,9 +232,13 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
           <div className="sticky top-0 bg-white z-10 p-4 sm:p-6 pb-4 sm:pb-6 border-b border-gray-200">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
-                <CalendarDays strokeWidth={2.5} className="w-8 h-8 text-gray-800" />
+                {editMode ? (
+                  <Edit strokeWidth={2.5} className="w-8 h-8 text-gray-800" />
+                ) : (
+                  <CalendarDays strokeWidth={2.5} className="w-8 h-8 text-gray-800" />
+                )}
                 <h2 className="text-2xl sm:text-3xl font-semibold text-gray-800">
-                  Reservation Form
+                  {editMode ? "Update Reservation Form" : "Reservation Form"}
                 </h2>
               </div>
               <Button
@@ -354,7 +388,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
                         Processing...
                       </div>
                     ) : (
-                      "Submit Reservation"
+                      editMode ? "Update Reservation" : "Submit Reservation"
                     )}
                   </Button>
                 </div>

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState, useRef } from "react"
 import { useForm } from "react-hook-form"
 import toast from "react-hot-toast"
-import { ReservationFormData, ReservationAPIPayload, Reservation } from "@/interface/user-props"
+import { ReservationFormData, ReservationAPIPayload, Reservation, EventDetails } from "@/interface/user-props"
 import { RESERVATION_VALIDATION_RULES } from "@/utils/reserve-event/reservation-validation-rules"
 import { showFormTabErrorToast, showAdditionalTabErrorToast } from "@/utils/reserve-event/reservation-field-error-toast"
 import { apiClient } from "@/lib/api-client"
@@ -33,6 +33,8 @@ interface UseReserveEventFormProps {
   onClose: () => void
   isOpen: boolean
   onNewReservation?: (reservation: Reservation) => void
+  editMode?: boolean
+  eventData?: EventDetails
 }
 
 const getCurrentTime = () => {
@@ -40,7 +42,7 @@ const getCurrentTime = () => {
   return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 };
 
-export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservation }: UseReserveEventFormProps) => {
+export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservation, editMode = false, eventData }: UseReserveEventFormProps) => {
   const [activeTab, setActiveTab] = useState<string>("form");
   const [showVenueModal, setShowVenueModal] = useState(false);
   const [showVehicleModal, setShowVehicleModal] = useState(false);
@@ -87,12 +89,12 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
 
   // Reset time when modal opens
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !editMode) {
       const currentTime = getCurrentTime();
       setValue("time_start", currentTime);
       setValue("time_end", currentTime);
       setActiveTab("form");
-    } else {
+    } else if (!isOpen) {
       // Reset form when modal closes to ensure clean state on next open
       const currentTime = getCurrentTime();
       reset({
@@ -117,7 +119,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       setTaggedPeople([]);
       setTagInput("");
     }
-  }, [isOpen, setValue, reset, eventDate]);
+  }, [isOpen, setValue, reset, eventDate, editMode]);
 
   const handleAssetChange = (value: string) => {
     const numericValue = parseInt(value);
@@ -211,26 +213,45 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
           reserve_by_user: 1, // TODO: Replace with actual authenticated user ID
         };
 
-        // Correct API call — using the actual payload
-        const response = await apiClient.post<
-          ReservationResponse,
-          ReservationAPIPayload
-        >("/event/reservation", formDataWithPeople);
+        // Different API calls for create vs update
+        let response;
+        if (editMode && eventData?.id) {
+          // Update existing reservation
+          response = await apiClient.put<
+            ReservationResponse,
+            ReservationAPIPayload
+          >(`/event/reservation/${eventData.id}`, formDataWithPeople);
+          
+          if (response.error) {
+            const errorMsg = typeof response.error === "string"
+              ? response.error
+              : JSON.stringify(response.error);
+            toast.error(`Update failed: ${errorMsg}`);
+            return;
+          }
 
-        if (response.error) {
-          // Display detailed error message
-          const errorMsg = typeof response.error === "string"
-            ? response.error
-            : JSON.stringify(response.error);
-          toast.error(`Reservation failed: ${errorMsg}`);
-          return;
+          toast.success("Event reservation updated successfully!");
+        } else {
+          // Create new reservation
+          response = await apiClient.post<
+            ReservationResponse,
+            ReservationAPIPayload
+          >("/event/reservation", formDataWithPeople);
+
+          if (response.error) {
+            const errorMsg = typeof response.error === "string"
+              ? response.error
+              : JSON.stringify(response.error);
+            toast.error(`Reservation failed: ${errorMsg}`);
+            return;
+          }
+
+          if (response.data?.reservation) {
+            onNewReservation?.(response.data.reservation);
+          }
+
+          toast.success("Event reservation sent successfully!");
         }
-
-        if (response.data?.reservation) {
-          onNewReservation?.(response.data.reservation);
-        }
-
-        toast.success("Event reservation sent successfully!");
 
         const currentTime = getCurrentTime();
 
@@ -262,16 +283,12 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         setActiveTab("form");
         onClose();
 
-        // setTimeout(() => {
-        //   onClose();
-        // }, 1000);
-
       } catch (error) {
         console.error("Reservation error:", error);
-        toast.error("Failed to reserve event. Please try again.");
+        toast.error(editMode ? "Failed to update event. Please try again." : "Failed to reserve event. Please try again.");
       }
     },
-    [reset, onClose, taggedPeople, eventDate, onNewReservation]
+    [reset, onClose, taggedPeople, eventDate, onNewReservation, editMode, eventData]
   );
 
   const handleFormTabNext = useCallback(() => {
@@ -331,6 +348,8 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
     peopleFieldRef,
     watchedAsset: watch("asset"),
     getValues,
+    setValue,
+    setTaggedPeople,
     handleAssetChange,
     handleAssetItemSelect,
     handleTagInputChange,
