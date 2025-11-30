@@ -38,33 +38,49 @@ export default function Home() {
   // Show recent events state
   const [showRecent, setShowRecent] = useState(false);
 
-  // Check for error parameter and show toast
+  // Check for error parameter and show toast (prevents duplicates)
   useEffect(() => {
     const error = searchParams?.get('error');
 
+    if (!error) return;
+
+    // Check if we've already shown this toast
+    const toastKey = `toast-${error}-${Date.now()}`;
+    const hasShown = sessionStorage.getItem('last-toast-error');
+
+    if (hasShown === error) {
+      // Already shown, just clean up URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete('error');
+      window.history.replaceState({}, '', url.toString());
+      return;
+    }
+
+    // Mark this error as shown
+    sessionStorage.setItem('last-toast-error', error);
+
+    // Show the appropriate toast
     if (error === 'session_expired') {
       toast.error("Session Expired. You don't have permission to view that page. Please log in again.", {
         duration: 5000,
+        id: toastKey, // Prevents duplicate toasts with same ID
       });
-
-      // Remove the error parameter from URL without page reload
-      if (typeof window !== 'undefined') {
-        const url = new URL(window.location.href);
-        url.searchParams.delete('error');
-        window.history.replaceState({}, '', url.toString());
-      }
     } else if (error === 'unauthorized') {
       toast.error("Access Denied. You don't have permission to view that page. Please log in again.", {
-        duration: 5000,
+        duration: 4000,
+        id: toastKey, // Prevents duplicate toasts with same ID
       });
-
-      // Remove the error parameter from URL without page reload
-      if (typeof window !== 'undefined') {
-        const url = new URL(window.location.href);
-        url.searchParams.delete('error');
-        window.history.replaceState({}, '', url.toString());
-      }
     }
+
+    // Clean up the URL
+    const url = new URL(window.location.href);
+    url.searchParams.delete('error');
+    window.history.replaceState({}, '', url.toString());
+
+    // Clear the flag after a delay so it can show again on next error
+    setTimeout(() => {
+      sessionStorage.removeItem('last-toast-error');
+    }, 500);
   }, [searchParams]);
 
   // Sample events for demonstration

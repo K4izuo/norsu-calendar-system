@@ -133,30 +133,32 @@ export default function AdminCalendarTab() {
 
   // Convert reservations to events format for calendar
   const events: EventDetails[] = useMemo(() => {
-    return allReservations.map(reservation => {
-      const asset = assets.get(reservation.asset_id);
+    return allReservations
+      .filter(reservation => reservation.status.toUpperCase() === "APPROVED")
+      .map(reservation => {
+        const asset = assets.get(reservation.asset_id);
 
-      return {
-        id: reservation.id,
-        title_name: reservation.title_name,
-        date: reservation.date,
-        time_start: reservation.time_start,
-        time_end: reservation.time_end,
-        asset: {
-          id: reservation.asset_id,
-          asset_name: asset?.asset_name || `Asset #${reservation.asset_id}`,
-          capacity: asset?.capacity || 0,
-        },
-        category: reservation.category,
-        info_type: reservation.info_type,
-        description: reservation.description,
-        people_tag: reservation.people_tag.split(", "),
-        range: reservation.range,
-        registration_status: reservation.status.toUpperCase() as "PENDING" | "APPROVED" | "REJECTED",
-        registration_deadline: reservation.date,
-        reserve_by: `User #${reservation.reserve_by_user}`,
-      };
-    });
+        return {
+          id: reservation.id,
+          title_name: reservation.title_name,
+          date: reservation.date,
+          time_start: reservation.time_start,
+          time_end: reservation.time_end,
+          asset: {
+            id: reservation.asset_id,
+            asset_name: asset?.asset_name || `Asset #${reservation.asset_id}`,
+            capacity: asset?.capacity || 0,
+          },
+          category: reservation.category,
+          info_type: reservation.info_type,
+          description: reservation.description,
+          people_tag: reservation.people_tag.split(", "),
+          range: reservation.range,
+          registration_status: reservation.status.toUpperCase() as "PENDING" | "APPROVED" | "REJECTED",
+          registration_deadline: reservation.date,
+          reserve_by: `User #${reservation.reserve_by_user}`,
+        };
+      });
   }, [allReservations, assets]);
 
   // Get events for a particular day
@@ -283,6 +285,7 @@ export default function AdminCalendarTab() {
           onClose={() => setEventInfoModalOpen(false)}
           event={selectedEvent}
           loading={eventInfoLoading}
+          showBackdropBlur={false}
         />
       </div>
     </div>

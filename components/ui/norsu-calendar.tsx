@@ -385,7 +385,7 @@ export function Calendar<T>({
                         <>
                           {/* Desktop/Tablet: Top-left calendar icon and count */}
                           <motion.div
-                            className={`hidden sm:inline-flex items-center ${roleColors.todayText} px-1 sm:px-1.5 py-0.5 rounded-xl text-xs sm:text-sm md:text-base font-semibold absolute top-1.5 left-[3px]`}
+                            className={`hidden sm:inline-flex items-center ${roleColors.todayText} px-1 sm:px-1.5 py-0.5 rounded-xl text-xs sm:text-sm md:text-base font-semibold absolute top-[7px] left-[3px]`}
                             initial={{ scale: 0, opacity: 0 }}
                             animate={{
                               scale: 1,

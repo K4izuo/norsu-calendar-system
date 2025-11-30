@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useRef, useState, useEffect, useCallback } from "react"
+import React, { useRef, useState, useEffect, useCallback, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { CalendarPlus, Clock, CalendarClock, Search, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -83,7 +83,7 @@ export function EventsListModal({
   showRecent,
   setShowRecent,
   role,
-  allReservations,
+  // allReservations,
   onNewReservation,
 }: EventsListModalProps & {
   showRecent: boolean;
@@ -97,12 +97,13 @@ export function EventsListModal({
   const [searchTerm, setSearchTerm] = useState("")
   const [recentLoading, setRecentLoading] = useState(false)
   const recentLoadingTimeout = useRef<NodeJS.Timeout | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
 
   // Get role-specific loading colors
   const roleLoadingColors = getRoleColors(role);
 
   // Filter events by search term and mode
-  const filteredEvents = React.useMemo(() => {
+  const filteredEvents = useMemo(() => {
     if (showRecent) {
       // Show only past events (finishedOn matches eventDate)
       return events.filter(
@@ -125,6 +126,10 @@ export function EventsListModal({
       )
     }
   }, [events, searchTerm, showRecent, eventDate])
+
+  const searchEvent = events.filter((event) => 
+    event.title_name.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   const getStatusColor = (status: EventStatus) => {
     const colors = {

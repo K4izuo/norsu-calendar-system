@@ -18,40 +18,17 @@ import {
 import { Button } from "../ui/button";
 import { EventDetails } from "@/interface/user-props";
 import { ReserveEventModal } from "./reserve-event-modal";
-
-type Role = "faculty" | "staff" | "admin" | "public" | undefined;
-
-const getRoleLoadingColors = (role: Role) => {
-  const colorMap = {
-    faculty: {
-      spinner: "border-blue-500",
-      icon: "text-blue-500",
-    },
-    staff: {
-      spinner: "border-purple-500",
-      icon: "text-purple-500",
-    },
-    admin: {
-      spinner: "border-gray-800",
-      icon: "text-gray-800",
-    },
-    public: {
-      spinner: "border-teal-500",
-      icon: "text-teal-500",
-    },
-  };
-
-  return colorMap[role || "public"];
-};
+import { getRoleColors, UserRole } from "@/utils/role-colors"
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   event?: EventDetails;
   loading?: boolean;
-  role?: Role;
+  role?: UserRole;
   onApprove?: () => void;
   onDecline?: () => void;
+  showBackdropBlur?: boolean;
 }
 
 const getStatus = (event: EventDetails): "PENDING" | "APPROVED" | "REJECTED" => {
@@ -117,11 +94,12 @@ export const EventInfoModal = React.memo(function EventInfoModal({
   role,
   onApprove,
   onDecline,
+  showBackdropBlur = false,
 }: ModalProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [showEditModal, setShowEditModal] = useState(false);
 
-  const roleLoadingColors = getRoleLoadingColors(role);
+  const roleLoadingColors = getRoleColors(role);
 
   useEffect(() => {
     if (isOpen) {
@@ -165,7 +143,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
             className="fixed inset-0 z-50 flex items-center justify-center p-1.5 sm:p-4 overscroll-none"
           >
             <motion.div
-              className="absolute inset-0 bg-black/40"
+              className={`absolute inset-0 bg-black/40 ${showBackdropBlur ? 'sm:backdrop-blur-sm' : ''}`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -344,6 +322,25 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                       <div className="border-b border-gray-300 mb-4" />
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
+                          <p className="text-base text-gray-500">Reserve by</p>
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-md font-medium ${getStatusColor(
+                              getStatus(event)
+                            )}`}
+                          >
+                            {getStatus(event).charAt(0).toUpperCase() +
+                              getStatus(event).slice(1)}
+                          </span>
+                          <span className="text-base text-gray-600">
+                            {getStatus(event) === "PENDING" &&
+                              ` by: ${event.reserve_by || "—"}`}
+                            {getStatus(event) === "APPROVED" &&
+                              ` by: ${event.approved_by || "—"}`}
+                            {getStatus(event) === "REJECTED" &&
+                              ` by: ${event.rejected_by || "—"}`}
+                          </span>
+                        </div>
+                        <div>
                           <p className="text-base text-gray-500">Status</p>
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-md font-medium ${getStatusColor(
@@ -403,7 +400,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                 </div>
               )}
 
-              {!loading && event && (
+              {!loading && event && getStatus(event) === "PENDING" && (
                 <div
                   className="sticky bottom-0 bg-white z-10 p-4 sm:p-6 border-t border-gray-200 flex justify-center gap-3"
                 >

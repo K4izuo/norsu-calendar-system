@@ -246,10 +246,11 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
                   e.stopPropagation();
                   onClose();
                 }}
-                className="p-2 shadow-none bg-white cursor-pointer rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-200"
+                size="sm"
+                className="p-2 shadow-none bg-white cursor-pointer rounded-full hover:bg-gray-100 transition-colors"
                 aria-label="Close"
               >
-                <X className="w-6 h-6 text-gray-500" />
+                <X className="w-4 h-4 text-gray-500" />
               </Button>
             </div>
           </div>
