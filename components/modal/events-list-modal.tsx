@@ -182,8 +182,15 @@ export function EventsListModal({
       <AnimatePresence>
         {isOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overscroll-none">
-            <div
-              className="absolute inset-0 bg-black/60 sm:backdrop-blur-sm"
+            <motion.div
+              className="absolute inset-0 bg-black/40 sm:backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{
+                duration: 0.25,
+                ease: [0.22, 1, 0.36, 1]
+              }}
             />
 
             {/* Modal content */}

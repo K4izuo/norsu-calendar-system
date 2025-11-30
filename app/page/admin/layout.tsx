@@ -22,7 +22,6 @@ import { AuthContext } from "@/contexts/auth-context";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import UserProfile from "@/components/ui/user-profile";
 import toast from "react-hot-toast"
-import { ClientOnly } from "@/components/ui/client-only"
 
 interface UserData {
   name: string;
@@ -249,30 +248,28 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </Button>
               </div>
 
-              <ClientOnly>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="cursor-pointer bg-white h-12 w-12 rounded-full border border-transparent hover:border-gray-300 hover:bg-white focus:outline-none"
-                    >
-                      <CircleUserRound className="size-7 text-gray-600" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="end"
-                    sideOffset={8}
-                    className="w-[280px] sm:w-80 bg-background border-border rounded-lg shadow-lg"
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="cursor-pointer bg-white h-12 w-12 rounded-full border border-transparent hover:border-gray-300 hover:bg-white focus:outline-none"
                   >
-                    <UserProfile
-                      name={userData.name}
-                      role={ROLE_MAP[userData.role] || "User"}
-                      avatar="https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-01-n0x8HFv8EUetf9z6ht0wScJKoTHqf8.png"
-                    />
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </ClientOnly>
+                    <CircleUserRound className="size-7 text-gray-600" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  sideOffset={8}
+                  className="w-[280px] sm:w-80 bg-background border-border rounded-lg shadow-lg"
+                >
+                  <UserProfile
+                    name={userData.name}
+                    role={ROLE_MAP[userData.role] || "User"}
+                    avatar="https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-01-n0x8HFv8EUetf9z6ht0wScJKoTHqf8.png"
+                  />
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>

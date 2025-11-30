@@ -2,7 +2,6 @@
 
 import { Boxes } from "lucide-react";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
-import { ClientOnly } from "@/components/ui/client-only";
 
 export default function AdminAssetsChart() {
   return (
@@ -12,8 +11,6 @@ export default function AdminAssetsChart() {
           <Boxes className="w-6 h-6 text-gray-800" />
           <h1 className="text-lg font-semibold text-gray-800">Assets Overview</h1>
         </div>
-
-        <ClientOnly>
           <Select defaultValue="assets">
             <SelectTrigger className="w-[120px] cursor-pointer h-8 border-gray-300">
               <span className="flex items-center gap-2">
@@ -41,7 +38,6 @@ export default function AdminAssetsChart() {
               </SelectItem>
             </SelectContent>
           </Select>
-        </ClientOnly>
       </div>
       {/* Chart goes here */}
     </div>
