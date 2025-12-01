@@ -5,7 +5,7 @@ import { LoginFormData, LOGIN_VALIDATION_RULES } from "@/utils/login/login-valid
 import { showLoginErrorToast } from "@/utils/login/login-field-error-toast"
 import { apiClient } from "@/lib/api-client"
 import { useRouter } from "next/navigation"
-import { setAuthToken, setUserRole } from "@/lib/auth"
+import { setAuthToken, setUserRole, setUserId } from "@/lib/auth"
 
 const ROLE_ROUTES: Record<number, string> = {
   2: "/page/dean/dashboard",
@@ -108,6 +108,10 @@ export const useLoginForm = () => {
 
       if (response.data?.role) {
         setUserRole(response.data.role);
+      }
+
+      if (response.data?.user?.id) {
+        setUserId(response.data.user.id);
       }
 
       // Store user data in localStorage

@@ -24,9 +24,9 @@ export interface EventDetails {
   // organizer: string
   registration_status: "PENDING" | "APPROVED" | "REJECTED"
   registration_deadline: string
-  reserve_by?: string
-  approved_by?: string
-  rejected_by?: string
+  reserve_by_user?: string
+  approved_by_user?: string
+  declined_by_user?: string
   finished_on?: string
 }
 

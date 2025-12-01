@@ -19,6 +19,11 @@ import { Button } from "../ui/button";
 import { EventDetails } from "@/interface/user-props";
 import { ReserveEventModal } from "./reserve-event-modal";
 import { getRoleColors, UserRole } from "@/utils/role-colors"
+import {
+  handleApproveReservation,
+  handleDeclineReservation,
+  handleEditReservation,
+} from "@/hooks/useHandleReservations";
 
 interface ModalProps {
   isOpen: boolean;
@@ -33,12 +38,15 @@ interface ModalProps {
 
 const getStatus = (event: EventDetails): "PENDING" | "APPROVED" | "REJECTED" => {
   if (!event.registration_status) return "PENDING";
-  const status = event.registration_status.toLowerCase();
-  if (status === "open") return "APPROVED";
-  if (status === "closed") return "REJECTED";
-  return status === "PENDING" || status === "APPROVED" || status === "REJECTED"
-    ? (status as "PENDING" | "APPROVED" | "REJECTED")
-    : "PENDING";
+  const status = event.registration_status.toUpperCase();
+
+  if (status === "OPEN") return "APPROVED";
+  if (status === "CLOSED") return "REJECTED";
+  if (status === "PENDING" || status === "APPROVED" || status === "REJECTED") {
+    return status as "PENDING" | "APPROVED" | "REJECTED";
+  }
+
+  return "PENDING"; // Default fallback
 };
 
 const getStatusColor = (status: "PENDING" | "APPROVED" | "REJECTED") => {
@@ -135,6 +143,24 @@ export const EventInfoModal = React.memo(function EventInfoModal({
     setShowEditModal(false);
   };
 
+  const handleApprove = () => {
+    if (!event) return;
+    handleApproveReservation({
+      event,
+      onSuccess: onApprove,
+      onClose,
+    });
+  };
+
+  const handleDecline = () => {
+    if (!event) return;
+    handleDeclineReservation({
+      event,
+      onSuccess: onDecline,
+      onClose,
+    });
+  };
+
   return (
     <>
       <AnimatePresence>
@@ -163,7 +189,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                 duration: 0.25,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className="relative max-w-[864px] max-h-[98vh] bg-white rounded-lg shadow-xl w-[94%] sm:w-full sm:mx-4 overflow-hidden"
+              className="relative max-w-[864px] max-h-[92vh] bg-white rounded-lg shadow-xl w-[94%] sm:w-full sm:mx-4 overflow-hidden"
               style={{
                 transform: "translateZ(0)",
                 backfaceVisibility: "hidden",
@@ -224,7 +250,10 @@ export const EventInfoModal = React.memo(function EventInfoModal({
               ) : (
                 <div
                   className="overflow-y-auto custom-scrollbar p-4 sm:p-6 pt-4 sm:pt-6"
-                  style={{ maxHeight: "calc(80vh - 85px)" }}
+                  style={{
+                    maxHeight: "calc(92vh - 85px)",
+                    paddingBottom: !loading && event && getStatus(event) === "PENDING" ? "112px" : ""
+                  }}
                 >
                   <div className="space-y-6">
                     <div className="bg-gray-50 shadow-sm rounded-lg p-4">
@@ -333,11 +362,11 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                           </span>
                           <span className="text-base text-gray-600">
                             {getStatus(event) === "PENDING" &&
-                              ` by: ${event.reserve_by || "—"}`}
+                              ` by: ${event.reserve_by_user || "—"}`}
                             {getStatus(event) === "APPROVED" &&
-                              ` by: ${event.approved_by || "—"}`}
+                              ` by: ${event.approved_by_user || "—"}`}
                             {getStatus(event) === "REJECTED" &&
-                              ` by: ${event.rejected_by || "—"}`}
+                              ` by: ${event.declined_by_user || "—"}`}
                           </span>
                         </div>
                         <div>
@@ -352,11 +381,11 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                           </span>
                           <span className="text-base text-gray-600">
                             {getStatus(event) === "PENDING" &&
-                              ` by: ${event.reserve_by || "—"}`}
+                              ` by: ${event.reserve_by_user || "—"}`}
                             {getStatus(event) === "APPROVED" &&
-                              ` by: ${event.approved_by || "—"}`}
+                              ` by: ${event.approved_by_user || "—"}`}
                             {getStatus(event) === "REJECTED" &&
-                              ` by: ${event.rejected_by || "—"}`}
+                              ` by: ${event.declined_by_user || "—"}`}
                           </span>
                         </div>
                         <div>
@@ -413,7 +442,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                   </Button>
 
                   <Button
-                    onClick={onApprove}
+                    onClick={handleApprove}
                     className="inline-flex cursor-pointer items-center justify-center flex-1 max-w-xs px-6 py-5 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
                   >
                     <CircleCheckBig className="w-4 h-4 mr-2" />
@@ -421,7 +450,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                   </Button>
 
                   <Button
-                    onClick={onDecline}
+                    onClick={handleDecline}
                     className="inline-flex cursor-pointer items-center justify-center flex-1 max-w-xs px-6 py-5 bg-rose-500 hover:bg-rose-600 text-white font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
                   >
                     <XCircle className="w-4 h-4 mr-2" />

@@ -1,4 +1,3 @@
-// lib/auth.ts
 export const setAuthToken = (token: string, expiresAt?: string) => {
   if (typeof window !== 'undefined') {
     localStorage.setItem('auth-token', token);
@@ -54,16 +53,36 @@ export const getUserRole = (): string | null => {
   return null;
 };
 
+export const getUserId = (): number | null => {
+  if (typeof window !== 'undefined') {
+    const userId = localStorage.getItem('user-id');
+    return userId ? parseInt(userId, 10) : null;
+  }
+  return null;
+};
+
+export const setUserId = (userId: number) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('user-id', userId.toString());
+    
+    // Set cookie without expiry (will expire with token)
+    const expires = new Date(Date.now() + 15 * 60 * 1000);
+    document.cookie = `user-id=${userId}; path=/; expires=${expires.toUTCString()}; SameSite=Strict`;
+  }
+};
+
 export const removeAuthToken = () => {
   if (typeof window !== 'undefined') {
     localStorage.removeItem('auth-token');
     localStorage.removeItem('user-role');
     localStorage.removeItem('user');
     localStorage.removeItem('role');
+    localStorage.removeItem('user-id');
     
     // Clear cookies
     document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     document.cookie = 'user-role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     document.cookie = 'token-expiry=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    document.cookie = 'user-id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
   }
 };
