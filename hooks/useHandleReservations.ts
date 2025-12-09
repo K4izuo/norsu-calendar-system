@@ -13,6 +13,7 @@ interface HandleDeclineParams {
   event: EventDetails;
   onSuccess?: () => void;
   onClose: () => void;
+  reason?: string;
 }
 
 interface HandleEditParams {
@@ -78,6 +79,7 @@ export const handleDeclineReservation = async ({
   event,
   onSuccess,
   onClose,
+  reason,
 }: HandleDeclineParams) => {
   const userId = getUserId();
 
@@ -95,6 +97,7 @@ export const handleDeclineReservation = async ({
       {
         status: 'REJECTED',
         declined_by_user: userId,
+        reason: reason || '',
       }
     );
 

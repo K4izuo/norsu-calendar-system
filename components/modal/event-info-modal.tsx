@@ -14,6 +14,7 @@ import {
   Edit,
   CircleCheckBig,
   XCircle,
+  NotebookText
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { EventDetails } from "@/interface/user-props";
@@ -24,6 +25,7 @@ import {
   handleDeclineReservation,
   handleEditReservation,
 } from "@/hooks/useHandleReservations";
+import { ConfirmationModal } from "./confirmation-modal";
 
 interface ModalProps {
   isOpen: boolean;
@@ -106,7 +108,10 @@ export const EventInfoModal = React.memo(function EventInfoModal({
 }: ModalProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [showEditModal, setShowEditModal] = useState(false);
-
+  const [showApproveConfirm, setShowApproveConfirm] = useState(false);
+  const [showDeclineConfirm, setShowDeclineConfirm] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
+  const [isDeclining, setIsDeclining] = useState(false);
   const roleLoadingColors = getRoleColors(role);
 
   useEffect(() => {
@@ -144,21 +149,42 @@ export const EventInfoModal = React.memo(function EventInfoModal({
   };
 
   const handleApprove = () => {
+    setShowApproveConfirm(true);
+  };
+
+  const handleDecline = () => {
+    setShowDeclineConfirm(true);
+  };
+
+  const handleApproveConfirm = async () => {
     if (!event) return;
-    handleApproveReservation({
+
+    setIsApproving(true);
+    setShowApproveConfirm(false);
+
+    await handleApproveReservation({
       event,
       onSuccess: onApprove,
       onClose,
     });
+
+    setIsApproving(false);
   };
 
-  const handleDecline = () => {
+  const handleDeclineConfirm = async (reason?: string) => {
     if (!event) return;
-    handleDeclineReservation({
+
+    setIsDeclining(true);
+    setShowDeclineConfirm(false);
+
+    await handleDeclineReservation({
       event,
       onSuccess: onDecline,
       onClose,
+      reason,
     });
+
+    setIsDeclining(false);
   };
 
   return (
@@ -200,7 +226,8 @@ export const EventInfoModal = React.memo(function EventInfoModal({
             >
               <div className="sticky top-0 bg-white z-10 p-4 sm:p-6 pb-4 sm:pb-6 border-b border-gray-200">
                 <div className="flex justify-between items-center">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                    <NotebookText strokeWidth={2.5} className="w-8 h-8 text-gray-800" />
                     <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">
                       Event Information
                     </h2>
@@ -437,24 +464,77 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                     onClick={handleEdit}
                     className="inline-flex cursor-pointer items-center justify-center flex-1 max-w-xs px-6 py-5 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
                   >
-                    <Edit className="w-4 h-4 mr-2" />
+                    <Edit className="w-4 h-4" />
                     EDIT
                   </Button>
 
                   <Button
                     onClick={handleApprove}
-                    className="inline-flex cursor-pointer items-center justify-center flex-1 max-w-xs px-6 py-5 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+                    disabled={isApproving}
+                    className="inline-flex cursor-pointer items-center justify-center flex-1 max-w-xs px-6 py-5 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <CircleCheckBig className="w-4 h-4 mr-2" />
-                    APPROVE
+                    {isApproving ? (
+                      <>
+                        <span className="animate-spin">
+                          <svg className="h-5 w-5" viewBox="0 0 24 24">
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                              fill="none"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            />
+                          </svg>
+                        </span>
+                        APPROVING...
+                      </>
+                    ) : (
+                      <>
+                        <CircleCheckBig className="w-4 h-4" />
+                        APPROVE
+                      </>
+                    )}
                   </Button>
 
                   <Button
                     onClick={handleDecline}
                     className="inline-flex cursor-pointer items-center justify-center flex-1 max-w-xs px-6 py-5 bg-rose-500 hover:bg-rose-600 text-white font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
                   >
-                    <XCircle className="w-4 h-4 mr-2" />
-                    DECLINE
+                    {isDeclining ? (
+                      <>
+                        <span className="animate-spin">
+                          <svg className="h-5 w-5" viewBox="0 0 24 24">
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                              fill="none"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            />
+                          </svg>
+                        </span>
+                        DECLINING...
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="w-4 h-4" />
+                        DECLINE
+                      </>
+                    )}
                   </Button>
                 </div>
               )}
@@ -468,6 +548,22 @@ export const EventInfoModal = React.memo(function EventInfoModal({
         onClose={handleEditModalClose}
         editMode={true}
         eventData={event}
+      />
+
+      <ConfirmationModal
+        isOpen={showApproveConfirm}
+        onClose={() => setShowApproveConfirm(false)}
+        onConfirm={handleApproveConfirm}
+        event={event}
+        type="approve"
+      />
+
+      <ConfirmationModal
+        isOpen={showDeclineConfirm}
+        onClose={() => setShowDeclineConfirm(false)}
+        onConfirm={handleDeclineConfirm}
+        event={event}
+        type="decline"
       />
     </>
   );
