@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertCircle, CheckCircle, X } from "lucide-react";
+import { AlertCircle, CheckCircle, X, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EventDetails } from "@/interface/user-props";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,11 +13,12 @@ type ConfirmationModalProps = {
   onClose: () => void;
   onConfirm: (reason?: string) => void;
   event?: EventDetails;
-  type: "approve" | "decline";
+  type: "APPROVE" | "DECLINE";
+  conflictingReservations?: EventDetails[];
 };
 
 const typeConfig = {
-  approve: {
+  APPROVE: {
     icon: CheckCircle,
     iconColor: "text-emerald-500",
     title: "Approve Reservation",
@@ -25,7 +26,7 @@ const typeConfig = {
     confirmButton: "bg-emerald-600 hover:bg-emerald-500",
     confirmText: "Yes, Approve",
   },
-  decline: {
+  DECLINE: {
     icon: AlertCircle,
     iconColor: "text-rose-500",
     title: "Decline Reservation",
@@ -41,16 +42,21 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   onConfirm,
   event,
   type,
+  conflictingReservations = [],
 }) => {
   const config = typeConfig[type];
   const Icon = config.icon;
   const [countdown, setCountdown] = useState(3);
   const [reason, setReason] = useState("");
+  const [approvalReason, setApprovalReason] = useState("");
+
+  const hasConflicts = type === "APPROVE" && conflictingReservations.length > 0;
 
   useEffect(() => {
     if (isOpen) {
       setCountdown(3);
       setReason("");
+      setApprovalReason("");
       const interval = setInterval(() => {
         setCountdown((prev) => {
           if (prev <= 1) {
@@ -65,10 +71,10 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   }, [isOpen]);
 
   const handleConfirm = () => {
-    if (type === "decline") {
+    if (type === "DECLINE") {
       onConfirm(reason);
     } else {
-      onConfirm();
+      onConfirm(approvalReason);
     }
     // onClose();
   };
@@ -92,7 +98,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 4 }}
             transition={{ type: "tween", duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="relative max-w-lg w-full bg-white rounded-lg shadow-xl overflow-hidden flex flex-col"
+            className="relative max-w-lg w-full bg-white rounded-lg shadow-xl overflow-hidden flex flex-col max-h-[85vh]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="sticky top-0 bg-white z-10 p-4 border-b border-gray-200 flex justify-between items-center">
@@ -109,7 +115,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               </Button>
             </div>
 
-            <div className="flex-1 p-6">
+            <div className="flex-1 overflow-y-auto p-6">
               <div className="space-y-4">
                 <p className="text-gray-700 text-center text-base">{config.message}</p>
 
@@ -145,7 +151,71 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                   </div>
                 )}
 
-                {type === "decline" && (
+                {hasConflicts && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <AlertTriangle className="w-5 h-5 text-amber-600" />
+                      <h3 className="font-semibold text-amber-900">
+                        Conflicting Reservations
+                      </h3>
+                    </div>
+                    <p className="text-sm text-amber-800 mb-3">
+                      Note: The following {conflictingReservations.length} reservation{conflictingReservations.length > 1 ? 's' : ''} below will be automatically declined:
+                    </p>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {conflictingReservations.map((conflict, index) => (
+                        <div
+                          key={conflict.id}
+                          className="bg-white border border-amber-200 rounded-md p-3 text-sm"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-gray-900 truncate">
+                                {conflict.title_name}
+                              </p>
+                              <div className="flex items-center gap-3 mt-1 text-xs text-gray-600">
+                                <span className="flex items-center gap-1">
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  {conflict.time_start} - {conflict.time_end}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                  </svg>
+                                  {conflict.asset?.asset_name}
+                                </span>
+                              </div>
+                            </div>
+                            <span className="shrink-0 bg-amber-100 text-amber-800 text-xs font-medium px-2 py-1 rounded">
+                              #{conflict.id}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-4">
+                      <Label
+                        htmlFor="approval-reason"
+                        className="inline-block text-sm font-medium text-amber-900 mb-1"
+                      >
+                        Reason for Approval (Optional)
+                      </Label>
+                      <Textarea
+                        id="approval-reason"
+                        value={approvalReason}
+                        onChange={(e) => setApprovalReason(e.target.value)}
+                        placeholder="Provide a reason for approving this reservation..."
+                        className="w-full bg-white min-h-[100px] text-base border-2 border-amber-200 rounded-lg focus:border-amber-500 transition-all duration-150"
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {type === "DECLINE" && (
                   <div>
                     <Label
                       htmlFor="decline-reason"
@@ -164,7 +234,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                   </div>
                 )}
 
-                <div className="flex gap-3 mt-6">
+                <div className="sticky bottom-0 bg-white z-10 p-4 sm:p-6 border-t border-gray-200 flex justify-center gap-3">
                   <Button
                     onClick={onClose}
                     className="flex-1 h-10 cursor-pointer py-2.5"

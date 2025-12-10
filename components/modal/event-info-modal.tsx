@@ -26,6 +26,7 @@ import {
   handleEditReservation,
 } from "@/hooks/useHandleReservations";
 import { ConfirmationModal } from "./confirmation-modal";
+import { apiClient } from "@/lib/api-client";
 
 interface ModalProps {
   isOpen: boolean;
@@ -112,6 +113,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
   const [showDeclineConfirm, setShowDeclineConfirm] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   const [isDeclining, setIsDeclining] = useState(false);
+  const [conflictingReservations, setConflictingReservations] = useState<EventDetails[]>([]);
   const roleLoadingColors = getRoleColors(role);
 
   useEffect(() => {
@@ -148,7 +150,55 @@ export const EventInfoModal = React.memo(function EventInfoModal({
     setShowEditModal(false);
   };
 
-  const handleApprove = () => {
+  const handleApprove = async () => {
+    if (!event) return;
+
+    // Fetch all pending reservations to find conflicts
+    try {
+      const response = await apiClient.get<any[]>("/reservations/all");
+
+      if (response.data && Array.isArray(response.data)) {
+        // Filter for conflicts: same asset, same date, pending status, overlapping time
+        const conflicts = response.data
+          .filter(r =>
+            r.id !== event.id &&
+            r.asset_id === event.asset?.id &&
+            r.date === event.date &&
+            r.status === 'PENDING' &&
+            (
+              // Check time overlap
+              (r.time_start >= event.time_start && r.time_start < event.time_end) ||
+              (r.time_end > event.time_start && r.time_end <= event.time_end) ||
+              (r.time_start <= event.time_start && r.time_end >= event.time_end)
+            )
+          )
+          .map(r => ({
+            id: r.id,
+            title_name: r.title_name,
+            date: r.date,
+            time_start: r.time_start,
+            time_end: r.time_end,
+            asset: {
+              id: r.asset_id,
+              asset_name: event.asset?.asset_name || `Asset #${r.asset_id}`,
+              capacity: 0,
+            },
+            category: r.category,
+            info_type: r.info_type,
+            description: r.description,
+            people_tag: [],
+            range: 1,
+            registration_status: "PENDING" as const,
+            registration_deadline: r.date,
+          }));
+
+        setConflictingReservations(conflicts);
+      }
+    } catch (error) {
+      console.error('Error fetching conflicts:', error);
+      setConflictingReservations([]);
+    }
+
     setShowApproveConfirm(true);
   };
 
@@ -555,7 +605,8 @@ export const EventInfoModal = React.memo(function EventInfoModal({
         onClose={() => setShowApproveConfirm(false)}
         onConfirm={handleApproveConfirm}
         event={event}
-        type="approve"
+        type="APPROVE"
+        conflictingReservations={conflictingReservations}
       />
 
       <ConfirmationModal
@@ -563,7 +614,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
         onClose={() => setShowDeclineConfirm(false)}
         onConfirm={handleDeclineConfirm}
         event={event}
-        type="decline"
+        type="DECLINE"
       />
     </>
   );
