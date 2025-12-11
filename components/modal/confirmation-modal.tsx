@@ -84,7 +84,6 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       {isOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-1.5 sm:p-4"
-          onClick={onClose}
         >
           <motion.div
             className="absolute inset-0 bg-black/40"
@@ -98,7 +97,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 4 }}
             transition={{ type: "tween", duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="relative max-w-lg w-full bg-white rounded-lg shadow-xl overflow-hidden flex flex-col max-h-[85vh]"
+            className="relative max-w-xl w-full bg-white rounded-lg shadow-xl overflow-hidden flex flex-col max-h-[85vh]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="sticky top-0 bg-white z-10 p-4 border-b border-gray-200 flex justify-between items-center">
@@ -160,27 +159,27 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                       </h3>
                     </div>
                     <p className="text-sm text-amber-800 mb-3">
-                      Note: The following {conflictingReservations.length} reservation{conflictingReservations.length > 1 ? 's' : ''} below will be automatically declined:
+                      Disclaimer: The following {conflictingReservations.length} reservation{conflictingReservations.length > 1 ? 's' : ''} below will be automatically declined:
                     </p>
                     <div className="space-y-2 max-h-64 overflow-y-auto">
                       {conflictingReservations.map((conflict, index) => (
                         <div
                           key={conflict.id}
-                          className="bg-white border border-amber-200 rounded-md p-3 text-sm"
+                          className="bg-white border border-amber-200 rounded-md p-3"
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1 min-w-0">
-                              <p className="font-medium text-gray-900 truncate">
+                              <p className="font-medium text-sm text-gray-900 truncate">
                                 {conflict.title_name}
                               </p>
-                              <div className="flex items-center gap-3 mt-1 text-xs text-gray-600">
-                                <span className="flex items-center gap-1">
+                              <div className="flex items-center gap-3 mt-2 text-gray-600">
+                                <span className="flex text-sm items-center gap-1">
                                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                   </svg>
                                   {conflict.time_start} - {conflict.time_end}
                                 </span>
-                                <span className="flex items-center gap-1">
+                                <span className="flex text-sm items-center gap-1">
                                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -189,29 +188,32 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                                 </span>
                               </div>
                             </div>
-                            <span className="shrink-0 bg-amber-100 text-amber-800 text-xs font-medium px-2 py-1 rounded">
+                            <span className="shrink-0 bg-amber-100 text-amber-800 text-sm font-medium px-2 py-1 rounded">
                               #{conflict.id}
                             </span>
                           </div>
                         </div>
                       ))}
                     </div>
-                    <div className="mt-4">
-                      <Label
-                        htmlFor="approval-reason"
-                        className="inline-block text-sm font-medium text-amber-900 mb-1"
-                      >
-                        Reason for Approval (Optional)
-                      </Label>
-                      <Textarea
-                        id="approval-reason"
-                        value={approvalReason}
-                        onChange={(e) => setApprovalReason(e.target.value)}
-                        placeholder="Provide a reason for approving this reservation..."
-                        className="w-full bg-white min-h-[100px] text-base border-2 border-amber-200 rounded-lg focus:border-amber-500 transition-all duration-150"
-                        rows={3}
-                      />
-                    </div>
+                  </div>
+                )}
+
+                {hasConflicts && (
+                  <div>
+                    <Label
+                      htmlFor="approval-reason"
+                      className="inline-block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Reason for Approval (Optional)
+                    </Label>
+                    <Textarea
+                      id="approval-reason"
+                      value={approvalReason}
+                      onChange={(e) => setApprovalReason(e.target.value)}
+                      placeholder="Provide a reason for approving this reservation..."
+                      className="w-full bg-white min-h-[100px] text-base border-2 rounded-lg focus:border-ring transition-all duration-150"
+                      rows={3}
+                    />
                   </div>
                 )}
 
@@ -233,33 +235,32 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                     />
                   </div>
                 )}
+              </div>
+            </div>
 
-                <div className="sticky bottom-0 bg-white z-10 p-4 sm:p-6 border-t border-gray-200 flex justify-center gap-3">
+            <div className="sticky bottom-0 bg-white z-10 p-4 border-t border-gray-200 shadow-lg">
+              <div className="flex gap-3">
+                <Button
+                  onClick={onClose}
+                  className="flex-1 h-10 cursor-pointer py-2.5"
+                >
+                  Cancel
+                </Button>
+                {countdown > 0 ? (
                   <Button
-                    onClick={onClose}
-                    className="flex-1 h-10 cursor-pointer py-2.5"
+                    disabled
+                    className={`flex-1 h-10 ${config.confirmButton} cursor-not-allowed text-white py-2.5`}
                   >
-                    {/* <XCircle strokeWidth={2.5} className="w-5 h-5 text-gray-500" /> */}
-                    Cancel
+                    {config.confirmText} ({countdown})
                   </Button>
-                  {countdown > 0 ? (
-                    <Button
-                      disabled
-                      className={`flex-1 h-10 ${config.confirmButton} cursor-not-allowed text-white py-2.5`}
-                    >
-                      {/* <Clock strokeWidth={2.5} className="w-5 h-5 text-white" /> */}
-                      {config.confirmText} ({countdown})
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={handleConfirm}
-                      className={`flex-1 h-10 ${config.confirmButton} cursor-pointer text-white py-2.5`}
-                    >
-                      {/* <CircleCheckBig strokeWidth={2.5} className="w-5 h-5 text-white" /> */}
-                      {config.confirmText}
-                    </Button>
-                  )}
-                </div>
+                ) : (
+                  <Button
+                    onClick={handleConfirm}
+                    className={`flex-1 h-10 ${config.confirmButton} cursor-pointer text-white py-2.5`}
+                  >
+                    {config.confirmText}
+                  </Button>
+                )}
               </div>
             </div>
           </motion.div>
