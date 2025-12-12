@@ -21,12 +21,26 @@ export interface EventDetails {
   description: string
   people_tag: string[]
   range: number
-  // organizer: string
   registration_status: "PENDING" | "APPROVED" | "REJECTED"
   registration_deadline: string
-  reserve_by_user?: string
+  reserve_by_user?: string  // Keep for backward compatibility
+  reserved_by_user?: {      // Add new structured field
+    id: number
+    first_name: string
+    last_name: string
+  }
   approved_by_user?: string
+  approved_by_user_details?: {
+    id: number
+    first_name: string
+    last_name: string
+  }
   declined_by_user?: string
+  declined_by_user_details?: {
+    id: number
+    first_name: string
+    last_name: string
+  }
   finished_on?: string
 }
 
@@ -60,6 +74,25 @@ export interface Reservation {
   created_at: string
   updated_at: string
   reserve_by_user: number
+}
+
+// Extended interface for API responses that include relationships
+export interface ReservationWithRelations extends Reservation {
+  reserved_by_user?: {
+    id: number
+    first_name: string
+    last_name: string
+  }
+  approved_by_user_details?: {
+    id: number
+    first_name: string
+    last_name: string
+  }
+  declined_by_user_details?: {
+    id: number
+    first_name: string
+    last_name: string
+  }
 }
 
 export interface EventsListModalProps {

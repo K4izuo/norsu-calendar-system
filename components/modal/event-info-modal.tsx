@@ -190,6 +190,9 @@ export const EventInfoModal = React.memo(function EventInfoModal({
             range: 1,
             registration_status: "PENDING" as const,
             registration_deadline: r.date,
+            reserve_by_user: r.reserved_by_user
+              ? `${r.reserved_by_user.first_name} ${r.reserved_by_user.last_name}`
+              : `User #${r.reserve_by_user_id || r.id}`,
           }));
 
         setConflictingReservations(conflicts);
@@ -428,42 +431,39 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                       <div className="border-b border-gray-300 mb-4" />
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <p className="text-base text-gray-500">Reserve by</p>
-                          <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-md font-medium ${getStatusColor(
-                              getStatus(event)
-                            )}`}
-                          >
-                            {getStatus(event).charAt(0).toUpperCase() +
-                              getStatus(event).slice(1)}
-                          </span>
-                          <span className="text-base text-gray-600">
-                            {getStatus(event) === "PENDING" &&
-                              ` by: ${event.reserve_by_user || "—"}`}
-                            {getStatus(event) === "APPROVED" &&
-                              ` by: ${event.approved_by_user || "—"}`}
-                            {getStatus(event) === "REJECTED" &&
-                              ` by: ${event.declined_by_user || "—"}`}
+                          <p className="text-base text-gray-500">Reserved By</p>
+                          <span className="inline-flex mt-1 items-center px-3 py-1 rounded-lg text-sm font-medium border border-gray-300 text-gray-800 bg-transparent">
+                            <User className="w-3 h-3 mr-1.5 text-gray-800" />
+                            <p className="font-medium text-base">{event.reserve_by_user || "Unknown User"}</p>
                           </span>
                         </div>
                         <div>
                           <p className="text-base text-gray-500">Status</p>
-                          <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-md font-medium ${getStatusColor(
-                              getStatus(event)
-                            )}`}
-                          >
-                            {getStatus(event).charAt(0).toUpperCase() +
-                              getStatus(event).slice(1)}
-                          </span>
-                          <span className="text-base text-gray-600">
-                            {getStatus(event) === "PENDING" &&
-                              ` by: ${event.reserve_by_user || "—"}`}
-                            {getStatus(event) === "APPROVED" &&
-                              ` by: ${event.approved_by_user || "—"}`}
-                            {getStatus(event) === "REJECTED" &&
-                              ` by: ${event.declined_by_user || "—"}`}
-                          </span>
+                          <div className="flex mt-1 items-center gap-2">
+                            <span
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-md font-medium ${getStatusColor(
+                                getStatus(event)
+                              )}`}
+                            >
+                              {getStatus(event).charAt(0).toUpperCase() +
+                                getStatus(event).slice(1)}
+                            </span>
+                            {getStatus(event) === "APPROVED" && (
+                              <span className="text-base text-gray-600">
+                                by: {event.approved_by_user_details
+                                  ? `${event.approved_by_user_details.first_name} ${event.approved_by_user_details.last_name}`
+                                  : "—"}
+                              </span>
+                            )}
+                            {getStatus(event) === "REJECTED" && (
+                              <span className="text-base text-gray-600">
+                                by: {event.declined_by_user_details
+                                  ? `${event.declined_by_user_details.first_name} ${event.declined_by_user_details.last_name}`
+                                  : "—"}
+                              </span>
+                            )}
+
+                          </div>
                         </div>
                         <div>
                           <p className="text-base text-gray-500">Reservation Range</p>

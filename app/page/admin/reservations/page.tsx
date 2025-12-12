@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { ReservationsTable } from "@/components/admin-ui/reservations/custom-table";
 import { apiClient } from "@/lib/api-client";
-import { EventDetails } from "@/interface/user-props";
+import { EventDetails, ReservationWithRelations } from "@/interface/user-props";
 
 interface Reservation {
   id: number;
@@ -28,7 +28,7 @@ interface Asset {
 }
 
 export default function ReservationsPage() {
-  const [allReservations, setAllReservations] = useState<Reservation[]>([]);
+  const [allReservations, setAllReservations] = useState<ReservationWithRelations[]>([]);
   const [assets, setAssets] = useState<Map<number, Asset>>(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +41,7 @@ export default function ReservationsPage() {
         setError(null);
 
         // Fetch reservations
-        const response = await apiClient.get<Reservation[]>("/reservations/all");
+        const response = await apiClient.get<ReservationWithRelations[]>("/reservations/all");
 
         if (response.error) {
           setError(response.error);
@@ -50,10 +50,10 @@ export default function ReservationsPage() {
 
         if (response.data && Array.isArray(response.data)) {
           setAllReservations(response.data);
-          
+
           // Fetch assets for these reservations
           const assetIds = [...new Set(response.data.map(r => r.asset_id))];
-          
+
           if (assetIds.length > 0) {
             const assetPromises = assetIds.map(id =>
               apiClient.get<Asset[]>(`/reservations/${id}`)
@@ -105,10 +105,18 @@ export default function ReservationsPage() {
         info_type: reservation.info_type,
         description: reservation.description,
         people_tag: reservation.people_tag.split(", "),
-        range: parseInt(reservation.range) || 1,
+        range: reservation.range,
         registration_status: reservation.status.toUpperCase() as "PENDING" | "APPROVED" | "REJECTED",
         registration_deadline: reservation.date,
-        reserve_by: `User #${reservation.reserve_by_user}`,
+        // Map the user details from API
+        reserved_by_user: reservation.reserved_by_user,
+        // Backward compatibility fallback
+        reserve_by_user: reservation.reserved_by_user
+          ? `${reservation.reserved_by_user.first_name} ${reservation.reserved_by_user.last_name}`
+          : `User #${reservation.reserve_by_user}`,
+        // Map approval/decline details
+        approved_by_user_details: reservation.approved_by_user_details,
+        declined_by_user_details: reservation.declined_by_user_details,
       };
     });
   }, [allReservations, assets]);
