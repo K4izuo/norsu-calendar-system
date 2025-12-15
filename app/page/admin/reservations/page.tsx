@@ -5,22 +5,6 @@ import { ReservationsTable } from "@/components/admin-ui/reservations/custom-tab
 import { apiClient } from "@/lib/api-client";
 import { EventDetails, ReservationWithRelations } from "@/interface/user-props";
 
-interface Reservation {
-  id: number;
-  title_name: string;
-  date: string;
-  time_start: string;
-  time_end: string;
-  asset_id: number;
-  category: string;
-  info_type: string;
-  description: string;
-  people_tag: string;
-  range: string;
-  status: string;
-  reserve_by_user: number;
-}
-
 interface Asset {
   id: number;
   asset_name: string;
