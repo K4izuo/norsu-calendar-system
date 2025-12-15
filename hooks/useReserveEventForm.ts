@@ -210,7 +210,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
           date: normalizeDate(rest.date), // Normalize the date to YYYY-MM-DD
           asset_id: asset?.id ?? 0,
           people_tag: taggedPeople.map(p => p.name).join(", "),
-          reserve_by_user: 1, // TODO: Replace with actual authenticated user ID
+          reserved_by_user: 1, // TODO: Replace with actual authenticated user ID
         };
 
         // Different API calls for create vs update
