@@ -7,10 +7,9 @@ import { Search, MoreVertical, CalendarClock } from "lucide-react"
 import { EventInfoModal } from "@/components/modal/event-info-modal"
 import { EventDetails } from "@/interface/user-props"
 import { motion } from "framer-motion";
+import { UserRole } from "@/utils/role-colors"
 
-type Role = "dean" | "staff" | "admin" | "public" | undefined;
-
-const getRoleLoadingColors = (role: Role) => {
+const getRoleLoadingColors = (role: UserRole) => {
   const colorMap = {
     dean: {
       spinner: "border-blue-500",
@@ -37,7 +36,7 @@ const getRoleLoadingColors = (role: Role) => {
 interface ReservationsTableProps {
   events: EventDetails[]; // Changed from reservations: Reservation[]
   isLoading?: boolean;
-  role: Role;
+  role: UserRole;
 }
 
 export function ReservationsTable({ events, isLoading = false, role }: ReservationsTableProps) {

@@ -17,7 +17,7 @@ import {
   NotebookText
 } from "lucide-react";
 import { Button } from "../ui/button";
-import { EventDetails } from "@/interface/user-props";
+import { EventDetails, ReservationWithRelations } from "@/interface/user-props";
 import { ReserveEventModal } from "./reserve-event-modal";
 import { getRoleColors, UserRole } from "@/utils/role-colors"
 import {
@@ -140,7 +140,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
   const asset = event?.asset;
   const assetName = asset?.asset_name || "Not specified";
   const assetCapacity = asset?.capacity || "N/A";
-  const assetFacilities = asset?.facilities;
+  const assetAminities = asset?.aminities;
 
   const handleEdit = () => {
     setShowEditModal(true);
@@ -155,7 +155,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
 
     // Fetch all pending reservations to find conflicts
     try {
-      const response = await apiClient.get<any[]>("/reservations/all");
+      const response = await apiClient.get<ReservationWithRelations[]>("/reservations/all");
 
       if (response.data && Array.isArray(response.data)) {
         // Filter for conflicts: same asset, same date, pending status, overlapping time
@@ -187,13 +187,13 @@ export const EventInfoModal = React.memo(function EventInfoModal({
             info_type: r.info_type,
             description: r.description,
             people_tag: [],
-            range: 1,
+            range: r.range,
             registration_status: "PENDING" as const,
             registration_deadline: r.date,
             reserve_by_user: r.reserved_by_user
               ? `${r.reserved_by_user.first_name} ${r.reserved_by_user.last_name}`
-              : `User #${r.reserve_by_user_id || r.id}`,
-          }));
+              : "Unknown User",
+          } as EventDetails));
 
         setConflictingReservations(conflicts);
       }
@@ -403,11 +403,11 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                           <p className="text-base text-gray-500">Date</p>
                           <p className="font-medium text-base">{event.date}</p>
                         </div>
-                        {assetFacilities && (
+                        {assetAminities && (
                           <div>
                             <p className="text-base text-gray-500">Facilities</p>
                             <div className="flex flex-wrap gap-1 mt-1">
-                              {assetFacilities.map((facility, index) => (
+                              {assetAminities.map((facility, index) => (
                                 <span
                                   key={index}
                                   className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-gray-200 text-gray-700"

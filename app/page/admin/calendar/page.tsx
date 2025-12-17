@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { Calendar } from "@/components/ui/norsu-calendar";
 import { EventsListModal } from "@/components/modal/events-list-modal";
 import { EventInfoModal } from "@/components/modal/event-info-modal";
-import { EventDetails, CalendarDayType, Reservation } from "@/interface/user-props";
+import { EventDetails, CalendarDayType, Reservation, ReservationWithRelations } from "@/interface/user-props";
 import { apiClient } from "@/lib/api-client";
 
 interface Asset {
@@ -22,8 +22,8 @@ export default function AdminCalendarTab() {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
-  // Reservations state
-  const [allReservations, setAllReservations] = useState<Reservation[]>([]);
+  // Reservations state - Change type to ReservationWithRelations
+  const [allReservations, setAllReservations] = useState<ReservationWithRelations[]>([]);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -72,23 +72,20 @@ export default function AdminCalendarTab() {
     try {
       setLoading(true);
 
-      // Build URL with lastUpdate query parameter
       const url = lastUpdate
         ? `/reservations/all?lastUpdate=${encodeURIComponent(lastUpdate.toISOString())}`
         : "/reservations/all";
 
-      const response = await apiClient.get<Reservation[]>(url); // Changed from { reservations: Reservation[] }
+      const response = await apiClient.get<ReservationWithRelations[]>(url);
 
       if (response.error) {
         setError(response.error);
         return;
       }
 
-      // Check if response.data is an array directly
       if (response.data && Array.isArray(response.data)) {
         setAllReservations(response.data);
 
-        // Extract asset IDs and fetch assets - NEW
         const assetIds = response.data.map(r => r.asset_id);
         await fetchAssets(assetIds);
 
@@ -106,20 +103,18 @@ export default function AdminCalendarTab() {
   }, [lastUpdate]);
 
   // Handle new reservation from modal
-  const handleNewReservation = useCallback(async (newReservation: Reservation) => {
+  const handleNewReservation = useCallback(async (newReservation: ReservationWithRelations) => {
     setAllReservations((prevReservations) => {
       const reservationExists = prevReservations.some(
         (reservation) => reservation.id === newReservation.id
       );
 
       if (reservationExists) {
-        // Update existing reservation
         return prevReservations.map((reservation) =>
           reservation.id === newReservation.id ? newReservation : reservation
         );
       }
 
-      // Add new reservation
       return [...prevReservations, newReservation];
     });
 
@@ -156,7 +151,13 @@ export default function AdminCalendarTab() {
           range: reservation.range,
           registration_status: reservation.status.toUpperCase() as "PENDING" | "APPROVED" | "REJECTED",
           registration_deadline: reservation.date,
-          reserve_by: `User #${reservation.reserve_by_user}`,
+          // Now TypeScript knows about reserved_by_user
+          reserved_by_user: reservation.reserved_by_user,
+          reserve_by_user: reservation.reserved_by_user
+            ? `${reservation.reserved_by_user.first_name} ${reservation.reserved_by_user.last_name}`
+            : "Unknown User",
+          approved_by_user_details: reservation.approved_by_user,
+          declined_by_user_details: reservation.declined_by_user,
         };
       });
   }, [allReservations, assets]);

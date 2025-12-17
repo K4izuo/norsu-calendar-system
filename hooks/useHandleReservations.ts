@@ -46,7 +46,7 @@ export const handleApproveReservation = async ({
 
     if (error) {
       toast.error(`Failed to approve reservation: ${error}`, {
-        position: 'top-center',
+        position: 'top-right',
         duration: 4000,
       });
       return { success: false, error };
@@ -54,7 +54,7 @@ export const handleApproveReservation = async ({
 
     // Success
     toast.success('Reservation approved successfully!', {
-      position: 'top-center',
+      position: 'top-right',
       duration: 4000,
     });
 
@@ -68,7 +68,7 @@ export const handleApproveReservation = async ({
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
     toast.error(`Error: ${errorMessage}`, {
-      position: 'top-center',
+      position: 'top-right',
       duration: 4000,
     });
     return { success: false, error: errorMessage };
@@ -85,7 +85,7 @@ export const handleDeclineReservation = async ({
 
   if (!userId) {
     toast.error('User not authenticated. Please login again.', {
-      position: 'top-center',
+      position: 'top-right',
       duration: 4000,
     });
     return { success: false, error: 'User not authenticated' };
@@ -103,7 +103,7 @@ export const handleDeclineReservation = async ({
 
     if (error) {
       toast.error(`Failed to decline reservation: ${error}`, {
-        position: 'top-center',
+        position: 'top-right',
         duration: 4000,
       });
       return { success: false, error };
@@ -111,7 +111,7 @@ export const handleDeclineReservation = async ({
 
     // Success
     toast.success('Reservation declined successfully!', {
-      position: 'top-center',
+      position: 'top-right',
       duration: 4000,
     });
 
@@ -125,7 +125,7 @@ export const handleDeclineReservation = async ({
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
     toast.error(`Error: ${errorMessage}`, {
-      position: 'top-center',
+      position: 'top-right',
       duration: 4000,
     });
     return { success: false, error: errorMessage };

@@ -94,13 +94,13 @@ export default function ReservationsPage() {
         registration_deadline: reservation.date,
         // Map the user details from API
         reserved_by_user: reservation.reserved_by_user,
-        // Backward compatibility fallback
+        // Fix: Better fallback that shows "Unknown User" if reserved_by_user is missing
         reserve_by_user: reservation.reserved_by_user
           ? `${reservation.reserved_by_user.first_name} ${reservation.reserved_by_user.last_name}`
-          : `User #${reservation.reserve_by_user}`,
-        // Map approval/decline details
-        approved_by_user_details: reservation.approved_by_user_details,
-        declined_by_user_details: reservation.declined_by_user_details,
+          : "Unknown User",
+        // Fix: Map approval/decline details with correct field names from API
+        approved_by_user_details: reservation.approved_by_user,
+        declined_by_user_details: reservation.declined_by_user,
       };
     });
   }, [allReservations, assets]);

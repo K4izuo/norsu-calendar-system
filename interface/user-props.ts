@@ -13,7 +13,7 @@ export interface EventDetails {
     id: number
     asset_name: string
     capacity: number
-    facilities?: string[]
+    aminities?: string[]
     asset_type?: string
   }
   category: string
@@ -23,7 +23,7 @@ export interface EventDetails {
   range: number
   registration_status: "PENDING" | "APPROVED" | "REJECTED"
   registration_deadline: string
-  reserve_by_user?: string  // Keep for backward compatibility
+  reserve_by_user: string  // Keep for backward compatibility
   reserved_by_user?: {      // Add new structured field
     id: number
     first_name: string
@@ -83,12 +83,12 @@ export interface ReservationWithRelations extends Reservation {
     first_name: string
     last_name: string
   }
-  approved_by_user_details?: {
+  approved_by_user?: {
     id: number
     first_name: string
     last_name: string
   }
-  declined_by_user_details?: {
+  declined_by_user?: {
     id: number
     first_name: string
     last_name: string
@@ -117,7 +117,7 @@ export interface EventCardsListProps {
   getStatusColor: (status: EventStatus) => string
 }
 
-export interface FacultyPageEventDetails {
+export interface DeanPageEventDetails {
   id: number
   title: string
   date: string
