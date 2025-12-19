@@ -62,9 +62,8 @@ const getStatusColor = (status: "PENDING" | "APPROVED" | "REJECTED") => {
 const getStartedAgo = (eventDate: string, eventTime: string): string | null => {
   if (!eventDate || !eventTime) return null;
   try {
-    const [startTimeRaw] = eventTime.split("-");
-    const startTime = startTimeRaw.trim();
-    const eventStart = new Date(`${eventDate} ${startTime}`);
+    // Parse the formatted date back to compare with current time
+    const eventStart = new Date(eventDate + ' ' + eventTime);
     if (isNaN(eventStart.getTime())) return null;
 
     const now = new Date();
@@ -73,12 +72,7 @@ const getStartedAgo = (eventDate: string, eventTime: string): string | null => {
       const isToday = eventStart.toDateString() === now.toDateString();
 
       if (isToday) {
-        const hours = eventStart.getHours();
-        const minutes = eventStart.getMinutes();
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        const displayHours = hours % 12 || 12;
-        const displayMinutes = minutes.toString().padStart(2, '0');
-        return `Starts at ${displayHours}:${displayMinutes} ${ampm}`;
+        return `Starts at ${eventTime}`;
       } else {
         return "Upcoming";
       }

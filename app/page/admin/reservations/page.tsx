@@ -74,12 +74,26 @@ export default function ReservationsPage() {
     return allReservations.map(reservation => {
       const asset = assets.get(reservation.asset_id);
 
+      const formattedDate = new Date(reservation.date).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+
+      const formatTime = (time: string) => {
+        const [hours, minutes] = time.split(':');
+        const hour = parseInt(hours);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const displayHour = hour % 12 || 12;
+        return `${displayHour}:${minutes} ${ampm}`;
+      };
+
       return {
         id: reservation.id,
         title_name: reservation.title_name,
-        date: reservation.date,
-        time_start: reservation.time_start,
-        time_end: reservation.time_end,
+        date: formattedDate,
+        time_start: formatTime(reservation.time_start),
+        time_end: formatTime(reservation.time_end),
         asset: {
           id: reservation.asset_id,
           asset_name: asset?.asset_name || `Asset #${reservation.asset_id}`,
