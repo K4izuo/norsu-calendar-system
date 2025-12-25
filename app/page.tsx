@@ -178,7 +178,7 @@ export default function Home() {
           id: locationIndex + 1,
           asset_name: locations[locationIndex],
           capacity: 60 + i * 20,
-          facilities: ["Wi-Fi", "Projector", "Air Conditioning"],
+          aminities: ["Wi-Fi", "Projector", "Air Conditioning"],
           asset_type: "Room"
         },
         category: eventType.category,
@@ -195,9 +195,9 @@ export default function Home() {
           1,
           selectedDay.date - 2
         )}, ${currentYear}`,
-        reserve_by: i % 2 === 0 ? "Faculty of Science" : "Department of Education",
-        approved_by: i % 2 === 0 ? "Dean Johnson" : undefined,
-        rejected_by: i % 3 === 0 ? "Admin Smith" : undefined,
+        reserve_by_user: i % 2 === 0 ? "Faculty of Science" : "Department of Education",
+        approved_by_user: i % 2 === 0 ? "Dean Johnson" : undefined,
+        declined_by_user: i % 3 === 0 ? "Admin Smith" : undefined,
         finished_on:
           i % 3 === 0
             ? `${currentYear}-${String(currentMonth + 1).padStart(
@@ -241,7 +241,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col overflow-x-hidden">
+    <div className="min-h-screen bg-[#f6f6f7] flex flex-col overflow-x-hidden">
       {/* Navbar: full width */}
       <div className="relative bg-white px-2 sm:px-4 md:px-8 lg:px-16 xl:px-36 py-4 shadow-sm flex flex-col sm:flex-row items-center sm:items-center justify-between w-full gap-y-2">
         {/* Logo (left, or with title on mobile) */}

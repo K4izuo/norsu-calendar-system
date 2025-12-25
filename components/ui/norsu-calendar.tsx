@@ -332,10 +332,10 @@ export function Calendar<T>({
                     data-idx={idx}
                     className={`relative border rounded-md flex flex-col p-1.5 sm:p-2 text-sm xs:text-base sm:text-lg md:text-xl font-medium
                       ${day.currentMonth
-                        ? `text-gray-900 border ${day.hasEvent ? roleColors.eventDayBorder : "border-gray-300"} cursor-pointer ${roleColors.hoverBg} hover:shadow-sm`
+                        ? `text-gray-900 border-[1.5px] ${day.hasEvent ? roleColors.eventDayBorder : "border-gray-300"} cursor-pointer ${roleColors.hoverBg} hover:shadow-sm`
                         : "text-gray-400 border-gray-100 bg-gray-50"
                       }
-                      ${day.isToday ? `border` : ""}
+                      ${day.isToday ? `border-[1.5px]` : ""}
                       ${day.hasEvent && day.currentMonth}
                     `}
                     onClick={

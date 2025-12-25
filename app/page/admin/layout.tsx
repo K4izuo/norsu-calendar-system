@@ -99,9 +99,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [pathname]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-100">
+    <div className="flex h-screen overflow-hidden bg-[#f6f6f7]">
       <div className="flex-none w-64 bg-gray-900 text-white flex flex-col overflow-y-auto">
-        <div className="flex-none h-[80px] py-2 px-4 items-center justify-center flex">
+        <div className="flex-none h-20 py-2 px-4 items-center justify-center flex">
           <div className="flex items-center justify-center w-full">
             <Image
               src="/images/norsu.png"
@@ -120,7 +120,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
 
         <div className="flex-none px-4 pb-0 pt-0">
-          <span className="h-[2px] w-full block bg-linear-to-r from-gray-700 via-white to-gray-700 rounded-full opacity-70"></span>
+          <span className="h-0.5 w-full block bg-linear-to-r from-gray-700 via-white to-gray-700 rounded-full opacity-70"></span>
         </div>
 
         <div className="flex-1 px-4 py-6 overflow-y-auto">
@@ -211,7 +211,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </div>
 
       <div className="flex-1 flex flex-col overflow-y-auto">
-        <div className="flex-none h-[80px] py-2 px-4 items-center bg-white shadow-sm w-full z-10 flex">
+        <div className="flex-none h-20 py-2 px-4 items-center bg-white shadow-sm w-full z-10 flex">
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center ml-2">
               <div className="relative w-80">
