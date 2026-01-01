@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useCallback, useState, useMemo } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -206,7 +206,7 @@ export default function StaffRegisterPage() {
                           name="campus_id"
                           label="Campus"
                           placeholder="Select campus"
-                          value={field.value}
+                          value={field.value ?? ""}
                           onChange={field.onChange}
                           options={campuses}
                           loading={loadingCampuses}
@@ -228,7 +228,7 @@ export default function StaffRegisterPage() {
                           name="office_id"
                           label="Office"
                           placeholder="Select office"
-                          value={field.value}
+                          value={field.value ?? ""}
                           onChange={field.onChange}
                           options={offices}
                           loading={loadingOffices}

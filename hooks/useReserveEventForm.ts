@@ -5,6 +5,7 @@ import { ReservationFormData, ReservationAPIPayload, Reservation, EventDetails }
 import { RESERVATION_VALIDATION_RULES } from "@/utils/reserve-event/reservation-validation-rules"
 import { showFormTabErrorToast, showAdditionalTabErrorToast } from "@/utils/reserve-event/reservation-field-error-toast"
 import { apiClient } from "@/lib/api-client"
+import { useAuth } from "@/contexts/auth-context"
 
 interface ReservationResponse {
   reservation: {
@@ -49,6 +50,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
   const [tagInput, setTagInput] = useState("");
   const [taggedPeople, setTaggedPeople] = useState<{ id: string; name: string }[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const { user } = useAuth();
 
   const peopleFieldRef = useRef<HTMLInputElement>(null);
 
@@ -210,7 +212,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
           date: normalizeDate(rest.date), // Normalize the date to YYYY-MM-DD
           asset_id: asset?.id ?? 0,
           people_tag: taggedPeople.map(p => p.name).join(", "),
-          reserved_by_user: 1, // TODO: Replace with actual authenticated user ID
+          reserved_by_user: parseInt(user?.id || "0"), // TODO: Replace with actual authenticated user ID
         };
 
         // Different API calls for create vs update

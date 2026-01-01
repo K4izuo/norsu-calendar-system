@@ -142,7 +142,7 @@ export default function AdminCalendarTab() {
     // Simulate API call for events on this date
     const fetchData = async () => {
       try {
-        const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(day.date).padStart(2, "0")}`;
+        // const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(day.date).padStart(2, "0")}`;
 
         // In a real implementation, you'd fetch events for this specific date
         // const response = await fetch(`/api/admin/events?date=${dateStr}`);

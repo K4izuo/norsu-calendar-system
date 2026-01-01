@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { Calendar } from "@/components/ui/norsu-calendar";
 import { EventsListModal } from "@/components/modal/events-list-modal";
 import { EventInfoModal } from "@/components/modal/event-info-modal";
-import { EventDetails, CalendarDayType, Reservation, ReservationWithRelations } from "@/interface/user-props";
+import { EventDetails, CalendarDayType, ReservationWithRelations } from "@/interface/user-props";
 import { apiClient } from "@/lib/api-client";
 
 interface Asset {

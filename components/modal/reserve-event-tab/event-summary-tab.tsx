@@ -87,12 +87,12 @@ export function ReserveEventSummaryTab({
             <p className="font-medium text-base">{asset?.capacity || "N/A"}</p>
           </div>
           <div>
-            <p className="text-base text-gray-500">Facilities</p>
+            <p className="text-base text-gray-500">Aminities</p>
             <p className="font-medium text-base">{asset?.capacity || "N/A"}</p>
           </div>
           {asset?.facilities && asset.facilities.length > 0 && (
             <div className="md:col-span-2">
-              <p className="text-base text-gray-500">Facilities</p>
+              <p className="text-base text-gray-500">Aminities`</p>
               <div className="flex flex-wrap gap-1 mt-1">
                 {asset.facilities.map((facility, idx) => (
                   <span
