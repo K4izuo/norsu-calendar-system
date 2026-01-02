@@ -1,6 +1,6 @@
 import React from "react"
 import { Badge } from "@/components/ui/badge"
-import { Clock, MapPin, User } from "lucide-react"
+import { Clock, MapPin, User, Tag } from "lucide-react"
 import type { EventCardsListProps } from "@/interface/user-props"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
@@ -29,7 +29,7 @@ export const EventCardsList = React.memo(function EventCardsList({
         return (
           <div
             key={event.id || index}
-            className="relative group cursor-pointer rounded-3xl bg-white border border-border p-6"
+            className="relative shadow-sm group cursor-pointer rounded-3xl bg-white border border-border p-6"
             onClick={() => onEventClick?.(event)}
             data-index={index}
           >
@@ -83,8 +83,8 @@ export const EventCardsList = React.memo(function EventCardsList({
 
             {/* Bottom Info Section */}
             <div className="flex items-start justify-between gap-6">
-              {/* Left Side: Venue and Time */}
-              <div className="grid grid-cols-2 gap-6 flex-1">
+              {/* Left Side: Venue, Time, and Category in 3-column Grid */}
+              <div className="grid grid-cols-3 gap-6 flex-1">
                 {/* Venue */}
                 <div>
                   <p className="text-gray-500 text-xs font-medium mb-2 uppercase tracking-wide">
@@ -107,6 +107,19 @@ export const EventCardsList = React.memo(function EventCardsList({
                     <Clock className="h-4 w-4 text-gray-600 shrink-0" />
                     <span className="font-semibold text-gray-900 text-sm">
                       {reservation_time}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Category */}
+                <div>
+                  <p className="text-gray-500 text-xs font-medium mb-2 uppercase tracking-wide">
+                    Category
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Tag className="h-4 w-4 text-gray-600 shrink-0" />
+                    <span className="font-semibold text-gray-900 text-sm">
+                      {event.category || "Uncategorized"}
                     </span>
                   </div>
                 </div>

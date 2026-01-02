@@ -36,7 +36,7 @@ const getStartedAgo = (eventDate: string, eventTime: string): string | null => {
 
     // If event is in the future
     if (eventStart > now) {
-      const diffMs = eventStart.getTime() - now.getTime();
+      // const diffMs = eventStart.getTime() - now.getTime();
       // const diffMins = Math.floor(diffMs / 60000);
 
       // If event is today but later
@@ -97,7 +97,6 @@ export function EventsListModal({
   const [searchTerm, setSearchTerm] = useState("")
   const [recentLoading, setRecentLoading] = useState(false)
   const recentLoadingTimeout = useRef<NodeJS.Timeout | null>(null)
-  const [searchQuery, setSearchQuery] = useState("")
 
   // Get role-specific loading colors
   const roleLoadingColors = getRoleColors(role);
@@ -126,10 +125,6 @@ export function EventsListModal({
       )
     }
   }, [events, searchTerm, showRecent, eventDate])
-
-  const searchEvent = events.filter((event) => 
-    event.title_name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
 
   const getStatusColor = (status: EventStatus) => {
     const colors = {
