@@ -204,7 +204,7 @@ export function EventsListModal({
                 duration: 0.25,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className="relative max-w-[864px] bg-background rounded-2xl shadow-2xl w-[99%] sm:w-full sm:mx-4 overflow-hidden flex flex-col max-h-[88vh] border border-border/50"
+              className="relative max-w-[864px] bg-background rounded-2xl shadow-2xl w-[99%] sm:w-full sm:mx-4 overflow-hidden flex flex-col max-h-[88vh] border border-border"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="bg-card border-b border-border p-4 sm:p-6">
