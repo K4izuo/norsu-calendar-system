@@ -57,7 +57,7 @@ export function ReserveEventFormTab({
               name="asset"
               control={control}
               rules={validationRules.asset}
-              render={({ field }) => (
+              render={() => (
                 <Select
                   value={selectedAsset ? `selected-${selectedAsset.id}` : ""}
                   onValueChange={handleAssetChange}

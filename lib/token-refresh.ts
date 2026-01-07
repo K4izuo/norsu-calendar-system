@@ -1,5 +1,6 @@
 import { apiClient } from './api-client';
-import { getAuthToken, removeAuthToken } from './auth';
+// removeAuthToken i import sa getAuthToken
+import { getAuthToken } from './auth';
 
 const TOKEN_REFRESH_INTERVAL = 5 * 60 * 1000; // Check every 5 minutes
 const ACTIVITY_EVENTS = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
@@ -51,7 +52,7 @@ export const startTokenRefresh = () => {
 
   refreshTimer = setInterval(async () => {
     const timeSinceActivity = Date.now() - lastActivityTime;
-    
+
     // Only update expiration if user was active in the last 30 minutes
     if (timeSinceActivity < 30 * 60 * 1000) {
       await updateTokenExpiration();

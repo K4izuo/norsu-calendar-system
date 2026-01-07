@@ -21,16 +21,14 @@ export const EventFormInput = <T extends FieldValues>({
   errors,
   required = true,
   isTextarea = false,
-  className,
+  // className,
   ...inputProps
 }: EventFormInputProps<T>) => {
-  const inputClassName = `h-12 text-base border-2 rounded-lg focus:border-ring transition-all duration-90 ${
-    errors[name] ? "border-red-400" : "border-gray-200"
-  }`;
+  const inputClassName = `h-12 text-base border-2 rounded-lg focus:border-ring transition-all duration-90 ${errors[name] ? "border-red-400" : "border-gray-200"
+    }`;
 
-  const textareaClassName = `min-h-[120px] text-base border-2 rounded-lg focus:border-ring transition-all duration-[90ms] ${
-    errors[name] ? "border-red-400" : "border-gray-200"
-  }`;
+  const textareaClassName = `min-h-[120px] text-base border-2 rounded-lg focus:border-ring transition-all duration-[90ms] ${errors[name] ? "border-red-400" : "border-gray-200"
+    }`;
 
   return (
     <div>

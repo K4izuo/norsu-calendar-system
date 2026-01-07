@@ -24,8 +24,10 @@ export default function AdminCalendarTab() {
 
   // Reservations state - Change type to ReservationWithRelations
   const [allReservations, setAllReservations] = useState<ReservationWithRelations[]>([]);
-  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Use ref for lastUpdate to avoid triggering re-renders
+  const lastUpdateRef = React.useRef<Date | null>(null);
 
   // Assets state - NEW
   const [assets, setAssets] = useState<Map<number, Asset>>(new Map());
@@ -38,42 +40,50 @@ export default function AdminCalendarTab() {
   // Show recent events state
   const [showRecent, setShowRecent] = useState(false);
 
-  // Fetch assets function - NEW
+  // Fetch assets function - FIXED to avoid circular dependency
   const fetchAssets = useCallback(async (assetIds: number[]) => {
     const uniqueIds = [...new Set(assetIds)];
-    const missingIds = uniqueIds.filter(id => !assets.has(id));
 
-    if (missingIds.length === 0) return;
+    setAssets(currentAssets => {
+      const missingIds = uniqueIds.filter(id => !currentAssets.has(id));
 
-    try {
-      // Fetch all missing assets
-      const assetPromises = missingIds.map(id =>
-        apiClient.get<Asset[]>(`/reservations/${id}`)
-      );
+      if (missingIds.length === 0) return currentAssets;
 
-      const responses = await Promise.all(assetPromises);
+      // Fetch missing assets asynchronously
+      (async () => {
+        try {
+          const assetPromises = missingIds.map(id =>
+            apiClient.get<Asset[]>(`/reservations/${id}`)
+          );
 
-      const newAssets = new Map(assets);
-      responses.forEach((response, index) => {
-        if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-          const asset = response.data[0];
-          newAssets.set(missingIds[index], asset);
+          const responses = await Promise.all(assetPromises);
+
+          setAssets(prevAssets => {
+            const newAssets = new Map(prevAssets);
+            responses.forEach((response, index) => {
+              if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+                const asset = response.data[0];
+                newAssets.set(missingIds[index], asset);
+              }
+            });
+            return newAssets;
+          });
+        } catch (error) {
+          console.error('Error fetching assets:', error);
         }
-      });
+      })();
 
-      setAssets(newAssets);
-    } catch (error) {
-      console.error('Error fetching assets:', error);
-    }
-  }, [assets]);
+      return currentAssets;
+    });
+  }, []); // Empty dependency array - no circular dependency
 
   // Fetch reservations function with lastUpdate parameter
   const fetchReservations = useCallback(async () => {
     try {
       setLoading(true);
 
-      const url = lastUpdate
-        ? `/reservations/all?lastUpdate=${encodeURIComponent(lastUpdate.toISOString())}`
+      const url = lastUpdateRef.current
+        ? `/reservations/all?lastUpdate=${encodeURIComponent(lastUpdateRef.current.toISOString())}`
         : "/reservations/all";
 
       const response = await apiClient.get<ReservationWithRelations[]>(url);
@@ -89,7 +99,7 @@ export default function AdminCalendarTab() {
         const assetIds = response.data.map(r => r.asset_id);
         await fetchAssets(assetIds);
 
-        setLastUpdate(new Date());
+        lastUpdateRef.current = new Date();
         setError(null);
       } else {
         setError("Unexpected response format from server");
@@ -100,7 +110,7 @@ export default function AdminCalendarTab() {
     } finally {
       setLoading(false);
     }
-  }, [lastUpdate, fetchAssets]);
+  }, [fetchAssets]);
 
   // Handle new reservation from modal
   const handleNewReservation = useCallback(async (newReservation: ReservationWithRelations) => {
@@ -119,12 +129,13 @@ export default function AdminCalendarTab() {
     });
 
     await fetchAssets([newReservation.asset_id]);
-  }, [fetchReservations]);
+  }, [fetchAssets]);
 
   // Initial fetch of reservations on mount
   useEffect(() => {
     fetchReservations();
-  }, []); // Empty dependency - only run on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount - fetchReservations is stable
 
   // Convert reservations to events format for calendar
   const events: EventDetails[] = useMemo(() => {

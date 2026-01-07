@@ -32,21 +32,21 @@ const handleUnauthorized = () => {
   removeAuthToken();
 };
 
-const storeAuthData = (responseData: any) => {
+const storeAuthData = (responseData: { token?: string; role?: string } | null) => {
   if (responseData?.token) setAuthToken(responseData.token);
-  if (responseData?.role) setUserRole(responseData.role);
+  if (responseData?.role) setUserRole(Number(responseData.role));
 };
 
 export const apiClient = {
   async request<T, D = unknown>(
-    endpoint: string, 
-    method: RequestMethod = 'GET', 
-    data?: D, 
+    endpoint: string,
+    method: RequestMethod = 'GET',
+    data?: D,
     customOptions: Omit<RequestOptions, 'body'> = {}
   ): Promise<ApiResponse<T>> {
     const token = getAuthToken();
     const url = buildUrl(endpoint);
-    
+
     const options: RequestInit = {
       method,
       headers: buildHeaders(token, customOptions.headers),
@@ -56,18 +56,18 @@ export const apiClient = {
 
     try {
       const response = await fetch(url, options);
-      
+
       if (response.status === 401) {
         handleUnauthorized();
         return { data: null, error: 'Unauthorized. Please refresh your page.', status: 401 };
       }
-      
-      const responseData = response.status !== 204 
-        ? await response.json().catch(() => null) 
+
+      const responseData = response.status !== 204
+        ? await response.json().catch(() => null)
         : null;
-      
+
       storeAuthData(responseData);
-      
+
       if (!response.ok) {
         return {
           data: responseData as T,
@@ -105,7 +105,7 @@ export const apiClient = {
   delete<T>(endpoint: string, options?: RequestOptions): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, 'DELETE', undefined, options);
   },
-  
+
   patch<T, D>(endpoint: string, data: D, options?: RequestOptions): Promise<ApiResponse<T>> {
     return this.request<T, D>(endpoint, 'PATCH', data, options);
   }

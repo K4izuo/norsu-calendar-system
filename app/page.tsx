@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { useMemo, useState, useEffect, useCallback, Suspense } from "react";
 import { EventsListModal } from "@/components/modal/events-list-modal";
 import { EventInfoModal } from "@/components/modal/event-info-modal";
 import { Calendar } from "@/components/ui/norsu-calendar";
@@ -10,7 +10,7 @@ import type { EventDetails, CalendarDayType } from "@/interface/user-props";
 import { useSearchParams } from "next/navigation";
 import { toast } from "react-hot-toast"; // Import toast
 
-export default function Home() {
+function HomeContent() {
   const searchParams = useSearchParams();
 
   const upcomingEvents = [
@@ -377,5 +377,13 @@ export default function Home() {
         loading={eventInfoLoading}
       />
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <HomeContent />
+    </Suspense>
   );
 }

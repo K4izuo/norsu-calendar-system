@@ -40,7 +40,7 @@ interface ModalProps {
 export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewReservation, editMode = false, eventData }: ModalProps) {
   const contentRef = useRef<HTMLDivElement>(null)
 
-  const { assets, loading: assetsLoading, error: assetsError } = useAssets();
+  const { assets } = useAssets();
 
   const {
     control,
@@ -104,11 +104,11 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
       setValue('range', eventData.range || 1);
       setValue('info_type', eventData.info_type || '');
       setValue('category', eventData.category || '');
-      
+
       if (eventData.asset) {
         setValue('asset', eventData.asset);
       }
-      
+
       if (eventData.people_tag && eventData.people_tag.length > 0) {
         const people = eventData.people_tag.map((name, index) => ({
           id: `edit-${index}`,

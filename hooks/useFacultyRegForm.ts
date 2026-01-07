@@ -1,11 +1,11 @@
 import { useState, useCallback, useEffect } from "react";
 import toast from "react-hot-toast";
-import { FacultyRegisterFormData } from "@/interface/user-props";
+import { DeanRegisterFormData } from "@/interface/user-props";
 import { apiClient } from "@/lib/api-client";
 import { useRole } from "@/contexts/user-role";
 
 // Field validation mapping for error messages
-const FIELD_LABELS: Record<keyof FacultyRegisterFormData, string> = {
+const FIELD_LABELS: Record<keyof DeanRegisterFormData, string> = {
   first_name: "First name",
   middle_name: "Middle name",
   last_name: "Last name",
@@ -18,7 +18,7 @@ const FIELD_LABELS: Record<keyof FacultyRegisterFormData, string> = {
 };
 
 // Initial form state
-const INITIAL_FORM_STATE: Omit<FacultyRegisterFormData, 'role'> = {
+const INITIAL_FORM_STATE: Omit<DeanRegisterFormData, 'role'> = {
   first_name: "",
   middle_name: "",
   last_name: "",
@@ -31,15 +31,15 @@ const INITIAL_FORM_STATE: Omit<FacultyRegisterFormData, 'role'> = {
 
 export function FacultyRegistrationSubmission() {
   const { role } = useRole();
-    
+
   // Get role from our context on initial render
-  const [formData, setFormData] = useState<FacultyRegisterFormData>(() => {
+  const [formData, setFormData] = useState<DeanRegisterFormData>(() => {
     return {
       ...INITIAL_FORM_STATE,
       role: role as string
     };
   });
-  
+
   // Update form data when role changes
   useEffect(() => {
     setFormData(prev => ({
@@ -49,10 +49,10 @@ export function FacultyRegistrationSubmission() {
   }, [role]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [missingFields, setMissingFields] = useState<Partial<Record<keyof FacultyRegisterFormData, boolean>>>({});
+  const [missingFields, setMissingFields] = useState<Partial<Record<keyof DeanRegisterFormData, boolean>>>({});
 
   // Generic field change handler (works for both inputs and selects)
-  const handleFieldChange = useCallback((name: keyof FacultyRegisterFormData, value: string) => {
+  const handleFieldChange = useCallback((name: keyof DeanRegisterFormData, value: string) => {
     setFormData(prev => {
       // Special case: reset course when college changes
       if (name === "college_id") {
@@ -60,25 +60,26 @@ export function FacultyRegistrationSubmission() {
       }
       return { ...prev, [name]: value };
     });
-    
+
     // Clear validation error when field is updated
     setMissingFields(prev => {
       if (!prev[name]) return prev;
-      const { [name]: _, ...rest } = prev;
-      return rest;
+      const newFields = { ...prev };
+      delete newFields[name];
+      return newFields;
     });
   }, []);
 
   // Convenience handler for input elements
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    handleFieldChange(name as keyof FacultyRegisterFormData, value);
+    handleFieldChange(name as keyof DeanRegisterFormData, value);
   }, [handleFieldChange]);
 
   // Validate all form fields
   const validateForm = useCallback(() => {
-    const missing: Partial<Record<keyof FacultyRegisterFormData, boolean>> = {};
-    
+    const missing: Partial<Record<keyof DeanRegisterFormData, boolean>> = {};
+
     // Check required fields
     if (!formData.first_name.trim()) missing.first_name = true;
     if (!formData.middle_name.trim()) missing.middle_name = true;
@@ -87,22 +88,22 @@ export function FacultyRegistrationSubmission() {
     if (!formData.campus_id) missing.campus_id = true;
     if (!formData.college_id) missing.college_id = true;
     if (!formData.degree_course_id) missing.degree_course_id = true;
-    
+
     // Email validation
     if (!formData.email.trim() || !formData.email.includes("@")) missing.email = true;
 
     setMissingFields(missing);
-    
+
     // Show validation error toasts
     const errorCount = Object.keys(missing).length;
     if (errorCount > 0) {
       Object.keys(missing).forEach((field, i) => {
-        const key = field as keyof FacultyRegisterFormData;
+        const key = field as keyof DeanRegisterFormData;
         setTimeout(() => toast.error(`Missing or invalid: ${FIELD_LABELS[key]}`), i * 200);
       });
       return false;
     }
-    
+
     return true;
   }, [formData]);
 
@@ -110,27 +111,27 @@ export function FacultyRegistrationSubmission() {
   const submitForm = useCallback(async (validateOnly = false) => {
     // Validate form first
     if (!validateForm()) return false;
-    
+
     // Skip actual submission if we're only validating
     if (validateOnly) return true;
-    
+
     // Begin submission
     setIsSubmitting(true);
 
     try {
       // API call
-      const response = await apiClient.post<{ role?: number }, FacultyRegisterFormData>(
-        'users/store', 
+      const response = await apiClient.post<{ role?: number }, DeanRegisterFormData>(
+        'users/store',
         formData
       );
-      
+
       // Handle API errors
       if (response.error) {
-        const errorMessage = response.error.toLowerCase().includes("email") && 
-            response.error.toLowerCase().includes("already")
+        const errorMessage = response.error.toLowerCase().includes("email") &&
+          response.error.toLowerCase().includes("already")
           ? "Email is already registered."
           : response.error;
-        
+
         toast.error(errorMessage, { duration: 5000 });
         setIsSubmitting(false);
         return false;
@@ -138,7 +139,7 @@ export function FacultyRegistrationSubmission() {
 
       let successMsg = "Registration successful!";
 
-      switch(response.data?.role) {
+      switch (response.data?.role) {
         case 1: successMsg = "Student registration successful!"; break;
         case 2: successMsg = "Faculty registration successful!"; break;
         case 3: successMsg = "Staff registration successful!"; break;
@@ -151,7 +152,7 @@ export function FacultyRegistrationSubmission() {
       }));
       setIsSubmitting(false);
       return true;
-      
+
     } catch (error) {
       console.error("Registration error:", error);
       toast.error("Registration failed!", { duration: 5000 });

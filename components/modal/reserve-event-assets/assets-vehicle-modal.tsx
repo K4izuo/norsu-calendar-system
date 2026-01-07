@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { University, MapPinned, X, CalendarClock, Users } from "lucide-react";
+import { University, X, CalendarClock, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getRoleColors, UserRole } from "@/utils/role-colors";
 

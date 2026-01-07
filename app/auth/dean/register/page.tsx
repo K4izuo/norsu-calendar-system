@@ -136,8 +136,8 @@ export default function DeanRegisterPage() {
                   <div
                     key={tab.value}
                     className={`flex items-center justify-center py-2 px-2 rounded-md text-base font-medium transition-colors min-w-[100px] ${activeTab === tab.value
-                        ? "bg-background text-foreground shadow-sm"
-                        : "text-muted-foreground"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground"
                       }`}
                   >
                     {tab.label}
@@ -211,7 +211,7 @@ export default function DeanRegisterPage() {
                           name="campus_id"
                           label="Campus"
                           placeholder="Select campus"
-                          value={field.value}
+                          value={field.value || ""}
                           onChange={field.onChange}
                           options={campuses}
                           loading={loadingCampuses}
@@ -233,7 +233,7 @@ export default function DeanRegisterPage() {
                           name="college_id"
                           label="College"
                           placeholder="Select college"
-                          value={field.value}
+                          value={field.value || ""}
                           onChange={field.onChange}
                           options={offices}
                           loading={loadingOffices}
@@ -256,7 +256,7 @@ export default function DeanRegisterPage() {
                       name="degree_course_id"
                       label="Course"
                       placeholder="Select course"
-                      value={field.value}
+                      value={field.value || ""}
                       onChange={field.onChange}
                       options={courses}
                       loading={loadingCourses}

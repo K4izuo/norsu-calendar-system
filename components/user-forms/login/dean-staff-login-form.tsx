@@ -2,7 +2,7 @@ import React, { memo } from "react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
-import { Eye, User, Lock, EyeOff, Loader2, Check } from "lucide-react"
+import { Eye, User, Lock, EyeOff, Loader2 } from "lucide-react"
 import { UseFormRegister, FieldErrors, RegisterOptions } from "react-hook-form"
 import { LoginFormData } from "@/utils/login/login-validation-rules"
 
@@ -135,11 +135,10 @@ export const LoginFormLayout = memo(function LoginFormLayout({
           {/* Login Button */}
           <Button
             type="submit"
-            className={`w-full ${buttonHeight} font-semibold text-sm sm:text-base rounded-lg shadow-lg transition-all duration-200 mb-3 flex items-center justify-center gap-x-2 ${
-              isLoading || isSuccess
+            className={`w-full ${buttonHeight} font-semibold text-sm sm:text-base rounded-lg shadow-lg transition-all duration-200 mb-3 flex items-center justify-center gap-x-2 ${isLoading || isSuccess
                 ? 'bg-gray-400 cursor-not-allowed opacity-70'
                 : `cursor-pointer ${theme.buttonStyle} hover:shadow-xl transform hover:scale-[1.02]`
-            }`}
+              }`}
             disabled={isLoading || isSuccess}
           >
             {isLoading ? (

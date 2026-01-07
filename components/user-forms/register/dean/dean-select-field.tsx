@@ -53,9 +53,8 @@ export const DeanFormSelectField = memo(function DeanFormSelectField({
       >
         <SelectTrigger
           id={id}
-          className={`h-11 cursor-pointer text-base border-2 rounded-lg w-full ${
-            hasError ? "border-red-400" : "border-gray-200"
-          }`}
+          className={`h-11 cursor-pointer text-base border-2 rounded-lg w-full ${hasError ? "border-red-400" : "border-gray-200"
+            }`}
         >
           <SelectValue placeholder={loading ? `Loading ${label.toLowerCase()}...` : placeholder} />
         </SelectTrigger>

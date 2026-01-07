@@ -23,7 +23,7 @@ import { getRoleColors, UserRole } from "@/utils/role-colors"
 import {
   handleApproveReservation,
   handleDeclineReservation,
-  handleEditReservation,
+  // handleEditReservation,
 } from "@/hooks/useHandleReservations";
 import { ConfirmationModal } from "./confirmation-modal";
 import { apiClient } from "@/lib/api-client";

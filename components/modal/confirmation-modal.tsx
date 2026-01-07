@@ -162,7 +162,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                       Disclaimer: The following {conflictingReservations.length} reservation{conflictingReservations.length > 1 ? 's' : ''} below will be automatically declined:
                     </p>
                     <div className="space-y-2 max-h-64 overflow-y-auto">
-                      {conflictingReservations.map((conflict, index) => (
+                      {conflictingReservations.map((conflict) => (
                         <div
                           key={conflict.id}
                           className="bg-white border border-amber-200 rounded-md p-3"

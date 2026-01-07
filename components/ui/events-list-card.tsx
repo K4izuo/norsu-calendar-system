@@ -1,4 +1,5 @@
 import React from "react"
+import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { Clock, MapPin, User, Tag } from "lucide-react"
 import type { EventCardsListProps } from "@/interface/user-props"
@@ -35,10 +36,11 @@ export const EventCardsList = React.memo(function EventCardsList({
           >
             {/* Image Section with rounded corners */}
             <div className="relative h-60 overflow-hidden rounded-3xl mb-6">
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1576678927484-cc907957088c?w=800&h=400&fit=crop"
                 alt=""
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
               />
               
               {/* Gradient Overlay */}

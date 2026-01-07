@@ -2,7 +2,7 @@ import React, { memo } from "react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
-import { Eye, User, Lock, EyeOff, Loader2, Check } from "lucide-react"
+import { Eye, User, Lock, EyeOff } from "lucide-react"
 import { UseFormRegister, FieldErrors, RegisterOptions } from "react-hook-form"
 import { LoginFormData } from "@/utils/login/login-validation-rules"
 
@@ -113,8 +113,8 @@ export const AdminLoginForm = memo(function AdminLoginForm({
           <Button
             type="submit"
             className={`w-full h-[50px] sm:h-[54px] font-semibold text-sm sm:text-base text-white rounded-lg shadow-lg transition-all duration-200 mb-3 flex items-center justify-center gap-x-2 ${isLoading || isSuccess
-                ? 'bg-gray-400 cursor-not-allowed opacity-70'
-                : 'cursor-pointer bg-linear-to-br from-gray-400 via-gray-500 to-gray-700 hover:from-gray-500 hover:to-gray-800 hover:shadow-xl transform hover:scale-[1.02]'
+              ? 'bg-gray-400 cursor-not-allowed opacity-70'
+              : 'cursor-pointer bg-linear-to-br from-gray-400 via-gray-500 to-gray-700 hover:from-gray-500 hover:to-gray-800 hover:shadow-xl transform hover:scale-[1.02]'
               }`}
             disabled={isLoading || isSuccess}
           >

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { CalendarClock, ChevronLeft, ChevronRight } from "lucide-react";
 import {
