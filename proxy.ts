@@ -24,7 +24,7 @@ const ROLE_ROOTS = {
   "4": "/page/admin",
 };
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const token = request.cookies.get('auth-token')?.value;
   const role = request.cookies.get('user-role')?.value;
   const tokenExpiry = request.cookies.get('token-expiry')?.value;
@@ -45,7 +45,7 @@ export function middleware(request: NextRequest) {
   if (isTokenExpired && !isPublic) {
     const url = new URL('/', request.url);
     url.searchParams.set('error', 'session_expired'); // Add error parameter
-    
+
     const response = NextResponse.redirect(url);
     response.cookies.delete('auth-token');
     response.cookies.delete('user-role');
@@ -66,7 +66,7 @@ export function middleware(request: NextRequest) {
   if (!token || !role || isTokenExpired) {
     const url = new URL('/', request.url);
     url.searchParams.set('error', 'unauthorized'); // Add error parameter
-    
+
     const response = NextResponse.redirect(url);
     // Clear expired/invalid tokens
     response.cookies.delete('auth-token');
