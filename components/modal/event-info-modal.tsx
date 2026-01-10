@@ -323,7 +323,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                 </motion.div>
               ) : (
                 <div
-                  className="overflow-y-auto custom-scrollbar p-4 sm:p-6 pt-4 sm:pt-6 pb-8 sm:pb-6"
+                  className="overflow-y-auto custom-scrollbar p-4 sm:p-6 pt-4 sm:pt-6 pb-4 sm:pb-6"
                   style={{
                     maxHeight: "calc(92vh - 100px)",
                     paddingBottom: !loading && event && getStatus(event) === "PENDING" ? "112px" : ""
