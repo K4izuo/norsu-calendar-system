@@ -183,7 +183,7 @@ export function EventsListModal({
         {isOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overscroll-none">
             <motion.div
-              className="absolute inset-0 bg-black/40 sm:backdrop-blur-sm"
+              className="absolute inset-0 bg-black/50"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -204,7 +204,7 @@ export function EventsListModal({
                 duration: 0.25,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className="relative max-w-[864px] bg-background rounded-2xl shadow-2xl w-[99%] sm:w-full sm:mx-4 overflow-hidden flex flex-col max-h-[88vh] border border-border"
+              className="relative max-w-216 bg-background rounded-2xl shadow-2xl w-[99%] sm:w-full sm:mx-4 overflow-hidden flex flex-col max-h-[88vh] border border-border"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="bg-card border-b border-border p-4 sm:p-6">

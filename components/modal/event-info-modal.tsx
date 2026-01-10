@@ -242,7 +242,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
             className="fixed inset-0 z-50 flex items-center justify-center p-1.5 sm:p-4 overscroll-none"
           >
             <motion.div
-              className={`absolute inset-0 bg-black/40 ${showBackdropBlur ? 'sm:backdrop-blur-sm' : ''}`}
+              className={`absolute inset-0 bg-black/50 ${showBackdropBlur ? 'sm:backdrop-blur-sm' : ''}`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -262,7 +262,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                 duration: 0.25,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className="relative max-w-[864px] max-h-[92vh] bg-white rounded-lg shadow-xl w-[94%] sm:w-full sm:mx-4 overflow-hidden"
+              className="relative max-w-216 max-h-[92vh] bg-white rounded-lg shadow-xl w-[94%] sm:w-full sm:mx-4 overflow-hidden"
               style={{
                 transform: "translateZ(0)",
                 backfaceVisibility: "hidden",
@@ -323,9 +323,9 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                 </motion.div>
               ) : (
                 <div
-                  className="overflow-y-auto custom-scrollbar p-4 sm:p-6 pt-4 sm:pt-6"
+                  className="overflow-y-auto custom-scrollbar p-4 sm:p-6 pt-4 sm:pt-6 pb-10.5 sm:pb-6"
                   style={{
-                    maxHeight: "calc(92vh - 85px)",
+                    maxHeight: "calc(92vh - 100px)",
                     paddingBottom: !loading && event && getStatus(event) === "PENDING" ? "112px" : ""
                   }}
                 >
