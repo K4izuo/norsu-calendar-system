@@ -262,7 +262,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                 duration: 0.25,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className="relative max-w-216 max-h-[90vh] bg-white rounded-lg shadow-xl w-[94%] sm:w-full sm:mx-4 overflow-hidden"
+              className="relative max-w-216 max-h-[89vh] sm:max-h-[92vh] bg-white rounded-lg shadow-xl w-[94%] sm:w-full sm:mx-4 overflow-hidden"
               style={{
                 transform: "translateZ(0)",
                 backfaceVisibility: "hidden",
