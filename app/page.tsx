@@ -10,7 +10,7 @@ import type { EventDetails, CalendarDayType } from "@/interface/user-props";
 import { useSearchParams } from "next/navigation";
 import { toast } from "react-hot-toast"; // Import toast
 
-function HomeContent() {
+export default function Home() {
   const searchParams = useSearchParams();
 
   const upcomingEvents = [
@@ -378,8 +378,4 @@ function HomeContent() {
       />
     </div>
   );
-}
-
-export default function Home() {
-  return <HomeContent />
 }
