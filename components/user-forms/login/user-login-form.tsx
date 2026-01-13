@@ -141,7 +141,7 @@ export const UserLoginForm = memo(function UserLoginForm({
           {/* Login Button */}
           <Button
             type="submit"
-            className={`w-full h-12 font-semibold text-sm sm:text-base text-white rounded-lg shadow-lg transition-all duration-200 flex items-center justify-center gap-x-2 ${isDisabled
+            className={`w-full mb-3 h-12 font-semibold text-sm sm:text-base text-white rounded-lg shadow-lg transition-all duration-200 flex items-center justify-center gap-x-2 ${isDisabled
               ? 'bg-gray-400 cursor-not-allowed opacity-70'
               : 'cursor-pointer bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl transform hover:scale-[1.02]'
               }`}
@@ -176,8 +176,8 @@ export const UserLoginForm = memo(function UserLoginForm({
         </div>
       </form>
 
-      {/* Register Link */}
-      <div className="mt-2.5 text-center">
+      {/* Register Link remove the mb-3 on the login button then uncomment these */}
+      {/* <div className="mt-2.5 text-center">
         <p className="text-sm text-gray-600">
           Don&apos;t have an account?{" "}
           <Button
@@ -188,7 +188,7 @@ export const UserLoginForm = memo(function UserLoginForm({
             Register now!
           </Button>
         </p>
-      </div>
+      </div> */}
     </div>
   )
 })
