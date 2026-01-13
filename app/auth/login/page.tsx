@@ -2,7 +2,8 @@
 
 import type React from "react"
 import { motion } from "framer-motion"
-import { Shield, Users, Settings, BarChart3, Database } from "lucide-react"
+import Image from "next/image"
+import { Users, BarChart3, Database } from "lucide-react"
 import { UserLoginForm } from "@/components/user-forms/login/user-login-form"
 import { useLoginForm } from "@/hooks/useLoginForm"
 
@@ -41,23 +42,28 @@ export default function UserLoginPage() {
           <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 lg:bottom-8 lg:left-8 w-6 h-6 sm:w-8 sm:h-8 lg:w-12 lg:h-12 bg-white/10 rounded-full"></div>
 
           <div className="space-y-6 text-center z-10 flex flex-col items-center justify-center h-full">
-            {/* Logo/Icon with Academic branding */}
-            <div className="bg-white/20 p-3 sm:p-4 lg:p-6 rounded-xl sm:rounded-2xl inline-block backdrop-blur-sm">
-              <div className="flex items-center justify-center space-x-2">
-                <Shield className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-white" />
-                <Settings className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-white" />
+            {/* NORSU Logo */}
+            <div className="relative">
+              <div className="absolute inset-0 bg-white/20 rounded-full blur-2xl"></div>
+              <div className="relative bg-white/10 p-4 rounded-full backdrop-blur-sm">
+                <Image
+                  src="/images/norsu.png"
+                  alt="Negros Oriental State University"
+                  width={160}
+                  height={160}
+                  className="w-28 h-28 sm:w-36 sm:h-36 lg:w-40 lg:h-40 object-contain drop-shadow-2xl"
+                  priority
+                />
               </div>
             </div>
 
             <div className="space-y-3">
-              <h2 className="text-2xl sm:text-3xl font-bold">UserPortal Pro</h2>
-              <p className="text-gray-100 text-lg">User Access</p>
-              <p className="text-gray-200 text-sm max-w-xs">Secure user login and account management</p>
+              <p className="text-blue-100 text-base sm:text-lg font-medium">Calendar Management System</p>
             </div>
 
-            {/* Academic-related features */}
-            <div className="mt-6 space-y-3">
-              <div className="flex items-center justify-center space-x-4 text-gray-100">
+            {/* System features */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-center space-x-4 text-blue-100">
                 <div className="flex items-center space-x-2">
                   <Users className="w-4 h-4" />
                   <span className="text-xs">Users</span>
@@ -68,7 +74,7 @@ export default function UserLoginPage() {
                 </div>
                 <div className="flex items-center space-x-2">
                   <Database className="w-4 h-4" />
-                  <span className="text-xs">Database</span>
+                  <span className="text-xs">Reports</span>
                 </div>
               </div>
             </div>
