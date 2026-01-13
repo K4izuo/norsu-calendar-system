@@ -2,14 +2,17 @@
 
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { useMemo, useState, useEffect, useCallback, Suspense } from "react";
 import { EventsListModal } from "@/components/modal/events-list-modal";
 import { EventInfoModal } from "@/components/modal/event-info-modal";
 import { Calendar } from "@/components/ui/norsu-calendar";
 import type { EventDetails, CalendarDayType } from "@/interface/user-props";
-import { toast } from "react-hot-toast";
+import { useSearchParams } from "next/navigation";
+import { toast } from "react-hot-toast"; // Import toast
 
-export default function Home() {
+function HomeContent() {
+  const searchParams = useSearchParams();
+
   const upcomingEvents = [
     { title: "University Week", date: "2025-11-15" },
     { title: "Christmas Party", date: "2025-12-20" },
@@ -37,15 +40,12 @@ export default function Home() {
 
   // Check for error parameter and show toast (prevents duplicates)
   useEffect(() => {
-    // Only run on client side
-    if (typeof window === 'undefined') return;
-
-    const params = new URLSearchParams(window.location.search);
-    const error = params.get('error');
+    const error = searchParams?.get('error');
 
     if (!error) return;
 
     // Check if we've already shown this toast
+    const toastKey = `toast-${error}-${Date.now()}`;
     const hasShown = sessionStorage.getItem('last-toast-error');
 
     if (hasShown === error) {
@@ -60,16 +60,15 @@ export default function Home() {
     sessionStorage.setItem('last-toast-error', error);
 
     // Show the appropriate toast
-    const toastKey = `toast-${error}-${Date.now()}`;
     if (error === 'session_expired') {
       toast.error("Session Expired. You don't have permission to view that page. Please log in again.", {
         duration: 5000,
-        id: toastKey,
+        id: toastKey, // Prevents duplicate toasts with same ID
       });
     } else if (error === 'unauthorized') {
       toast.error("Access Denied. You don't have permission to view that page. Please log in again.", {
         duration: 4000,
-        id: toastKey,
+        id: toastKey, // Prevents duplicate toasts with same ID
       });
     }
 
@@ -78,11 +77,11 @@ export default function Home() {
     url.searchParams.delete('error');
     window.history.replaceState({}, '', url.toString());
 
-    // Clear the flag after a delay
+    // Clear the flag after a delay so it can show again on next error
     setTimeout(() => {
       sessionStorage.removeItem('last-toast-error');
     }, 500);
-  }, []); // Empty dependency array - runs once on mount
+  }, [searchParams]);
 
   // Sample events for demonstration
   const eventsMap = useMemo(
@@ -378,5 +377,13 @@ export default function Home() {
         loading={eventInfoLoading}
       />
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <HomeContent />
+    </Suspense>
   );
 }
