@@ -2,17 +2,14 @@
 
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { useMemo, useState, useEffect, useCallback, Suspense } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { EventsListModal } from "@/components/modal/events-list-modal";
 import { EventInfoModal } from "@/components/modal/event-info-modal";
 import { Calendar } from "@/components/ui/norsu-calendar";
 import type { EventDetails, CalendarDayType } from "@/interface/user-props";
-import { useSearchParams } from "next/navigation";
-import { toast } from "react-hot-toast"; // Import toast
+import { toast } from "react-hot-toast";
 
-function HomeContent() {
-  const searchParams = useSearchParams();
-
+export default function Home() {
   const upcomingEvents = [
     { title: "University Week", date: "2025-11-15" },
     { title: "Christmas Party", date: "2025-12-20" },
@@ -29,59 +26,51 @@ function HomeContent() {
   // Modal states
   const [modalOpen, setModalOpen] = useState(false);
   const [eventInfoModalOpen, setEventInfoModalOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<EventDetails | undefined>(
-    undefined
-  );
+  const [selectedEvent, setSelectedEvent] = useState<EventDetails | undefined>(undefined);
   const [selectedDay, setSelectedDay] = useState<CalendarDayType | null>(null);
   const [eventInfoLoading, setEventInfoLoading] = useState(false);
-
-  // Show recent events state
   const [showRecent, setShowRecent] = useState(false);
 
-  // Check for error parameter and show toast (prevents duplicates)
+  // Handle error notifications from URL parameters
   useEffect(() => {
-    const error = searchParams?.get('error');
+    if (typeof window === 'undefined') return;
+
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get('error');
 
     if (!error) return;
 
-    // Check if we've already shown this toast
-    const toastKey = `toast-${error}-${Date.now()}`;
+    // Prevent duplicate toasts
     const hasShown = sessionStorage.getItem('last-toast-error');
-
     if (hasShown === error) {
-      // Already shown, just clean up URL
       const url = new URL(window.location.href);
       url.searchParams.delete('error');
       window.history.replaceState({}, '', url.toString());
       return;
     }
 
-    // Mark this error as shown
     sessionStorage.setItem('last-toast-error', error);
 
-    // Show the appropriate toast
-    if (error === 'session_expired') {
-      toast.error("Session Expired. You don't have permission to view that page. Please log in again.", {
-        duration: 5000,
-        id: toastKey, // Prevents duplicate toasts with same ID
-      });
-    } else if (error === 'unauthorized') {
-      toast.error("Access Denied. You don't have permission to view that page. Please log in again.", {
-        duration: 4000,
-        id: toastKey, // Prevents duplicate toasts with same ID
-      });
-    }
+    // Show appropriate error message
+    const messages: Record<string, string> = {
+      session_expired: "Session expired. Please log in again.",
+      unauthorized: "Access denied. Please log in again.",
+    };
 
-    // Clean up the URL
+    const message = messages[error] || "An error occurred. Please try again.";
+    toast.error(message, {
+      duration: 5000,
+      id: `toast-${error}-${Date.now()}`,
+    });
+
+    // Clean up URL
     const url = new URL(window.location.href);
     url.searchParams.delete('error');
     window.history.replaceState({}, '', url.toString());
 
-    // Clear the flag after a delay so it can show again on next error
-    setTimeout(() => {
-      sessionStorage.removeItem('last-toast-error');
-    }, 500);
-  }, [searchParams]);
+    // Reset flag after delay
+    setTimeout(() => sessionStorage.removeItem('last-toast-error'), 500);
+  }, []);
 
   // Sample events for demonstration
   const eventsMap = useMemo(
@@ -93,7 +82,6 @@ function HomeContent() {
     []
   );
 
-  // Get events for a particular day - used by Calendar component
   const getEventsForDate = useCallback(
     (year: number, month: number, day: number) => {
       const hasEvent = eventsMap[day as keyof typeof eventsMap] !== undefined;
@@ -103,30 +91,16 @@ function HomeContent() {
     [eventsMap]
   );
 
-  // Format month and year
   const monthNames = useMemo(
     () => [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December",
     ],
     []
   );
 
-  // Memoize selected day events
   const selectedDayEvents = useMemo(() => {
-    if (!selectedDay || !selectedDay.hasEvent || !selectedDay.currentMonth) {
-      return [];
-    }
+    if (!selectedDay?.hasEvent || !selectedDay.currentMonth) return [];
 
     const dayEvents = eventsMap[selectedDay.date as keyof typeof eventsMap];
     if (!dayEvents) return [];
@@ -159,19 +133,13 @@ function HomeContent() {
       const startHour = now.getHours() - 1;
       const endHour = now.getHours();
 
-      const startTime = `${startHour > 12 ? startHour - 12 : startHour}:${i % 2 === 0 ? "00" : "30"
-        } ${startHour >= 12 ? "PM" : "AM"}`;
-      const endTime = `${endHour > 12 ? endHour - 12 : endHour}:${i % 2 === 0 ? "30" : "00"
-        } ${endHour >= 12 ? "PM" : "AM"}`;
+      const startTime = `${startHour > 12 ? startHour - 12 : startHour}:${i % 2 === 0 ? "00" : "30"} ${startHour >= 12 ? "PM" : "AM"}`;
+      const endTime = `${endHour > 12 ? endHour - 12 : endHour}:${i % 2 === 0 ? "30" : "00"} ${endHour >= 12 ? "PM" : "AM"}`;
 
       events.push({
         id: selectedDay.date * 100 + i,
-        title_name:
-          dayEvents.count > 1 ? `${eventType.title} ${i + 1}` : dayEvents.title,
-        date: `${currentYear}-${String(currentMonth + 1).padStart(
-          2,
-          "0"
-        )}-${String(selectedDay.date).padStart(2, "0")}`,
+        title_name: dayEvents.count > 1 ? `${eventType.title} ${i + 1}` : dayEvents.title,
+        date: `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(selectedDay.date).padStart(2, "0")}`,
         time_start: startTime,
         time_end: endTime,
         asset: {
@@ -183,35 +151,26 @@ function HomeContent() {
         },
         category: eventType.category,
         info_type: i % 2 === 0 ? "Public" : "Private",
-        description:
-          "This event provides an opportunity for faculty and staff to engage with important university matters, share ideas, and collaborate on academic initiatives.",
+        description: "This event provides an opportunity for faculty and staff to engage with important university matters, share ideas, and collaborate on academic initiatives.",
         people_tag: [
           i % 2 === 0 ? "John Doe" : "Jane Smith",
           i % 3 === 0 ? "Alice Johnson" : "Bob Lee",
         ],
         range: 1,
         registration_status: (i % 3 === 0 ? "REJECTED" : i % 2 === 0 ? "APPROVED" : "PENDING") as "PENDING" | "APPROVED" | "REJECTED",
-        registration_deadline: `${monthNames[currentMonth]} ${Math.max(
-          1,
-          selectedDay.date - 2
-        )}, ${currentYear}`,
+        registration_deadline: `${monthNames[currentMonth]} ${Math.max(1, selectedDay.date - 2)}, ${currentYear}`,
         reserve_by_user: i % 2 === 0 ? "Faculty of Science" : "Department of Education",
         approved_by_user: i % 2 === 0 ? "Dean Johnson" : undefined,
         declined_by_user: i % 3 === 0 ? "Admin Smith" : undefined,
-        finished_on:
-          i % 3 === 0
-            ? `${currentYear}-${String(currentMonth + 1).padStart(
-              2,
-              "0"
-            )}-${String(selectedDay.date).padStart(2, "0")}`
-            : undefined,
+        finished_on: i % 3 === 0
+          ? `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(selectedDay.date).padStart(2, "0")}`
+          : undefined,
       });
     }
 
     return events;
   }, [eventsMap, currentMonth, currentYear, selectedDay, monthNames]);
 
-  // Open event info modal with the selected event
   const handleEventClick = useCallback((event: EventDetails) => {
     setSelectedEvent(event);
     setEventInfoLoading(true);
@@ -219,16 +178,11 @@ function HomeContent() {
     setTimeout(() => setEventInfoLoading(false), 700);
   }, []);
 
-  // Calendar day selection handler
-  const handleDaySelect = useCallback(
-    (day: CalendarDayType) => {
-      setSelectedDay(day);
-      setModalOpen(true);
-    },
-    []
-  );
+  const handleDaySelect = useCallback((day: CalendarDayType) => {
+    setSelectedDay(day);
+    setModalOpen(true);
+  }, []);
 
-  // Add handleMonthYearChange to synchronize state
   const handleMonthYearChange = useCallback((month: number, year: number) => {
     setCurrentMonth(month);
     setCurrentYear(year);
@@ -242,9 +196,8 @@ function HomeContent() {
 
   return (
     <div className="min-h-screen bg-[#f6f6f7] flex flex-col overflow-x-hidden">
-      {/* Navbar: full width */}
+      {/* Navbar */}
       <div className="relative bg-white px-2 sm:px-4 md:px-8 lg:px-16 xl:px-36 py-4 shadow-sm flex flex-col sm:flex-row items-center sm:items-center justify-between w-full gap-y-2">
-        {/* Logo (left, or with title on mobile) */}
         <div className="flex flex-row items-center justify-center sm:justify-start w-full sm:w-auto gap-2 sm:gap-0">
           <Image
             src="/images/norsu.png"
@@ -253,7 +206,6 @@ function HomeContent() {
             width={48}
             height={48}
           />
-          {/* Title (side by side on mobile, hidden on sm+) */}
           <div className="flex flex-col items-center min-w-0 sm:hidden ml-2">
             <h1 className="font-semibold text-xl text-gray-800 text-center truncate">
               NORSU Calendar System
@@ -263,7 +215,6 @@ function HomeContent() {
             </p>
           </div>
         </div>
-        {/* Title (centered on sm+ only) */}
         <div className="hidden sm:flex flex-col items-center absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 min-w-0">
           <h1 className="font-semibold text-2xl md:text-3xl text-gray-800 text-center truncate">
             NORSU Calendar System
@@ -272,7 +223,6 @@ function HomeContent() {
             Negros Oriental State University
           </p>
         </div>
-        {/* Auth buttons */}
         <div className="flex items-center space-x-1 shrink-0 mt-2 sm:mt-0 w-full sm:w-auto justify-center sm:justify-end">
           <Button
             variant="ghost"
@@ -294,9 +244,8 @@ function HomeContent() {
         </div>
       </div>
 
-      {/* Main container */}
+      {/* Main content */}
       <div className="w-full flex flex-col flex-1">
-        {/* Content area */}
         <div className="flex-1 flex justify-center p-3.5 sm:p-6 md:p-6">
           <div className="w-full flex flex-col lg:flex-row gap-4 lg:gap-6 flex-1">
             {/* Sidebar */}
@@ -310,19 +259,16 @@ function HomeContent() {
                     key={idx}
                     className="bg-gray-50 rounded-md px-3 py-2 border border-gray-100"
                   >
-                    <div className="font-medium text-gray-800 text-lg">
-                      {event.title}
-                    </div>
+                    <div className="font-medium text-gray-800 text-lg">{event.title}</div>
                     <div className="text-base text-gray-500">{event.date}</div>
                   </li>
                 ))}
               </ul>
             </div>
 
-            {/* Main content */}
+            {/* Calendar */}
             <div className="flex-1 flex flex-col items-start justify-center">
               <div className="w-full bg-white rounded-md shadow-md flex flex-col items-start self-stretch p-4 sm:p-6 gap-6 relative flex-1 min-h-0">
-                {/* Calendar component */}
                 <Calendar
                   role="public"
                   events={[]}
@@ -341,7 +287,7 @@ function HomeContent() {
         </div>
       </div>
 
-      {/* Events List Modal with table implementation */}
+      {/* Modals */}
       <EventsListModal
         role="public"
         isOpen={modalOpen}
@@ -359,16 +305,12 @@ function HomeContent() {
         showRecent={showRecent}
         setShowRecent={setShowRecent}
         eventDate={
-          selectedDay && selectedDay.currentMonth
-            ? `${currentYear}-${String(currentMonth + 1).padStart(
-              2,
-              "0"
-            )}-${String(selectedDay.date).padStart(2, "0")}`
+          selectedDay?.currentMonth
+            ? `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(selectedDay.date).padStart(2, "0")}`
             : ""
         }
       />
 
-      {/* Event Info Modal */}
       <EventInfoModal
         role="public"
         isOpen={eventInfoModalOpen}
@@ -377,13 +319,5 @@ function HomeContent() {
         loading={eventInfoLoading}
       />
     </div>
-  );
-}
-
-export default function Home() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <HomeContent />
-    </Suspense>
   );
 }
