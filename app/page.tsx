@@ -8,7 +8,10 @@ import { EventInfoModal } from "@/components/modal/event-info-modal";
 import { Calendar } from "@/components/ui/norsu-calendar";
 import type { EventDetails, CalendarDayType } from "@/interface/user-props";
 import { useSearchParams } from "next/navigation";
-import { toast } from "react-hot-toast"; // Import toast
+import { toast } from "react-hot-toast";
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 
 export default function Home() {
   const searchParams = useSearchParams();
