@@ -55,6 +55,8 @@ const handleValidationErrors = (
     setError('password', { type: 'manual', message: password[0] });
     showToast(password[0]);
   } else if (username && password) {
+    setError('username', { type: 'manual', message: '' });
+    setError('password', { type: 'manual', message: '' });
     showToast('Login Failed! Your credentials are incorrect.');
   }
 

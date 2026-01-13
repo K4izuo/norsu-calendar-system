@@ -78,7 +78,7 @@ export const LoginFormLayout = memo(function LoginFormLayout({
                 placeholder="Username"
                 autoComplete="username"
                 disabled={isLoading || isSuccess}
-                className={`h-12 text-base sm:text-lg pl-[42px] pr-4 border-2 rounded-lg ${getInputFieldStyles(!!errors.username)} placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed`}
+                className={`h-12 text-base sm:text-lg pl-10.5 pr-4 border-2 rounded-lg ${getInputFieldStyles(!!errors.username)} placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed`}
               />
               <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
             </div>
@@ -94,7 +94,7 @@ export const LoginFormLayout = memo(function LoginFormLayout({
                 placeholder="Password"
                 autoComplete="current-password"
                 disabled={isLoading || isSuccess}
-                className={`h-12 text-base sm:text-lg pl-[42px] pr-12 border-2 rounded-lg ${getInputFieldStyles(!!errors.password)} placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed`}
+                className={`h-12 text-base sm:text-lg pl-10.5 pr-12 border-2 rounded-lg ${getInputFieldStyles(!!errors.password)} placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed`}
               />
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <button
@@ -136,8 +136,8 @@ export const LoginFormLayout = memo(function LoginFormLayout({
           <Button
             type="submit"
             className={`w-full ${buttonHeight} font-semibold text-sm sm:text-base rounded-lg shadow-lg transition-all duration-200 mb-3 flex items-center justify-center gap-x-2 ${isLoading || isSuccess
-                ? 'bg-gray-400 cursor-not-allowed opacity-70'
-                : `cursor-pointer ${theme.buttonStyle} hover:shadow-xl transform hover:scale-[1.02]`
+              ? 'bg-gray-400 cursor-not-allowed opacity-70'
+              : `cursor-pointer ${theme.buttonStyle} hover:shadow-xl transform hover:scale-[1.02]`
               }`}
             disabled={isLoading || isSuccess}
           >
