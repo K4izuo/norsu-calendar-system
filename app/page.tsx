@@ -7,15 +7,9 @@ import { EventsListModal } from "@/components/modal/events-list-modal";
 import { EventInfoModal } from "@/components/modal/event-info-modal";
 import { Calendar } from "@/components/ui/norsu-calendar";
 import type { EventDetails, CalendarDayType } from "@/interface/user-props";
-import { useSearchParams } from "next/navigation";
 import { toast } from "react-hot-toast";
 
-// Force dynamic rendering
-export const dynamic = 'force-dynamic';
-
 export default function Home() {
-  const searchParams = useSearchParams();
-
   const upcomingEvents = [
     { title: "University Week", date: "2025-11-15" },
     { title: "Christmas Party", date: "2025-12-20" },
@@ -43,12 +37,15 @@ export default function Home() {
 
   // Check for error parameter and show toast (prevents duplicates)
   useEffect(() => {
-    const error = searchParams?.get('error');
+    // Only run on client side
+    if (typeof window === 'undefined') return;
+
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get('error');
 
     if (!error) return;
 
     // Check if we've already shown this toast
-    const toastKey = `toast-${error}-${Date.now()}`;
     const hasShown = sessionStorage.getItem('last-toast-error');
 
     if (hasShown === error) {
@@ -63,15 +60,16 @@ export default function Home() {
     sessionStorage.setItem('last-toast-error', error);
 
     // Show the appropriate toast
+    const toastKey = `toast-${error}-${Date.now()}`;
     if (error === 'session_expired') {
       toast.error("Session Expired. You don't have permission to view that page. Please log in again.", {
         duration: 5000,
-        id: toastKey, // Prevents duplicate toasts with same ID
+        id: toastKey,
       });
     } else if (error === 'unauthorized') {
       toast.error("Access Denied. You don't have permission to view that page. Please log in again.", {
         duration: 4000,
-        id: toastKey, // Prevents duplicate toasts with same ID
+        id: toastKey,
       });
     }
 
@@ -80,11 +78,11 @@ export default function Home() {
     url.searchParams.delete('error');
     window.history.replaceState({}, '', url.toString());
 
-    // Clear the flag after a delay so it can show again on next error
+    // Clear the flag after a delay
     setTimeout(() => {
       sessionStorage.removeItem('last-toast-error');
     }, 500);
-  }, [searchParams]);
+  }, []); // Empty dependency array - runs once on mount
 
   // Sample events for demonstration
   const eventsMap = useMemo(
