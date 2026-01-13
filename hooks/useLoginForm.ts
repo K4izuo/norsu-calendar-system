@@ -2,7 +2,7 @@ import React from "react"
 import { useForm, UseFormSetError } from "react-hook-form"
 import toast from "react-hot-toast"
 import { LoginFormData, LOGIN_VALIDATION_RULES } from "@/utils/login/login-validation-rules"
-import { showLoginErrorToast } from "@/utils/login/login-field-error-toast"
+// import { showLoginErrorToast } from "@/utils/login/login-field-error-toast"
 import { apiClient } from "@/lib/api-client"
 import { useRouter } from "next/navigation"
 import { setAuthToken, setUserRole, setUserId } from "@/lib/auth"
@@ -47,7 +47,7 @@ const handleValidationErrors = (
   setIsLoading: (loading: boolean) => void
 ) => {
   const { username, password } = validationErrors.errors || {};
-  
+
   if (username && !password) {
     setError('username', { type: 'manual', message: username[0] });
     showToast(username[0]);
@@ -57,9 +57,9 @@ const handleValidationErrors = (
   } else if (username && password) {
     setError('username', { type: 'manual', message: username[0] });
     setError('password', { type: 'manual', message: password[0] });
-    showToast('The provided credentials are incorrect.');
+    showToast('Login Failed! Your credentials are incorrect.');
   }
-  
+
   setIsLoading(false);
 };
 
@@ -72,6 +72,7 @@ export const useLoginForm = () => {
 
   const form = useForm<LoginFormData>({
     mode: "onTouched",
+    // reValidateMode: "onChange",
     defaultValues: { username: "", password: "" },
   });
 
@@ -81,10 +82,10 @@ export const useLoginForm = () => {
   const onSubmit = async (data: LoginFormData) => {
     // Prevent submission if already successful
     if (isSuccess) return;
-    
+
     setIsLoading(true);
     clearErrors();
-    
+
     try {
       const response = await apiClient.post<LoginResponse, LoginFormData>(
         "/users/login",
@@ -123,21 +124,21 @@ export const useLoginForm = () => {
       // Stop loading spinner but keep button disabled
       setIsLoading(false);
       setIsSuccess(true);
-      
+
       showToast("Login successful!", 'success');
-      
+
       const role = response.data?.role;
       const redirectPath = role ? ROLE_ROUTES[role] : ROLE_ROUTES[4];
-      
+
       router.refresh();
       // router.replace(redirectPath);
       window.location.href = redirectPath;
-      
+
       reset();
       setShowPassword(false);
       setRememberMe(false);
     } catch (error) {
-      showToast("Login failed! Please try again.");
+      showToast("Login failed! Please try again.", error instanceof Error ? 'error' : 'error');
       setIsLoading(false);
       setIsSuccess(false);
     }
@@ -145,13 +146,14 @@ export const useLoginForm = () => {
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Prevent form submission if already successful
     if (isSuccess) return;
-    
-    handleSubmit(onSubmit, (errors) => {
-      showLoginErrorToast(errors, formData);
-    })();
+
+    // handleSubmit(onSubmit, (errors) => {
+    //   showLoginErrorToast(errors, formData);
+    // })();
+    handleSubmit(onSubmit)();
   };
 
   return {

@@ -1,89 +1,95 @@
-"use client";
+"use client"
 
-import { useRouter } from "next/navigation";
-import Image from "next/image";
-import { User } from "lucide-react";
+import type React from "react"
+import { motion } from "framer-motion"
+import { Shield, Users, Settings, BarChart3, Database } from "lucide-react"
+import { UserLoginForm } from "@/components/user-forms/login/user-login-form"
+import { useLoginForm } from "@/hooks/useLoginForm"
 
-export default function AuthLoginPage() {
-  const router = useRouter();
+export default function UserLoginPage() {
+  const {
+    form,
+    formData,
+    errors,
+    showPassword,
+    rememberMe,
+    isLoading: formLoading,
+    isSuccess,
+    handlePasswordToggle,
+    handleRememberMeChange,
+    handleSubmit,
+    validationRules
+  } = useLoginForm()
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm py-4 flex flex-col items-center">
-        <div className="flex items-center gap-3">
-          <Image
-            src="/images/norsu.png"
-            alt="Negros Oriental State University"
-            className="h-10 w-10 sm:h-12 sm:w-12 object-contain"
-            width={48}
-            height={48}
-            priority
-          />
-          <h1 className="font-semibold text-lg sm:text-2xl md:text-3xl text-gray-800 truncate">
-            NORSU Calendar System
-          </h1>
+    <div className="min-h-dvh w-full bg-linear-to-br from-blue-50 to-indigo-50 font-['Poppins'] flex items-center justify-center py-6 px-3 sm:px-4 lg:px-6 relative overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute top-0 left-0 w-48 h-48 bg-blue-600 rounded-full opacity-20 -translate-x-24 -translate-y-24"></div>
+      <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500 rounded-full opacity-10 translate-x-24 -translate-y-24"></div>
+      <div className="absolute bottom-0 right-0 w-48 h-48 bg-indigo-500 rounded-full opacity-20 translate-x-24 translate-y-24"></div>
+      <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500 rounded-full opacity-20 -translate-x-24 translate-y-24"></div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden w-[96%] max-w-4xl grid grid-cols-1 md:grid-cols-2 relative"
+      >
+        {/* Left Side - Hidden on mobile */}
+        <div className="hidden md:flex bg-linear-to-br from-blue-600 to-indigo-700 p-4 sm:p-6 lg:p-8 text-white flex-col items-center justify-center relative min-h-95">
+          {/* Decorative circles */}
+          <div className="absolute top-2 right-2 sm:top-4 sm:right-4 w-8 h-8 sm:w-12 sm:h-12 lg:w-16 lg:h-16 bg-white/10 rounded-full"></div>
+          <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 lg:bottom-8 lg:left-8 w-6 h-6 sm:w-8 sm:h-8 lg:w-12 lg:h-12 bg-white/10 rounded-full"></div>
+
+          <div className="space-y-6 text-center z-10 flex flex-col items-center justify-center h-full">
+            {/* Logo/Icon with Academic branding */}
+            <div className="bg-white/20 p-3 sm:p-4 lg:p-6 rounded-xl sm:rounded-2xl inline-block backdrop-blur-sm">
+              <div className="flex items-center justify-center space-x-2">
+                <Shield className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-white" />
+                <Settings className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-white" />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h2 className="text-2xl sm:text-3xl font-bold">UserPortal Pro</h2>
+              <p className="text-gray-100 text-lg">User Access</p>
+              <p className="text-gray-200 text-sm max-w-xs">Secure user login and account management</p>
+            </div>
+
+            {/* Academic-related features */}
+            <div className="mt-6 space-y-3">
+              <div className="flex items-center justify-center space-x-4 text-gray-100">
+                <div className="flex items-center space-x-2">
+                  <Users className="w-4 h-4" />
+                  <span className="text-xs">Users</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <BarChart3 className="w-4 h-4" />
+                  <span className="text-xs">Analytics</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Database className="w-4 h-4" />
+                  <span className="text-xs">Database</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="flex-1 flex justify-center items-center px-2">
-        <section className="bg-white rounded-xl shadow-lg p-4 sm:p-6 w-full max-w-xl flex flex-col">
-          <div className="flex flex-col items-center mb-5">
-            <div className="flex items-center">
-              <User className="h-7 w-7 sm:h-8 sm:w-8 text-gray-500 mr-2 sm:mr-3" />
-              <h2 className="text-center text-gray-700 text-lg sm:text-2xl font-semibold">
-                SELECT USER TO LOGIN
-              </h2>
-            </div>
-          </div>
-          <hr className="border-t border-gray-200 mb-6" />
-
-          {/* User Role Cards */}
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-stretch w-full">
-            {/* Dean Card */}
-            <div
-              tabIndex={0}
-              role="button"
-              className="bg-white border border-gray-200 rounded-xl shadow-md flex flex-col items-center px-6 py-6 sm:px-10 sm:py-8 w-full sm:w-72 transition-all duration-200 hover:shadow-xl hover:-translate-y-1 hover:border-blue-400 group cursor-pointer outline-none"
-              onClick={() => router.push("/auth/dean/login")}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  router.push("/auth/dean/login");
-                }
-              }}
-            >
-              <User className="h-7 w-7 sm:h-8 sm:w-8 text-blue-500 mb-3 group-hover:text-blue-600 transition-colors duration-200" />
-              <span className="font-bold text-base sm:text-xl text-gray-800 mb-2 group-hover:text-blue-600 transition-colors duration-200">
-                Dean
-              </span>
-              <span className="text-sm sm:text-base text-gray-500 text-center mt-2">
-                Manage schedules and activities.
-              </span>
-            </div>
-            {/* Staff Card */}
-            <div
-              tabIndex={0}
-              role="button"
-              className="bg-white border border-gray-200 rounded-xl shadow-md flex flex-col items-center px-6 py-6 sm:px-10 sm:py-8 w-full sm:w-72 transition-all duration-200 hover:shadow-xl hover:-translate-y-1 hover:border-purple-400 group cursor-pointer outline-none"
-              onClick={() => router.push("/auth/staff/login")}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  router.push("/auth/staff/login");
-                }
-              }}
-            >
-              <User className="h-7 w-7 sm:h-8 sm:w-8 text-purple-500 mb-3 group-hover:text-purple-600 transition-colors duration-200" />
-              <span className="font-bold text-base sm:text-xl text-gray-800 mb-2 group-hover:text-purple-600 transition-colors duration-200">
-                Staff
-              </span>
-              <span className="text-sm sm:text-base text-gray-500 text-center mt-2">
-                Organize and support campus operations.
-              </span>
-            </div>
-          </div>
-        </section>
-      </main>
+        {/* Right Side - Login Form */}
+        <UserLoginForm
+          showPassword={showPassword}
+          rememberMe={rememberMe}
+          isLoading={formLoading}
+          isSuccess={isSuccess}
+          formData={formData}
+          errors={errors}
+          onShowPasswordToggle={handlePasswordToggle}
+          onRememberMeChange={handleRememberMeChange}
+          onSubmit={handleSubmit}
+          register={form.register}
+          validationRules={validationRules}
+        />
+      </motion.div>
     </div>
-  );
+  )
 }

@@ -17,7 +17,7 @@ export function showLoginErrorToast(
   values: LoginFormData
 ) {
   const missingFields = REQUIRED_LOGIN_FIELDS.filter(field => !values[field])
-  
+
   if (missingFields.length === REQUIRED_LOGIN_FIELDS.length) {
     toast.error("Please fill up all the required fields.", { position: "top-center" })
     return

@@ -2,11 +2,12 @@ import React, { memo } from "react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
-import { Eye, User, Lock, EyeOff } from "lucide-react"
-import { UseFormRegister, FieldErrors, RegisterOptions } from "react-hook-form"
-import { LoginFormData } from "@/utils/login/login-validation-rules"
+import { Eye, User, Lock, EyeOff, AlertCircle } from "lucide-react"
+import type { UseFormRegister, FieldErrors, RegisterOptions } from "react-hook-form"
+import type { LoginFormData } from "@/utils/login/login-validation-rules"
+import { useFieldValidation } from "@/utils/login/login-field-validation"
 
-interface AdminLoginFormProps {
+interface UserLoginFormProps {
   showPassword: boolean
   rememberMe: boolean
   isLoading: boolean
@@ -20,33 +21,48 @@ interface AdminLoginFormProps {
   validationRules: Record<keyof LoginFormData, RegisterOptions<LoginFormData>>
 }
 
-export const AdminLoginForm = memo(function AdminLoginForm({
+export const UserLoginForm = memo(function UserLoginForm({
   showPassword,
   rememberMe,
   isLoading,
   isSuccess,
+  formData,
   errors,
   onShowPasswordToggle,
   onRememberMeChange,
   onSubmit,
   register,
   validationRules
-}: AdminLoginFormProps) {
-  const getInputFieldStyles = (hasError: boolean) => {
-    return hasError ? "border-red-400 focus:border-red-500 focus:ring-red-200" : "border-gray-200 focus:border-gray-500 focus:ring-gray-500/20"
+}: UserLoginFormProps) {
+  // Real-time validation with debounce
+  const usernameError = useFieldValidation(formData.username, validationRules.username)
+  const passwordError = useFieldValidation(formData.password, validationRules.password)
+
+  // Server errors take priority over client-side validation
+  const displayErrors = {
+    username: errors.username?.message || usernameError,
+    password: errors.password?.message || passwordError
   }
+
+  const getInputFieldStyles = (hasError: boolean) =>
+    hasError
+      ? "border-red-400 focus:border-red-500 focus:ring-red-200"
+      : "border-gray-200 focus:border-gray-500 focus:ring-gray-500/20"
+
+  const isDisabled = isLoading || isSuccess
 
   return (
     <div className="p-5 sm:p-8 w-full flex flex-col justify-center">
       {/* Heading at the top */}
       <div className="flex flex-col items-center mt-1.5 mb-7 gap-y-0.5">
-        <h1 className="text-2xl font-bold text-gray-800">Administrator Access</h1>
-        <p className="text-gray-600 text-sm">Please enter your admin credentials</p>
+        <h1 className="text-2xl font-bold text-gray-800">Welcome Back</h1>
+        <p className="text-gray-600 text-sm">Please enter your credentials to continue</p>
       </div>
+
       <form onSubmit={onSubmit} className="flex flex-col gap-y-6 max-w-md mx-auto w-full">
         <div className="flex flex-col gap-y-2 w-full sm:w-[98%] md:w-[94%] mx-auto">
           {/* Username Field */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <div className="relative">
               <Input
                 {...register("username", validationRules.username)}
@@ -54,15 +70,21 @@ export const AdminLoginForm = memo(function AdminLoginForm({
                 type="text"
                 placeholder="Username"
                 autoComplete="username"
-                disabled={isLoading || isSuccess}
-                className={`h-12 text-base sm:text-lg pl-[42px] pr-4 border-2 rounded-lg ${getInputFieldStyles(!!errors.username)} placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed`}
+                disabled={isDisabled}
+                className={`h-12 transition-all duration-150 text-base sm:text-lg pl-10.5 pr-4 border-2 rounded-lg ${getInputFieldStyles(!!errors.username)} placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed`}
               />
               <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
             </div>
+            {displayErrors.username && (
+              <div className="flex items-start gap-1.5 text-red-500 text-xs sm:text-sm pl-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                <p>{displayErrors.username}</p>
+              </div>
+            )}
           </div>
 
           {/* Password Field */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <div className="relative">
               <Input
                 {...register("password", validationRules.password)}
@@ -70,19 +92,26 @@ export const AdminLoginForm = memo(function AdminLoginForm({
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 autoComplete="current-password"
-                disabled={isLoading || isSuccess}
-                className={`h-12 text-base sm:text-lg pl-[42px] pr-12 border-2 rounded-lg ${getInputFieldStyles(!!errors.password)} placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed`}
+                disabled={isDisabled}
+                className={`h-12 transition-all duration-150 text-base sm:text-lg pl-10.5 pr-12 border-2 rounded-lg ${getInputFieldStyles(!!errors.password)} placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed`}
               />
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <button
                 type="button"
                 onClick={onShowPasswordToggle}
-                disabled={isLoading || isSuccess}
+                disabled={isDisabled}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer hover:text-gray-600 transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
             </div>
+            {displayErrors.password && (
+              <div className="flex items-start gap-1.5 text-red-500 text-xs sm:text-sm pl-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                <p>{displayErrors.password}</p>
+              </div>
+            )}
           </div>
 
           {/* Remember Me & Forgot Password */}
@@ -91,8 +120,8 @@ export const AdminLoginForm = memo(function AdminLoginForm({
               <Checkbox
                 id="remember"
                 checked={rememberMe}
-                onCheckedChange={checked => onRememberMeChange(checked === true)}
-                disabled={isLoading || isSuccess}
+                onCheckedChange={(checked) => onRememberMeChange(checked === true)}
+                disabled={isDisabled}
                 className="border-2 cursor-pointer border-gray-300 data-[state=checked]:bg-gray-600 data-[state=checked]:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <label htmlFor="remember" className="text-sm text-gray-700 cursor-pointer">
@@ -103,7 +132,7 @@ export const AdminLoginForm = memo(function AdminLoginForm({
               variant="link"
               className="text-gray-600 hover:text-gray-800 cursor-pointer p-0 text-sm font-medium"
               type="button"
-              disabled={isLoading || isSuccess}
+              disabled={isDisabled}
             >
               Contact IT Support
             </Button>
@@ -112,11 +141,11 @@ export const AdminLoginForm = memo(function AdminLoginForm({
           {/* Login Button */}
           <Button
             type="submit"
-            className={`w-full h-[50px] sm:h-[54px] font-semibold text-sm sm:text-base text-white rounded-lg shadow-lg transition-all duration-200 mb-3 flex items-center justify-center gap-x-2 ${isLoading || isSuccess
+            className={`w-full h-12 font-semibold text-sm sm:text-base text-white rounded-lg shadow-lg transition-all duration-200 mb-3 flex items-center justify-center gap-x-2 ${isDisabled
               ? 'bg-gray-400 cursor-not-allowed opacity-70'
-              : 'cursor-pointer bg-linear-to-br from-gray-400 via-gray-500 to-gray-700 hover:from-gray-500 hover:to-gray-800 hover:shadow-xl transform hover:scale-[1.02]'
+              : 'cursor-pointer bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl transform hover:scale-[1.02]'
               }`}
-            disabled={isLoading || isSuccess}
+            disabled={isDisabled}
           >
             {isLoading ? (
               <>
@@ -140,11 +169,6 @@ export const AdminLoginForm = memo(function AdminLoginForm({
                 </span>
                 Logging in...
               </>
-            ) : isSuccess ? (
-              <>
-                {/* <Check className="h-5 w-5" /> */}
-                LOGIN
-              </>
             ) : (
               "LOGIN"
             )}
@@ -155,4 +179,4 @@ export const AdminLoginForm = memo(function AdminLoginForm({
   )
 })
 
-AdminLoginForm.displayName = "AdminLoginForm"
+UserLoginForm.displayName = "UserLoginForm"
