@@ -39,7 +39,7 @@ export default function UserLoginPage() {
         <div className="hidden md:flex bg-linear-to-br from-blue-600 to-indigo-700 p-4 sm:p-6 lg:p-8 text-white flex-col items-center justify-center relative min-h-95">
           {/* Decorative circles */}
           <div className="absolute top-2 right-2 sm:top-4 sm:right-4 w-8 h-8 sm:w-12 sm:h-12 lg:w-16 lg:h-16 bg-white/10 rounded-full"></div>
-          <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 lg:bottom-8 lg:left-8 w-6 h-6 sm:w-8 sm:h-8 lg:w-12 lg:h-12 bg-white/10 rounded-full"></div>
+          <div className="absolute bottom-2 left-2 sm:bottom-6 sm:left-6 lg:bottom-4 lg:left-4 w-8 h-8 sm:w-12 sm:h-12 lg:w-16 lg:h-16 bg-white/10 rounded-full"></div>
 
           <div className="space-y-6 text-center z-10 flex flex-col items-center justify-center h-full">
             {/* NORSU Logo */}
