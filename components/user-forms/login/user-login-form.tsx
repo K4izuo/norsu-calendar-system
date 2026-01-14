@@ -76,7 +76,7 @@ export const UserLoginForm = memo(function UserLoginForm({
               <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
             </div>
             {displayErrors.username && (
-              <div className="flex items-start gap-1.5 text-red-500 text-xs sm:text-sm pl-1 animate-in fade-in slide-in-from-top-1 duration-200">
+              <div className="flex will-change-transform backface-hidden items-start gap-1.5 text-red-500 text-xs sm:text-sm pl-1 animate-in fade-in slide-in-from-top-1 duration-150">
                 <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
                 <p>{displayErrors.username}</p>
               </div>
@@ -107,7 +107,7 @@ export const UserLoginForm = memo(function UserLoginForm({
               </button>
             </div>
             {displayErrors.password && (
-              <div className="flex items-start gap-1.5 text-red-500 text-xs sm:text-sm pl-1 animate-in fade-in slide-in-from-top-1 duration-200">
+              <div className="flex will-change-transform backface-hidden items-start gap-1.5 text-red-500 text-xs sm:text-sm pl-1 animate-in fade-in slide-in-from-top-1 duration-150">
                 <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
                 <p>{displayErrors.password}</p>
               </div>
@@ -122,7 +122,7 @@ export const UserLoginForm = memo(function UserLoginForm({
                 checked={rememberMe}
                 onCheckedChange={(checked) => onRememberMeChange(checked === true)}
                 disabled={isDisabled}
-                className="border-2 cursor-pointer border-gray-300 data-[state=checked]:bg-gray-600 data-[state=checked]:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="border-2 cursor-pointer border-gray-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <label htmlFor="remember" className="text-sm text-gray-700 cursor-pointer">
                 Remember Me
@@ -130,7 +130,7 @@ export const UserLoginForm = memo(function UserLoginForm({
             </div>
             <Button
               variant="link"
-              className="text-gray-600 hover:text-gray-800 cursor-pointer p-0 text-sm font-medium"
+              className="text-gray-600 hover:text-blue-600 cursor-pointer p-0 text-sm font-medium"
               type="button"
               disabled={isDisabled}
             >

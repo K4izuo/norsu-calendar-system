@@ -21,20 +21,27 @@ export function useFieldValidation(
     }
 
     const validationRule = rules as ValidationRule
+    let errorMessage = ""
 
-    // Check minLength
+    // Check validations immediately
     if (validationRule.minLength && value.length < validationRule.minLength.value) {
-      setError(validationRule.minLength.message)
+      errorMessage = validationRule.minLength.message
+    } else if (validationRule.pattern && !validationRule.pattern.value.test(value)) {
+      errorMessage = validationRule.pattern.message
+    }
+
+    // If valid, clear error immediately
+    if (!errorMessage) {
+      setError("")
       return
     }
 
-    // Check pattern
-    if (validationRule.pattern && !validationRule.pattern.value.test(value)) {
-      setError(validationRule.pattern.message)
-      return
-    }
+    // If invalid, debounce showing the error
+    const timeoutId = setTimeout(() => {
+      setError(errorMessage)
+    }, 400)
 
-    setError("")
+    return () => clearTimeout(timeoutId)
   }, [value, rules])
 
   return error
