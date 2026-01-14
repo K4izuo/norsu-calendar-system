@@ -30,24 +30,24 @@ export const EventCardsList = React.memo(function EventCardsList({
         return (
           <div
             key={event.id || index}
-            className="relative shadow-sm group cursor-pointer rounded-3xl bg-white border border-border p-6"
+            className="relative isolate shadow-sm group cursor-pointer rounded-3xl bg-white border border-border p-6 overflow-hidden"
             onClick={() => onEventClick?.(event)}
             data-index={index}
           >
             {/* Image Section with rounded corners */}
-            <div className="relative h-60 overflow-hidden rounded-3xl mb-6">
+            <div className="relative h-60 overflow-hidden rounded-3xl mb-6 z-0">
               <Image
                 src="https://images.unsplash.com/photo-1576678927484-cc907957088c?w=800&h=400&fit=crop"
                 alt=""
                 fill
                 className="object-cover"
               />
-              
+
               {/* Gradient Overlay */}
               <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/5 to-transparent" />
-              
+
               {/* Title and Status Badge on Image */}
-              <div className="absolute bottom-0 left-0 right-0 p-6">
+              <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
                 <div className="flex items-end justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <h3 className="text-2xl font-bold text-white mb-1.5 drop-shadow-lg line-clamp-2">
@@ -59,7 +59,7 @@ export const EventCardsList = React.memo(function EventCardsList({
                       </p>
                     )}
                   </div>
-                  
+
                   {/* Status Badge */}
                   <TooltipProvider>
                     <Tooltip>
@@ -84,7 +84,7 @@ export const EventCardsList = React.memo(function EventCardsList({
             </div>
 
             {/* Bottom Info Section */}
-            <div className="flex items-start justify-between gap-6">
+            <div className="relative flex items-start justify-between gap-6 z-20 bg-white">
               {/* Left Side: Venue, Time, and Category in 3-column Grid */}
               <div className="grid grid-cols-3 gap-6 flex-1">
                 {/* Venue */}
