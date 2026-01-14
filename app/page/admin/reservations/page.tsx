@@ -11,22 +11,6 @@ interface Asset {
   capacity: number;
 }
 
-// Move formatTime outside component to avoid recreation on every render
-const formatTime = (time: string) => {
-  const [hours, minutes] = time.split(':');
-  const hour = parseInt(hours);
-  const ampm = hour >= 12 ? 'PM' : 'AM';
-  const displayHour = hour % 12 || 12;
-  return `${displayHour}:${minutes} ${ampm}`;
-};
-
-// More efficient date formatter using Intl.DateTimeFormat (reusable)
-const dateFormatter = new Intl.DateTimeFormat('en-US', {
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric'
-});
-
 export default function ReservationsPage() {
   const [allReservations, setAllReservations] = useState<ReservationWithRelations[]>([]);
   const [assets, setAssets] = useState<Map<number, Asset>>(new Map());
@@ -45,7 +29,6 @@ export default function ReservationsPage() {
 
         if (response.error) {
           setError(response.error);
-          setLoading(false);
           return;
         }
 
@@ -86,15 +69,29 @@ export default function ReservationsPage() {
     fetchData();
   }, []); // Empty dependency - only run once on mount
 
-  // Convert reservations to events format - optimized
+  // Convert reservations to events format
   const events: EventDetails[] = useMemo(() => {
     return allReservations.map(reservation => {
       const asset = assets.get(reservation.asset_id);
 
+      const formattedDate = new Date(reservation.date).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+
+      const formatTime = (time: string) => {
+        const [hours, minutes] = time.split(':');
+        const hour = parseInt(hours);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const displayHour = hour % 12 || 12;
+        return `${displayHour}:${minutes} ${ampm}`;
+      };
+
       return {
         id: reservation.id,
         title_name: reservation.title_name,
-        date: dateFormatter.format(new Date(reservation.date)),
+        date: formattedDate,
         time_start: formatTime(reservation.time_start),
         time_end: formatTime(reservation.time_end),
         asset: {
@@ -109,10 +106,13 @@ export default function ReservationsPage() {
         range: reservation.range,
         registration_status: reservation.status.toUpperCase() as "PENDING" | "APPROVED" | "REJECTED",
         registration_deadline: reservation.date,
+        // Map the user details from API
         reserved_by_user: reservation.reserved_by_user,
+        // Fix: Better fallback that shows "Unknown User" if reserved_by_user is missing
         reserve_by_user: reservation.reserved_by_user
           ? `${reservation.reserved_by_user.first_name} ${reservation.reserved_by_user.last_name}`
           : "Unknown User",
+        // Fix: Map approval/decline details with correct field names from API
         approved_by_user_details: reservation.approved_by_user,
         declined_by_user_details: reservation.declined_by_user,
       };

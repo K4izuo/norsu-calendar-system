@@ -228,7 +228,7 @@ export function Calendar<T>({
           {/* Select component - hide on very small screens */}
           <div className="hidden xs:block">
             <Select>
-              <SelectTrigger className="h-8 sm:h-9 min-h-0 px-2 sm:px-3 rounded-sm bg-white border border-gray-300 text-gray-700 text-sm sm:text-base font-semibold shadow-none hover:bg-gray-100 transition-colors w-20 sm:w-[104px]">
+              <SelectTrigger className="h-8 sm:h-9 min-h-0 px-2 sm:px-3 rounded-sm bg-white border border-gray-300 text-gray-700 text-sm sm:text-base font-semibold shadow-none hover:bg-gray-100 transition-colors w-20 sm:w-26">
                 <SelectValue placeholder="Select" />
               </SelectTrigger>
               <SelectContent>
@@ -271,7 +271,7 @@ export function Calendar<T>({
         <div className="flex items-center justify-end">
           <div className="flex items-center bg-white border border-gray-300 rounded-sm overflow-hidden">
             <motion.button
-              className="px-2 cursor-pointer sm:px-4 rounded-sm min-w-[50px] sm:min-w-16 py-1 sm:py-1 text-sm sm:text-lg font-semibold text-gray-700 bg-white focus:outline-none hover:bg-gray-100 transition-colors"
+              className="px-2 cursor-pointer sm:px-4 rounded-sm min-w-12.5 sm:min-w-16 py-1 sm:py-1 text-sm sm:text-lg font-semibold text-gray-700 bg-white focus:outline-none hover:bg-gray-100 transition-colors"
               whileHover={{ backgroundColor: "#f3f4f6" }}
             >
               Month
@@ -385,7 +385,7 @@ export function Calendar<T>({
                         <>
                           {/* Desktop/Tablet: Top-left calendar icon and count */}
                           <motion.div
-                            className={`hidden sm:inline-flex items-center ${roleColors.todayText} px-1 sm:px-1.5 py-0.5 rounded-xl text-xs sm:text-sm md:text-base font-semibold absolute top-[7px] left-[3px]`}
+                            className={`hidden sm:inline-flex items-center ${roleColors.todayText} px-1 sm:px-1.5 py-0.5 rounded-xl text-xs sm:text-sm md:text-base font-semibold absolute top-1.75 left-0.75`}
                             initial={{ scale: 0, opacity: 0 }}
                             animate={{
                               scale: 1,
