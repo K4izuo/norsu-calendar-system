@@ -202,7 +202,8 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
           return `${year}-${month}-${day}`;
         };
 
-        const { asset, people_tag, ...rest } = data;
+        const { asset, ...rest } = data;
+        // kung di mo gana i balik tung people_tag sa const { asset, ...rest } = data;
 
         // Final payload you're actually sending
         const formDataWithPeople = {
@@ -223,7 +224,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
             ReservationResponse,
             ReservationAPIPayload
           >(`/event/reservation/${eventData.id}`, formDataWithPeople);
-          
+
           if (response.error) {
             const errorMsg = typeof response.error === "string"
               ? response.error
@@ -290,7 +291,8 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         toast.error(editMode ? "Failed to update event. Please try again." : "Failed to reserve event. Please try again.");
       }
     },
-    [reset, onClose, taggedPeople, eventDate, onNewReservation, editMode, eventData]
+    [reset, onClose, taggedPeople, eventDate, onNewReservation, editMode, eventData, user?.id]
+    // kung di mo gana i remove ang user?.id sa dependencies array
   );
 
   const handleFormTabNext = useCallback(() => {

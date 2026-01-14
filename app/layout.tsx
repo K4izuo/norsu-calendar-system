@@ -9,6 +9,7 @@ const poppins = Poppins({
   weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
   display: "swap",
+  preload: true,
 });
 
 export const metadata: Metadata = {
@@ -34,7 +35,7 @@ export default function RootLayout({
             {children}
           </RoleProvider>
         </AuthProvider>
-        <Toaster 
+        <Toaster
           position="top-right"
           toastOptions={{
             duration: 3000,

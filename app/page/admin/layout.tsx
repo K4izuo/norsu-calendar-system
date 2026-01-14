@@ -261,7 +261,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <DropdownMenuContent
                   align="end"
                   sideOffset={8}
-                  className="w-[280px] sm:w-80 bg-background border-border rounded-lg shadow-lg"
+                  className="w-70 sm:w-80 bg-background border-border rounded-lg shadow-lg"
                 >
                   <UserProfile
                     name={userData.name}

@@ -60,7 +60,7 @@ export function Calendar<T>({
         onMonthYearChange(currentMonth - 1, currentYear);
       }
       if (setLoading) setLoading(false);
-    }, 700);
+    }, 300);
   }, [currentMonth, currentYear, setLoading, onMonthYearChange]);
 
   const goToNextMonth = useCallback(() => {
@@ -73,7 +73,7 @@ export function Calendar<T>({
         onMonthYearChange(currentMonth + 1, currentYear);
       }
       if (setLoading) setLoading(false);
-    }, 700);
+    }, 300);
   }, [currentMonth, currentYear, setLoading, onMonthYearChange]);
 
   const goToToday = useCallback(() => {
@@ -94,7 +94,7 @@ export function Calendar<T>({
     setTimeout(() => {
       onMonthYearChange(today.getMonth(), today.getFullYear());
       if (setLoading) setLoading(false);
-    }, 700);
+    }, 300);
   }, [currentMonth, currentYear, today, setLoading, onMonthYearChange]);
 
   // Build calendar days (6 rows x 7 columns = 42 cells)
