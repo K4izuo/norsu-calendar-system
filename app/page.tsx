@@ -54,7 +54,7 @@ export default function Home() {
     // Show appropriate error message
     const messages: Record<string, string> = {
       session_expired: "Session expired. Please log in again.",
-      unauthorized: "Access denied. Please log in again.",
+      unauthorized: "Access denied. Please log in to view this page.",
     };
 
     const message = messages[error] || "An error occurred. Please try again.";
@@ -224,6 +224,15 @@ export default function Home() {
           </p>
         </div>
         <div className="flex items-center space-x-1 shrink-0 mt-2 sm:mt-0 w-full sm:w-auto justify-center sm:justify-end">
+          <Button
+            variant="ghost"
+            className="cursor-pointer text-base sm:text-lg md:text-xl px-2"
+            type="button"
+            onClick={() => (window.location.href = "/about")}
+          >
+            ABOUT
+          </Button>
+          <span className="text-gray-200 text-xl select-none xs:inline">|</span>
           <Button
             variant="ghost"
             className="cursor-pointer text-base sm:text-lg md:text-xl px-2"
