@@ -8,6 +8,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { OptionType } from "@/services/academicDataService";
+import { AlertCircle } from "lucide-react";
 
 type FormSelectFieldProps = {
   id: string;
@@ -22,6 +23,7 @@ type FormSelectFieldProps = {
   required?: boolean;
   disabled?: boolean;
   hasError?: boolean;
+  validationError?: string;
 };
 
 export const DeanFormSelectField = memo(function DeanFormSelectField({
@@ -37,9 +39,10 @@ export const DeanFormSelectField = memo(function DeanFormSelectField({
   required = false,
   disabled = false,
   hasError = false,
+  validationError,
 }: FormSelectFieldProps) {
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1.5">
       <Label htmlFor={id} className="inline-flex pointer-events-none">
         <span className="pointer-events-auto">
           {label} {required && <span className="text-red-500">*</span>}
@@ -53,7 +56,9 @@ export const DeanFormSelectField = memo(function DeanFormSelectField({
       >
         <SelectTrigger
           id={id}
-          className={`h-11 cursor-pointer text-base border-2 rounded-lg w-full ${hasError ? "border-red-400" : "border-gray-200"
+          className={`h-11 cursor-pointer text-base border-2 rounded-lg w-full transition-all duration-150 ${hasError || validationError
+              ? "border-red-400 focus:border-red-500 focus:ring-red-200"
+              : "border-gray-200 focus:border-indigo-500 focus:ring-indigo-500/20"
             }`}
         >
           <SelectValue placeholder={loading ? `Loading ${label.toLowerCase()}...` : placeholder} />
@@ -80,6 +85,12 @@ export const DeanFormSelectField = memo(function DeanFormSelectField({
           )}
         </SelectContent>
       </Select>
+      {validationError && (
+        <div className="flex will-change-transform backface-hidden items-start gap-1.5 text-red-500 text-xs sm:text-sm pl-1 animate-in fade-in slide-in-from-top-1 duration-150">
+          <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+          <p>{validationError}</p>
+        </div>
+      )}
     </div>
   );
 });

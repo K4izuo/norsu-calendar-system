@@ -13,9 +13,9 @@ import { useRole } from "@/contexts/user-role";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { apiClient } from "@/lib/api-client";
-import { showFieldErrorToast } from "@/utils/staff/staff-register-error-toast";
 import { STAFF_VALIDATION_RULES } from "@/utils/staff/staff-register-validation-rules";
 import { StaffFormInput } from "@/components/user-forms/register/staff/staff-input-field";
+import { useFieldValidation } from "@/utils/staff/staff-register-field-validation";
 
 const TABS = [
   { value: "details", label: "Staff Details" },
@@ -52,10 +52,17 @@ export default function StaffRegisterPage() {
     },
   });
 
-  const { control, handleSubmit, getValues, watch, register, formState: { errors, isSubmitting, isValid }, reset } = form;
+  const { control, handleSubmit, watch, register, formState: { errors, isSubmitting, isValid }, reset } = form;
 
   // Watch all form data for real-time updates
   const formData = watch();
+
+  // Real-time validation with debounce
+  const firstNameError = useFieldValidation(formData.first_name, STAFF_VALIDATION_RULES.first_name);
+  const middleNameError = useFieldValidation(formData.middle_name, STAFF_VALIDATION_RULES.middle_name);
+  const lastNameError = useFieldValidation(formData.last_name, STAFF_VALIDATION_RULES.last_name);
+  const emailError = useFieldValidation(formData.email, STAFF_VALIDATION_RULES.email);
+  const staffIDError = useFieldValidation(formData.assignment_id, STAFF_VALIDATION_RULES.staffID);
 
   useEffect(() => {
     if (role === "staff") {
@@ -98,16 +105,17 @@ export default function StaffRegisterPage() {
   const handleNext = useCallback(() => {
     handleSubmit(
       () => setActiveTab("summary"),
-      (errors) => {
-        showFieldErrorToast(errors, { ...getValues(), role: role ?? "" });
+      () => {
+        // Errors are now shown inline, no need for toast
       }
     )();
-  }, [handleSubmit, getValues, role]);
+  }, [handleSubmit]);
 
   if (!shouldRender) return null;
 
   return (
     <div className="min-h-dvh w-full bg-linear-to-r from-purple-50 to-purple-100 flex items-center justify-center py-6 px-2 sm:px-4 lg:px-6 relative overflow-hidden">
+      {/* Background decorative elements */}
       <div className="absolute top-0 left-0 w-48 h-48 bg-purple-400 rounded-full opacity-20 -translate-x-24 -translate-y-24"></div>
       <div className="absolute top-0 right-0 w-48 h-48 bg-purple-500 rounded-full opacity-10 translate-x-24 -translate-y-24"></div>
       <div className="absolute bottom-0 right-0 w-48 h-48 bg-purple-500 rounded-full opacity-20 translate-x-24 translate-y-24"></div>
@@ -130,8 +138,8 @@ export default function StaffRegisterPage() {
                   <div
                     key={tab.value}
                     className={`flex items-center justify-center py-2 px-2 rounded-md text-base font-medium transition-colors min-w-25 ${activeTab === tab.value
-                        ? "bg-background text-foreground shadow-sm"
-                        : "text-muted-foreground"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground"
                       }`}
                   >
                     {tab.label}
@@ -147,6 +155,7 @@ export default function StaffRegisterPage() {
                     register={register}
                     rules={STAFF_VALIDATION_RULES.first_name}
                     errors={errors}
+                    clientError={firstNameError}
                     autoComplete="given-name"
                     placeholder="Enter first name"
                   />
@@ -156,6 +165,7 @@ export default function StaffRegisterPage() {
                     register={register}
                     rules={STAFF_VALIDATION_RULES.middle_name}
                     errors={errors}
+                    clientError={middleNameError}
                     autoComplete="additional-name"
                     placeholder="Enter middle name"
                   />
@@ -165,6 +175,7 @@ export default function StaffRegisterPage() {
                     register={register}
                     rules={STAFF_VALIDATION_RULES.last_name}
                     errors={errors}
+                    clientError={lastNameError}
                     autoComplete="family-name"
                     placeholder="Enter last name"
                   />
@@ -177,6 +188,7 @@ export default function StaffRegisterPage() {
                     register={register}
                     rules={STAFF_VALIDATION_RULES.email}
                     errors={errors}
+                    clientError={emailError}
                     type="email"
                     autoComplete="email"
                     placeholder="Enter email"
@@ -187,6 +199,7 @@ export default function StaffRegisterPage() {
                     register={register}
                     rules={STAFF_VALIDATION_RULES.staffID}
                     errors={errors}
+                    clientError={staffIDError}
                     autoComplete="off"
                     placeholder="Enter staff ID"
                     inputMode="numeric"
@@ -212,6 +225,7 @@ export default function StaffRegisterPage() {
                           error={campusError}
                           required
                           hasError={!!errors.campus_id}
+                          validationError={errors.campus_id?.message as string}
                         />
                       )}
                     />
@@ -234,6 +248,7 @@ export default function StaffRegisterPage() {
                           error={officeError}
                           required
                           hasError={!!errors.office_id}
+                          validationError={errors.office_id?.message as string}
                         />
                       )}
                     />

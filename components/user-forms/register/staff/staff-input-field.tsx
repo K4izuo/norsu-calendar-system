@@ -1,6 +1,7 @@
 import { UseFormRegister, FieldErrors, FieldValues, RegisterOptions, Path } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AlertCircle } from "lucide-react";
 
 type FormInputProps<T extends FieldValues = FieldValues> = {
   name: Path<T>;
@@ -9,6 +10,7 @@ type FormInputProps<T extends FieldValues = FieldValues> = {
   rules?: RegisterOptions<T, Path<T>>;
   errors: FieldErrors<T>;
   required?: boolean;
+  clientError?: string;
 } & React.InputHTMLAttributes<HTMLInputElement>;
 
 export const StaffFormInput = <T extends FieldValues>({
@@ -18,21 +20,32 @@ export const StaffFormInput = <T extends FieldValues>({
   rules,
   errors,
   required = true,
+  clientError,
   ...inputProps
-}: FormInputProps<T>) => (
-  <div className="flex-1 flex flex-col gap-1">
-    <Label htmlFor={name} className="inline-flex pointer-events-none">
-      <span className="pointer-events-auto">
-        {label} {required && <span className="text-red-500">*</span>}
-      </span>
-    </Label>
-    <Input
-      {...register(name, rules)}
-      id={name}
-      className={`h-11 text-base border-2 rounded-lg ${
-        errors[name] ? "border-red-400" : "border-gray-200"
-      } focus:border-ring`}
-      {...inputProps}
-    />
-  </div>
-);
+}: FormInputProps<T>) => {
+  // Server errors take priority over client-side validation
+  const displayError = errors[name]?.message || clientError;
+
+  return (
+    <div className="flex-1 flex flex-col gap-1.5">
+      <Label htmlFor={name} className="inline-flex pointer-events-none">
+        <span className="pointer-events-auto">
+          {label} {required && <span className="text-red-500">*</span>}
+        </span>
+      </Label>
+      <Input
+        {...register(name, rules)}
+        id={name}
+        className={`h-11 text-base border-2 rounded-lg transition-all duration-150 ${displayError ? "border-red-400 focus:border-red-500 focus:ring-red-200" : "border-gray-200 focus:border-purple-500 focus:ring-purple-500/20"
+          }`}
+        {...inputProps}
+      />
+      {displayError && typeof displayError === "string" && (
+        <div className="flex will-change-transform backface-hidden items-start gap-1.5 text-red-500 text-xs sm:text-sm pl-1 animate-in fade-in slide-in-from-top-1 duration-150">
+          <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+          <p>{displayError}</p>
+        </div>
+      )}
+    </div>
+  );
+};

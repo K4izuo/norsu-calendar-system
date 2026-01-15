@@ -10,10 +10,9 @@ const FIELD_LABELS: Record<keyof DeanRegisterFormData, string> = {
   middle_name: "Middle name",
   last_name: "Last name",
   email: "Email",
-  assignment_id: "Faculty ID", // <-- Changed
+  assignment_id: "Dean ID",
   campus_id: "Campus",
-  college_id: "College",
-  degree_course_id: "Course",
+  office_id: "Office",
   role: "Role"
 };
 
@@ -23,13 +22,12 @@ const INITIAL_FORM_STATE: Omit<DeanRegisterFormData, 'role'> = {
   middle_name: "",
   last_name: "",
   email: "",
-  assignment_id: "", // <-- Changed
+  assignment_id: "",
   campus_id: "",
-  college_id: "",
-  degree_course_id: "",
+  office_id: "",
 };
 
-export function FacultyRegistrationSubmission() {
+export function DeanRegistrationSubmission() {
   const { role } = useRole();
 
   // Get role from our context on initial render
@@ -53,13 +51,7 @@ export function FacultyRegistrationSubmission() {
 
   // Generic field change handler (works for both inputs and selects)
   const handleFieldChange = useCallback((name: keyof DeanRegisterFormData, value: string) => {
-    setFormData(prev => {
-      // Special case: reset course when college changes
-      if (name === "college_id") {
-        return { ...prev, [name]: value, degree_course_id: "" };
-      }
-      return { ...prev, [name]: value };
-    });
+    setFormData(prev => ({ ...prev, [name]: value }));
 
     // Clear validation error when field is updated
     setMissingFields(prev => {
@@ -84,10 +76,9 @@ export function FacultyRegistrationSubmission() {
     if (!formData.first_name.trim()) missing.first_name = true;
     if (!formData.middle_name.trim()) missing.middle_name = true;
     if (!formData.last_name.trim()) missing.last_name = true;
-    if (!formData.assignment_id.trim()) missing.assignment_id = true; // Changed from facultyId to facultyID
+    if (!formData.assignment_id.trim()) missing.assignment_id = true;
     if (!formData.campus_id) missing.campus_id = true;
-    if (!formData.college_id) missing.college_id = true;
-    if (!formData.degree_course_id) missing.degree_course_id = true;
+    if (!formData.office_id) missing.office_id = true;
 
     // Email validation
     if (!formData.email.trim() || !formData.email.includes("@")) missing.email = true;
@@ -169,10 +160,9 @@ export function FacultyRegistrationSubmission() {
       formData.last_name.trim() &&
       formData.email.trim() &&
       formData.email.includes("@") &&
-      formData.assignment_id.trim() && // Changed from facultyId to facultyID
+      formData.assignment_id.trim() &&
       formData.campus_id &&
-      formData.college_id &&
-      formData.degree_course_id
+      formData.office_id
     );
   }, [formData]);
 

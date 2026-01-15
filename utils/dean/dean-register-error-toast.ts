@@ -9,8 +9,7 @@ export const FIELD_LABELS: Record<keyof DeanRegisterFormData, string> = {
   email: "Email",
   assignment_id: "Dean ID",
   campus_id: "Campus",
-  college_id: "College",
-  degree_course_id: "Course",
+  office_id: "Office",
   role: "Role",
 };
 
@@ -21,15 +20,13 @@ export const REQUIRED_FIELDS: Array<keyof DeanRegisterFormData> = [
   "email",
   "assignment_id",
   "campus_id",
-  "college_id",
-  "degree_course_id",
+  "office_id",
   "role",
 ];
 
 export const SELECT_FIELDS = [
   "campus_id",
-  "college_id",
-  "degree_course_id",
+  "office_id",
 ] as const;
 
 export function showFieldErrorToast(

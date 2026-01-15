@@ -13,9 +13,9 @@ import { useRole } from "@/contexts/user-role";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { apiClient } from "@/lib/api-client";
-import { showFieldErrorToast } from "@/utils/dean/dean-register-error-toast";
 import { DEAN_VALIDATION_RULES } from "@/utils/dean/dean-register-validation-rules";
 import { DeanFormInput } from "@/components/user-forms/register/dean/dean-input-field";
+import { useFieldValidation } from "@/utils/dean/dean-register-field-validation";
 
 const TABS = [
   { value: "details", label: "Dean Details" },
@@ -52,10 +52,17 @@ export default function DeanRegisterPage() {
     },
   });
 
-  const { control, handleSubmit, getValues, watch, register, formState: { errors, isSubmitting, isValid }, reset } = form;
+  const { control, handleSubmit, watch, register, formState: { errors, isSubmitting, isValid }, reset } = form;
 
   // Watch all form data for real-time updates
   const formData = watch();
+
+  // Real-time validation with debounce
+  const firstNameError = useFieldValidation(formData.first_name, DEAN_VALIDATION_RULES.first_name);
+  const middleNameError = useFieldValidation(formData.middle_name, DEAN_VALIDATION_RULES.middle_name);
+  const lastNameError = useFieldValidation(formData.last_name, DEAN_VALIDATION_RULES.last_name);
+  const emailError = useFieldValidation(formData.email, DEAN_VALIDATION_RULES.email);
+  const deanIDError = useFieldValidation(formData.assignment_id, DEAN_VALIDATION_RULES.deanID);
 
   useEffect(() => {
     if (role === "dean") {
@@ -97,11 +104,11 @@ export default function DeanRegisterPage() {
   const handleNext = useCallback(() => {
     handleSubmit(
       () => setActiveTab("summary"),
-      (errors) => {
-        showFieldErrorToast(errors, { ...getValues(), role: role ?? "" });
+      () => {
+        // Errors are now shown inline, no need for toast
       }
     )();
-  }, [handleSubmit, getValues, role]);
+  }, [handleSubmit]);
 
   if (!shouldRender) return null;
 
@@ -147,6 +154,7 @@ export default function DeanRegisterPage() {
                     register={register}
                     rules={DEAN_VALIDATION_RULES.first_name}
                     errors={errors}
+                    clientError={firstNameError}
                     autoComplete="given-name"
                     placeholder="Enter first name"
                   />
@@ -156,6 +164,7 @@ export default function DeanRegisterPage() {
                     register={register}
                     rules={DEAN_VALIDATION_RULES.middle_name}
                     errors={errors}
+                    clientError={middleNameError}
                     autoComplete="additional-name"
                     placeholder="Enter middle name"
                   />
@@ -165,6 +174,7 @@ export default function DeanRegisterPage() {
                     register={register}
                     rules={DEAN_VALIDATION_RULES.last_name}
                     errors={errors}
+                    clientError={lastNameError}
                     autoComplete="family-name"
                     placeholder="Enter last name"
                   />
@@ -177,6 +187,7 @@ export default function DeanRegisterPage() {
                     register={register}
                     rules={DEAN_VALIDATION_RULES.email}
                     errors={errors}
+                    clientError={emailError}
                     type="email"
                     autoComplete="email"
                     placeholder="Enter email"
@@ -187,6 +198,7 @@ export default function DeanRegisterPage() {
                     register={register}
                     rules={DEAN_VALIDATION_RULES.deanID}
                     errors={errors}
+                    clientError={deanIDError}
                     autoComplete="off"
                     placeholder="Enter dean ID"
                     inputMode="numeric"
@@ -212,6 +224,7 @@ export default function DeanRegisterPage() {
                           error={campusError}
                           required
                           hasError={!!errors.campus_id}
+                          validationError={errors.campus_id?.message as string}
                         />
                       )}
                     />
@@ -234,6 +247,7 @@ export default function DeanRegisterPage() {
                           error={officeError}
                           required
                           hasError={!!errors.office_id}
+                          validationError={errors.office_id?.message as string}
                         />
                       )}
                     />
