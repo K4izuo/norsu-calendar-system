@@ -80,7 +80,7 @@ export default function StaffRegisterPage() {
           toast.error(errorMessage, { duration: 5000 });
           return;
         }
-        
+
         const successMsg = response.data?.role
           ? ROLE_SUCCESS_MESSAGES[response.data.role] ?? "Registration successful!"
           : "Registration successful!";
@@ -129,11 +129,10 @@ export default function StaffRegisterPage() {
                 {TABS.map(tab => (
                   <div
                     key={tab.value}
-                    className={`flex items-center justify-center py-2 px-2 rounded-md text-base font-medium transition-colors min-w-[100px] ${
-                      activeTab === tab.value
+                    className={`flex items-center justify-center py-2 px-2 rounded-md text-base font-medium transition-colors min-w-25 ${activeTab === tab.value
                         ? "bg-background text-foreground shadow-sm"
                         : "text-muted-foreground"
-                    }`}
+                      }`}
                   >
                     {tab.label}
                   </div>

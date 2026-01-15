@@ -28,10 +28,7 @@ export const DEAN_VALIDATION_RULES = {
   campus: {
     required: "Campus field is required"
   },
-  college: {
-    required: "College field is required"
-  },
-  course: {
-    required: "Course field is required"
+  office: {
+    required: "Office field is required"
   }
 } as const;

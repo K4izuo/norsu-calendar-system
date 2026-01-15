@@ -9,18 +9,16 @@ type DeanSummaryProps = {
   formData: DeanRegisterFormData;
   campuses: OptionType[];
   offices: OptionType[];
-  courses: OptionType[];
   isFormValid: boolean;
   agreed: boolean;
   setAgreed: React.Dispatch<React.SetStateAction<boolean>>;
-  color?: "emerald" | "indigo" | "yellow";
+  color?: "emerald" | "indigo" | "purple";
 };
 
 export const DeanSummary = memo(function DeanSummary({
   formData,
   campuses,
   offices,
-  courses,
   isFormValid,
   agreed,
   setAgreed,
@@ -57,15 +55,9 @@ export const DeanSummary = memo(function DeanSummary({
             </p>
           </div>
           <div>
-            <p className="text-base text-gray-500">College</p>
+            <p className="text-base text-gray-500">Office</p>
             <p className="font-medium text-base">
-              {offices.find((o) => o.value === formData.college_id)?.label || "Not selected"}
-            </p>
-          </div>
-          <div>
-            <p className="text-base text-gray-500">Course</p>
-            <p className="font-medium text-base">
-              {courses.find((c) => c.value === formData.degree_course_id)?.label || "Not selected"}
+              {offices.find((o) => o.value === formData.office_id)?.label || "Not selected"}
             </p>
           </div>
         </div>
@@ -85,7 +77,7 @@ export const DeanSummary = memo(function DeanSummary({
           />
           <span
             className="ml-3 text-base text-gray-700 cursor-pointer select-none"
-            onClick={() => setTermsOpen(true)} // remove the onClick handler to prevent double triggering
+            onClick={() => setTermsOpen(true)}
           >
             I have read and agree to the{" "}
             <span className="underline text-indigo-600">Terms & Conditions</span>
@@ -100,11 +92,10 @@ export const DeanSummary = memo(function DeanSummary({
         />
       </div>
       <div
-        className={`mt-6 p-3 rounded-md flex items-center justify-center ${
-          isFormValid
-            ? "bg-blue-50 text-blue-800"
-            : "bg-yellow-50 text-yellow-800"
-        }`}
+        className={`mt-6 p-3 rounded-md flex items-center justify-center ${isFormValid
+            ? "bg-indigo-50 text-indigo-800"
+            : "bg-indigo-100 text-indigo-900"
+          }`}
       >
         {isFormValid ? (
           <span className="text-base">Ready for submission</span>

@@ -162,8 +162,7 @@ export interface DeanRegisterFormData {
   email: string
   assignment_id: string
   campus_id: string
-  college_id: string
-  degree_course_id: string
+  office_id: string
   role: string
 }
 

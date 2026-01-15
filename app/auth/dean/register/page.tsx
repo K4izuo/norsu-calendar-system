@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { DeanRegisterFormData } from "@/interface/user-props";
-import { useCampuses, useOffices, useCourses } from "@/services/academicDataService";
+import { useCampuses, useOffices } from "@/services/academicDataService";
 import { DeanFormSelectField } from "@/components/user-forms/register/dean/dean-select-field";
 import { DeanSummary } from "@/components/user-forms/register/dean/dean-summary";
 import { useRole } from "@/contexts/user-role";
@@ -34,11 +34,9 @@ export default function DeanRegisterPage() {
   const [activeTab, setActiveTab] = useState("details");
   const [agreed, setAgreed] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
-  const [selectedCollege, setSelectedCollege] = useState("");
 
   const { campuses, loading: loadingCampuses, error: campusError } = useCampuses();
   const { offices, loading: loadingOffices, error: officeError } = useOffices();
-  const { courses, loading: loadingCourses, error: courseError } = useCourses(selectedCollege);
 
   const form = useForm<DeanRegisterFormData>({
     mode: "onTouched",
@@ -49,17 +47,15 @@ export default function DeanRegisterPage() {
       email: "",
       assignment_id: "",
       campus_id: "",
-      college_id: "",
-      degree_course_id: "",
+      office_id: "",
       role: "",
     },
   });
 
-  const { control, handleSubmit, setValue, getValues, watch, register, formState: { errors, isSubmitting, isValid }, reset } = form;
+  const { control, handleSubmit, getValues, watch, register, formState: { errors, isSubmitting, isValid }, reset } = form;
 
   // Watch all form data for real-time updates
   const formData = watch();
-  const college_id = watch("college_id");
 
   useEffect(() => {
     if (role === "dean") {
@@ -68,11 +64,6 @@ export default function DeanRegisterPage() {
       router.replace("/auth/register");
     }
   }, [role, router]);
-
-  React.useEffect(() => {
-    setSelectedCollege(college_id);
-    setValue("degree_course_id", "");
-  }, [college_id, setValue]);
 
   const onSubmit = useCallback(
     async (data: DeanRegisterFormData) => {
@@ -116,9 +107,12 @@ export default function DeanRegisterPage() {
 
   return (
     <div className="min-h-dvh w-full bg-linear-to-br from-blue-50 to-indigo-50 flex items-center justify-center py-6 px-2 sm:px-4 lg:px-6 relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-32 h-32 bg-blue-600 rounded-full opacity-10 -translate-x-16 -translate-y-16"></div>
-      <div className="absolute bottom-0 right-0 w-48 h-48 bg-indigo-500 rounded-full opacity-10 translate-x-24 translate-y-24"></div>
-      <div className="absolute top-1/2 left-0 w-24 h-24 bg-blue-500 rounded-full opacity-10 -translate-x-12"></div>
+      {/* Background decorative elements */}
+      <div className="absolute top-0 left-0 w-48 h-48 bg-blue-600 rounded-full opacity-20 -translate-x-24 -translate-y-24"></div>
+      <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500 rounded-full opacity-10 translate-x-24 -translate-y-24"></div>
+      <div className="absolute bottom-0 right-0 w-48 h-48 bg-indigo-500 rounded-full opacity-20 translate-x-24 translate-y-24"></div>
+      <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500 rounded-full opacity-20 -translate-x-24 translate-y-24"></div>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -135,7 +129,7 @@ export default function DeanRegisterPage() {
                 {TABS.map(tab => (
                   <div
                     key={tab.value}
-                    className={`flex items-center justify-center py-2 px-2 rounded-md text-base font-medium transition-colors min-w-[100px] ${activeTab === tab.value
+                    className={`flex items-center justify-center py-2 px-2 rounded-md text-base font-medium transition-colors min-w-25 ${activeTab === tab.value
                       ? "bg-background text-foreground shadow-sm"
                       : "text-muted-foreground"
                       }`}
@@ -198,7 +192,7 @@ export default function DeanRegisterPage() {
                     inputMode="numeric"
                   />
                 </div>
-                {/* Campus & College row */}
+                {/* Campus & Office row */}
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <div className="flex-1">
                     <Controller
@@ -211,7 +205,7 @@ export default function DeanRegisterPage() {
                           name="campus_id"
                           label="Campus"
                           placeholder="Select campus"
-                          value={field.value || ""}
+                          value={field.value ?? ""}
                           onChange={field.onChange}
                           options={campuses}
                           loading={loadingCampuses}
@@ -224,49 +218,27 @@ export default function DeanRegisterPage() {
                   </div>
                   <div className="flex-1">
                     <Controller
-                      name="college_id"
+                      name="office_id"
                       control={control}
-                      rules={DEAN_VALIDATION_RULES.college}
+                      rules={DEAN_VALIDATION_RULES.office}
                       render={({ field }) => (
                         <DeanFormSelectField
-                          id="college_id"
-                          name="college_id"
-                          label="College"
-                          placeholder="Select college"
-                          value={field.value || ""}
+                          id="office_id"
+                          name="office_id"
+                          label="Office"
+                          placeholder="Select office"
+                          value={field.value ?? ""}
                           onChange={field.onChange}
                           options={offices}
                           loading={loadingOffices}
                           error={officeError}
                           required
-                          hasError={!!errors.college_id}
+                          hasError={!!errors.office_id}
                         />
                       )}
                     />
                   </div>
                 </div>
-                {/* Course row */}
-                <Controller
-                  name="degree_course_id"
-                  control={control}
-                  rules={DEAN_VALIDATION_RULES.course}
-                  render={({ field }) => (
-                    <DeanFormSelectField
-                      id="degree_course_id"
-                      name="degree_course_id"
-                      label="Course"
-                      placeholder="Select course"
-                      value={field.value || ""}
-                      onChange={field.onChange}
-                      options={courses}
-                      loading={loadingCourses}
-                      error={courseError}
-                      required
-                      disabled={!selectedCollege}
-                      hasError={!!errors.degree_course_id}
-                    />
-                  )}
-                />
                 <div className="flex mt-2 justify-between">
                   <Button
                     type="button"
@@ -291,7 +263,6 @@ export default function DeanRegisterPage() {
                   formData={{ ...formData, role: role ?? "" }}
                   campuses={campuses}
                   offices={offices}
-                  courses={courses}
                   isFormValid={isValid}
                   agreed={agreed}
                   setAgreed={setAgreed}
