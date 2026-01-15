@@ -99,7 +99,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [pathname]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f6f6f7]">
+    <div className="flex h-screen overflow-hidden bg-[#f9f9f9]">
       <div className="flex-none w-64 bg-gray-900 text-white flex flex-col overflow-y-auto">
         <div className="flex-none h-20 py-2 px-4 items-center justify-center flex">
           <div className="flex items-center justify-center w-full">
@@ -125,7 +125,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         <div className="flex-1 px-4 py-6 overflow-y-auto">
           <nav>
-            <ul className="space-y-2">
+            <ul className="space-y-1">
               <li>
                 <Link
                   href="/page/admin/dashboard"
@@ -199,7 +199,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     }`}
                 >
                   <CalendarClock size={20} className="mr-3" />
-                  <span className="font-medium">Asset Management</span>
+                  <span className="font-medium">Assets</span>
                   {activeTab === "asset-management" && (
                     <ChevronRight size={16} className="ml-auto" />
                   )}

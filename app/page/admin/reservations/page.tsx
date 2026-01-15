@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { ReservationsTable } from "@/components/admin-ui/reservations/custom-table";
+import { ReservationsTable } from "@/components/user-dashboard-ui/reservations/custom-table";
 import { apiClient } from "@/lib/api-client";
 import { EventDetails, ReservationWithRelations } from "@/interface/user-props";
 

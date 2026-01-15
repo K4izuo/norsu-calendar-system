@@ -13,7 +13,7 @@ interface Asset {
   capacity: number;
 }
 
-export default function AdminCalendarTab() {
+export default function CalendarPage() {
   // Modal states
   const [modalOpen, setModalOpen] = useState(false);
   const [eventInfoModalOpen, setEventInfoModalOpen] = useState(false);

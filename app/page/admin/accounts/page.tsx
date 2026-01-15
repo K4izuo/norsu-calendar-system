@@ -1,5 +1,5 @@
-export default function AdminAccountsPage() {
-    return (
-        <div>User Accounts</div>
-    );
+export default function AccountsPage() {
+  return (
+    <div>User Accounts</div>
+  );
 }

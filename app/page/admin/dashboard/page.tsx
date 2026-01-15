@@ -1,9 +1,9 @@
 import { UsersRound, Calendar } from "lucide-react";
-import DashboardStatCard from "@/components/admin-ui/dashboard/stat-card";
-import AdminAssetsChart from "@/components/admin-ui/dashboard/assets-line-chart";
-import AdminUsersChart from "@/components/admin-ui/dashboard/users-bar-chart";
+import DashboardStatCard from "@/components/user-dashboard-ui/dashboard/stat-card";
+import AdminAssetsChart from "@/components/user-dashboard-ui/dashboard/assets-line-chart";
+import AdminUsersChart from "@/components/user-dashboard-ui/dashboard/users-bar-chart";
 
-export default function AdminDashboardTab() {
+export default function DashboardPage() {
   return (
     <div className="flex flex-col items-start self-stretch">
       {/* Dashboard Title */}

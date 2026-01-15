@@ -195,7 +195,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#f6f6f7] flex flex-col overflow-x-hidden">
+    <div className="min-h-screen bg-[#f9f9f9] flex flex-col overflow-x-hidden">
       {/* Navbar */}
       <div className="relative bg-white px-2 sm:px-4 md:px-8 lg:px-16 xl:px-36 py-4 shadow-sm flex flex-col sm:flex-row items-center sm:items-center justify-between w-full gap-y-2">
         <div className="flex flex-row items-center justify-center sm:justify-start w-full sm:w-auto gap-2 sm:gap-0">
