@@ -86,7 +86,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     if (pathname?.includes("/asset-management")) {
-      setActiveTab("asset-management");
+      setActiveTab("asset");
     } else if (pathname?.includes("/calendar")) {
       setActiveTab("calendar");
     } else if (pathname?.includes("/reservations")) {
@@ -193,7 +193,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <li>
                 <Link
                   href="/page/admin/asset-management"
-                  className={`flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "asset-management"
+                  className={`flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "asset"
                     ? "bg-white text-gray-900"
                     : "text-white hover:bg-gray-800"
                     }`}

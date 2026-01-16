@@ -14,13 +14,13 @@ const PUBLIC_ROUTES = [
 ];
 
 const ROLE_DASHBOARDS = {
-  "2": "/page/dean/dashboard",
+  "2": "/page/admin/dashboard",
   "3": "/page/staff/dashboard",
   "4": "/page/admin/dashboard",
 };
 
 const ROLE_ROOTS = {
-  "2": "/page/dean",
+  "2": "/page/admin",
   "3": "/page/staff",
   "4": "/page/admin",
 };

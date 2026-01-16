@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation"
 import { setAuthToken, setUserRole, setUserId } from "@/lib/auth"
 
 const ROLE_ROUTES: Record<number, string> = {
-  2: "/page/dean/dashboard",
+  2: "/page/admin/dashboard",
   3: "/page/staff/dashboard",
   4: "/page/admin/dashboard",
 };

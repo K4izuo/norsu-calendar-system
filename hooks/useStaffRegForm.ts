@@ -27,7 +27,7 @@ const INITIAL_FORM_STATE: Omit<StaffRegisterFormData, 'role'> = {
 
 export function StaffRegistrationSubmission() {
   const { role } = useRole();
-      
+
   // Get role from our context on initial render
   const [formData, setFormData] = useState<StaffRegisterFormData>(() => {
     return {
@@ -35,7 +35,7 @@ export function StaffRegistrationSubmission() {
       role: role as string
     };
   });
-  
+
   // Update form data when role changes
   useEffect(() => {
     setFormData(prev => ({
@@ -55,8 +55,9 @@ export function StaffRegistrationSubmission() {
 
     setMissingFields(prev => {
       if (!prev[name]) return prev;
-      const { [name]: _, ...rest } = prev;
-      return rest;
+      const newFields = { ...prev };
+      delete newFields[name];
+      return newFields;
     });
   }, []);
 
@@ -104,11 +105,11 @@ export function StaffRegistrationSubmission() {
 
       // Handle API errors
       if (response.error) {
-        const errorMessage = response.error.toLowerCase().includes("email") && 
-            response.error.toLowerCase().includes("already")
+        const errorMessage = response.error.toLowerCase().includes("email") &&
+          response.error.toLowerCase().includes("already")
           ? "Email is already registered."
           : response.error;
-        
+
         toast.error(errorMessage, { duration: 5000 });
         setIsSubmitting(false);
         return false;
@@ -116,7 +117,7 @@ export function StaffRegistrationSubmission() {
 
       let successMsg = "Registration successful!";
 
-      switch(response.data?.role) {
+      switch (response.data?.role) {
         case 1: successMsg = "Student registration successful!"; break;
         case 2: successMsg = "Faculty registration successful!"; break;
         case 3: successMsg = "Staff registration successful!"; break;
@@ -129,7 +130,7 @@ export function StaffRegistrationSubmission() {
       }));
       setIsSubmitting(false);
       return true;
-    } catch (error) {
+    } catch {
       toast.error("Registration failed!", { duration: 5000 });
       setIsSubmitting(false);
       return false;

@@ -96,7 +96,6 @@ export function EventsListModal({
   const [reserveModalOpen, setReserveModalOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [recentLoading, setRecentLoading] = useState(false)
-  const recentLoadingTimeout = useRef<NodeJS.Timeout | null>(null)
 
   // Get role-specific loading colors
   const roleLoadingColors = getRoleColors(role);
@@ -156,13 +155,22 @@ export function EventsListModal({
   }, [onEventClick])
 
   const handleSelectChange = useCallback((value: string) => {
-    if (!recentLoading) {
-      setRecentLoading(true)
-      setShowRecent(value === "past")
-      if (recentLoadingTimeout.current) clearTimeout(recentLoadingTimeout.current)
-      recentLoadingTimeout.current = setTimeout(() => setRecentLoading(false), 1200)
-    }
-  }, [recentLoading, setShowRecent])
+    setRecentLoading(true)
+    setShowRecent(value === "past")
+  }, [setShowRecent])
+
+  // Turn off loading when filteredEvents changes (data is ready)
+  // useEffect(() => {
+  //   if (recentLoading) {
+  //     setRecentLoading(false)
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [filteredEvents])
+
+  // Turn off loading when filteredEvents changes (data is ready)
+  useEffect(() => {
+    setRecentLoading(false)
+  }, [filteredEvents])
 
   useEffect(() => {
     if (isOpen) {
@@ -173,7 +181,6 @@ export function EventsListModal({
     }
     return () => {
       document.body.style.overflow = ""
-      if (recentLoadingTimeout.current) clearTimeout(recentLoadingTimeout.current)
     }
   }, [isOpen, setShowRecent])
 

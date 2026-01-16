@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from '@/contexts/auth-context';
 import { RoleProvider } from '@/contexts/user-role';
+import { QueryProvider } from '@/lib/query-provider';
 
 const poppins = Poppins({
   weight: ["400", "500", "600", "700"],
@@ -30,11 +31,13 @@ export default function RootLayout({
       <body
         className={`${poppins.className} custom-scrollbar min-h-screen bg-white antialiased`}
       >
-        <AuthProvider>
-          <RoleProvider>
-            {children}
-          </RoleProvider>
-        </AuthProvider>
+        <QueryProvider>
+          <AuthProvider>
+            <RoleProvider>
+              {children}
+            </RoleProvider>
+          </AuthProvider>
+        </QueryProvider>
         <Toaster
           position="top-right"
           toastOptions={{
@@ -50,7 +53,7 @@ export default function RootLayout({
               },
             },
             error: {
-              duration: 4000,
+              duration: 3000,
               style: {
                 background: '#EF4444',
               },

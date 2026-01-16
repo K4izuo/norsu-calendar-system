@@ -231,3 +231,28 @@ export type AdminFormFieldProps = {
   autoComplete?: string
   rightElement?: React.ReactNode
 }
+
+export interface AssetRegistrationData {
+  id?: number
+  asset_name: string
+  asset_type: string
+  capacity: number
+  location: string
+  acquisition_date: string
+  condition: string
+  availability_status: string
+  campus_id?: string
+  office_id?: string
+}
+
+export interface AssetRegistrationPayload {
+  asset_name: string
+  asset_type: string
+  capacity: number
+  location: string
+  acquisition_date: string
+  condition: string
+  availability_status: string
+  campus_id?: string
+  office_id?: string
+}

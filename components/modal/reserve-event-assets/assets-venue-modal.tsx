@@ -77,7 +77,7 @@ export const AssetsVenueModal = React.memo(function AssetsVenueModal({
             duration: 0.25,
             ease: [0.22, 1, 0.36, 1]
           }}
-          className="relative max-w-[700px] max-h-[92vh] bg-white rounded-lg shadow-xl w-[94%] sm:w-xl sm:mx-4 overflow-hidden flex flex-col"
+          className="relative max-w-175 max-h-[92vh] bg-white rounded-lg shadow-xl w-[94%] sm:w-xl sm:mx-4 overflow-hidden flex flex-col"
           style={{
             transform: "translateZ(0)",
             backfaceVisibility: "hidden",

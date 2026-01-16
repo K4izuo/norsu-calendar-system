@@ -1,17 +1,17 @@
 export const DEAN_VALIDATION_RULES = {
   first_name: {
     required: "First name field is required",
-    minLength: { value: 3, message: "Minimum 3 characters" },
+    minLength: { value: 2, message: "Minimum 2 characters" },
     pattern: { value: /^[A-Za-z\s]+$/, message: "Letters only" }
   },
   middle_name: {
     required: "Middle name field is required",
-    minLength: { value: 3, message: "Minimum 3 characters" },
+    minLength: { value: 2, message: "Minimum 2 characters" },
     pattern: { value: /^[A-Za-z\s]+$/, message: "Letters only" }
   },
   last_name: {
     required: "Last name field is required",
-    minLength: { value: 3, message: "Minimum 3 characters" },
+    minLength: { value: 2, message: "Minimum 2 characters" },
     pattern: { value: /^[A-Za-z\s]+$/, message: "Letters only" }
   },
   email: {
