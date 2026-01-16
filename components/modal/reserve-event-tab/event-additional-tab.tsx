@@ -1,10 +1,10 @@
 import React from "react"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { X, User } from "lucide-react"
 import { Control, FieldErrors, Controller, UseFormRegister, RegisterOptions } from "react-hook-form"
 import { ReservationFormData } from "@/interface/user-props"
+import { User, X, AlertCircle } from "lucide-react"
+import { EventSelectField } from "./event-select-field"
 
 interface ValidationRules {
   people_tag: RegisterOptions<ReservationFormData, "people_tag">
@@ -46,11 +46,6 @@ export function ReserveEventAdditionalTab({
   validationRules,
   peopleFieldRef,
 }: Props) {
-  const getFieldClass = (hasError: boolean) => 
-    `mt-1 cursor-pointer border-2 text-base w-full h-12 focus:border-ring ${
-      hasError ? "border-red-500 focus:border-red-500" : "border-gray-200"
-    }`
-
   const filteredSuggestions = peopleSuggestions.filter(person =>
     person.name.toLowerCase().includes(tagInput.toLowerCase()) &&
     !taggedPeople.some(p => p.id === person.id)
@@ -59,8 +54,12 @@ export function ReserveEventAdditionalTab({
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="space-y-4 sm:space-y-5">
-        <div>
-          <Label htmlFor="people" className="text-base inline-block font-medium">People Tag<span className="text-red-500"> *</span></Label>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="people" className="text-base inline-flex pointer-events-none">
+            <span className="pointer-events-auto">
+              People Tag<span className="text-red-500"> *</span>
+            </span>
+          </Label>
           <Controller
             name="people_tag"
             control={control}
@@ -89,9 +88,10 @@ export function ReserveEventAdditionalTab({
                     // Ensure field is marked as touched when focused
                     field.onChange(taggedPeople.map(p => p.name).join(', '));
                   }}
-                  className={`h-12 border-2 text-base w-full focus:border-ring transition-all duration-90 ${
-                    (errors.people_tag || (invalid && isTouched && taggedPeople.length === 0)) ? "border-red-500 focus:border-red-500" : "border-gray-200"
-                  }`}
+                  className={`h-12 border-2 text-base w-full transition-all duration-150 ${(errors.people_tag || (invalid && isTouched && taggedPeople.length === 0))
+                      ? "border-red-400 focus:border-red-500 focus:ring-red-200"
+                      : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+                    }`}
                   autoComplete="off"
                 />
                 {showDropdown && (
@@ -133,65 +133,64 @@ export function ReserveEventAdditionalTab({
                           const updatedPeople = taggedPeople.filter(p => p.id !== person.id);
                           field.onChange(updatedPeople.map(p => p.name).join(', '));
                         }}
-                        className="ml-2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                        aria-label={`Remove ${person.name}`}
+                        className="ml-1.5 text-gray-800 hover:text-red-600"
                       >
-                        <X className="w-3 cursor-pointer h-3" />
+                        <X className="w-3 h-3" />
                       </button>
                     </span>
                   ))}
                 </div>
+                {errors.people_tag && (
+                  <div className="flex will-change-transform backface-hidden items-start gap-1.5 text-red-500 text-xs sm:text-sm pl-1 mt-1.5 animate-in fade-in slide-in-from-top-1 duration-150">
+                    <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                    <p>{errors.people_tag.message as string}</p>
+                  </div>
+                )}
               </div>
             )}
           />
         </div>
         <div>
-          <Label htmlFor="infoType" className="text-base inline-block font-medium">Information Type<span className="text-red-500"> *</span></Label>
           <Controller
             name="info_type"
             control={control}
             rules={validationRules.info_type}
             render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger id="infoType" name="info_type" className={`${getFieldClass(!!errors.info_type)} transition-all duration-90`}>
-                  <SelectValue placeholder="Select information type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel className="text-base">Types</SelectLabel>
-                    {infoTypes.map(type => (
-                      <SelectItem key={type.value} value={type.value} className="text-base cursor-pointer">
-                        {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+              <EventSelectField
+                id="infoType"
+                name="info_type"
+                label="Information Type"
+                placeholder="Select information type"
+                value={field.value || ""}
+                onChange={field.onChange}
+                options={infoTypes}
+                required
+                hasError={!!errors.info_type}
+                validationError={errors.info_type?.message as string}
+                groupLabel="Types"
+              />
             )}
           />
         </div>
         <div>
-          <Label htmlFor="category" className="text-base inline-block font-medium">Category<span className="text-red-500"> *</span></Label>
           <Controller
             name="category"
             control={control}
             rules={validationRules.category}
             render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger id="category" name="category" className={getFieldClass(!!errors.category)}>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel className="text-base">Categories</SelectLabel>
-                    {categories.map(cat => (
-                      <SelectItem key={cat.value} value={cat.value} className="text-base cursor-pointer">
-                        {cat.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+              <EventSelectField
+                id="category"
+                name="category"
+                label="Category"
+                placeholder="Select category"
+                value={field.value || ""}
+                onChange={field.onChange}
+                options={categories}
+                required
+                hasError={!!errors.category}
+                validationError={errors.category?.message as string}
+                groupLabel="Categories"
+              />
             )}
           />
         </div>

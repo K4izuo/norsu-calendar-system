@@ -339,6 +339,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
     errors,
     isSubmitting,
     register,
+    watch, // Add this line
     activeTab,
     setActiveTab,
     showVenueModal,

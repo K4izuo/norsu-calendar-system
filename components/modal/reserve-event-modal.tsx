@@ -47,6 +47,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
     errors,
     isSubmitting,
     register,
+    watch, // Add this line
     activeTab,
     setActiveTab,
     showVenueModal,
@@ -282,6 +283,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
                     selectedAsset={watchedAsset}
                     validationRules={validationRules}
                     register={register}
+                    watch={watch}
                   />
                 </TabsContent>
 
