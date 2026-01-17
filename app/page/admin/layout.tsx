@@ -59,6 +59,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         return;
       }
 
+      if (typeof window === 'undefined') return;
+
       const storedUser = localStorage.getItem("user");
       const storedRole = localStorage.getItem("role");
 
@@ -100,7 +102,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#f9f9f9]">
-      <div className="flex-none w-64 bg-gray-900 text-white flex flex-col overflow-y-auto">
+      {/* #111827 */}
+      <div className="flex-none w-64 bg-[#0e162a] text-white flex flex-col overflow-y-auto">
         <div className="flex-none h-20 py-2 px-4 items-center justify-center flex">
           <div className="flex items-center justify-center w-full">
             <Image

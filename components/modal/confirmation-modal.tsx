@@ -2,11 +2,12 @@
 
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertCircle, CheckCircle, X, AlertTriangle, User, Clock } from "lucide-react";
+import { AlertCircle, CheckCircle, X, AlertTriangle, User, Clock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { EventDetails } from "@/interface/user-props";
+import { EventDetails, ReservationWithRelations } from "@/interface/user-props";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { apiClient } from "@/lib/api-client";
 
 type ConfirmationModalProps = {
   isOpen: boolean;
@@ -14,7 +15,6 @@ type ConfirmationModalProps = {
   onConfirm: (reason?: string) => void;
   event?: EventDetails;
   type: "APPROVE" | "DECLINE";
-  conflictingReservations?: EventDetails[];
 };
 
 const typeConfig = {
@@ -42,21 +42,82 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   onConfirm,
   event,
   type,
-  conflictingReservations = [],
 }) => {
   const config = typeConfig[type];
   const Icon = config.icon;
   const [countdown, setCountdown] = useState(3);
   const [reason, setReason] = useState("");
   const [approvalReason, setApprovalReason] = useState("");
+  const [conflictingReservations, setConflictingReservations] = useState<EventDetails[]>([]);
+  const [isLoadingConflicts, setIsLoadingConflicts] = useState(false);
 
   const hasConflicts = type === "APPROVE" && conflictingReservations.length > 0;
+
+  // Fetch conflicts when modal opens for APPROVE type
+  useEffect(() => {
+    if (isOpen && type === "APPROVE" && event) {
+      setIsLoadingConflicts(true);
+
+      const fetchConflicts = async () => {
+        try {
+          const response = await apiClient.get<ReservationWithRelations[]>("/reservations/all");
+
+          if (response.data && Array.isArray(response.data)) {
+            const conflicts = response.data
+              .filter(r =>
+                r.id !== event.id &&
+                r.asset_id === event.asset?.id &&
+                r.date === event.date &&
+                r.status === 'PENDING' &&
+                (
+                  (r.time_start >= event.time_start && r.time_start < event.time_end) ||
+                  (r.time_end > event.time_start && r.time_end <= event.time_end) ||
+                  (r.time_start <= event.time_start && r.time_end >= event.time_end)
+                )
+              )
+              .map(r => ({
+                id: r.id,
+                title_name: r.title_name,
+                date: r.date,
+                time_start: r.time_start,
+                time_end: r.time_end,
+                asset: {
+                  id: r.asset_id,
+                  asset_name: event.asset?.asset_name || `Asset #${r.asset_id}`,
+                  capacity: 0,
+                },
+                category: r.category,
+                info_type: r.info_type,
+                description: r.description,
+                people_tag: [],
+                range: r.range,
+                registration_status: "PENDING" as const,
+                registration_deadline: r.date,
+                reserve_by_user: r.reserved_by_user
+                  ? `${r.reserved_by_user.first_name} ${r.reserved_by_user.last_name}`
+                  : "Unknown User",
+              } as EventDetails));
+
+            setConflictingReservations(conflicts);
+          }
+        } catch (error) {
+          console.error('Error fetching conflicts:', error);
+          setConflictingReservations([]);
+        } finally {
+          setIsLoadingConflicts(false);
+        }
+      };
+
+      fetchConflicts();
+    }
+  }, [isOpen, type, event]);
 
   useEffect(() => {
     if (isOpen) {
       setCountdown(3);
       setReason("");
       setApprovalReason("");
+      setConflictingReservations([]);
       const interval = setInterval(() => {
         setCountdown((prev) => {
           if (prev <= 1) {
@@ -76,15 +137,12 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     } else {
       onConfirm(approvalReason);
     }
-    // onClose();
   };
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-1.5 sm:p-4"
-        >
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-1.5 sm:p-4">
           <motion.div
             className="absolute inset-0 bg-black/40"
             initial={{ opacity: 0 }}
@@ -150,7 +208,18 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                   </div>
                 )}
 
-                {hasConflicts && (
+                {/* Loading conflicts */}
+                {type === "APPROVE" && isLoadingConflicts && (
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-center gap-2 py-3">
+                      <Loader2 className="w-5 h-5 text-gray-600 animate-spin" />
+                      <p className="text-sm text-gray-600">Checking for conflicting reservations...</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Show conflicts after loading */}
+                {hasConflicts && !isLoadingConflicts && (
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <AlertTriangle className="w-5 h-5 text-amber-600" />
@@ -159,7 +228,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                       </h3>
                     </div>
                     <p className="text-sm text-amber-800 mb-3">
-                      Disclaimer: The following {conflictingReservations.length} reservation{conflictingReservations.length > 1 ? 's' : ''} below will be automatically declined:
+                      Disclaimer: The following {conflictingReservations.length} reservation{conflictingReservations.length > 1 ? 's' : ''} will be automatically declined:
                     </p>
                     <div className="space-y-2 max-h-64 overflow-y-auto">
                       {conflictingReservations.map((conflict) => (
@@ -193,7 +262,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                   </div>
                 )}
 
-                {hasConflicts && (
+                {hasConflicts && !isLoadingConflicts && (
                   <div>
                     <Label
                       htmlFor="approval-reason"
@@ -206,7 +275,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                       value={approvalReason}
                       onChange={(e) => setApprovalReason(e.target.value)}
                       placeholder="Provide a reason for approving this reservation..."
-                      className="w-full bg-white min-h-[100px] text-base border-2 rounded-lg focus:border-ring transition-all duration-150"
+                      className="w-full bg-white min-h-25 text-base border-2 rounded-lg focus:border-ring transition-all duration-150"
                       rows={3}
                     />
                   </div>
@@ -225,7 +294,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                       value={reason}
                       onChange={(e) => setReason(e.target.value)}
                       placeholder="Provide a reason for declining this reservation..."
-                      className="w-full min-h-[120px] text-base border-2 rounded-lg focus:border-ring transition-all duration-150"
+                      className="w-full min-h-30 text-base border-2 rounded-lg focus:border-ring transition-all duration-150"
                       rows={4}
                     />
                   </div>

@@ -239,13 +239,16 @@ export function EventsListModal({
                     />
                   </div>
                   <div className="flex gap-3">
-                    <Button
-                      onClick={handleReserve}
-                      className="h-11 cursor-pointer px-6 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
-                    >
-                      <CalendarPlus className="w-4 h-4" />
-                      Reserve Event
-                    </Button>
+                    {/* Only show Reserve Event button if user is authenticated (role is not public) */}
+                    {role && role !== 'public' && (
+                      <Button
+                        onClick={handleReserve}
+                        className="h-11 cursor-pointer px-6 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+                      >
+                        <CalendarPlus className="w-4 h-4" />
+                        Reserve Event
+                      </Button>
+                    )}
                     <Select
                       value={showRecent ? "past" : "upcoming"}
                       onValueChange={handleSelectChange}

@@ -55,7 +55,7 @@ export const AssetSelectField = memo(function AssetSelectField({
       >
         <SelectTrigger
           id={id}
-          className={`h-12 cursor-pointer text-base border-2 rounded-lg w-full transition-all duration-150 ${hasError || validationError
+          className={`h-12 text-gray-600 cursor-pointer text-base border-2 rounded-lg w-full transition-all duration-150 ${hasError || validationError
             ? "border-red-400 focus:border-red-500 focus:ring-red-200"
             : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
             }`}

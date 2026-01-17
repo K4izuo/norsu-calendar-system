@@ -17,7 +17,7 @@ import {
   NotebookText
 } from "lucide-react";
 import { Button } from "../ui/button";
-import { EventDetails, ReservationWithRelations } from "@/interface/user-props";
+import { EventDetails } from "@/interface/user-props";
 import { ReserveEventModal } from "./reserve-event-modal";
 import { getRoleColors, UserRole } from "@/utils/role-colors"
 import {
@@ -26,7 +26,7 @@ import {
   // handleEditReservation,
 } from "@/hooks/useHandleReservations";
 import { ConfirmationModal } from "./confirmation-modal";
-import { apiClient } from "@/lib/api-client";
+// import { apiClient } from "@/lib/api-client";
 
 interface ModalProps {
   isOpen: boolean;
@@ -107,7 +107,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
   const [showDeclineConfirm, setShowDeclineConfirm] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   const [isDeclining, setIsDeclining] = useState(false);
-  const [conflictingReservations, setConflictingReservations] = useState<EventDetails[]>([]);
+  // const [conflictingReservations, setConflictingReservations] = useState<EventDetails[]>([]);
   const roleLoadingColors = getRoleColors(role);
 
   useEffect(() => {
@@ -144,59 +144,9 @@ export const EventInfoModal = React.memo(function EventInfoModal({
     setShowEditModal(false);
   };
 
-  const handleApprove = async () => {
+  const handleApprove = () => {
     if (!event) return;
-
-    // Fetch all pending reservations to find conflicts
-    try {
-      const response = await apiClient.get<ReservationWithRelations[]>("/reservations/all");
-
-      if (response.data && Array.isArray(response.data)) {
-        // Filter for conflicts: same asset, same date, pending status, overlapping time
-        const conflicts = response.data
-          .filter(r =>
-            r.id !== event.id &&
-            r.asset_id === event.asset?.id &&
-            r.date === event.date &&
-            r.status === 'PENDING' &&
-            (
-              // Check time overlap
-              (r.time_start >= event.time_start && r.time_start < event.time_end) ||
-              (r.time_end > event.time_start && r.time_end <= event.time_end) ||
-              (r.time_start <= event.time_start && r.time_end >= event.time_end)
-            )
-          )
-          .map(r => ({
-            id: r.id,
-            title_name: r.title_name,
-            date: r.date,
-            time_start: r.time_start,
-            time_end: r.time_end,
-            asset: {
-              id: r.asset_id,
-              asset_name: event.asset?.asset_name || `Asset #${r.asset_id}`,
-              capacity: 0,
-            },
-            category: r.category,
-            info_type: r.info_type,
-            description: r.description,
-            people_tag: [],
-            range: r.range,
-            registration_status: "PENDING" as const,
-            registration_deadline: r.date,
-            reserve_by_user: r.reserved_by_user
-              ? `${r.reserved_by_user.first_name} ${r.reserved_by_user.last_name}`
-              : "Unknown User",
-          } as EventDetails));
-
-        setConflictingReservations(conflicts);
-      }
-    } catch (error) {
-      console.error('Error fetching conflicts:', error);
-      setConflictingReservations([]);
-    }
-
-    setShowApproveConfirm(true);
+    setShowApproveConfirm(true); // Show modal instantly
   };
 
   const handleDecline = () => {
@@ -323,9 +273,10 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                 </motion.div>
               ) : (
                 <div
-                  className="overflow-y-auto custom-scrollbar p-4 sm:p-6 pt-4 sm:pt-6 pb-4 sm:pb-6 max-h-[calc(89vh-100px)] sm:max-h-[calc(92vh-100px)]"
+                  className="overflow-y-auto custom-scrollbar p-4 sm:p-6 pt-4 sm:pt-6 pb-4 sm:pb-6 max-h-[calc(89vh-100px)] sm:max-h-[calc(94vh-100px)]"
                   style={{
-                    paddingBottom: !loading && event && getStatus(event) === "PENDING" ? "112px" : ""
+                    // Only add extra padding if buttons will actually be shown (user is authenticated and status is pending)
+                    paddingBottom: !loading && event && getStatus(event) === "PENDING" && role && role !== 'public' ? "112px" : ""
                   }}
                 >
                   <div className="space-y-6">
@@ -499,7 +450,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                 </div>
               )}
 
-              {!loading && event && getStatus(event) === "PENDING" && (
+              {!loading && event && getStatus(event) === "PENDING" && role && role !== 'public' && (
                 <div
                   className="sticky bottom-0 bg-white z-10 p-4 sm:p-6 border-t border-gray-200 flex justify-center gap-3"
                 >
@@ -599,7 +550,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
         onConfirm={handleApproveConfirm}
         event={event}
         type="APPROVE"
-        conflictingReservations={conflictingReservations}
+      // conflictingReservations={conflictingReservations}
       />
 
       <ConfirmationModal
