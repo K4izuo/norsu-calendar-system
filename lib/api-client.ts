@@ -1,6 +1,6 @@
 import { getAuthToken, setAuthToken, setUserRole, removeAuthToken } from './auth';
 
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
+const API_BASE_URL = 'https://oracj.norsu.online/api';
 // http://127.0.0.1:8000
 
 type RequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
