@@ -43,11 +43,11 @@ export function AssetRegistrationModal({
 }: AssetRegistrationModalProps) {
   const contentRef = useRef<HTMLDivElement>(null)
 
+  // These hooks will return cached data instantly if prefetched
   const { campuses, loading: loadingCampuses, error: campusError } = useCampuses()
   const { offices, loading: loadingOffices, error: officeError } = useOffices()
   const { mutateAsync: createAsset, isPending: isCreating } = useCreateAsset()
 
-  // If custom onSubmit is provided, use it; otherwise use the mutation
   const handleAssetSubmit = async (data: AssetRegistrationPayload) => {
     if (onSubmit) {
       await onSubmit(data)
@@ -101,7 +101,6 @@ export function AssetRegistrationModal({
     summary: "Summary",
   }
 
-  // Use isCreating from mutation if no custom onSubmit, otherwise use form's isSubmitting
   const isLoading = onSubmit ? isSubmitting : (isSubmitting || isCreating)
 
   return (
@@ -129,12 +128,6 @@ export function AssetRegistrationModal({
             ease: [0.22, 1, 0.36, 1]
           }}
           className="relative w-full max-w-2xl sm:mx-4 mx-px max-h-[92vh] bg-white rounded-lg shadow-xl overflow-hidden flex flex-col"
-          style={{
-            transform: "translateZ(0)",
-            backfaceVisibility: "hidden",
-            transformOrigin: "center",
-            willChange: "transform, opacity",
-          }}
           onClick={e => e.stopPropagation()}
         >
           <div className="sticky top-0 bg-white z-10 p-4 sm:p-6 pb-4 sm:pb-6 border-b border-gray-200">

@@ -15,7 +15,15 @@ export type Asset = {
 };
 export type OptionType = { value: string; label: string };
 
-// Helper function to determine error message based on error text and resource type
+// ============ QUERY KEYS (Centralized) ============
+export const queryKeys = {
+  campuses: ['campuses'] as const,
+  offices: ['offices'] as const,
+  courses: ['courses'] as const,
+  assets: ['assets'] as const,
+} as const;
+
+// ============ HELPER FUNCTIONS ============
 function getErrorMessage(error: string, resourceType: string) {
   const errorLower = error.toLowerCase();
 
@@ -34,7 +42,6 @@ function getErrorMessage(error: string, resourceType: string) {
   return `Failed to load ${resourceType.toLowerCase()}s`;
 }
 
-// Helper function to map API data to dropdown options
 function mapToOptions<T extends { id: number }>(
   data: T[],
   labelKey: keyof T
@@ -45,7 +52,7 @@ function mapToOptions<T extends { id: number }>(
   }));
 }
 
-// API fetcher functions
+// ============ API FETCHERS ============
 const fetchCampuses = async (): Promise<OptionType[]> => {
   const response = await apiClient.get<Campus[]>('campuses/all');
 
@@ -102,7 +109,6 @@ const fetchAssets = async (): Promise<Asset[]> => {
   return response.data;
 };
 
-// Asset mutation function
 const createAsset = async (data: AssetRegistrationPayload): Promise<Asset> => {
   const response = await apiClient.post<Asset, AssetRegistrationPayload>('assets/store', data);
 
@@ -117,73 +123,96 @@ const createAsset = async (data: AssetRegistrationPayload): Promise<Asset> => {
   return response.data;
 };
 
-// Hooks using TanStack Query
+// ============ QUERY OPTIONS (Reusable Configuration) ============
+export const campusesQueryOptions = {
+  queryKey: queryKeys.campuses,
+  queryFn: fetchCampuses,
+  staleTime: 30 * 60 * 1000, // 30 minutes - campuses rarely change
+  gcTime: 60 * 60 * 1000, // 1 hour
+} as const;
+
+export const officesQueryOptions = {
+  queryKey: queryKeys.offices,
+  queryFn: fetchOffices,
+  staleTime: 30 * 60 * 1000, // 30 minutes - offices rarely change
+  gcTime: 60 * 60 * 1000, // 1 hour
+} as const;
+
+export const coursesQueryOptions = {
+  queryKey: queryKeys.courses,
+  queryFn: fetchCourses,
+  staleTime: 30 * 60 * 1000, // 30 minutes
+  gcTime: 60 * 60 * 1000, // 1 hour
+} as const;
+
+export const assetsQueryOptions = {
+  queryKey: queryKeys.assets,
+  queryFn: fetchAssets,
+  staleTime: 1 * 60 * 1000, // 1 minute - assets change more frequently
+  gcTime: 5 * 60 * 1000, // 5 minutes
+} as const;
+
+// ============ HOOKS ============
 export const useCampuses = () => {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['campuses'],
-    queryFn: fetchCampuses,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  const query = useQuery(campusesQueryOptions);
 
   return {
-    campuses: data || [],
-    loading: isLoading,
-    error: error?.message || null
+    campuses: query.data || [],
+    loading: query.isLoading,
+    error: query.error?.message || null,
+    isFetching: query.isFetching,
   };
 };
 
 export const useOffices = () => {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['offices'],
-    queryFn: fetchOffices,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  const query = useQuery(officesQueryOptions);
 
   return {
-    offices: data || [],
-    loading: isLoading,
-    error: error?.message || null
+    offices: query.data || [],
+    loading: query.isLoading,
+    error: query.error?.message || null,
+    isFetching: query.isFetching,
   };
 };
 
 export const useCourses = () => {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['courses'],
-    queryFn: fetchCourses,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  const query = useQuery(coursesQueryOptions);
 
   return {
-    courses: data || [],
-    loading: isLoading,
-    error: error?.message || null
+    courses: query.data || [],
+    loading: query.isLoading,
+    error: query.error?.message || null,
+    isFetching: query.isFetching,
   };
 };
 
 export const useAssets = () => {
-  const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['assets'],
-    queryFn: fetchAssets,
-    staleTime: 2 * 60 * 1000, // 2 minutes (assets might change more frequently)
-  });
+  const query = useQuery(assetsQueryOptions);
 
   return {
-    assets: data || [],
-    loading: isLoading,
-    error: error?.message || null,
-    refetch
+    assets: query.data || [],
+    loading: query.isLoading,
+    error: query.error?.message || null,
+    isFetching: query.isFetching,
+    refetch: query.refetch,
   };
 };
 
-// Mutation hook for creating assets
+// ============ MUTATIONS ============
 export const useCreateAsset = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: createAsset,
-    onSuccess: () => {
-      // Invalidate and refetch assets list
-      queryClient.invalidateQueries({ queryKey: ['assets'] });
+    onSuccess: (newAsset) => {
+      // Optimistic update: immediately add to cache
+      queryClient.setQueryData<Asset[]>(queryKeys.assets, (old) => {
+        return old ? [...old, newAsset] : [newAsset];
+      });
+
+      // Then invalidate to refetch and ensure consistency
+      queryClient.invalidateQueries({ queryKey: queryKeys.assets });
+
       toast.success("Asset registered successfully!");
     },
     onError: (error: Error) => {
@@ -191,4 +220,17 @@ export const useCreateAsset = () => {
       toast.error(error.message || "Failed to register asset");
     },
   });
+};
+
+// ============ PREFETCH UTILITIES ============
+export const prefetchCampuses = (queryClient: ReturnType<typeof useQueryClient>) => {
+  return queryClient.prefetchQuery(campusesQueryOptions);
+};
+
+export const prefetchOffices = (queryClient: ReturnType<typeof useQueryClient>) => {
+  return queryClient.prefetchQuery(officesQueryOptions);
+};
+
+export const prefetchCourses = (queryClient: ReturnType<typeof useQueryClient>) => {
+  return queryClient.prefetchQuery(coursesQueryOptions);
 };

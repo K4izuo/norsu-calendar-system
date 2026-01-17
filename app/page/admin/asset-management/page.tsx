@@ -125,7 +125,7 @@ export default function AssetsPage() {
             onClick={() => refetch()}
           >
             <Filter className="w-4 h-4" />
-            Refresh
+            Filter
           </Button>
           <Button
             onClick={() => setIsModalOpen(true)}
