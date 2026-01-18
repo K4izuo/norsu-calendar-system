@@ -132,7 +132,7 @@ export default function AssetsPage() {
             className="flex items-center gap-2 h-11 px-4 cursor-pointer"
           >
             <PackagePlus className="w-4 h-4" />
-            Register Asset
+            Add new asset
           </Button>
         </div>
       </div>

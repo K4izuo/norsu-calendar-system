@@ -14,6 +14,7 @@ export type Asset = {
   acquisition_date: string;
   campus_id: number;
   office_id: number;
+  created_by: number;
 };
 
 // Fetch all assets

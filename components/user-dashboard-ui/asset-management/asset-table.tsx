@@ -102,7 +102,7 @@ export function AssetsTable({ assets, isLoading = false, role, onAssetClick }: A
         ) : (
           <Table>
             <TableHeader>
-              <TableRow className="bg-[#f3f3f7] hover:bg-gray-100">
+              <TableRow className="bg-[#f3f3f9] hover:bg-gray-100">
                 <TableHead className="h-12 px-6 py-3 text-sm font-medium text-muted-foreground text-left">
                   Asset Name
                 </TableHead>
