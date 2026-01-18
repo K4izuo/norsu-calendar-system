@@ -2,6 +2,7 @@ import { apiClient } from "@/lib/api-client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { AssetRegistrationPayload } from "@/interface/user-props";
+import { getUserId } from "@/lib/auth";
 
 export type Asset = {
   id: number;
@@ -26,7 +27,7 @@ const fetchAssets = async (): Promise<Asset[]> => {
   }
 
   if (!response.data || response.data.length === 0) {
-    throw new Error("No assets found");
+    return []; // Return empty array instead of throwing error
   }
 
   return response.data;
@@ -49,11 +50,14 @@ const createAsset = async (data: AssetRegistrationPayload): Promise<Asset> => {
 
 // Hook to fetch all assets
 export const useAssets = () => {
+  const userId = getUserId(); // Get current logged-in user ID
+
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['assets'],
+    queryKey: ['assets', userId], // Include userId in the cache key
     queryFn: fetchAssets,
     staleTime: 2 * 60 * 1000, // 2 minutes
     refetchOnWindowFocus: true,
+    enabled: !!userId, // Only fetch if user is logged in
   });
 
   return {
@@ -67,12 +71,13 @@ export const useAssets = () => {
 // Hook to create asset
 export const useCreateAsset = () => {
   const queryClient = useQueryClient();
+  const userId = getUserId();
 
   return useMutation({
     mutationFn: createAsset,
     onSuccess: () => {
-      // Invalidate and refetch assets list
-      queryClient.invalidateQueries({ queryKey: ['assets'] });
+      // Invalidate queries for the current user
+      queryClient.invalidateQueries({ queryKey: ['assets', userId] });
 
       toast.success('Asset registered successfully!', {
         position: 'top-right',

@@ -31,6 +31,10 @@ interface AssetDetailsTabProps {
   loadingOffices: boolean
   campusError: string | null
   officeError: string | null
+  isAdmin?: boolean
+  // isDeanOrStaff?: boolean
+  // userCampusId?: string
+  // userOfficeId?: string
 }
 
 export function AssetDetailsTab({
@@ -46,6 +50,10 @@ export function AssetDetailsTab({
   loadingOffices,
   campusError,
   officeError,
+  isAdmin = false,
+  // isDeanOrStaff = false,
+  // userCampusId,
+  // userOfficeId,
 }: AssetDetailsTabProps) {
   // Watch all form data for real-time updates
   const formData = watch()
@@ -102,51 +110,55 @@ export function AssetDetailsTab({
           placeholder="Enter capacity"
         />
 
-        {/* Campus */}
-        <Controller
-          name="campus_id"
-          control={control}
-          rules={{ required: "Campus is required" }}
-          render={({ field }) => (
-            <AssetSelectField
-              id="campus_id"
-              name="campus_id"
-              label="Campus"
-              placeholder="Select campus"
-              value={field.value || ""}
-              onChange={field.onChange}
-              options={campuses}
-              loading={loadingCampuses}
-              error={campusError}
-              required
-              hasError={!!errors.campus_id}
-              validationError={errors.campus_id?.message as string}
-            />
-          )}
-        />
+        {/* Campus - Only show for Admin */}
+        {isAdmin && (
+          <Controller
+            name="campus_id"
+            control={control}
+            rules={{ required: "Campus is required" }}
+            render={({ field }) => (
+              <AssetSelectField
+                id="campus_id"
+                name="campus_id"
+                label="Campus"
+                placeholder="Select campus"
+                value={field.value || ""}
+                onChange={field.onChange}
+                options={campuses}
+                loading={loadingCampuses}
+                error={campusError}
+                required
+                hasError={!!errors.campus_id}
+                validationError={errors.campus_id?.message as string}
+              />
+            )}
+          />
+        )}
 
-        {/* Office */}
-        <Controller
-          name="office_id"
-          control={control}
-          rules={{ required: "Office is required" }}
-          render={({ field }) => (
-            <AssetSelectField
-              id="office_id"
-              name="office_id"
-              label="Office"
-              placeholder="Select office"
-              value={field.value || ""}
-              onChange={field.onChange}
-              options={offices}
-              loading={loadingOffices}
-              error={officeError}
-              required
-              hasError={!!errors.office_id}
-              validationError={errors.office_id?.message as string}
-            />
-          )}
-        />
+        {/* Office - Only show for Admin */}
+        {isAdmin && (
+          <Controller
+            name="office_id"
+            control={control}
+            rules={{ required: "Office is required" }}
+            render={({ field }) => (
+              <AssetSelectField
+                id="office_id"
+                name="office_id"
+                label="Office"
+                placeholder="Select office"
+                value={field.value || ""}
+                onChange={field.onChange}
+                options={offices}
+                loading={loadingOffices}
+                error={officeError}
+                required
+                hasError={!!errors.office_id}
+                validationError={errors.office_id?.message as string}
+              />
+            )}
+          />
+        )}
 
         {/* Location - spans full width */}
         <div className="sm:col-span-2">

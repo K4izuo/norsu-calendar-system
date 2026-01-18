@@ -22,14 +22,20 @@ interface UseAssetRegistrationFormProps {
   isOpen: boolean
   editMode?: boolean
   assetData?: AssetRegistrationData
+  defaultCampusId?: string
+  defaultOfficeId?: string
+  isAdmin?: boolean
 }
 
 export function useAssetRegistrationForm({
-  // onSubmit,
+  onSubmit,
   onClose,
   isOpen,
   editMode = false,
-  assetData
+  assetData,
+  defaultCampusId,
+  defaultOfficeId,
+  isAdmin = false
 }: UseAssetRegistrationFormProps) {
   const [activeTab, setActiveTab] = useState<"details" | "summary">("details")
 
@@ -52,58 +58,72 @@ export function useAssetRegistrationForm({
       location: "",
       acquisition_date: "",
       condition: "",
-      campus_id: "",
-      office_id: "",
+      campus_id: defaultCampusId || "",
+      office_id: defaultOfficeId || "",
     },
   })
 
-  // Reset form when modal closes
+  // Reset form when modal opens/closes
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) {
+      if (editMode && assetData) {
+        // Editing existing asset
+        reset({
+          asset_name: assetData.asset_name,
+          asset_type: assetData.asset_type,
+          capacity: assetData.capacity.toString(),
+          location: assetData.location,
+          acquisition_date: assetData.acquisition_date,
+          condition: assetData.condition,
+          campus_id: assetData.campus_id || defaultCampusId || "",
+          office_id: assetData.office_id || defaultOfficeId || "",
+        })
+      } else {
+        // Creating new asset
+        reset({
+          asset_name: "",
+          asset_type: "",
+          capacity: "",
+          location: "",
+          acquisition_date: "",
+          condition: "",
+          campus_id: defaultCampusId || "",
+          office_id: defaultOfficeId || "",
+        })
+      }
+    } else {
+      // Modal closed - reset to empty
       reset()
       setActiveTab("details")
     }
-  }, [isOpen, reset])
-
-  // Populate form when editing
-  useEffect(() => {
-    if (editMode && assetData && isOpen) {
-      setValue('asset_name', assetData.asset_name)
-      setValue('asset_type', assetData.asset_type)
-      setValue('capacity', assetData.capacity.toString())
-      setValue('location', assetData.location)
-      setValue('acquisition_date', assetData.acquisition_date)
-      setValue('condition', assetData.condition)
-      setValue('campus_id', assetData.campus_id || '')
-      setValue('office_id', assetData.office_id || '')
-    }
-  }, [editMode, assetData, isOpen, setValue])
+  }, [isOpen, editMode, assetData, defaultCampusId, defaultOfficeId, reset])
 
   const isFormValid = (): boolean => {
     const values = getValues()
-    return !!(
+    const baseValid = !!(
       values.asset_name &&
       values.asset_type &&
       values.capacity &&
       values.location &&
       values.acquisition_date &&
-      values.condition &&
-      values.campus_id &&
-      values.office_id
+      values.condition
     )
+
+    // Admin must select campus/office, dean/staff auto-filled
+    if (isAdmin) {
+      return baseValid && !!(values.campus_id && values.office_id)
+    }
+
+    return baseValid
   }
 
   const handleDetailsTabNext = async () => {
-    const isValid = await trigger([
-      'asset_name',
-      'asset_type',
-      'capacity',
-      'location',
-      'acquisition_date',
-      'condition',
-      'campus_id',
-      'office_id'
-    ])
+    // Different validation for admin vs dean/staff
+    const fieldsToValidate: (keyof AssetFormData)[] = isAdmin
+      ? ['asset_name', 'asset_type', 'capacity', 'location', 'acquisition_date', 'condition', 'campus_id', 'office_id']
+      : ['asset_name', 'asset_type', 'capacity', 'location', 'acquisition_date', 'condition']
+
+    const isValid = await trigger(fieldsToValidate)
 
     if (isValid) {
       setActiveTab("summary")
@@ -121,25 +141,30 @@ export function useAssetRegistrationForm({
           acquisition_date: data.acquisition_date,
           condition: data.condition,
           availability_status: "available",
-          campus_id: data.campus_id,
-          office_id: data.office_id,
+          campus_id: data.campus_id || defaultCampusId || "",
+          office_id: data.office_id || defaultOfficeId || "",
         }
 
-        // Remove the setTimeout - real API call will show loading
-        const response = await apiClient.post<AssetRegistrationPayload, AssetRegistrationPayload>(
-          "assets/store",
-          payload
-        )
+        if (onSubmit) {
+          // Use custom submit handler if provided
+          await onSubmit(payload)
+        } else {
+          // Default API submission
+          const response = await apiClient.post<AssetRegistrationPayload, AssetRegistrationPayload>(
+            "assets/store",
+            payload
+          )
 
-        if (response.error) {
-          const errorMsg = typeof response.error === "string"
-            ? response.error
-            : JSON.stringify(response.error);
-          toast.error(`Asset registration failed: ${errorMsg}`);
-          return;
+          if (response.error) {
+            const errorMsg = typeof response.error === "string"
+              ? response.error
+              : JSON.stringify(response.error);
+            toast.error(`Asset registration failed: ${errorMsg}`);
+            return;
+          }
+
+          toast.success("Asset registered successfully!");
         }
-
-        toast.success("Asset registered successfully!");
 
         reset()
         onClose()
@@ -153,7 +178,7 @@ export function useAssetRegistrationForm({
         toast.error(errorMessage)
       }
     },
-    [reset, onClose]
+    [reset, onClose, onSubmit, defaultCampusId, defaultOfficeId]
   )
 
   const handleFormSubmit = (e: React.FormEvent) => {

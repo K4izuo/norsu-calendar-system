@@ -1,4 +1,4 @@
-import { getAuthToken, setAuthToken, setUserRole, removeAuthToken } from './auth';
+import { getAuthToken, setAuthToken, setUserRole, removeAuthToken, setUserId } from './auth';
 
 const API_BASE_URL = 'https://oracj.norsu.online/api';
 // http://127.0.0.1:8000
@@ -33,9 +33,15 @@ const handleUnauthorized = () => {
   removeAuthToken();
 };
 
-const storeAuthData = (responseData: { token?: string; role?: string } | null) => {
+// const storeAuthData = (responseData: { token?: string; role?: string } | null) => {
+//   if (responseData?.token) setAuthToken(responseData.token);
+//   if (responseData?.role) setUserRole(Number(responseData.role));
+// };
+
+const storeAuthData = (responseData: { token?: string; role?: number; user?: { id: number } } | null) => {
   if (responseData?.token) setAuthToken(responseData.token);
-  if (responseData?.role) setUserRole(Number(responseData.role));
+  if (responseData?.role) setUserRole(responseData.role);
+  if (responseData?.user?.id) setUserId(responseData.user.id);
 };
 
 export const apiClient = {

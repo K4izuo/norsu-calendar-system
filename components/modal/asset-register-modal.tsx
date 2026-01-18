@@ -10,6 +10,8 @@ import { AssetSummaryTab } from "@/components/modal/asset-register-tab/asset-sum
 import { useAssetRegistrationForm } from "@/hooks/useAssetRegistrationForm"
 import { AssetRegistrationData, AssetRegistrationPayload } from "@/interface/user-props"
 import { useCampuses, useOffices, useCreateAsset } from "@/services/academicDataService"
+import { useCurrentUser } from "@/hooks/useCurrentUser"
+import { getUserRole } from "@/lib/auth"
 
 const assetTypes = [
   { value: "venue", label: "Venue" },
@@ -43,6 +45,18 @@ export function AssetRegistrationModal({
 }: AssetRegistrationModalProps) {
   const contentRef = useRef<HTMLDivElement>(null)
 
+  // Get current user data
+  const { user } = useCurrentUser()
+
+  // Get role from localStorage as fallback
+  const userRoleStr = getUserRole()
+  const userRoleNum = userRoleStr ? parseInt(userRoleStr, 10) : user?.role || 0
+
+  // Determine roles - ADJUST THESE NUMBERS BASED ON YOUR SYSTEM
+  // Example: 1=student, 2=dean, 3=staff, 4=admin (check your backend/database)
+  const isAdmin = userRoleNum === 4
+  const isDeanOrStaff = userRoleNum === 2 || userRoleNum === 3
+
   // These hooks will return cached data instantly if prefetched
   const { campuses, loading: loadingCampuses, error: campusError } = useCampuses()
   const { offices, loading: loadingOffices, error: officeError } = useOffices()
@@ -73,7 +87,10 @@ export function AssetRegistrationModal({
     onClose,
     isOpen,
     editMode,
-    assetData
+    assetData,
+    defaultCampusId: isDeanOrStaff ? user?.campus_id : undefined,
+    defaultOfficeId: isDeanOrStaff ? user?.office_id : undefined,
+    isAdmin,
   })
 
   useEffect(() => {
@@ -188,6 +205,10 @@ export function AssetRegistrationModal({
                     loadingOffices={loadingOffices}
                     campusError={campusError}
                     officeError={officeError}
+                    isAdmin={isAdmin}
+                  // isDeanOrStaff={isDeanOrStaff} i uncomment ni if needed
+                  // userCampusId={user?.campus_id}
+                  // userOfficeId={user?.office_id}
                   />
                 </TabsContent>
 

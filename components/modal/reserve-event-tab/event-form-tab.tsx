@@ -50,7 +50,7 @@ export function ReserveEventFormTab({
     return (fieldError: FieldError | Merge<FieldError, FieldErrorsImpl<Asset>> | undefined) =>
       fieldError
         ? "border-red-400 focus:border-red-500 focus:ring-red-200"
-        : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+        : "border-gray-200 hover:bg-muted bg-transparent"
   }, [])
 
   return (
@@ -158,8 +158,8 @@ export function ReserveEventFormTab({
                       }}
                       min="1"
                       className={`mt-1 border-2 h-12 text-base w-full transition-all duration-150 ${displayError
-                          ? "border-red-400 focus:border-red-500 focus:ring-red-200"
-                          : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+                        ? "border-red-400 focus:border-red-500 focus:ring-red-200"
+                        : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
                         }`}
                     />
                     {displayError && typeof displayError === "string" && (

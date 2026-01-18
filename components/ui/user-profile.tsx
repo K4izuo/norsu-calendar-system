@@ -9,6 +9,7 @@ import { AuthContext } from "@/contexts/auth-context"
 import { toast } from "react-hot-toast"
 import { apiClient } from "@/lib/api-client"
 import { removeAuthToken } from "@/lib/auth"
+import { useQueryClient } from "@tanstack/react-query"
 
 interface MenuItem {
   label: string
@@ -30,6 +31,7 @@ export default function UserProfile({
   avatar,
 }: Partial<UserProfileProps>) {
   const auth = useContext(AuthContext)
+  const queryClient = useQueryClient()
 
   const menuItems: MenuItem[] = [
     {
@@ -57,6 +59,8 @@ export default function UserProfile({
         return
       }
 
+      queryClient.clear()
+
       // Clear all auth data
       removeAuthToken()
 
@@ -67,9 +71,8 @@ export default function UserProfile({
       toast.success(response.data?.message || 'Logged out successfully')
 
       // Use window.location.href to force a full page reload and clear navigation history
-      // This prevents the back button from accessing protected pages
       window.location.href = '/'
-      
+
     } catch (error) {
       console.error('Logout error:', error)
       toast.dismiss(loadingToast)

@@ -37,8 +37,8 @@ export const AssetFormInput = <T extends FieldValues>({
         {...register(name, rules)}
         id={name}
         className={`h-12 text-base border-2 rounded-lg transition-all duration-150 ${displayError
-            ? "border-red-400 focus:border-red-500 focus:ring-red-200"
-            : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+          ? "border-red-400 focus:border-red-500 focus:ring-red-200"
+          : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
           }`}
         {...inputProps}
       />

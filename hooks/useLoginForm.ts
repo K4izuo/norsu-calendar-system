@@ -6,6 +6,7 @@ import { LoginFormData, LOGIN_VALIDATION_RULES } from "@/utils/login/login-valid
 import { apiClient } from "@/lib/api-client"
 import { useRouter } from "next/navigation"
 import { setAuthToken, setUserRole, setUserId } from "@/lib/auth"
+import { useQueryClient } from "@tanstack/react-query"
 
 const ROLE_ROUTES: Record<number, string> = {
   2: "/page/admin/dashboard",
@@ -69,6 +70,7 @@ export const useLoginForm = () => {
   const [isLoading, setIsLoading] = React.useState(false);
   const [isSuccess, setIsSuccess] = React.useState(false);
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const form = useForm<LoginFormData>({
     mode: "onTouched",
@@ -85,6 +87,8 @@ export const useLoginForm = () => {
 
     setIsLoading(true);
     clearErrors();
+
+    queryClient.clear();
 
     try {
       const response = await apiClient.post<LoginResponse, LoginFormData>(
