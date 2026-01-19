@@ -20,7 +20,7 @@ import { EventCardsList } from "@/components/ui/events-list-card"
 import { getRoleColors } from "@/utils/role-colors"
 
 // Simplified status types
-type EventStatus = "pending" | "approved" | "rejected"
+type EventStatus = "pending" | "approved" | "decline"
 type Role = "dean" | "staff" | "admin" | "public" | undefined
 
 // Make this a regular function instead of using useCallback at module level
@@ -129,7 +129,7 @@ export function EventsListModal({
     const colors = {
       pending: "bg-yellow-100 text-yellow-800 border-yellow-200",   // Nice yellow
       approved: "bg-green-100 text-green-800 border-green-200",     // Nice green
-      rejected: "bg-destructive/20 text-destructive border-destructive/30",
+      decline: "bg-destructive/20 text-destructive border-destructive/30",
     }
     return colors[status] || colors.pending
   }
@@ -139,9 +139,9 @@ export function EventsListModal({
 
     const status = event.registration_status.toLowerCase()
     if (status === "open") return "approved"
-    if (status === "closed") return "rejected"
+    if (status === "closed") return "decline"
 
-    return status === "pending" || status === "approved" || status === "rejected" ? (status as EventStatus) : "pending"
+    return status === "pending" || status === "approved" || status === "declined" ? (status as EventStatus) : "pending"
   }
 
   const handleReserve = useCallback(() => setReserveModalOpen(true), [])

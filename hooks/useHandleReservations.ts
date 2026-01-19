@@ -36,7 +36,7 @@ export const handleApproveReservation = async ({
   }
 
   try {
-    const { data, error, status } = await apiClient.put(
+    const { data, error } = await apiClient.put(
       `/reservations/${event.id}`,
       {
         status: 'APPROVED',
@@ -92,10 +92,10 @@ export const handleDeclineReservation = async ({
   }
 
   try {
-    const { data, error, status } = await apiClient.put(
+    const { data, error } = await apiClient.put(
       `/reservations/${event.id}`,
       {
-        status: 'REJECTED',
+        status: 'DECLINED',
         declined_by_user: userId,
         reason: reason || '',
       }

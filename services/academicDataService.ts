@@ -78,7 +78,11 @@ const fetchOffices = async (): Promise<OptionType[]> => {
     throw new Error("No offices found");
   }
 
-  return mapToOptions(response.data, 'office_name');
+  const sorted = [...response.data].sort((a, b) =>
+    a.office_name.localeCompare(b.office_name)
+  );
+
+  return mapToOptions(sorted, 'office_name');
 };
 
 const fetchCourses = async (): Promise<OptionType[]> => {

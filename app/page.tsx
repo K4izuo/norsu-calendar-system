@@ -157,7 +157,7 @@ export default function Home() {
           i % 3 === 0 ? "Alice Johnson" : "Bob Lee",
         ],
         range: 1,
-        registration_status: (i % 3 === 0 ? "REJECTED" : i % 2 === 0 ? "APPROVED" : "PENDING") as "PENDING" | "APPROVED" | "REJECTED",
+        registration_status: (i % 3 === 0 ? "DECLINED" : i % 2 === 0 ? "APPROVED" : "PENDING") as "PENDING" | "APPROVED" | "DECLINED",
         registration_deadline: `${monthNames[currentMonth]} ${Math.max(1, selectedDay.date - 2)}, ${currentYear}`,
         reserve_by_user: i % 2 === 0 ? "Faculty of Science" : "Department of Education",
         approved_by_user: i % 2 === 0 ? "Dean Johnson" : undefined,

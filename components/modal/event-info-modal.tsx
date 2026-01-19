@@ -39,23 +39,23 @@ interface ModalProps {
   showBackdropBlur?: boolean;
 }
 
-const getStatus = (event: EventDetails): "PENDING" | "APPROVED" | "REJECTED" => {
+const getStatus = (event: EventDetails): "PENDING" | "APPROVED" | "DECLINED" => {
   if (!event.registration_status) return "PENDING";
   const status = event.registration_status.toUpperCase();
 
   if (status === "OPEN") return "APPROVED";
-  if (status === "CLOSED") return "REJECTED";
-  if (status === "PENDING" || status === "APPROVED" || status === "REJECTED") {
-    return status as "PENDING" | "APPROVED" | "REJECTED";
+  if (status === "CLOSED") return "DECLINED";
+  if (status === "PENDING" || status === "APPROVED" || status === "DECLINED") {
+    return status as "PENDING" | "APPROVED" | "DECLINED";
   }
 
   return "PENDING"; // Default fallback
 };
 
-const getStatusColor = (status: "PENDING" | "APPROVED" | "REJECTED") => {
+const getStatusColor = (status: "PENDING" | "APPROVED" | "DECLINED") => {
   if (status === "APPROVED") return "bg-green-100 text-green-800";
   if (status === "PENDING") return "bg-yellow-100 text-yellow-800";
-  if (status === "REJECTED") return "bg-red-100 text-red-800";
+  if (status === "DECLINED") return "bg-red-100 text-red-800";
   return "bg-gray-100 text-gray-800";
 };
 
@@ -399,7 +399,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                                   : "—"}
                               </span>
                             )}
-                            {getStatus(event) === "REJECTED" && (
+                            {getStatus(event) === "DECLINED" && (
                               <span className="text-base text-gray-600">
                                 by: {event.declined_by_user_details
                                   ? `${event.declined_by_user_details.first_name} ${event.declined_by_user_details.last_name}`

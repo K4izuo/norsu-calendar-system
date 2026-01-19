@@ -20,12 +20,12 @@ export const EventCardsList = React.memo(function EventCardsList({
         const status = getStatus(event)
         const reservedBy = event.reserve_by_user || "Unknown"
         const approvedBy = event.approved_by_user || "Unknown"
-        const rejectedBy = event.declined_by_user || "Unknown"
+        const declinedBy = event.declined_by_user || "Unknown"
 
         let tooltipText = ""
         if (status === "pending") tooltipText = `Reserved by: ${reservedBy}`
         else if (status === "approved") tooltipText = `Approved by: ${approvedBy}`
-        else if (status === "rejected") tooltipText = `Rejected by: ${rejectedBy}`
+        else if (status === "decline") tooltipText = `Declined by: ${declinedBy}`
 
         return (
           <div

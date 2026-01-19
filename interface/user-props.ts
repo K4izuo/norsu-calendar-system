@@ -1,7 +1,7 @@
 import { LucideIcon } from "lucide-react"
 // import { AssetFormValue } from "@/types/asset"
 
-type EventStatus = "pending" | "approved" | "rejected"
+type EventStatus = "pending" | "approved" | "decline"
 
 export interface EventDetails {
   id: number
@@ -21,7 +21,7 @@ export interface EventDetails {
   description: string
   people_tag: string[]
   range: number
-  registration_status: "PENDING" | "APPROVED" | "REJECTED"
+  registration_status: "PENDING" | "APPROVED" | "DECLINED"
   registration_deadline: string
   reserve_by_user: string  // Keep for backward compatibility
   reserved_by_user?: {      // Add new structured field
@@ -212,7 +212,7 @@ export interface CalendarProps<T> {
 //   organizer: string
 //   capacity: string
 //   registrationDeadline: string
-//   approvalStatus?: "pending" | "approved" | "rejected"
+//   approvalStatus?: "pending" | "approved" | "declined"
 //   createdBy?: string
 // }
 

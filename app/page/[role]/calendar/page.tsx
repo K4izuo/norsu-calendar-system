@@ -160,7 +160,7 @@ export default function CalendarPage() {
           description: reservation.description,
           people_tag: reservation.people_tag.split(", "),
           range: reservation.range,
-          registration_status: reservation.status.toUpperCase() as "PENDING" | "APPROVED" | "REJECTED",
+          registration_status: reservation.status.toUpperCase() as "PENDING" | "APPROVED" | "DECLINED",
           registration_deadline: reservation.date,
           // Now TypeScript knows about reserved_by_user
           reserved_by_user: reservation.reserved_by_user,
