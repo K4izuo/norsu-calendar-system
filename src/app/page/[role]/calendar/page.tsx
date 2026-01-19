@@ -250,7 +250,7 @@ export default function CalendarPage() {
       )}
 
       {/* Calendar container */}
-      <div className="bg-white rounded-md shadow-sm flex flex-col flex-1 p-3 sm:p-6 md:p-6.5">
+      <div className="bg-white text-card-foreground border rounded-md shadow flex flex-col flex-1 p-3 sm:p-6 md:p-6.5">
         <Calendar
           role="admin"
           events={events}

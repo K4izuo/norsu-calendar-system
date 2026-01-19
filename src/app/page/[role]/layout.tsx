@@ -99,7 +99,7 @@ export default function RoleLayout({ children }: { children: React.ReactNode }) 
   }, [pathname]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f9f9f9]">
+    <div className="flex h-screen overflow-hidden bg-[#fafafa]">
       <div className="flex-none w-64 bg-[#0e162a] text-white flex flex-col overflow-y-auto">
         <div className="flex-none h-20 py-2 px-4 items-center justify-center flex">
           <div className="flex items-center justify-center w-full">

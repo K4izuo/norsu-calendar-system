@@ -195,7 +195,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9] flex flex-col overflow-x-hidden">
+    <div className="min-h-screen bg-[#fafafa] flex flex-col overflow-x-hidden">
       {/* Navbar */}
       <div className="relative bg-white px-2 sm:px-4 md:px-8 lg:px-16 xl:px-36 py-4 shadow-sm flex flex-col sm:flex-row items-center sm:items-center justify-between w-full gap-y-2">
         <div className="flex flex-row items-center justify-center sm:justify-start w-full sm:w-auto gap-2 sm:gap-0">
@@ -258,7 +258,7 @@ export default function Home() {
         <div className="flex-1 flex justify-center p-3.5 sm:p-6 md:p-6">
           <div className="w-full flex flex-col lg:flex-row gap-4 lg:gap-6 flex-1">
             {/* Sidebar */}
-            <div className="w-full lg:w-[320px] h-100 lg:h-125.5 bg-white rounded-md shadow-md flex flex-col p-4 sm:p-6">
+            <div className="w-full text-card-foreground border lg:w-[320px] h-100 lg:h-125.5 bg-white rounded-md shadow flex flex-col p-4 sm:p-6">
               <h2 className="text-2xl font-semibold mb-4 text-gray-700 text-center">
                 Upcoming Events
               </h2>
@@ -277,7 +277,7 @@ export default function Home() {
 
             {/* Calendar */}
             <div className="flex-1 flex flex-col items-start justify-center">
-              <div className="w-full bg-white rounded-md shadow-md flex flex-col items-start self-stretch p-4 sm:p-6 gap-6 relative flex-1 min-h-0">
+              <div className="w-full text-card-foreground border bg-white rounded-md shadow flex flex-col items-start self-stretch p-4 sm:p-6 gap-6 relative flex-1 min-h-0">
                 <Calendar
                   role="public"
                   events={[]}
