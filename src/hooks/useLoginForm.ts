@@ -2,17 +2,11 @@ import React from "react"
 import { useForm, UseFormSetError } from "react-hook-form"
 import toast from "react-hot-toast"
 import { LoginFormData, LOGIN_VALIDATION_RULES } from "@/utils/login/login-validation-rules"
-// import { showLoginErrorToast } from "@/utils/login/login-field-error-toast"
 import { apiClient } from "@/lib/api-client"
 import { useRouter } from "next/navigation"
 import { setAuthToken, setUserRole, setUserId } from "@/lib/auth"
 import { useQueryClient } from "@tanstack/react-query"
-
-const ROLE_ROUTES: Record<number, string> = {
-  2: "/page/admin/dashboard",
-  3: "/page/staff/dashboard",
-  4: "/page/admin/dashboard",
-};
+import { getRolePathFromNumber } from "@/lib/role-utils"
 
 interface ValidationErrors {
   message?: string;
@@ -74,7 +68,6 @@ export const useLoginForm = () => {
 
   const form = useForm<LoginFormData>({
     mode: "onTouched",
-    // reValidateMode: "onChange",
     defaultValues: { username: "", password: "" },
   });
 
@@ -131,11 +124,12 @@ export const useLoginForm = () => {
 
       showToast("Login successful!", 'success');
 
-      const role = response.data?.role;
-      const redirectPath = role ? ROLE_ROUTES[role] : ROLE_ROUTES[4];
+      // Get dynamic role path based on user's role number
+      const role = response.data?.role || 4;
+      const rolePath = getRolePathFromNumber(role);
+      const redirectPath = `/page/${rolePath}/dashboard`;
 
       router.refresh();
-      // router.replace(redirectPath);
       window.location.href = redirectPath;
 
       reset();
@@ -154,9 +148,6 @@ export const useLoginForm = () => {
     // Prevent form submission if already successful
     if (isSuccess) return;
 
-    // handleSubmit(onSubmit, (errors) => {
-    //   showLoginErrorToast(errors, formData);
-    // })();
     handleSubmit(onSubmit)();
   };
 

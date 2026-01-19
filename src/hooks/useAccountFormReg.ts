@@ -48,7 +48,7 @@ export function useAccountForm() {
       toast.success("Account created successfully!", { position: "top-center" })
       reset()
       setActiveTab("details")
-    } catch (error) {
+    } catch {
       toast.error("Failed to create account!", { position: "top-center" })
     }
   }, [reset])

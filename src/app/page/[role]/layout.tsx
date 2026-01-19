@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useContext } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useParams } from "next/navigation";
 import {
   LayoutDashboard,
   Calendar,
@@ -22,21 +22,19 @@ import { AuthContext } from "@/contexts/auth-context";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import UserProfile from "@/components/ui/user-profile";
 import toast from "react-hot-toast"
+import { getRoleLabelFromNumber, type RolePath } from "@/lib/role-utils";
 
 interface UserData {
   name: string;
   role: number;
 }
 
-const ROLE_MAP: Record<number, string> = {
-  2: "Faculty",
-  3: "Staff",
-  4: "Admin"
-};
-
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function RoleLayout({ children }: { children: React.ReactNode }) {
   const [activeTab, setActiveTab] = useState("dashboard");
   const pathname = usePathname();
+  const params = useParams();
+  const role = params?.role as RolePath; // Get dynamic role from URL
+
   const auth = useContext(AuthContext);
   const user = auth?.user;
   const [userData, setUserData] = useState<UserData>({
@@ -62,11 +60,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       if (typeof window === 'undefined') return;
 
       const storedUser = localStorage.getItem("user");
-      const storedRole = localStorage.getItem("role");
+      const storedRole = localStorage.getItem("user-role");
 
       if (storedUser) {
         const parsedUser = JSON.parse(storedUser);
-        const parsedRole = storedRole ? Number(JSON.parse(storedRole)) : 4;
+        const parsedRole = storedRole ? Number(storedRole) : 4;
 
         setUserData({
           name:
@@ -102,7 +100,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#f9f9f9]">
-      {/* #111827 */}
       <div className="flex-none w-64 bg-[#0e162a] text-white flex flex-col overflow-y-auto">
         <div className="flex-none h-20 py-2 px-4 items-center justify-center flex">
           <div className="flex items-center justify-center w-full">
@@ -115,8 +112,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               className="h-12 w-12 object-contain"
             />
             <div className="flex flex-col ml-3">
-              <h1 className="font-semibold text-base text-white truncate">
-                Admin
+              <h1 className="font-semibold text-base text-white truncate capitalize">
+                {getRoleLabelFromNumber(userData.role)}
               </h1>
             </div>
           </div>
@@ -131,7 +128,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <ul className="space-y-1">
               <li>
                 <Link
-                  href="/page/admin/dashboard"
+                  href={`/page/${role}/dashboard`}
                   className={`flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "dashboard"
                     ? "bg-white text-gray-900"
                     : "text-white hover:bg-gray-800"
@@ -147,7 +144,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
               <li>
                 <Link
-                  href="/page/admin/calendar"
+                  href={`/page/${role}/calendar`}
                   className={`flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "calendar"
                     ? "bg-white text-gray-900"
                     : "text-white hover:bg-gray-800"
@@ -163,7 +160,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
               <li>
                 <Link
-                  href="/page/admin/reservations"
+                  href={`/page/${role}/reservations`}
                   className={`flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "reservations"
                     ? "bg-white text-gray-900"
                     : "text-white hover:bg-gray-800"
@@ -179,7 +176,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
               <li>
                 <Link
-                  href="/page/admin/accounts"
+                  href={`/page/${role}/accounts`}
                   className={`flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "accounts"
                     ? "bg-white text-gray-900"
                     : "text-white hover:bg-gray-800"
@@ -195,7 +192,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
               <li>
                 <Link
-                  href="/page/admin/asset-management"
+                  href={`/page/${role}/asset-management`}
                   className={`flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "asset"
                     ? "bg-white text-gray-900"
                     : "text-white hover:bg-gray-800"
@@ -268,7 +265,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 >
                   <UserProfile
                     name={userData.name}
-                    role={ROLE_MAP[userData.role] || "User"}
+                    role={getRoleLabelFromNumber(userData.role)}
                     avatar="https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-01-n0x8HFv8EUetf9z6ht0wScJKoTHqf8.png"
                   />
                 </DropdownMenuContent>

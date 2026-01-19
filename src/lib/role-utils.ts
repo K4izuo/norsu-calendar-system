@@ -1,0 +1,34 @@
+export const ROLE_CONFIG = {
+  2: {
+    name: 'dean',
+    label: 'Faculty',
+    path: 'dean',
+  },
+  3: {
+    name: 'staff',
+    label: 'Staff',
+    path: 'staff',
+  },
+  4: {
+    name: 'admin',
+    label: 'Admin',
+    path: 'admin',
+  },
+} as const;
+
+export type RoleNumber = 2 | 3 | 4;
+export type RolePath = 'dean' | 'staff' | 'admin';
+
+export function getRolePathFromNumber(roleNum: number): RolePath {
+  const role = ROLE_CONFIG[roleNum as RoleNumber];
+  return role?.path || 'admin';
+}
+
+export function getRoleLabelFromNumber(roleNum: number): string {
+  const role = ROLE_CONFIG[roleNum as RoleNumber];
+  return role?.label || 'User';
+}
+
+export function isValidRole(role: string): role is RolePath {
+  return ['dean', 'staff', 'admin'].includes(role);
+}
