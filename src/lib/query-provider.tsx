@@ -8,14 +8,20 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
-        // Data considered fresh for 5 minutes by default
-        staleTime: 5 * 60 * 1000,
+        // CRITICAL: Data stays fresh for 5 minutes - no refetch during navigation
+        staleTime: 5 * 60 * 1000, // 5 minutes
 
-        // Keep unused data in cache for 10 minutes
-        gcTime: 10 * 60 * 1000,
+        // CRITICAL: Keep unused data in cache for 10 minutes
+        gcTime: 10 * 60 * 1000, // 10 minutes
 
-        // Don't refetch when window regains focus (avoid unnecessary requests)
+        // Don't refetch when window regains focus
         refetchOnWindowFocus: false,
+
+        // CRITICAL FOR INSTANT NAV: Don't refetch on mount if data is fresh
+        refetchOnMount: false,
+
+        // CRITICAL: Keep components mounted, only fetch once
+        refetchOnReconnect: false,
 
         // Retry failed requests once
         retry: 1,

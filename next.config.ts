@@ -1,11 +1,3 @@
-// import type { NextConfig } from "next";
-
-// const nextConfig: NextConfig = {
-//   /* config options here */
-// };
-
-// export default nextConfig;
-
 import type { NextConfig } from 'next'
 
 const config: NextConfig = {
@@ -20,6 +12,34 @@ const config: NextConfig = {
         hostname: 'images.unsplash.com',
       },
     ],
+    // Optimize images for faster loading
+    formats: ['image/avif', 'image/webp'],
+  },
+
+  // Enable React strict mode for better development experience
+  reactStrictMode: true,
+
+  // Disable x-powered-by header for security
+  poweredByHeader: false,
+
+  // Enable compression
+  compress: true,
+
+  // Optimize production builds
+  compiler: {
+    // Remove console logs in production
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'],
+    } : false,
+  },
+
+  // Experimental features for better performance
+  experimental: {
+    // Enable optimistic client cache
+    optimisticClientCache: true,
+
+    // Enable partial prerendering (if using Next.js 14+)
+    // ppr: true,
   },
 }
 

@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useState, useEffect, useContext } from "react";
 import { usePathname, useParams } from "next/navigation";
 import {
@@ -19,21 +18,30 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AuthContext } from "@/contexts/auth-context";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import UserProfile from "@/components/ui/user-profile";
-import toast from "react-hot-toast"
+import toast from "react-hot-toast";
 import { getRoleLabelFromNumber, type RolePath } from "@/lib/role-utils";
+
+// Import all page components directly
+import DashboardPage from "./dashboard/page";
+import CalendarPage from "./calendar/page";
+import ReservationsPage from "./reservations/page";
+import AccountsPage from "./accounts/page";
+import AssetManagementPage from "./asset-management/page";
 
 interface UserData {
   name: string;
   role: number;
 }
 
-export default function RoleLayout({ children }: { children: React.ReactNode }) {
-  const [activeTab, setActiveTab] = useState("dashboard");
+type TabType = "dashboard" | "calendar" | "reservations" | "accounts" | "asset-management";
+
+export default function RoleLayout() {
+  const [activeTab, setActiveTab] = useState<TabType>("dashboard");
   const pathname = usePathname();
   const params = useParams();
-  const role = params?.role as RolePath; // Get dynamic role from URL
+  const role = params?.role as RolePath;
 
   const auth = useContext(AuthContext);
   const user = auth?.user;
@@ -84,19 +92,27 @@ export default function RoleLayout({ children }: { children: React.ReactNode }) 
     }
   }, [user]);
 
+  // Sync with URL on initial load
   useEffect(() => {
     if (pathname?.includes("/asset-management")) {
-      setActiveTab("asset");
+      setActiveTab("asset-management");
     } else if (pathname?.includes("/calendar")) {
       setActiveTab("calendar");
     } else if (pathname?.includes("/reservations")) {
       setActiveTab("reservations");
     } else if (pathname?.includes("/accounts")) {
       setActiveTab("accounts");
-    } else {
+    } else if (pathname?.includes("/dashboard")) {
       setActiveTab("dashboard");
     }
   }, [pathname]);
+
+  // Handle tab click - instant switch
+  const handleTabClick = (tab: TabType) => {
+    setActiveTab(tab);
+    // Update URL without navigation for browser history
+    window.history.pushState({}, '', `/page/${role}/${tab}`);
+  };
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#fafafa]">
@@ -127,11 +143,11 @@ export default function RoleLayout({ children }: { children: React.ReactNode }) 
           <nav>
             <ul className="space-y-1">
               <li>
-                <Link
-                  href={`/page/${role}/dashboard`}
-                  className={`flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "dashboard"
-                    ? "bg-white text-gray-900"
-                    : "text-white hover:bg-gray-800"
+                <button
+                  onClick={() => handleTabClick('dashboard')}
+                  className={`w-full flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "dashboard"
+                      ? "bg-white text-gray-900"
+                      : "text-white hover:bg-gray-800"
                     }`}
                 >
                   <LayoutDashboard size={20} className="mr-3" />
@@ -139,15 +155,15 @@ export default function RoleLayout({ children }: { children: React.ReactNode }) 
                   {activeTab === "dashboard" && (
                     <ChevronRight size={16} className="ml-auto" />
                   )}
-                </Link>
+                </button>
               </li>
 
               <li>
-                <Link
-                  href={`/page/${role}/calendar`}
-                  className={`flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "calendar"
-                    ? "bg-white text-gray-900"
-                    : "text-white hover:bg-gray-800"
+                <button
+                  onClick={() => handleTabClick('calendar')}
+                  className={`w-full flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "calendar"
+                      ? "bg-white text-gray-900"
+                      : "text-white hover:bg-gray-800"
                     }`}
                 >
                   <Calendar size={20} className="mr-3" />
@@ -155,15 +171,15 @@ export default function RoleLayout({ children }: { children: React.ReactNode }) 
                   {activeTab === "calendar" && (
                     <ChevronRight size={16} className="ml-auto" />
                   )}
-                </Link>
+                </button>
               </li>
 
               <li>
-                <Link
-                  href={`/page/${role}/reservations`}
-                  className={`flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "reservations"
-                    ? "bg-white text-gray-900"
-                    : "text-white hover:bg-gray-800"
+                <button
+                  onClick={() => handleTabClick('reservations')}
+                  className={`w-full flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "reservations"
+                      ? "bg-white text-gray-900"
+                      : "text-white hover:bg-gray-800"
                     }`}
                 >
                   <University size={20} className="mr-3" />
@@ -171,15 +187,15 @@ export default function RoleLayout({ children }: { children: React.ReactNode }) 
                   {activeTab === "reservations" && (
                     <ChevronRight size={16} className="ml-auto" />
                   )}
-                </Link>
+                </button>
               </li>
 
               <li>
-                <Link
-                  href={`/page/${role}/accounts`}
-                  className={`flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "accounts"
-                    ? "bg-white text-gray-900"
-                    : "text-white hover:bg-gray-800"
+                <button
+                  onClick={() => handleTabClick('accounts')}
+                  className={`w-full flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "accounts"
+                      ? "bg-white text-gray-900"
+                      : "text-white hover:bg-gray-800"
                     }`}
                 >
                   <Users size={20} className="mr-3" />
@@ -187,15 +203,15 @@ export default function RoleLayout({ children }: { children: React.ReactNode }) 
                   {activeTab === "accounts" && (
                     <ChevronRight size={16} className="ml-auto" />
                   )}
-                </Link>
+                </button>
               </li>
 
               <li>
-                <Link
-                  href={`/page/${role}/asset-management`}
-                  className={`flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "asset"
-                    ? "bg-white text-gray-900"
-                    : "text-white hover:bg-gray-800"
+                <button
+                  onClick={() => handleTabClick('asset-management')}
+                  className={`w-full flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "asset-management"
+                      ? "bg-white text-gray-900"
+                      : "text-white hover:bg-gray-800"
                     }`}
                 >
                   <CalendarClock size={20} className="mr-3" />
@@ -203,14 +219,14 @@ export default function RoleLayout({ children }: { children: React.ReactNode }) 
                   {activeTab === "asset-management" && (
                     <ChevronRight size={16} className="ml-auto" />
                   )}
-                </Link>
+                </button>
               </li>
             </ul>
           </nav>
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col overflow-y-auto">
+      <div className="flex-1 flex flex-col overflow-hidden">
         <div className="flex-none h-20 py-2 px-4 items-center bg-white shadow-sm w-full z-10 flex">
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center ml-2">
@@ -274,8 +290,23 @@ export default function RoleLayout({ children }: { children: React.ReactNode }) 
           </div>
         </div>
 
-        <div className="flex-1 p-6 overflow-y-auto">
-          {children}
+        {/* All pages mounted at once - show/hide based on active tab */}
+        <div className="flex-1 overflow-hidden">
+          <div className={`h-full overflow-y-auto p-6 ${activeTab === 'dashboard' ? 'block' : 'hidden'}`}>
+            <DashboardPage />
+          </div>
+          <div className={`h-full overflow-y-auto p-6 ${activeTab === 'calendar' ? 'block' : 'hidden'}`}>
+            <CalendarPage />
+          </div>
+          <div className={`h-full overflow-y-auto p-6 ${activeTab === 'reservations' ? 'block' : 'hidden'}`}>
+            <ReservationsPage />
+          </div>
+          <div className={`h-full overflow-y-auto p-6 ${activeTab === 'accounts' ? 'block' : 'hidden'}`}>
+            <AccountsPage />
+          </div>
+          <div className={`h-full overflow-y-auto p-6 ${activeTab === 'asset-management' ? 'block' : 'hidden'}`}>
+            <AssetManagementPage />
+          </div>
         </div>
       </div>
     </div>

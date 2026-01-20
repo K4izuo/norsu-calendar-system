@@ -8,6 +8,7 @@ import { EventInfoModal } from "@/components/modal/event-info-modal";
 import { Calendar } from "@/components/ui/norsu-calendar";
 import type { EventDetails, CalendarDayType } from "@/interface/user-props";
 import { toast } from "react-hot-toast";
+import Link from "next/link";
 
 export default function Home() {
   const upcomingEvents = [
@@ -224,32 +225,38 @@ export default function Home() {
           </p>
         </div>
         <div className="flex items-center space-x-1 shrink-0 mt-2 sm:mt-0 w-full sm:w-auto justify-center sm:justify-end">
-          <Button
-            variant="ghost"
-            className="cursor-pointer text-base sm:text-lg md:text-xl px-2"
-            type="button"
-            onClick={() => (window.location.href = "/about")}
-          >
-            ABOUT
-          </Button>
+          <Link href="/about" passHref>
+            <Button
+              asChild
+              variant="ghost"
+              className="cursor-pointer text-base sm:text-lg md:text-xl px-2"
+              type="button"
+            >
+              <span>ABOUT</span>
+            </Button>
+          </Link>
           <span className="text-gray-200 text-xl select-none xs:inline">|</span>
-          <Button
-            variant="ghost"
-            className="cursor-pointer text-base sm:text-lg md:text-xl px-2"
-            type="button"
-            onClick={() => (window.location.href = "/auth/login")}
-          >
-            LOGIN
-          </Button>
+          <Link href="/auth/login" prefetch={true}>
+            <Button
+              asChild
+              variant="ghost"
+              className="cursor-pointer text-base sm:text-lg md:text-xl px-2"
+              type="button"
+            >
+              <span>LOGIN</span>
+            </Button>
+          </Link>
           <span className="text-gray-200 text-xl select-none xs:inline">|</span>
-          <Button
-            variant="ghost"
-            className="cursor-pointer text-base sm:text-lg md:text-xl px-2"
-            type="button"
-            onClick={() => (window.location.href = "/auth/register")}
-          >
-            REGISTER
-          </Button>
+          <Link href="/auth/register" passHref>
+            <Button
+              asChild
+              variant="ghost"
+              className="cursor-pointer text-base sm:text-lg md:text-xl px-2"
+              type="button"
+            >
+              <span>REGISTER</span>
+            </Button>
+          </Link>
         </div>
       </div>
 
