@@ -225,38 +225,29 @@ export default function Home() {
           </p>
         </div>
         <div className="flex items-center space-x-1 shrink-0 mt-2 sm:mt-0 w-full sm:w-auto justify-center sm:justify-end">
-          <Link href="/about" passHref>
-            <Button
-              asChild
-              variant="ghost"
-              className="cursor-pointer text-base sm:text-lg md:text-xl px-2"
-              type="button"
-            >
-              <span>ABOUT</span>
-            </Button>
-          </Link>
+          <Button asChild variant="ghost">
+            <Link href="/about" className="px-2 text-base sm:text-lg md:text-xl">
+              ABOUT
+            </Link>
+          </Button>
           <span className="text-gray-200 text-xl select-none xs:inline">|</span>
-          <Link href="/auth/login" prefetch={true}>
-            <Button
-              asChild
-              variant="ghost"
-              className="cursor-pointer text-base sm:text-lg md:text-xl px-2"
-              type="button"
+          <Button asChild variant="ghost">
+            <Link
+              href="/auth/login"
+              className="px-2 text-base sm:text-lg md:text-xl"
             >
-              <span>LOGIN</span>
-            </Button>
-          </Link>
+              LOGIN
+            </Link>
+          </Button>
           <span className="text-gray-200 text-xl select-none xs:inline">|</span>
-          <Link href="/auth/register" passHref>
-            <Button
-              asChild
-              variant="ghost"
-              className="cursor-pointer text-base sm:text-lg md:text-xl px-2"
-              type="button"
+          <Button asChild variant="ghost">
+            <Link
+              href="/auth/register"
+              className="px-2 text-base sm:text-lg md:text-xl"
             >
-              <span>REGISTER</span>
-            </Button>
-          </Link>
+              REGISTER
+            </Link>
+          </Button>
         </div>
       </div>
 

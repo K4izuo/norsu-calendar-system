@@ -39,7 +39,8 @@ export const RESERVATION_VALIDATION_RULES: ValidationRules = {
     min: { value: 1, message: "Range must be at least 1 day" }
   },
   people_tag: {
-    required: "At least one person must be tagged"
+    required: "At least one person must be tagged",
+    minLength: { value: 3, message: "People tag must be at least 3 characters" }
   },
   info_type: {
     required: "Information type field is required"

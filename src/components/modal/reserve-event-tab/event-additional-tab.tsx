@@ -64,7 +64,7 @@ export function ReserveEventAdditionalTab({
             name="people_tag"
             control={control}
             rules={validationRules.people_tag}
-            render={({ field, fieldState: { invalid, isTouched } }) => (
+            render={({ field, fieldState: { isTouched } }) => (
               <div className="relative mt-1">
                 <Input
                   name="people_tag"
@@ -74,21 +74,24 @@ export function ReserveEventAdditionalTab({
                   value={tagInput}
                   onChange={(e) => {
                     handleTagInputChange(e);
-                    // Trigger validation on every change
-                    field.onChange(taggedPeople.map(p => p.name).join(', '));
+                    // Don't trigger validation on change
                   }}
                   onBlur={() => {
-                    // Mark field as touched and validate
-                    field.onBlur();
-                    field.onChange(taggedPeople.map(p => p.name).join(', '));
+                    // Only mark as touched and validate if user actually interacted
+                    // or if there are tagged people
+                    if (tagInput.length > 0 || taggedPeople.length > 0) {
+                      field.onBlur();
+                      field.onChange(taggedPeople.map(p => p.name).join(', '));
+                    }
                     setTimeout(() => setShowDropdown(false), 150);
                   }}
                   onFocus={() => {
                     setShowDropdown(tagInput.length > 0);
-                    // Ensure field is marked as touched when focused
-                    field.onChange(taggedPeople.map(p => p.name).join(', '));
+                    // Don't mark as touched or validate on focus
                   }}
-                  className={`h-12 border-2 text-base w-full transition-all duration-150 ${(errors.people_tag || (invalid && isTouched && taggedPeople.length === 0))
+                  className={`h-12 border-2 text-base w-full transition-all duration-150 ${
+                    // Only show error border if there's an actual error message AND field was blurred
+                    (errors.people_tag && isTouched)
                       ? "border-red-400 focus:border-red-500 focus:ring-red-200"
                       : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
                     }`}
@@ -103,9 +106,10 @@ export function ReserveEventAdditionalTab({
                         className="flex items-center w-full px-3 py-2 text-left hover:bg-blue-50"
                         onMouseDown={() => {
                           handleTagSelect(person);
-                          // Update field value immediately when tag is selected
+                          // Update field value when tag is selected
                           const updatedPeople = [...taggedPeople, person];
                           field.onChange(updatedPeople.map(p => p.name).join(', '));
+                          // Don't call field.onBlur() here - wait for actual blur
                         }}
                       >
                         <User className="w-4 h-4 mr-2 text-gray-800" />
@@ -129,9 +133,10 @@ export function ReserveEventAdditionalTab({
                         type="button"
                         onClick={() => {
                           handleRemoveTag(person.id);
-                          // Update field value immediately when tag is removed
+                          // Update field value when tag is removed
                           const updatedPeople = taggedPeople.filter(p => p.id !== person.id);
                           field.onChange(updatedPeople.map(p => p.name).join(', '));
+                          // Don't trigger validation immediately on remove
                         }}
                         className="ml-1.5 text-gray-800 hover:text-red-600"
                       >
@@ -140,7 +145,8 @@ export function ReserveEventAdditionalTab({
                     </span>
                   ))}
                 </div>
-                {errors.people_tag && (
+                {/* Only show error if field was touched AND there's an error */}
+                {errors.people_tag && isTouched && (
                   <div className="flex will-change-transform backface-hidden items-start gap-1.5 text-red-500 text-xs sm:text-sm pl-1 mt-1.5 animate-in fade-in slide-in-from-top-1 duration-150">
                     <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
                     <p>{errors.people_tag.message as string}</p>

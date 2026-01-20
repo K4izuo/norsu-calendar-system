@@ -3,7 +3,6 @@ import { useForm } from "react-hook-form"
 import toast from "react-hot-toast"
 import { ReservationFormData, ReservationAPIPayload, Reservation, EventDetails } from "@/interface/user-props"
 import { RESERVATION_VALIDATION_RULES } from "@/utils/reserve-event/reservation-validation-rules"
-import { showFormTabErrorToast, showAdditionalTabErrorToast } from "@/utils/reserve-event/reservation-field-error-toast"
 import { apiClient } from "@/lib/api-client"
 import { useAuth } from "@/contexts/auth-context"
 
@@ -82,12 +81,14 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
   // Sync tagged people with form field
   useEffect(() => {
     const peopleValue = taggedPeople.map(p => p.name).join(', ');
+    const hasBeenTouched = form.formState.touchedFields.people_tag;
+
     setValue("people_tag", peopleValue, {
       shouldDirty: taggedPeople.length > 0,
-      shouldValidate: true,
-      shouldTouch: true
+      shouldValidate: hasBeenTouched,
+      shouldTouch: false
     });
-  }, [taggedPeople, setValue]);
+  }, [taggedPeople, setValue, form.formState.touchedFields.people_tag]);
 
   // Reset time when modal opens
   useEffect(() => {
@@ -297,10 +298,10 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
 
   const handleFormTabNext = useCallback(() => {
     handleSubmit(
-      () => setActiveTab("additional"),
-      (errors) => showFormTabErrorToast(errors, getValues())
+      () => setActiveTab("additional")
+      // No toast error callback
     )();
-  }, [handleSubmit, getValues]);
+  }, [handleSubmit]);
 
   const handleAdditionalTabNext = useCallback(async () => {
     setValue("people_tag", taggedPeople.map(p => p.name).join(', '), {
@@ -312,14 +313,8 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
 
     if (isValid && taggedPeople.length > 0) {
       setActiveTab("summary");
-    } else {
-      if (taggedPeople.length === 0) {
-        setValue("people_tag", "", { shouldValidate: true, shouldTouch: true });
-        setTimeout(() => peopleFieldRef.current?.focus(), 100);
-      }
-      showAdditionalTabErrorToast(errors, getValues(), taggedPeople);
     }
-  }, [trigger, getValues, taggedPeople, setValue, errors]);
+  }, [trigger, taggedPeople, setValue]);
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
