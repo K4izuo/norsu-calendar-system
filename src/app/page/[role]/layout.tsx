@@ -145,9 +145,9 @@ export default function RoleLayout() {
               <li>
                 <button
                   onClick={() => handleTabClick('dashboard')}
-                  className={`w-full flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "dashboard"
-                      ? "bg-white text-gray-900"
-                      : "text-white hover:bg-gray-800"
+                  className={`w-full cursor-pointer flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "dashboard"
+                    ? "bg-white text-gray-900"
+                    : "text-white hover:bg-gray-800"
                     }`}
                 >
                   <LayoutDashboard size={20} className="mr-3" />
@@ -161,9 +161,9 @@ export default function RoleLayout() {
               <li>
                 <button
                   onClick={() => handleTabClick('calendar')}
-                  className={`w-full flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "calendar"
-                      ? "bg-white text-gray-900"
-                      : "text-white hover:bg-gray-800"
+                  className={`w-full cursor-pointer flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "calendar"
+                    ? "bg-white text-gray-900"
+                    : "text-white hover:bg-gray-800"
                     }`}
                 >
                   <Calendar size={20} className="mr-3" />
@@ -177,9 +177,9 @@ export default function RoleLayout() {
               <li>
                 <button
                   onClick={() => handleTabClick('reservations')}
-                  className={`w-full flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "reservations"
-                      ? "bg-white text-gray-900"
-                      : "text-white hover:bg-gray-800"
+                  className={`w-full cursor-pointer flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "reservations"
+                    ? "bg-white text-gray-900"
+                    : "text-white hover:bg-gray-800"
                     }`}
                 >
                   <University size={20} className="mr-3" />
@@ -193,9 +193,9 @@ export default function RoleLayout() {
               <li>
                 <button
                   onClick={() => handleTabClick('accounts')}
-                  className={`w-full flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "accounts"
-                      ? "bg-white text-gray-900"
-                      : "text-white hover:bg-gray-800"
+                  className={`w-full cursor-pointer flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "accounts"
+                    ? "bg-white text-gray-900"
+                    : "text-white hover:bg-gray-800"
                     }`}
                 >
                   <Users size={20} className="mr-3" />
@@ -209,9 +209,9 @@ export default function RoleLayout() {
               <li>
                 <button
                   onClick={() => handleTabClick('asset-management')}
-                  className={`w-full flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "asset-management"
-                      ? "bg-white text-gray-900"
-                      : "text-white hover:bg-gray-800"
+                  className={`w-full cursor-pointer flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "asset-management"
+                    ? "bg-white text-gray-900"
+                    : "text-white hover:bg-gray-800"
                     }`}
                 >
                   <CalendarClock size={20} className="mr-3" />
