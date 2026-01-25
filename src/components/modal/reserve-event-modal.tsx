@@ -201,7 +201,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
         className="fixed inset-0 z-50 flex items-center justify-center p-4 overscroll-none"
       >
         <motion.div
-          className="absolute inset-0 bg-black/40"
+          className="absolute inset-0"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}

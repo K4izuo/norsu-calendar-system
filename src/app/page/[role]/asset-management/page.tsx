@@ -1,12 +1,16 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AssetRegistrationModal } from "@/components/modal/asset-register-modal";
 import { AssetRegistrationPayload } from "@/interface/user-props";
 import { AssetsTable } from "@/components/user-dashboard-ui/asset-management/asset-table";
-import { useCampuses, useOffices } from "@/services/academicDataService";
+import { 
+  campusesQueryOptions, 
+  officesQueryOptions 
+} from "@/services/academicDataService";
 import { useAssets, useCreateAsset, Asset } from "@/services/asset-service";
 import { Search, Calendar, Filter, PackagePlus } from "lucide-react";
 import {
@@ -16,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import Loading from "../loading";
 
 export default function AssetsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -23,15 +28,17 @@ export default function AssetsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
 
-  // Pre-fetch and cache data
-  useCampuses();
-  useOffices();
+  const queryClient = useQueryClient();
 
-  // Fetch assets using TanStack Query
+  // ✅ Prefetch data on mount
+  useEffect(() => {
+    queryClient.prefetchQuery(campusesQueryOptions);
+    queryClient.prefetchQuery(officesQueryOptions);
+  }, [queryClient]);
+
   const { assets, loading, error, refetch } = useAssets();
   const { mutateAsync: createAsset } = useCreateAsset();
 
-  // Filter assets based on search, status, and type
   const filteredAssets = useMemo(() => {
     return assets.filter((asset) => {
       const matchesSearch = asset.asset_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -46,7 +53,6 @@ export default function AssetsPage() {
     try {
       await createAsset(data);
       setIsModalOpen(false);
-      // Data will auto-refresh due to TanStack Query cache invalidation
     } catch (error) {
       console.error("Failed to create asset:", error);
     }
@@ -54,16 +60,15 @@ export default function AssetsPage() {
 
   const handleAssetClick = (asset: Asset) => {
     console.log("Asset clicked:", asset);
-    // TODO: Implement asset details modal
   };
 
   return (
-    <div className="flex flex-col max-w-full">
+    <div className="flex flex-col w-full min-w-0">
+      {loading && <Loading />}
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Assets Management</h1>
       </div>
 
-      {/* Error Message */}
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
           <strong className="font-bold">Error: </strong>
@@ -71,8 +76,7 @@ export default function AssetsPage() {
         </div>
       )}
 
-      {/* Controls Bar */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between mb-6 gap-y-4">
         <div className="flex items-center gap-3">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-32.5 shadow-xs h-11 cursor-pointer bg-white">
@@ -137,7 +141,6 @@ export default function AssetsPage() {
         </div>
       </div>
 
-      {/* Assets Table */}
       <AssetsTable
         assets={filteredAssets}
         role="admin"

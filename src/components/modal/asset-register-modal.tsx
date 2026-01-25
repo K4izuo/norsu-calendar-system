@@ -220,6 +220,7 @@ export function AssetRegistrationModal({
                     campuses={campuses}
                     offices={offices}
                     isFormValid={isFormValid()}
+                    isAdmin={isAdmin}
                   />
                 </TabsContent>
               </Tabs>

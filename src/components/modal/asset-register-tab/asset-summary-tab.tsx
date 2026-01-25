@@ -21,6 +21,7 @@ interface AssetSummaryTabProps {
   campuses: { value: string; label: string }[]
   offices: { value: string; label: string }[]
   isFormValid: boolean
+  isAdmin?: boolean
 }
 
 export function AssetSummaryTab({
@@ -30,6 +31,7 @@ export function AssetSummaryTab({
   campuses,
   offices,
   isFormValid,
+  isAdmin = false
 }: AssetSummaryTabProps) {
   const formatDate = (dateString: string) => {
     if (!dateString) return "Not provided"
@@ -71,27 +73,30 @@ export function AssetSummaryTab({
         </div>
       </div>
 
-      <div className="bg-gray-50 shadow-sm rounded-lg p-4">
-        <div className="flex items-center mb-3">
-          <Building2 className="text-gray-500 mr-2 h-6 w-6" />
-          <h3 className="text-lg font-medium text-gray-700">Campus & Office</h3>
-        </div>
-        <div className="border-b border-gray-300 mb-4" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <p className="text-base text-gray-500">Campus</p>
-            <p className="font-medium text-base">
-              {campuses.find(campus => campus.value === formData.campus_id)?.label || "Not selected"}
-            </p>
+      {/* Campus & Office */}
+      {isAdmin && (
+        <div className="bg-gray-50 shadow-sm rounded-lg p-4">
+          <div className="flex items-center mb-3">
+            <Building2 className="text-gray-500 mr-2 h-6 w-6" />
+            <h3 className="text-lg font-medium text-gray-700">Campus & Office</h3>
           </div>
-          <div>
-            <p className="text-base text-gray-500">Office</p>
-            <p className="font-medium text-base">
-              {offices.find(office => office.value === formData.office_id)?.label || "Not selected"}
-            </p>
+          <div className="border-b border-gray-300 mb-4" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p className="text-base text-gray-500">Campus</p>
+              <p className="font-medium text-base">
+                {campuses.find(campus => campus.value === formData.campus_id)?.label || "Not selected"}
+              </p>
+            </div>
+            <div>
+              <p className="text-base text-gray-500">Office</p>
+              <p className="font-medium text-base">
+                {offices.find(office => office.value === formData.office_id)?.label || "Not selected"}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="bg-gray-50 shadow-sm rounded-lg p-4">
         <div className="flex items-center mb-3">

@@ -1,77 +1,26 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useMemo } from "react";
 import { ReservationsTable } from "@/components/user-dashboard-ui/reservations/reservation-table";
-import { apiClient } from "@/lib/api-client";
-import { EventDetails, ReservationWithRelations } from "@/interface/user-props";
-
-interface Asset {
-  id: number;
-  asset_name: string;
-  capacity: number;
-}
+import { EventDetails } from "@/interface/user-props";
+import { useReservations, useAssets } from "@/services/reservation-service";
+import Loading from "../loading";
 
 export default function ReservationsPage() {
-  const [allReservations, setAllReservations] = useState<ReservationWithRelations[]>([]);
-  const [assets, setAssets] = useState<Map<number, Asset>>(new Map());
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Fetch reservations using TanStack Query - smart caching!
+  const { reservations, loading, error } = useReservations();
 
-  // Fetch reservations - only runs once on mount
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  // Get unique asset IDs from reservations
+  const assetIds = useMemo(() => {
+    return [...new Set(reservations.map(r => r.asset_id))];
+  }, [reservations]);
 
-        // Fetch reservations
-        const response = await apiClient.get<ReservationWithRelations[]>("/reservations/all");
-
-        if (response.error) {
-          setError(response.error);
-          return;
-        }
-
-        if (response.data && Array.isArray(response.data)) {
-          setAllReservations(response.data);
-
-          // Fetch assets for these reservations
-          const assetIds = [...new Set(response.data.map(r => r.asset_id))];
-
-          if (assetIds.length > 0) {
-            const assetPromises = assetIds.map(id =>
-              apiClient.get<Asset[]>(`/reservations/${id}`)
-            );
-
-            const assetResponses = await Promise.all(assetPromises);
-
-            const newAssets = new Map<number, Asset>();
-            assetResponses.forEach((response, index) => {
-              if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-                const asset = response.data[0];
-                newAssets.set(assetIds[index], asset);
-              }
-            });
-
-            setAssets(newAssets);
-          }
-        } else {
-          setError("Unexpected response format from server");
-        }
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-        setError(`Error fetching reservations: ${errorMessage}`);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []); // Empty dependency - only run once on mount
+  // Fetch assets using TanStack Query
+  const { assets } = useAssets(assetIds);
 
   // Convert reservations to events format
   const events: EventDetails[] = useMemo(() => {
-    return allReservations.map(reservation => {
+    return reservations.map(reservation => {
       const asset = assets.get(reservation.asset_id);
 
       const formattedDate = new Date(reservation.date).toLocaleDateString('en-US', {
@@ -117,10 +66,11 @@ export default function ReservationsPage() {
         declined_by_user_details: reservation.declined_by_user,
       };
     });
-  }, [allReservations, assets]);
+  }, [reservations, assets]);
 
   return (
     <div className="flex flex-col max-w-full">
+      {loading && <Loading />}
       {/* Error Message */}
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">

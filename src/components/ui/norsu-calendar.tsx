@@ -19,10 +19,7 @@ export function Calendar<T>({
   onDaySelect,
   getEventsForDate,
   initialDate = new Date(),
-  isLoading = false,
-  setLoading,
-  role, // Remove default value
-  // Required props (not optional)
+  role,
   currentMonth,
   currentYear,
   onMonthYearChange,
@@ -34,9 +31,7 @@ export function Calendar<T>({
     count: number;
   };
   initialDate?: Date;
-  isLoading?: boolean;
-  setLoading?: (loading: boolean) => void;
-  role?: UserRole; // Keep as optional but no default
+  role?: UserRole;
   currentMonth: number;
   currentYear: number;
   onMonthYearChange: (month: number, year: number) => void;
@@ -52,29 +47,27 @@ export function Calendar<T>({
   // Navigation functions
   const goToPreviousMonth = useCallback(() => {
     setDirection(-1);
-    if (setLoading) setLoading(true);
+
     setTimeout(() => {
       if (currentMonth === 0) {
         onMonthYearChange(11, currentYear - 1);
       } else {
         onMonthYearChange(currentMonth - 1, currentYear);
       }
-      if (setLoading) setLoading(false);
     }, 300);
-  }, [currentMonth, currentYear, setLoading, onMonthYearChange]);
+  }, [currentMonth, currentYear, onMonthYearChange]);
 
   const goToNextMonth = useCallback(() => {
     setDirection(1);
-    if (setLoading) setLoading(true);
+
     setTimeout(() => {
       if (currentMonth === 11) {
         onMonthYearChange(0, currentYear + 1);
       } else {
         onMonthYearChange(currentMonth + 1, currentYear);
       }
-      if (setLoading) setLoading(false);
     }, 300);
-  }, [currentMonth, currentYear, setLoading, onMonthYearChange]);
+  }, [currentMonth, currentYear, onMonthYearChange]);
 
   const goToToday = useCallback(() => {
     const currentDate = new Date();
@@ -90,12 +83,11 @@ export function Calendar<T>({
           ? -1
           : 0
     );
-    if (setLoading) setLoading(true);
+
     setTimeout(() => {
       onMonthYearChange(today.getMonth(), today.getFullYear());
-      if (setLoading) setLoading(false);
     }, 300);
-  }, [currentMonth, currentYear, today, setLoading, onMonthYearChange]);
+  }, [currentMonth, currentYear, today, onMonthYearChange]);
 
   // Build calendar days (6 rows x 7 columns = 42 cells)
   const calendarDays = useMemo(() => {
@@ -127,62 +119,62 @@ export function Calendar<T>({
 
     // 2. Fill in current month's days
     for (let i = 1; i <= lastDateOfMonth; i++) {
-      const isToday =
-        i === today.getDate() &&
-        currentMonth === today.getMonth() &&
-        currentYear === today.getFullYear();
-
-      // Get events for this day using the provided function
-      const { hasEvent, count } = getEventsForDate(currentYear, currentMonth, i);
-
-      days.push({
-        date: i,
-        currentMonth: true,
-        key: `curr-${i}-${currentMonth}-${currentYear}`,
-        hasEvent,
-        eventCount: count,
-        isToday,
-      });
-    }
-
-    // 3. Fill in next month's days to reach 35 cells
-    let nextMonthDay = 1;
-    while (days.length < 35) {
-      days.push({
-        date: nextMonthDay,
-        currentMonth: false,
-        key: `next-${nextMonthDay}-${currentMonth}-${currentYear}`,
-        hasEvent: false,
-      });
-      nextMonthDay++;
-    }
-
-    return days;
-  }, [currentMonth, currentYear, today, getEventsForDate]);
-
-  const monthNames = useMemo(
-    () => [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
-    ],
-    []
-  );
-
-  // Get current month name and year as a formatted string
-  const currentMonthYear = useMemo(
-    () => `${monthNames[currentMonth]} ${currentYear}`,
-    [currentMonth, currentYear, monthNames]
-  );
+        const isToday =
+          i === today.getDate() &&
+          currentMonth === today.getMonth() &&
+          currentYear === today.getFullYear();
+  
+        // Get events for this day using the provided function
+        const { hasEvent, count } = getEventsForDate(currentYear, currentMonth, i);
+  
+        days.push({
+          date: i,
+          currentMonth: true,
+          key: `curr-${i}-${currentMonth}-${currentYear}`,
+          hasEvent,
+          eventCount: count,
+          isToday,
+        });
+      }
+  
+      // 3. Fill in next month's days to reach 35 cells
+      let nextMonthDay = 1;
+      while (days.length < 35) {
+        days.push({
+          date: nextMonthDay,
+          currentMonth: false,
+          key: `next-${nextMonthDay}-${currentMonth}-${currentYear}`,
+          hasEvent: false,
+        });
+        nextMonthDay++;
+      }
+  
+      return days;
+    }, [currentMonth, currentYear, today, getEventsForDate]);
+  
+    const monthNames = useMemo(
+      () => [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+      ],
+      []
+    );
+  
+    // Get current month name and year as a formatted string
+    const currentMonthYear = useMemo(
+      () => `${monthNames[currentMonth]} ${currentYear}`,
+      [currentMonth, currentYear, monthNames]
+    );
 
   return (
     <div className="flex flex-col w-full flex-1">
@@ -298,23 +290,6 @@ export function Calendar<T>({
 
         {/* Calendar table days with animation */}
         <div className="flex-1 flex flex-col w-full overflow-visible relative">
-          {isLoading ? (
-            <motion.div
-              className="absolute inset-0 flex items-center justify-center z-10 bg-white bg-opacity-70"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="relative h-16 w-16 flex items-center justify-center">
-                <motion.div
-                  className={`absolute inset-0 h-16 w-16 rounded-full border-t-4 border-b-4 ${roleColors.spinner}`}
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1.5, ease: "linear", repeat: Infinity }}
-                />
-                <CalendarClock className={`absolute inset-0 m-auto h-7 w-7 ${roleColors.icon}`} />
-              </div>
-            </motion.div>
-          ) : (
             <AnimatePresence mode="wait" custom={direction}>
               <motion.div
                 key={`${currentMonth}-${currentYear}`}
@@ -333,7 +308,7 @@ export function Calendar<T>({
                     className={`relative border rounded-md flex flex-col p-1.5 sm:p-2 text-sm xs:text-base sm:text-lg md:text-xl font-medium
                       ${day.currentMonth
                         ? `text-gray-900 border-[1.5px] ${day.hasEvent ? roleColors.eventDayBorder : "border-gray-300"} cursor-pointer ${roleColors.hoverBg} hover:shadow-sm`
-                        : "text-gray-400 border-gray-100 bg-gray-50"
+                        : "text-gray-400 border-gray-100 bg-gray-50 bg-opacity-50"
                       }
                       ${day.isToday ? `border-[1.5px]` : ""}
                       ${day.hasEvent && day.currentMonth}
@@ -448,7 +423,6 @@ export function Calendar<T>({
                 ))}
               </motion.div>
             </AnimatePresence>
-          )}
         </div>
       </div>
 

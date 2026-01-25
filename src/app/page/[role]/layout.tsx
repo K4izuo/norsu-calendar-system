@@ -1,19 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import { useState, useEffect, useContext } from "react";
-import { usePathname, useParams } from "next/navigation";
 import {
-  LayoutDashboard,
-  Calendar,
-  CalendarClock,
-  ChevronRight,
   Search,
   Bell,
   CircleUserRound,
   Mail,
-  Users,
-  University
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,28 +13,22 @@ import { AuthContext } from "@/contexts/auth-context";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import UserProfile from "@/components/ui/user-profile";
 import toast from "react-hot-toast";
-import { getRoleLabelFromNumber, type RolePath } from "@/lib/role-utils";
+import { getRoleLabelFromNumber } from "@/lib/role-utils";
+import { Separator } from "@/components/ui/separator"
 
-// Import all page components directly
-import DashboardPage from "./dashboard/page";
-import CalendarPage from "./calendar/page";
-import ReservationsPage from "./reservations/page";
-import AccountsPage from "./accounts/page";
-import AssetManagementPage from "./asset-management/page";
+import { AppSidebar } from "@/components/app-sidebar"
+import {
+  SidebarProvider,
+  SidebarInset,
+  SidebarTrigger,
+} from "@/components/ui/sidebar"
 
 interface UserData {
   name: string;
   role: number;
 }
 
-type TabType = "dashboard" | "calendar" | "reservations" | "accounts" | "asset-management";
-
-export default function RoleLayout() {
-  const [activeTab, setActiveTab] = useState<TabType>("dashboard");
-  const pathname = usePathname();
-  const params = useParams();
-  const role = params?.role as RolePath;
-
+export default function RoleLayout({ children }: { children: React.ReactNode }) {
   const auth = useContext(AuthContext);
   const user = auth?.user;
   const [userData, setUserData] = useState<UserData>({
@@ -92,143 +78,15 @@ export default function RoleLayout() {
     }
   }, [user]);
 
-  // Sync with URL on initial load
-  useEffect(() => {
-    if (pathname?.includes("/asset-management")) {
-      setActiveTab("asset-management");
-    } else if (pathname?.includes("/calendar")) {
-      setActiveTab("calendar");
-    } else if (pathname?.includes("/reservations")) {
-      setActiveTab("reservations");
-    } else if (pathname?.includes("/accounts")) {
-      setActiveTab("accounts");
-    } else if (pathname?.includes("/dashboard")) {
-      setActiveTab("dashboard");
-    }
-  }, [pathname]);
-
-  // Handle tab click - instant switch
-  const handleTabClick = (tab: TabType) => {
-    setActiveTab(tab);
-    // Update URL without navigation for browser history
-    window.history.pushState({}, '', `/page/${role}/${tab}`);
-  };
-
   return (
-    <div className="flex h-screen overflow-hidden bg-[#fafafa]">
-      <div className="flex-none w-64 bg-[#0e162a] text-white flex flex-col overflow-y-auto">
-        <div className="flex-none h-20 py-2 px-4 items-center justify-center flex">
-          <div className="flex items-center justify-center w-full">
-            <Image
-              src="/images/norsu.png"
-              alt="Negros Oriental State University Logo"
-              width={150}
-              height={150}
-              priority
-              className="h-12 w-12 object-contain"
-            />
-            <div className="flex flex-col ml-3">
-              <h1 className="font-semibold text-base text-white truncate capitalize">
-                {getRoleLabelFromNumber(userData.role)}
-              </h1>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex-none px-4 pb-0 pt-0">
-          <span className="h-0.5 w-full block bg-linear-to-r from-gray-700 via-white to-gray-700 rounded-full opacity-70"></span>
-        </div>
-
-        <div className="flex-1 px-4 py-6 overflow-y-auto">
-          <nav>
-            <ul className="space-y-1">
-              <li>
-                <button
-                  onClick={() => handleTabClick('dashboard')}
-                  className={`w-full cursor-pointer flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "dashboard"
-                    ? "bg-white text-gray-900"
-                    : "text-white hover:bg-gray-800"
-                    }`}
-                >
-                  <LayoutDashboard size={20} className="mr-3" />
-                  <span className="font-medium">Dashboard</span>
-                  {activeTab === "dashboard" && (
-                    <ChevronRight size={16} className="ml-auto" />
-                  )}
-                </button>
-              </li>
-
-              <li>
-                <button
-                  onClick={() => handleTabClick('calendar')}
-                  className={`w-full cursor-pointer flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "calendar"
-                    ? "bg-white text-gray-900"
-                    : "text-white hover:bg-gray-800"
-                    }`}
-                >
-                  <Calendar size={20} className="mr-3" />
-                  <span className="font-medium">Calendar</span>
-                  {activeTab === "calendar" && (
-                    <ChevronRight size={16} className="ml-auto" />
-                  )}
-                </button>
-              </li>
-
-              <li>
-                <button
-                  onClick={() => handleTabClick('reservations')}
-                  className={`w-full cursor-pointer flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "reservations"
-                    ? "bg-white text-gray-900"
-                    : "text-white hover:bg-gray-800"
-                    }`}
-                >
-                  <University size={20} className="mr-3" />
-                  <span className="font-medium">Reservations</span>
-                  {activeTab === "reservations" && (
-                    <ChevronRight size={16} className="ml-auto" />
-                  )}
-                </button>
-              </li>
-
-              <li>
-                <button
-                  onClick={() => handleTabClick('accounts')}
-                  className={`w-full cursor-pointer flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "accounts"
-                    ? "bg-white text-gray-900"
-                    : "text-white hover:bg-gray-800"
-                    }`}
-                >
-                  <Users size={20} className="mr-3" />
-                  <span className="font-medium">Accounts</span>
-                  {activeTab === "accounts" && (
-                    <ChevronRight size={16} className="ml-auto" />
-                  )}
-                </button>
-              </li>
-
-              <li>
-                <button
-                  onClick={() => handleTabClick('asset-management')}
-                  className={`w-full cursor-pointer flex items-center px-3 py-3 rounded-md transition-all ${activeTab === "asset-management"
-                    ? "bg-white text-gray-900"
-                    : "text-white hover:bg-gray-800"
-                    }`}
-                >
-                  <CalendarClock size={20} className="mr-3" />
-                  <span className="font-medium">Assets</span>
-                  {activeTab === "asset-management" && (
-                    <ChevronRight size={16} className="ml-auto" />
-                  )}
-                </button>
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </div>
-
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="flex-none h-20 py-2 px-4 items-center bg-white shadow-sm w-full z-10 flex">
-          <div className="flex items-center justify-between w-full">
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset className="overflow-hidden">
+        <header className="flex shadow h-18 shrink-0 items-center justify-between gap-2 border-b bg-white px-4">
+          <div className="flex items-center">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-1 h-4" />
+            
             <div className="flex items-center ml-2">
               <div className="relative w-80">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -237,13 +95,14 @@ export default function RoleLayout() {
                 <Input
                   type="search"
                   id="search"
-                  className="block h-11 w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:ring-gray-500 focus:border-gray-500 text-sm"
+                  className="block h-10 w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:ring-gray-500 focus:border-gray-500 text-sm"
                   placeholder="Search..."
                 />
               </div>
             </div>
+          </div>
 
-            <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3">
               <div className="flex items-center gap-3">
                 <Button
                   variant="ghost"
@@ -287,28 +146,12 @@ export default function RoleLayout() {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-          </div>
-        </div>
+        </header>
 
-        {/* All pages mounted at once - show/hide based on active tab */}
-        <div className="flex-1 overflow-hidden">
-          <div className={`h-full overflow-y-auto p-6 ${activeTab === 'dashboard' ? 'block' : 'hidden'}`}>
-            <DashboardPage />
-          </div>
-          <div className={`h-full overflow-y-auto p-6 ${activeTab === 'calendar' ? 'block' : 'hidden'}`}>
-            <CalendarPage />
-          </div>
-          <div className={`h-full overflow-y-auto p-6 ${activeTab === 'reservations' ? 'block' : 'hidden'}`}>
-            <ReservationsPage />
-          </div>
-          <div className={`h-full overflow-y-auto p-6 ${activeTab === 'accounts' ? 'block' : 'hidden'}`}>
-            <AccountsPage />
-          </div>
-          <div className={`h-full overflow-y-auto p-6 ${activeTab === 'asset-management' ? 'block' : 'hidden'}`}>
-            <AssetManagementPage />
-          </div>
+        <div className="flex-1 bg-muted/50 flex flex-col gap-4 p-3 sm:p-6 overflow-y-auto overflow-x-hidden relative">
+           {children}
         </div>
-      </div>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

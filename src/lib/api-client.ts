@@ -31,6 +31,9 @@ const buildHeaders = (token: string | null, customHeaders?: Record<string, strin
 
 const handleUnauthorized = () => {
   removeAuthToken();
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('auth:unauthorized'));
+  }
 };
 
 // const storeAuthData = (responseData: { token?: string; role?: string } | null) => {

@@ -9,20 +9,12 @@ import { Calendar } from "@/components/ui/norsu-calendar";
 import type { EventDetails, CalendarDayType } from "@/interface/user-props";
 import { toast } from "react-hot-toast";
 import Link from "next/link";
+import { useReservations, useAssets } from "@/services/reservation-service";
 
 export default function Home() {
-  const upcomingEvents = [
-    { title: "University Week", date: "2025-11-15" },
-    { title: "Christmas Party", date: "2025-12-20" },
-    { title: "Final Exams", date: "2026-01-15" },
-    { title: "Final Exams", date: "2026-01-15" },
-    { title: "Final Exams", date: "2026-01-15" },
-  ];
-
   const today = useMemo(() => new Date(), []);
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
-  const [loading, setLoading] = useState(false);
 
   // Modal states
   const [modalOpen, setModalOpen] = useState(false);
@@ -31,6 +23,17 @@ export default function Home() {
   const [selectedDay, setSelectedDay] = useState<CalendarDayType | null>(null);
   const [eventInfoLoading, setEventInfoLoading] = useState(false);
   const [showRecent, setShowRecent] = useState(false);
+  const [eventsListLoading, setEventsListLoading] = useState(false);
+
+  // Fetch reservations using TanStack Query
+  const { reservations, loading, error } = useReservations();
+
+  // Get unique asset IDs from reservations
+  const assetIds = useMemo(() => {
+    return [...new Set(reservations.map(r => r.asset_id))];
+  }, [reservations]);
+
+  const { assets } = useAssets(assetIds);
 
   // Handle error notifications from URL parameters
   useEffect(() => {
@@ -73,24 +76,65 @@ export default function Home() {
     setTimeout(() => sessionStorage.removeItem('last-toast-error'), 500);
   }, []);
 
-  // Sample events for demonstration
-  const eventsMap = useMemo(
-    () => ({
-      15: { title: "University Meeting", count: 1 },
-      20: { title: "Faculty Conference", count: 3 },
-      25: { title: "Deadline for Submissions", count: 2 },
-    }),
-    []
-  );
+  // Convert reservations to events format - ONLY APPROVED
+  const events: EventDetails[] = useMemo(() => {
+    return reservations
+      .filter(reservation => reservation.status.toUpperCase() === "APPROVED")
+      .map(reservation => {
+        const asset = assets.get(reservation.asset_id);
 
-  const getEventsForDate = useCallback(
-    (year: number, month: number, day: number) => {
-      const hasEvent = eventsMap[day as keyof typeof eventsMap] !== undefined;
-      const count = hasEvent ? eventsMap[day as keyof typeof eventsMap].count : 0;
-      return { hasEvent, count };
-    },
-    [eventsMap]
-  );
+        return {
+          id: reservation.id,
+          title_name: reservation.title_name,
+          date: reservation.date,
+          time_start: reservation.time_start,
+          time_end: reservation.time_end,
+          asset: {
+            id: reservation.asset_id,
+            asset_name: asset?.asset_name || `Asset #${reservation.asset_id}`,
+            capacity: asset?.capacity || 0,
+          },
+          category: reservation.category,
+          info_type: reservation.info_type,
+          description: reservation.description,
+          people_tag: reservation.people_tag.split(", "),
+          range: reservation.range,
+          registration_status: reservation.status.toUpperCase() as "PENDING" | "APPROVED" | "DECLINED",
+          registration_deadline: reservation.date,
+          reserved_by_user: reservation.reserved_by_user,
+          reserve_by_user: reservation.reserved_by_user
+            ? `${reservation.reserved_by_user.first_name} ${reservation.reserved_by_user.last_name}`
+            : "Unknown User",
+          approved_by_user_details: reservation.approved_by_user,
+          declined_by_user_details: reservation.declined_by_user,
+        };
+      });
+  }, [reservations, assets]);
+
+  // Get upcoming events (next 5 approved events from today)
+  const upcomingEvents = useMemo(() => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    
+    return events
+      .filter(event => event.date >= todayStr)
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .slice(0, 5)
+      .map(event => ({
+        title: event.title_name,
+        date: event.date
+      }));
+  }, [events]);
+
+  // Get events for a particular day
+  const getEventsForDate = useCallback((year: number, month: number, day: number) => {
+    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    const dayEvents = events.filter(event => event.date === dateStr);
+
+    return {
+      hasEvent: dayEvents.length > 0,
+      count: dayEvents.length
+    };
+  }, [events]);
 
   const monthNames = useMemo(
     () => [
@@ -100,77 +144,15 @@ export default function Home() {
     []
   );
 
+  // Memoized selected day events
   const selectedDayEvents = useMemo(() => {
-    if (!selectedDay?.hasEvent || !selectedDay.currentMonth) return [];
+    if (!selectedDay || !selectedDay.currentMonth) return [];
 
-    const dayEvents = eventsMap[selectedDay.date as keyof typeof eventsMap];
-    if (!dayEvents) return [];
+    const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(selectedDay.date).padStart(2, "0")}`;
+    const dayEvents = events.filter((event) => event.date === dateStr);
 
-    const eventTypes = [
-      { category: "Academic", title: "Faculty Meeting" },
-      { category: "Workshop", title: "Research Workshop" },
-      { category: "Social", title: "Campus Social Event" },
-      { category: "Academic", title: "Department Conference" },
-      { category: "Workshop", title: "Professional Development" },
-      { category: "Social", title: "Student Organization Event" },
-    ];
-
-    const locations = [
-      "Main Building, Room 101",
-      "Science Building, Room 203",
-      "Library Conference Room",
-      "Auditorium",
-      "Computer Lab, Room 405",
-      "Student Center",
-    ];
-
-    const events: EventDetails[] = [];
-
-    for (let i = 0; i < dayEvents.count; i++) {
-      const eventTypeIndex = (selectedDay.date + i) % eventTypes.length;
-      const locationIndex = (i + selectedDay.date * 2) % locations.length;
-      const eventType = eventTypes[eventTypeIndex];
-      const now = new Date();
-      const startHour = now.getHours() - 1;
-      const endHour = now.getHours();
-
-      const startTime = `${startHour > 12 ? startHour - 12 : startHour}:${i % 2 === 0 ? "00" : "30"} ${startHour >= 12 ? "PM" : "AM"}`;
-      const endTime = `${endHour > 12 ? endHour - 12 : endHour}:${i % 2 === 0 ? "30" : "00"} ${endHour >= 12 ? "PM" : "AM"}`;
-
-      events.push({
-        id: selectedDay.date * 100 + i,
-        title_name: dayEvents.count > 1 ? `${eventType.title} ${i + 1}` : dayEvents.title,
-        date: `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(selectedDay.date).padStart(2, "0")}`,
-        time_start: startTime,
-        time_end: endTime,
-        asset: {
-          id: locationIndex + 1,
-          asset_name: locations[locationIndex],
-          capacity: 60 + i * 20,
-          aminities: ["Wi-Fi", "Projector", "Air Conditioning"],
-          asset_type: "Room"
-        },
-        category: eventType.category,
-        info_type: i % 2 === 0 ? "Public" : "Private",
-        description: "This event provides an opportunity for faculty and staff to engage with important university matters, share ideas, and collaborate on academic initiatives.",
-        people_tag: [
-          i % 2 === 0 ? "John Doe" : "Jane Smith",
-          i % 3 === 0 ? "Alice Johnson" : "Bob Lee",
-        ],
-        range: 1,
-        registration_status: (i % 3 === 0 ? "DECLINED" : i % 2 === 0 ? "APPROVED" : "PENDING") as "PENDING" | "APPROVED" | "DECLINED",
-        registration_deadline: `${monthNames[currentMonth]} ${Math.max(1, selectedDay.date - 2)}, ${currentYear}`,
-        reserve_by_user: i % 2 === 0 ? "Faculty of Science" : "Department of Education",
-        approved_by_user: i % 2 === 0 ? "Dean Johnson" : undefined,
-        declined_by_user: i % 3 === 0 ? "Admin Smith" : undefined,
-        finished_on: i % 3 === 0
-          ? `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(selectedDay.date).padStart(2, "0")}`
-          : undefined,
-      });
-    }
-
-    return events;
-  }, [eventsMap, currentMonth, currentYear, selectedDay, monthNames]);
+    return dayEvents;
+  }, [events, selectedDay, currentMonth, currentYear]);
 
   const handleEventClick = useCallback((event: EventDetails) => {
     setSelectedEvent(event);
@@ -180,8 +162,11 @@ export default function Home() {
   }, []);
 
   const handleDaySelect = useCallback((day: CalendarDayType) => {
+    setShowRecent(false);
     setSelectedDay(day);
+    setEventsListLoading(true);
     setModalOpen(true);
+    setTimeout(() => setEventsListLoading(false), 300);
   }, []);
 
   const handleMonthYearChange = useCallback((month: number, year: number) => {
@@ -189,14 +174,8 @@ export default function Home() {
     setCurrentYear(year);
   }, []);
 
-  useEffect(() => {
-    setLoading(true);
-    const timer = setTimeout(() => setLoading(false), 700);
-    return () => clearTimeout(timer);
-  }, []);
-
   return (
-    <div className="min-h-screen bg-[#fafafa] flex flex-col overflow-x-hidden">
+    <div className="min-h-screen bg-muted/50 flex flex-col overflow-x-hidden">
       {/* Navbar */}
       <div className="relative bg-white px-2 sm:px-4 md:px-8 lg:px-16 xl:px-36 py-4 shadow-sm flex flex-col sm:flex-row items-center sm:items-center justify-between w-full gap-y-2">
         <div className="flex flex-row items-center justify-center sm:justify-start w-full sm:w-auto gap-2 sm:gap-0">
@@ -260,17 +239,49 @@ export default function Home() {
               <h2 className="text-2xl font-semibold mb-4 text-gray-700 text-center">
                 Upcoming Events
               </h2>
-              <ul className="custom-scrollbar flex flex-col gap-2 overflow-y-auto flex-1">
-                {upcomingEvents.map((event, idx) => (
-                  <li
-                    key={idx}
-                    className="bg-gray-50 rounded-md px-3 py-2 border border-gray-100"
-                  >
-                    <div className="font-medium text-gray-800 text-lg">{event.title}</div>
-                    <div className="text-base text-gray-500">{event.date}</div>
-                  </li>
-                ))}
-              </ul>
+              
+              {/* Loading State */}
+              {loading && (
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="text-gray-500">Loading events...</div>
+                </div>
+              )}
+
+              {/* Error State */}
+              {error && (
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="text-red-500 text-center">
+                    <p className="font-semibold">Error loading events</p>
+                    <p className="text-sm">{error}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Events List */}
+              {!loading && !error && (
+                <>
+                  {upcomingEvents.length > 0 ? (
+                    <ul className="custom-scrollbar flex flex-col gap-2 overflow-y-auto flex-1">
+                      {upcomingEvents.map((event, idx) => (
+                        <li
+                          key={idx}
+                          className="bg-gray-50 rounded-md px-3 py-2 border border-gray-100"
+                        >
+                          <div className="font-medium text-gray-800 text-lg">{event.title}</div>
+                          <div className="text-base text-gray-500">{event.date}</div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="flex-1 flex items-center justify-center">
+                      <div className="text-gray-500 text-center">
+                        <p className="font-semibold">No upcoming events</p>
+                        <p className="text-sm">Check back later for new events</p>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
 
             {/* Calendar */}
@@ -278,12 +289,12 @@ export default function Home() {
               <div className="w-full text-card-foreground border bg-white rounded-md shadow flex flex-col items-start self-stretch p-4 sm:p-6 gap-6 relative flex-1 min-h-0">
                 <Calendar
                   role="public"
-                  events={[]}
+                  events={events}
                   onDaySelect={handleDaySelect}
                   getEventsForDate={getEventsForDate}
                   initialDate={today}
-                  isLoading={loading}
-                  setLoading={setLoading}
+                  // isLoading={loading}
+                  // setLoading={() => {}}
                   currentMonth={currentMonth}
                   currentYear={currentYear}
                   onMonthYearChange={handleMonthYearChange}
@@ -308,7 +319,7 @@ export default function Home() {
         }
         events={selectedDayEvents}
         onEventClick={handleEventClick}
-        isLoading={loading}
+        isLoading={eventsListLoading}
         showRecent={showRecent}
         setShowRecent={setShowRecent}
         eventDate={

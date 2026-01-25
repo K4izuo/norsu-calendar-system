@@ -140,9 +140,14 @@ export function useAssetRegistrationForm({
           location: data.location.trim(),
           acquisition_date: data.acquisition_date,
           condition: data.condition,
-          availability_status: "available",
-          campus_id: data.campus_id || defaultCampusId || "",
-          office_id: data.office_id || defaultOfficeId || "",
+          availability_status: "AVAILABLE",
+          // campus_id: data.campus_id || defaultCampusId || "",
+          // office_id: data.office_id || defaultOfficeId || "",
+        }
+
+        if (isAdmin) {
+          payload.campus_id = data.campus_id;
+          payload.office_id = data.office_id;
         }
 
         if (onSubmit) {
@@ -178,7 +183,7 @@ export function useAssetRegistrationForm({
         toast.error(errorMessage)
       }
     },
-    [reset, onClose, onSubmit, defaultCampusId, defaultOfficeId]
+    [reset, onClose, onSubmit, isAdmin]
   )
 
   const handleFormSubmit = (e: React.FormEvent) => {

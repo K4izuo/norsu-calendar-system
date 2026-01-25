@@ -70,6 +70,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     fetchUserData();
   }, []);
 
+  // Listen for 401 unauthorized events
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      setUser(null);
+      localStorage.removeItem('user');
+      removeAuthToken();
+      // Optional: Redirect to login or home if needed, but the 401 source might handle it
+      // router.replace('/auth/login'); 
+    };
+
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
+  }, [router]);
+
   // Handle route protection
   useEffect(() => {
     if (!isLoading) {

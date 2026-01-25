@@ -71,7 +71,7 @@ export function AssetsTable({ assets, isLoading = false, role, onAssetClick }: A
 
   return (
     <div className="w-full rounded-md">
-      <div className="rounded-md text-card-foreground border shadow overflow-hidden">
+      <div className="rounded-md text-card-foreground border shadow overflow-hidden overflow-x-auto">
         {isLoading ? (
           <motion.div
             className="flex items-center justify-center py-20"

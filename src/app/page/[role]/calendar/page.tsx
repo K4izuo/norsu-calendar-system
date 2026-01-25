@@ -1,17 +1,16 @@
 "use client";
 
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { Calendar } from "@/components/ui/norsu-calendar";
 import { EventsListModal } from "@/components/modal/events-list-modal";
 import { EventInfoModal } from "@/components/modal/event-info-modal";
-import { EventDetails, CalendarDayType, ReservationWithRelations } from "@/interface/user-props";
-import { apiClient } from "@/lib/api-client";
+import { EventDetails, CalendarDayType } from "@/interface/user-props";
+import { useReservations, useAssets } from "@/services/reservation-service";
+import { useQueryClient } from "@tanstack/react-query";
+import { getUserId } from "@/lib/auth";
+import Loading from "../loading";
 
-interface Asset {
-  id: number;
-  asset_name: string;
-  capacity: number;
-}
+// import { getRoleColors } from "@/utils/role-colors";
 
 export default function CalendarPage() {
   // Modal states
@@ -22,124 +21,40 @@ export default function CalendarPage() {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
-  // Reservations state - Change type to ReservationWithRelations
-  const [allReservations, setAllReservations] = useState<ReservationWithRelations[]>([]);
-  const [error, setError] = useState<string | null>(null);
-
-  // Use ref for lastUpdate to avoid triggering re-renders
-  const lastUpdateRef = React.useRef<Date | null>(null);
-
-  // Assets state - NEW
-  const [assets, setAssets] = useState<Map<number, Asset>>(new Map());
-
   // Loading states
-  const [loading, setLoading] = useState(false);
   const [eventInfoLoading, setEventInfoLoading] = useState(false);
   const [eventsListLoading, setEventsListLoading] = useState(false);
 
   // Show recent events state
   const [showRecent, setShowRecent] = useState(false);
 
-  // Fetch assets function - FIXED to avoid circular dependency
-  const fetchAssets = useCallback(async (assetIds: number[]) => {
-    const uniqueIds = [...new Set(assetIds)];
+  // Fetch reservations using TanStack Query - smart caching!
+  const { reservations, loading, error } = useReservations();
 
-    setAssets(currentAssets => {
-      const missingIds = uniqueIds.filter(id => !currentAssets.has(id));
+  // Get unique asset IDs from reservations
+  const assetIds = useMemo(() => {
+    return [...new Set(reservations.map(r => r.asset_id))];
+  }, [reservations]);
 
-      if (missingIds.length === 0) return currentAssets;
+  const { assets } = useAssets(assetIds);
 
-      // Fetch missing assets asynchronously
-      (async () => {
-        try {
-          const assetPromises = missingIds.map(id =>
-            apiClient.get<Asset[]>(`/reservations/${id}`)
-          );
-
-          const responses = await Promise.all(assetPromises);
-
-          setAssets(prevAssets => {
-            const newAssets = new Map(prevAssets);
-            responses.forEach((response, index) => {
-              if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-                const asset = response.data[0];
-                newAssets.set(missingIds[index], asset);
-              }
-            });
-            return newAssets;
-          });
-        } catch (error) {
-          console.error('Error fetching assets:', error);
-        }
-      })();
-
-      return currentAssets;
-    });
-  }, []); // Empty dependency array - no circular dependency
-
-  // Fetch reservations function with lastUpdate parameter
-  const fetchReservations = useCallback(async () => {
-    try {
-      setLoading(true);
-
-      const url = lastUpdateRef.current
-        ? `/reservations/all?lastUpdate=${encodeURIComponent(lastUpdateRef.current.toISOString())}`
-        : "/reservations/all";
-
-      const response = await apiClient.get<ReservationWithRelations[]>(url);
-
-      if (response.error) {
-        setError(response.error);
-        return;
-      }
-
-      if (response.data && Array.isArray(response.data)) {
-        setAllReservations(response.data);
-
-        const assetIds = response.data.map(r => r.asset_id);
-        await fetchAssets(assetIds);
-
-        lastUpdateRef.current = new Date();
-        setError(null);
-      } else {
-        setError("Unexpected response format from server");
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      setError(`Error fetching reservations: ${errorMessage}`);
-    } finally {
-      setLoading(false);
-    }
-  }, [fetchAssets]);
+  // Get query client for cache invalidation
+  const queryClient = useQueryClient();
+  const userId = getUserId();
 
   // Handle new reservation from modal
-  const handleNewReservation = useCallback(async (newReservation: ReservationWithRelations) => {
-    setAllReservations((prevReservations) => {
-      const reservationExists = prevReservations.some(
-        (reservation) => reservation.id === newReservation.id
-      );
-
-      if (reservationExists) {
-        return prevReservations.map((reservation) =>
-          reservation.id === newReservation.id ? newReservation : reservation
-        );
-      }
-
-      return [...prevReservations, newReservation];
+  const handleNewReservation = useCallback(async () => {
+    // Invalidate the cache WITHOUT refetching immediately
+    // This marks data as stale, so next tab switch will fetch fresh data
+    queryClient.invalidateQueries({ 
+      queryKey: ['reservations', userId],
+      refetchType: 'none' // Don't refetch now, only when navigating to another tab
     });
-
-    await fetchAssets([newReservation.asset_id]);
-  }, [fetchAssets]);
-
-  // Initial fetch of reservations on mount
-  useEffect(() => {
-    fetchReservations();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run once on mount - fetchReservations is stable
+  }, [queryClient, userId]);
 
   // Convert reservations to events format for calendar
   const events: EventDetails[] = useMemo(() => {
-    return allReservations
+    return reservations
       .filter(reservation => reservation.status.toUpperCase() === "APPROVED")
       .map(reservation => {
         const asset = assets.get(reservation.asset_id);
@@ -171,7 +86,7 @@ export default function CalendarPage() {
           declined_by_user_details: reservation.declined_by_user,
         };
       });
-  }, [allReservations, assets]);
+  }, [reservations, assets]);
 
   // Get events for a particular day
   const getEventsForDate = useCallback((year: number, month: number, day: number) => {
@@ -236,7 +151,9 @@ export default function CalendarPage() {
   ];
 
   return (
-    <div className="h-full flex flex-col max-w-full">
+    <div className="h-full flex flex-col max-w-full min-h-[500px]">
+      {loading && <Loading />}
+
       <h1 className="text-2xl sm:text-3xl font-normal leading-tight mb-4 sm:mb-6 px-2 sm:px-0">
         Admin Calendar
       </h1>
@@ -257,8 +174,6 @@ export default function CalendarPage() {
           onDaySelect={handleDaySelect}
           getEventsForDate={getEventsForDate}
           initialDate={new Date()}
-          isLoading={loading}
-          setLoading={setLoading}
           currentMonth={currentMonth}
           currentYear={currentYear}
           onMonthYearChange={handleMonthYearChange}
@@ -286,7 +201,7 @@ export default function CalendarPage() {
               ? `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(selectedDay.date).padStart(2, "0")}`
               : ""
           }
-          allReservations={allReservations}
+          allReservations={reservations}
           onNewReservation={handleNewReservation}
         />
 

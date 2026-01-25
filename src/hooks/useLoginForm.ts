@@ -43,15 +43,23 @@ const handleValidationErrors = (
 ) => {
   const { username, password } = validationErrors.errors || {};
 
-  if (username && !password) {
-    setError('username', { type: 'manual', message: username[0] });
-    showToast(username[0]);
-  } else if (password && !username) {
-    setError('password', { type: 'manual', message: password[0] });
-    showToast(password[0]);
-  } else if (username && password) {
-    setError('username', { type: 'manual', message: '' });
-    setError('password', { type: 'manual', message: '' });
+  // if (username && !password) {
+  //   setError('username', { type: 'manual', message: username[0] });
+  //   showToast(username[0]);
+  // } else if (password && !username) {
+  //   // Set error on both fields even if only password is wrong
+  //   setError('username', { type: 'manual', message: 'Username is incorrect.' });
+  //   setError('password', { type: 'manual', message: password[0] });
+  //   showToast(password[0]);
+  // } else if (username && password) {
+  //   setError('username', { type: 'manual', message: 'Invalid credentials.' });
+  //   setError('password', { type: 'manual', message: 'Invalid credentials.' });
+  //   showToast('Login Failed! Your credentials are incorrect.');
+  // }
+
+  if (username || password) {
+    setError('username', { type: 'manual', message: 'Invalid credentials.' });
+    setError('password', { type: 'manual', message: 'Invalid credentials.' });
     showToast('Login Failed! Your credentials are incorrect.');
   }
 

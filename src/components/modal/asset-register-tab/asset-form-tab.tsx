@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+// import React, { useMemo } from "react"
 import { Controller, Control, FieldErrors, UseFormRegister, UseFormWatch } from "react-hook-form"
 import { AssetFormInput } from "./asset-input-field"
 import { AssetSelectField } from "./asset-select-field"
@@ -32,9 +32,6 @@ interface AssetDetailsTabProps {
   campusError: string | null
   officeError: string | null
   isAdmin?: boolean
-  // isDeanOrStaff?: boolean
-  // userCampusId?: string
-  // userOfficeId?: string
 }
 
 export function AssetDetailsTab({
@@ -46,23 +43,23 @@ export function AssetDetailsTab({
   conditionOptions,
   campuses,
   offices,
-  loadingCampuses,
-  loadingOffices,
+  // loadingCampuses,
+  // loadingOffices,
   campusError,
   officeError,
   isAdmin = false,
-  // isDeanOrStaff = false,
-  // userCampusId,
-  // userOfficeId,
 }: AssetDetailsTabProps) {
-  // Watch all form data for real-time updates
-  const formData = watch()
+  // ✅ Watch individual fields instead of all form data
+  const assetName = watch("asset_name")
+  const capacity = watch("capacity")
+  const location = watch("location")
+  const acquisitionDate = watch("acquisition_date")
 
-  // Real-time validation with debounce
-  const assetNameError = useAssetFieldValidation(formData.asset_name || "", ASSET_VALIDATION_RULES.asset_name)
-  const capacityError = useAssetFieldValidation(formData.capacity || "", ASSET_VALIDATION_RULES.capacity)
-  const locationError = useAssetFieldValidation(formData.location || "", ASSET_VALIDATION_RULES.location)
-  const acquisitionDateError = useAssetFieldValidation(formData.acquisition_date || "", ASSET_VALIDATION_RULES.acquisition_date)
+  // ✅ Only run validation when values actually change
+  const assetNameError = useAssetFieldValidation(assetName || "", ASSET_VALIDATION_RULES.asset_name)
+  const capacityError = useAssetFieldValidation(capacity || "", ASSET_VALIDATION_RULES.capacity)
+  const locationError = useAssetFieldValidation(location || "", ASSET_VALIDATION_RULES.location)
+  const acquisitionDateError = useAssetFieldValidation(acquisitionDate || "", ASSET_VALIDATION_RULES.acquisition_date)
 
   return (
     <div className="space-y-4 sm:space-y-5">
@@ -125,7 +122,7 @@ export function AssetDetailsTab({
                 value={field.value || ""}
                 onChange={field.onChange}
                 options={campuses}
-                loading={loadingCampuses}
+                loading={false}
                 error={campusError}
                 required
                 hasError={!!errors.campus_id}
@@ -150,7 +147,7 @@ export function AssetDetailsTab({
                 value={field.value || ""}
                 onChange={field.onChange}
                 options={offices}
-                loading={loadingOffices}
+                loading={false}
                 error={officeError}
                 required
                 hasError={!!errors.office_id}

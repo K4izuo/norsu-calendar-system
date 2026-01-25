@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/api-client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { AssetRegistrationPayload } from "@/interface/user-props";
 import { getUserId } from "@/lib/auth";
@@ -50,19 +51,26 @@ const createAsset = async (data: AssetRegistrationPayload): Promise<Asset> => {
 
 // Hook to fetch all assets
 export const useAssets = () => {
-  const userId = getUserId(); // Get current logged-in user ID
+  const [userId, setUserId] = useState<number | null>(null);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
 
-  const { data, isLoading, error, refetch } = useQuery({
+  useEffect(() => {
+    const id = getUserId();
+    setUserId(id);
+    setIsAuthChecking(false);
+  }, []);
+
+  const { data, isFetching, error, refetch } = useQuery({
     queryKey: ['assets', userId], // Include userId in the cache key
     queryFn: fetchAssets,
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 0, // Always refetch to show loading state
     refetchOnWindowFocus: true,
     enabled: !!userId, // Only fetch if user is logged in
   });
 
   return {
     assets: data || [],
-    loading: isLoading,
+    loading: isAuthChecking || isFetching,
     error: error?.message || null,
     refetch,
   };
