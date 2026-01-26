@@ -1,9 +1,8 @@
 import { apiClient } from "@/lib/api-client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { AssetRegistrationPayload } from "@/interface/user-props";
-import { getUserId } from "@/lib/auth";
+import { useAuth } from "@/contexts/auth-context"; // Import auth context
 
 export type Asset = {
   id: number;
@@ -28,7 +27,7 @@ const fetchAssets = async (): Promise<Asset[]> => {
   }
 
   if (!response.data || response.data.length === 0) {
-    return []; // Return empty array instead of throwing error
+    return [];
   }
 
   return response.data;
@@ -51,26 +50,28 @@ const createAsset = async (data: AssetRegistrationPayload): Promise<Asset> => {
 
 // Hook to fetch all assets
 export const useAssets = () => {
-  const [userId, setUserId] = useState<number | null>(null);
-  const [isAuthChecking, setIsAuthChecking] = useState(true);
-
-  useEffect(() => {
-    const id = getUserId();
-    setUserId(id);
-    setIsAuthChecking(false);
-  }, []);
+  const { user, isLoading: isAuthLoading, isAuthenticated } = useAuth();
 
   const { data, isFetching, error, refetch } = useQuery({
-    queryKey: ['assets', userId], // Include userId in the cache key
+    queryKey: ['assets', user?.id],
     queryFn: fetchAssets,
-    staleTime: 0, // Always refetch to show loading state
+    staleTime: 1 * 60 * 1000, // 1 minute
+    gcTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: true,
-    enabled: !!userId, // Only fetch if user is logged in
+    // Critical: Only fetch when auth is loaded AND user is authenticated
+    enabled: !isAuthLoading && isAuthenticated,
+    retry: (failureCount, error) => {
+      // Don't retry on 401 errors
+      if (error instanceof Error && error.message.includes('401')) {
+        return false;
+      }
+      return failureCount < 2;
+    },
   });
 
   return {
     assets: data || [],
-    loading: isAuthChecking || isFetching,
+    loading: isAuthLoading || isFetching,
     error: error?.message || null,
     refetch,
   };
@@ -79,13 +80,18 @@ export const useAssets = () => {
 // Hook to create asset
 export const useCreateAsset = () => {
   const queryClient = useQueryClient();
-  const userId = getUserId();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: createAsset,
-    onSuccess: () => {
-      // Invalidate queries for the current user
-      queryClient.invalidateQueries({ queryKey: ['assets', userId] });
+    onSuccess: (newAsset) => {
+      // Optimistic update
+      queryClient.setQueryData<Asset[]>(['assets', user?.id], (old) => {
+        return old ? [...old, newAsset] : [newAsset];
+      });
+
+      // Invalidate to ensure data consistency
+      queryClient.invalidateQueries({ queryKey: ['assets', user?.id] });
 
       toast.success('Asset registered successfully!', {
         position: 'top-right',

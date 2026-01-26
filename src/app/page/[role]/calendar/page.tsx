@@ -10,10 +10,19 @@ import { useQueryClient } from "@tanstack/react-query";
 import { getUserId } from "@/lib/auth";
 import Loading from "../loading";
 
-// import { getRoleColors } from "@/utils/role-colors";
+// Helper function to check if an event has finished
+const isEventFinished = (eventDate: string, timeEnd: string): boolean => {
+  try {
+    const endTime = timeEnd.trim();
+    const eventEndDateTime = new Date(`${eventDate} ${endTime}`);
+    const now = new Date();
+    return eventEndDateTime < now;
+  } catch {
+    return false;
+  }
+};
 
 export default function CalendarPage() {
-  // Modal states
   const [modalOpen, setModalOpen] = useState(false);
   const [eventInfoModalOpen, setEventInfoModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventDetails | undefined>(undefined);
@@ -21,39 +30,31 @@ export default function CalendarPage() {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
-  // Loading states
   const [eventInfoLoading, setEventInfoLoading] = useState(false);
   const [eventsListLoading, setEventsListLoading] = useState(false);
 
-  // Show recent events state
   const [showRecent, setShowRecent] = useState(false);
 
-  // Fetch reservations using TanStack Query - smart caching!
   const { reservations, loading, error } = useReservations();
 
-  // Get unique asset IDs from reservations
   const assetIds = useMemo(() => {
     return [...new Set(reservations.map(r => r.asset_id))];
   }, [reservations]);
 
   const { assets } = useAssets(assetIds);
 
-  // Get query client for cache invalidation
   const queryClient = useQueryClient();
   const userId = getUserId();
 
-  // Handle new reservation from modal
   const handleNewReservation = useCallback(async () => {
-    // Invalidate the cache WITHOUT refetching immediately
-    // This marks data as stale, so next tab switch will fetch fresh data
     queryClient.invalidateQueries({ 
       queryKey: ['reservations', userId],
-      refetchType: 'none' // Don't refetch now, only when navigating to another tab
+      refetchType: 'none'
     });
   }, [queryClient, userId]);
 
-  // Convert reservations to events format for calendar
-  const events: EventDetails[] = useMemo(() => {
+  // Convert reservations to events format with isFinished flag
+  const allEvents: EventDetails[] = useMemo(() => {
     return reservations
       .filter(reservation => reservation.status.toUpperCase() === "APPROVED")
       .map(reservation => {
@@ -77,40 +78,45 @@ export default function CalendarPage() {
           range: reservation.range,
           registration_status: reservation.status.toUpperCase() as "PENDING" | "APPROVED" | "DECLINED",
           registration_deadline: reservation.date,
-          // Now TypeScript knows about reserved_by_user
           reserved_by_user: reservation.reserved_by_user,
           reserve_by_user: reservation.reserved_by_user
             ? `${reservation.reserved_by_user.first_name} ${reservation.reserved_by_user.last_name}`
             : "Unknown User",
           approved_by_user_details: reservation.approved_by_user,
           declined_by_user_details: reservation.declined_by_user,
+          // Calculate if event is finished
+          isFinished: isEventFinished(reservation.date, reservation.time_end),
         };
       });
   }, [reservations, assets]);
 
-  // Get events for a particular day
+  // Filter ONLY upcoming/current events for calendar display
+  const calendarEvents = useMemo(() => {
+    return allEvents.filter(event => !event.isFinished);
+  }, [allEvents]);
+
+  // Get events for a particular day - only upcoming
   const getEventsForDate = useCallback((year: number, month: number, day: number) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    const dayEvents = events.filter(event => event.date === dateStr);
+    const dayEvents = calendarEvents.filter(event => event.date === dateStr);
 
     return {
       hasEvent: dayEvents.length > 0,
       count: dayEvents.length
     };
-  }, [events]);
+  }, [calendarEvents]);
 
-  // Memoized selected day events
+  // Selected day events - includes ALL events (past and upcoming) for modal filtering
   const selectedDayEvents = useMemo(() => {
     if (!selectedDay || !selectedDay.currentMonth) return [];
 
     const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(selectedDay.date).padStart(2, "0")}`;
 
-    const dayEvents = events.filter((event) => event.date === dateStr);
+    const dayEvents = allEvents.filter((event) => event.date === dateStr);
 
     return dayEvents;
-  }, [events, selectedDay, currentMonth, currentYear]);
+  }, [allEvents, selectedDay, currentMonth, currentYear]);
 
-  // Event click handler
   const handleEventClick = useCallback((event: EventDetails) => {
     setEventInfoLoading(true);
     setEventInfoModalOpen(true);
@@ -121,25 +127,21 @@ export default function CalendarPage() {
     }, 600);
   }, []);
 
-  // Close modal handler
   const handleCloseModal = useCallback(() => {
     setModalOpen(false);
   }, []);
 
-  // Calendar day selection handler
   const handleDaySelect = useCallback((day: CalendarDayType) => {
     setShowRecent(false);
     setSelectedDay(day);
     setEventsListLoading(true);
     setModalOpen(true);
 
-    // Simulate loading for UX
     setTimeout(() => {
       setEventsListLoading(false);
     }, 300);
   }, []);
 
-  // Handle month/year changes
   const handleMonthYearChange = useCallback((month: number, year: number) => {
     setCurrentMonth(month);
     setCurrentYear(year);
@@ -158,7 +160,6 @@ export default function CalendarPage() {
         Admin Calendar
       </h1>
 
-      {/* Error Message */}
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
           <strong className="font-bold">Error: </strong>
@@ -166,11 +167,10 @@ export default function CalendarPage() {
         </div>
       )}
 
-      {/* Calendar container */}
       <div className="bg-white text-card-foreground border rounded-md shadow flex flex-col flex-1 p-3 sm:p-6 md:p-6.5">
         <Calendar
           role="admin"
-          events={events}
+          events={calendarEvents}
           onDaySelect={handleDaySelect}
           getEventsForDate={getEventsForDate}
           initialDate={new Date()}
@@ -179,7 +179,6 @@ export default function CalendarPage() {
           onMonthYearChange={handleMonthYearChange}
         />
 
-        {/* Events List Modal */}
         <EventsListModal
           role="admin"
           isOpen={modalOpen}
@@ -205,7 +204,6 @@ export default function CalendarPage() {
           onNewReservation={handleNewReservation}
         />
 
-        {/* Event Info Modal */}
         <EventInfoModal
           role="admin"
           isOpen={eventInfoModalOpen}

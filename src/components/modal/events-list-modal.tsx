@@ -11,19 +11,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-// import { Badge } from "@/components/ui/badge"
 import { ReserveEventModal } from "@/components/modal/reserve-event-modal"
 import type { EventsListModalProps, EventDetails, ReservationAPIPayload, Reservation } from "@/interface/user-props"
-// import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Input } from "../ui/input"
 import { EventCardsList } from "@/components/ui/events-list-card"
 import { getRoleColors } from "@/utils/role-colors"
 
-// Simplified status types
 type EventStatus = "pending" | "approved" | "decline"
 type Role = "dean" | "staff" | "admin" | "public" | undefined
 
-// Make this a regular function instead of using useCallback at module level
 const getStartedAgo = (eventDate: string, eventTime: string): string | null => {
   if (!eventDate || !eventTime) return null;
   try {
@@ -34,16 +30,10 @@ const getStartedAgo = (eventDate: string, eventTime: string): string | null => {
 
     const now = new Date();
 
-    // If event is in the future
     if (eventStart > now) {
-      // const diffMs = eventStart.getTime() - now.getTime();
-      // const diffMins = Math.floor(diffMs / 60000);
-
-      // If event is today but later
       const isToday = eventStart.toDateString() === now.toDateString();
 
       if (isToday) {
-        // Format time to 12-hour format with AM/PM
         const hours = eventStart.getHours();
         const minutes = eventStart.getMinutes();
         const ampm = hours >= 12 ? 'PM' : 'AM';
@@ -51,12 +41,10 @@ const getStartedAgo = (eventDate: string, eventTime: string): string | null => {
         const displayMinutes = minutes.toString().padStart(2, '0');
         return `Starts at ${displayHours}:${displayMinutes} ${ampm}`;
       } else {
-        // Event is on a future date
         return "Upcoming";
       }
     }
 
-    // Event has already started
     const diffMs = now.getTime() - eventStart.getTime();
     const diffMins = Math.floor(diffMs / 60000);
     if (diffMins < 1) return "Started just now";
@@ -83,7 +71,6 @@ export function EventsListModal({
   showRecent,
   setShowRecent,
   role,
-  // allReservations,
   onNewReservation,
 }: EventsListModalProps & {
   showRecent: boolean;
@@ -97,38 +84,35 @@ export function EventsListModal({
   const [searchTerm, setSearchTerm] = useState("")
   const [recentLoading, setRecentLoading] = useState(false)
 
-  // Get role-specific loading colors
   const roleLoadingColors = getRoleColors(role);
 
-  // Filter events by search term and mode
+  // Filter events by search term and mode (past vs upcoming)
   const filteredEvents = useMemo(() => {
+    const searchLower = searchTerm.toLowerCase();
+    
+    // Filter by search term first
+    const searchFiltered = events.filter(event =>
+      event.title_name?.toLowerCase().includes(searchLower) ||
+      event.people_tag?.some(tag => tag.toLowerCase().includes(searchLower))
+    );
+
     if (showRecent) {
-      // Show only past events (finishedOn matches eventDate)
-      return events.filter(
-        event =>
-          event.finished_on === eventDate &&
-          (
-            event.title_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            event.people_tag?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-          )
-      )
+      // Show ONLY past events (events that have finished)
+      return searchFiltered.filter(event => 
+        event.date === eventDate && event.isFinished
+      );
     } else {
-      // Show current events (date matches eventDate), filtered by search
-      return events.filter(
-        event =>
-          event.date === eventDate &&
-          (
-            event.title_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            event.people_tag?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-          )
-      )
+      // Show ONLY upcoming/current events (events that haven't finished yet)
+      return searchFiltered.filter(event => 
+        event.date === eventDate && !event.isFinished
+      );
     }
   }, [events, searchTerm, showRecent, eventDate])
 
   const getStatusColor = (status: EventStatus) => {
     const colors = {
-      pending: "bg-yellow-100 text-yellow-800 border-yellow-200",   // Nice yellow
-      approved: "bg-green-100 text-green-800 border-green-200",     // Nice green
+      pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
+      approved: "bg-green-100 text-green-800 border-green-200",
       decline: "bg-destructive/20 text-destructive border-destructive/30",
     }
     return colors[status] || colors.pending
@@ -159,22 +143,13 @@ export function EventsListModal({
     setShowRecent(value === "past")
   }, [setShowRecent])
 
-  // Turn off loading when filteredEvents changes (data is ready)
-  // useEffect(() => {
-  //   if (recentLoading) {
-  //     setRecentLoading(false)
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [filteredEvents])
-
-  // Turn off loading when filteredEvents changes (data is ready)
   useEffect(() => {
     setRecentLoading(false)
   }, [filteredEvents])
 
   useEffect(() => {
     if (isOpen) {
-      setShowRecent(false) // Always show current events when modal opens
+      setShowRecent(false)
       document.body.style.overflow = "hidden"
     } else {
       document.body.style.overflow = ""
@@ -200,7 +175,6 @@ export function EventsListModal({
               }}
             />
 
-            {/* Modal content */}
             <motion.div
               ref={contentRef}
               initial={{ opacity: 0, y: 8 }}
@@ -239,7 +213,6 @@ export function EventsListModal({
                     />
                   </div>
                   <div className="flex gap-3">
-                    {/* Only show Reserve Event button if user is authenticated (role is not public) */}
                     {role && role !== 'public' && (
                       <Button
                         onClick={handleReserve}
@@ -280,13 +253,11 @@ export function EventsListModal({
                     transition={{ duration: 0.3 }}
                   >
                     <div className="relative h-16 w-16 flex items-center justify-center">
-                      {/* Spinner rotates with role-specific color */}
                       <motion.div
                         className={`absolute inset-0 h-16 w-16 rounded-full border-t-4 border-b-4 ${roleLoadingColors.spinner}`}
                         animate={{ rotate: 360 }}
                         transition={{ duration: 1.5, ease: "linear", repeat: Infinity }}
                       />
-                      {/* Icon stays still with role-specific color */}
                       <CalendarClock className={`absolute inset-0 m-auto h-7 w-7 ${roleLoadingColors.icon}`} />
                     </div>
                   </motion.div>
@@ -303,15 +274,15 @@ export function EventsListModal({
                     <CalendarClock className="h-16 w-16 text-muted-foreground/50 mb-4" />
                     <h3 className="text-lg font-semibold text-foreground mb-2">
                       {showRecent
-                        ? "There are no past events on this day"
-                        : "No events found"}
+                        ? "No past events on this day"
+                        : "No upcoming events found"}
                     </h3>
                     <p className="text-muted-foreground max-w-md">
                       {showRecent
-                        ? "No past events have finished on this date."
+                        ? "No events have finished on this date yet."
                         : searchTerm
                           ? "Try adjusting your search terms or browse all events."
-                          : "No current events scheduled for this date."}
+                          : "No upcoming events scheduled for this date."}
                     </p>
                   </div>
                 )}

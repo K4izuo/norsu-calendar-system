@@ -9,15 +9,25 @@ import { Calendar } from "@/components/ui/norsu-calendar";
 import type { EventDetails, CalendarDayType } from "@/interface/user-props";
 import { toast } from "react-hot-toast";
 import Link from "next/link";
-import { useReservations, useAssets } from "@/services/reservation-service";
+import { usePublicReservations, usePublicAssets } from "@/services/reservation-service";
+
+// Helper function to check if an event has finished
+const isEventFinished = (eventDate: string, timeEnd: string): boolean => {
+  try {
+    const endTime = timeEnd.trim();
+    const eventEndDateTime = new Date(`${eventDate} ${endTime}`);
+    const now = new Date();
+    return eventEndDateTime < now;
+  } catch {
+    return false;
+  }
+};
 
 export default function Home() {
-  // Fix: Use state instead of useMemo for today's date to ensure client-side calculation
   const [today, setToday] = useState<Date>(new Date());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
-  // Set the correct date on the client side only
   useEffect(() => {
     const clientDate = new Date();
     setToday(clientDate);
@@ -34,15 +44,15 @@ export default function Home() {
   const [showRecent, setShowRecent] = useState(false);
   const [eventsListLoading, setEventsListLoading] = useState(false);
 
-  // Fetch reservations using TanStack Query
-  const { reservations, loading, error } = useReservations();
+  // Fetch reservations using TanStack Query (PUBLIC - no auth required)
+  const { reservations, loading, error } = usePublicReservations();
 
   // Get unique asset IDs from reservations
   const assetIds = useMemo(() => {
     return [...new Set(reservations.map(r => r.asset_id))];
   }, [reservations]);
 
-  const { assets } = useAssets(assetIds);
+  const { assets } = usePublicAssets(assetIds);
 
   // Handle error notifications from URL parameters
   useEffect(() => {
@@ -53,7 +63,6 @@ export default function Home() {
 
     if (!error) return;
 
-    // Prevent duplicate toasts
     const hasShown = sessionStorage.getItem('last-toast-error');
     if (hasShown === error) {
       const url = new URL(window.location.href);
@@ -64,7 +73,6 @@ export default function Home() {
 
     sessionStorage.setItem('last-toast-error', error);
 
-    // Show appropriate error message
     const messages: Record<string, string> = {
       session_expired: "Session expired. Please log in again.",
       unauthorized: "Access denied. Please log in to view this page.",
@@ -76,17 +84,15 @@ export default function Home() {
       id: `toast-${error}-${Date.now()}`,
     });
 
-    // Clean up URL
     const url = new URL(window.location.href);
     url.searchParams.delete('error');
     window.history.replaceState({}, '', url.toString());
 
-    // Reset flag after delay
     setTimeout(() => sessionStorage.removeItem('last-toast-error'), 500);
   }, []);
 
   // Convert reservations to events format - ONLY APPROVED
-  const events: EventDetails[] = useMemo(() => {
+  const allEvents: EventDetails[] = useMemo(() => {
     return reservations
       .filter(reservation => reservation.status.toUpperCase() === "APPROVED")
       .map(reservation => {
@@ -116,39 +122,44 @@ export default function Home() {
             : "Unknown User",
           approved_by_user_details: reservation.approved_by_user,
           declined_by_user_details: reservation.declined_by_user,
+          // Calculate if event is finished
+          isFinished: isEventFinished(reservation.date, reservation.time_end),
         };
       });
   }, [reservations, assets]);
 
-  // Get upcoming events (next 5 approved events from today)
-  // Fix: Recalculate on client side to use correct timezone
+  // Filter ONLY upcoming/current events for calendar display
   const upcomingEvents = useMemo(() => {
-    // Create date string in local timezone
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, '0');
     const day = String(today.getDate()).padStart(2, '0');
     const todayStr = `${year}-${month}-${day}`;
     
-    return events
-      .filter(event => event.date >= todayStr)
+    return allEvents
+      .filter(event => !event.isFinished && event.date >= todayStr)
       .sort((a, b) => a.date.localeCompare(b.date))
       .slice(0, 5)
       .map(event => ({
         title: event.title_name,
         date: event.date
       }));
-  }, [events, today]);
+  }, [allEvents, today]);
+
+  // Get events for calendar - only show upcoming/current events on the calendar
+  const calendarEvents = useMemo(() => {
+    return allEvents.filter(event => !event.isFinished);
+  }, [allEvents]);
 
   // Get events for a particular day
   const getEventsForDate = useCallback((year: number, month: number, day: number) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    const dayEvents = events.filter(event => event.date === dateStr);
+    const dayEvents = calendarEvents.filter(event => event.date === dateStr);
 
     return {
       hasEvent: dayEvents.length > 0,
       count: dayEvents.length
     };
-  }, [events]);
+  }, [calendarEvents]);
 
   const monthNames = useMemo(
     () => [
@@ -158,15 +169,15 @@ export default function Home() {
     []
   );
 
-  // Memoized selected day events
+  // Selected day events - includes ALL events (past and upcoming) for modal filtering
   const selectedDayEvents = useMemo(() => {
     if (!selectedDay || !selectedDay.currentMonth) return [];
 
     const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(selectedDay.date).padStart(2, "0")}`;
-    const dayEvents = events.filter((event) => event.date === dateStr);
+    const dayEvents = allEvents.filter((event) => event.date === dateStr);
 
     return dayEvents;
-  }, [events, selectedDay, currentMonth, currentYear]);
+  }, [allEvents, selectedDay, currentMonth, currentYear]);
 
   const handleEventClick = useCallback((event: EventDetails) => {
     setSelectedEvent(event);
@@ -254,14 +265,12 @@ export default function Home() {
                 Upcoming Events
               </h2>
               
-              {/* Loading State */}
               {loading && (
                 <div className="flex-1 flex items-center justify-center">
                   <div className="text-gray-500">Loading events...</div>
                 </div>
               )}
 
-              {/* Error State */}
               {error && (
                 <div className="flex-1 flex items-center justify-center">
                   <div className="text-red-500 text-center">
@@ -271,7 +280,6 @@ export default function Home() {
                 </div>
               )}
 
-              {/* Events List */}
               {!loading && !error && (
                 <>
                   {upcomingEvents.length > 0 ? (
@@ -303,7 +311,7 @@ export default function Home() {
               <div className="w-full text-card-foreground border bg-white rounded-md shadow flex flex-col items-start self-stretch p-4 sm:p-6 gap-6 relative flex-1 min-h-0">
                 <Calendar
                   role="public"
-                  events={events}
+                  events={calendarEvents}
                   onDaySelect={handleDaySelect}
                   getEventsForDate={getEventsForDate}
                   initialDate={today}

@@ -42,6 +42,7 @@ export interface EventDetails {
     last_name: string
   }
   finished_on?: string
+  isFinished?: boolean;
 }
 
 // Add this new interface for API payload

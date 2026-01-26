@@ -1,7 +1,6 @@
 import { getAuthToken, setAuthToken, setUserRole, removeAuthToken, setUserId } from './auth';
 
 const API_BASE_URL = 'https://oracj.norsu.online/api';
-// http://127.0.0.1:8000
 
 type RequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
@@ -36,15 +35,52 @@ const handleUnauthorized = () => {
   }
 };
 
-// const storeAuthData = (responseData: { token?: string; role?: string } | null) => {
-//   if (responseData?.token) setAuthToken(responseData.token);
-//   if (responseData?.role) setUserRole(Number(responseData.role));
-// };
-
 const storeAuthData = (responseData: { token?: string; role?: number; user?: { id: number } } | null) => {
   if (responseData?.token) setAuthToken(responseData.token);
   if (responseData?.role) setUserRole(responseData.role);
   if (responseData?.user?.id) setUserId(responseData.user.id);
+};
+
+// Define public endpoints that don't require authentication
+const isPublicEndpoint = (endpoint: string): boolean => {
+  const publicEndpoints = [
+    'users/login',
+    'users/store',
+    'verify-email',
+    'resend-verification',
+    'campuses/all',
+    'offices/all',
+    'degreeCourse/',
+    'reservations/all',
+    'reservations/assets/',
+  ];
+  
+  return publicEndpoints.some(publicPath => endpoint.includes(publicPath));
+};
+
+// Define endpoints that definitely require authentication
+const isProtectedEndpoint = (endpoint: string): boolean => {
+  const protectedPatterns = [
+    '/me',
+    'logout',
+    'assets/all',
+    'assets/store',
+    'assets/',
+    'event/reservation',
+    // Note: 'reservations/{id}' (single ID) is protected, but 'reservations/all' is public
+  ];
+  
+  // Special case: reservations/{id} is protected, but reservations/all and reservations/assets/{id} are public
+  if (endpoint.startsWith('reservations/')) {
+    // If it's /all or /assets/, it's public
+    if (endpoint.includes('/all') || endpoint.includes('/assets/')) {
+      return false;
+    }
+    // Otherwise it's a single reservation by ID, which is protected
+    return /^reservations\/\d+$/.test(endpoint);
+  }
+  
+  return protectedPatterns.some(pattern => endpoint.includes(pattern));
 };
 
 export const apiClient = {
@@ -56,6 +92,15 @@ export const apiClient = {
   ): Promise<ApiResponse<T>> {
     const token = getAuthToken();
     const url = buildUrl(endpoint);
+
+    // Only fail fast if it's a protected endpoint and token is missing
+    if (!token && !isPublicEndpoint(endpoint) && isProtectedEndpoint(endpoint)) {
+      return { 
+        data: null, 
+        error: 'Authentication required. Please log in.', 
+        status: 401 
+      };
+    }
 
     const options: RequestInit = {
       method,
@@ -69,14 +114,21 @@ export const apiClient = {
 
       if (response.status === 401) {
         handleUnauthorized();
-        return { data: null, error: 'Unauthorized. Please refresh your page.', status: 401 };
+        return { 
+          data: null, 
+          error: 'Unauthorized. Please log in again.', 
+          status: 401 
+        };
       }
 
       const responseData = response.status !== 204
         ? await response.json().catch(() => null)
         : null;
 
-      storeAuthData(responseData);
+      // Only store auth data on successful login/auth responses
+      if (response.ok && (endpoint === 'users/login' || endpoint === '/me')) {
+        storeAuthData(responseData);
+      }
 
       if (!response.ok) {
         return {

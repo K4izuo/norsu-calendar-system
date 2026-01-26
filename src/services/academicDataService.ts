@@ -2,6 +2,7 @@ import { apiClient } from "@/lib/api-client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { AssetRegistrationPayload } from "@/interface/user-props";
+import { useAuth } from "@/contexts/auth-context";
 
 export type Campus = { id: number; campus_name: string };
 export type Office = { id: number; office_name: string };
@@ -20,7 +21,7 @@ export const queryKeys = {
   campuses: ['campuses'] as const,
   offices: ['offices'] as const,
   courses: ['courses'] as const,
-  assets: ['assets'] as const,
+  assets: (userId?: string) => ['assets', userId] as const,
 } as const;
 
 // ============ HELPER FUNCTIONS ============
@@ -107,7 +108,7 @@ const fetchAssets = async (): Promise<Asset[]> => {
   }
 
   if (!response.data || response.data.length === 0) {
-    throw new Error("No assets found");
+    return [];
   }
 
   return response.data;
@@ -131,14 +132,14 @@ const createAsset = async (data: AssetRegistrationPayload): Promise<Asset> => {
 export const campusesQueryOptions = {
   queryKey: queryKeys.campuses,
   queryFn: fetchCampuses,
-  staleTime: 30 * 60 * 1000, // 30 minutes - campuses rarely change
+  staleTime: 30 * 60 * 1000, // 30 minutes
   gcTime: 60 * 60 * 1000, // 1 hour
 } as const;
 
 export const officesQueryOptions = {
   queryKey: queryKeys.offices,
   queryFn: fetchOffices,
-  staleTime: 30 * 60 * 1000, // 30 minutes - offices rarely change
+  staleTime: 30 * 60 * 1000, // 30 minutes
   gcTime: 60 * 60 * 1000, // 1 hour
 } as const;
 
@@ -147,13 +148,6 @@ export const coursesQueryOptions = {
   queryFn: fetchCourses,
   staleTime: 30 * 60 * 1000, // 30 minutes
   gcTime: 60 * 60 * 1000, // 1 hour
-} as const;
-
-export const assetsQueryOptions = {
-  queryKey: queryKeys.assets,
-  queryFn: fetchAssets,
-  staleTime: 1 * 60 * 1000, // 1 minute - assets change more frequently
-  gcTime: 5 * 60 * 1000, // 5 minutes
 } as const;
 
 // ============ HOOKS ============
@@ -191,11 +185,25 @@ export const useCourses = () => {
 };
 
 export const useAssets = () => {
-  const query = useQuery(assetsQueryOptions);
+  const { user, isLoading: isAuthLoading, isAuthenticated } = useAuth();
+
+  const query = useQuery({
+    queryKey: queryKeys.assets(user?.id),
+    queryFn: fetchAssets,
+    staleTime: 1 * 60 * 1000, // 1 minute
+    gcTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !isAuthLoading && isAuthenticated,
+    retry: (failureCount, error) => {
+      if (error instanceof Error && error.message.includes('401')) {
+        return false;
+      }
+      return failureCount < 2;
+    },
+  });
 
   return {
     assets: query.data || [],
-    loading: query.isLoading,
+    loading: isAuthLoading || query.isLoading,
     error: query.error?.message || null,
     isFetching: query.isFetching,
     refetch: query.refetch,
@@ -205,17 +213,18 @@ export const useAssets = () => {
 // ============ MUTATIONS ============
 export const useCreateAsset = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: createAsset,
     onSuccess: (newAsset) => {
-      // Optimistic update: immediately add to cache
-      queryClient.setQueryData<Asset[]>(queryKeys.assets, (old) => {
+      // Optimistic update
+      queryClient.setQueryData<Asset[]>(queryKeys.assets(user?.id), (old) => {
         return old ? [...old, newAsset] : [newAsset];
       });
 
-      // Then invalidate to refetch and ensure consistency
-      queryClient.invalidateQueries({ queryKey: queryKeys.assets });
+      // Invalidate to ensure consistency
+      queryClient.invalidateQueries({ queryKey: queryKeys.assets(user?.id) });
 
       toast.success("Asset registered successfully!");
     },

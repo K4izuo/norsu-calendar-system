@@ -348,7 +348,7 @@ export function Calendar<T>({
                     <div className="flex justify-end items-start w-full">
                       <span
                         className={`text-sm md:text-md lg:text-lg ${day.isToday
-                          ? `${roleColors.todayText} font-bold`
+                          ? `${roleColors.todayText} font-extrabold`
                           : day.currentMonth
                             ? ""
                             : "text-gray-400"

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useContext } from "react";
+import { usePathname } from "next/navigation";
 import {
   Search,
   Bell,
@@ -15,6 +16,7 @@ import UserProfile from "@/components/ui/user-profile";
 import toast from "react-hot-toast";
 import { getRoleLabelFromNumber } from "@/lib/role-utils";
 import { Separator } from "@/components/ui/separator"
+import Loading from "./loading";
 
 import { AppSidebar } from "@/components/app-sidebar"
 import {
@@ -31,10 +33,24 @@ interface UserData {
 export default function RoleLayout({ children }: { children: React.ReactNode }) {
   const auth = useContext(AuthContext);
   const user = auth?.user;
+  const pathname = usePathname();
+  const [isNavigating, setIsNavigating] = useState(false);
   const [userData, setUserData] = useState<UserData>({
     name: "User",
     role: 4
   });
+
+  // Track navigation changes to show loading
+  useEffect(() => {
+    setIsNavigating(true);
+    
+    // Small delay to show loading animation
+    const timer = setTimeout(() => {
+      setIsNavigating(false);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [pathname]);
 
   useEffect(() => {
     try {
@@ -149,7 +165,7 @@ export default function RoleLayout({ children }: { children: React.ReactNode }) 
         </header>
 
         <div className="flex-1 bg-muted/50 flex flex-col gap-4 p-3 sm:p-6 overflow-y-auto overflow-x-hidden relative">
-           {children}
+           {isNavigating ? <Loading /> : children}
         </div>
       </SidebarInset>
     </SidebarProvider>
