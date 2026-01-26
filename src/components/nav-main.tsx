@@ -2,8 +2,7 @@
 
 import { type LucideIcon } from "lucide-react"
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
-import { useTransition } from "react"
+import { usePathname } from "next/navigation"
 
 import {
   SidebarGroup,
@@ -28,22 +27,6 @@ export function NavMain({
   }[]
 }) {
   const pathname = usePathname()
-  const router = useRouter()
-  const [isPending, startTransition] = useTransition()
-
-  const handleNavigation = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
-    // Don't navigate if already on the page
-    if (pathname === url) {
-      e.preventDefault()
-      return
-    }
-
-    e.preventDefault()
-    
-    startTransition(() => {
-      router.push(url)
-    })
-  }
 
   return (
     <SidebarGroup>
@@ -55,12 +38,8 @@ export function NavMain({
               asChild 
               tooltip={item.title} 
               isActive={pathname === item.url}
-              disabled={isPending}
             >
-              <Link 
-                href={item.url}
-                onClick={(e) => handleNavigation(e, item.url)}
-              >
+              <Link href={item.url}>
                 {item.icon && <item.icon />}
                 <span>{item.title}</span>
               </Link>

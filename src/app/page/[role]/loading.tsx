@@ -13,10 +13,6 @@ export default function Loading() {
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.2 }}
       className="absolute inset-0 flex items-center justify-center z-50 bg-white"
     >
       <div className="relative h-16 w-16 flex items-center justify-center">

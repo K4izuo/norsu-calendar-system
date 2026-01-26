@@ -234,7 +234,7 @@ export default function Home() {
               ABOUT
             </Link>
           </Button>
-          <span className="text-gray-200 text-xl select-none xs:inline">|</span>
+          {/* <span className="text-gray-200 text-xl select-none xs:inline">|</span>
           <Button asChild variant="ghost">
             <Link
               href="/auth/login"
@@ -251,7 +251,7 @@ export default function Home() {
             >
               REGISTER
             </Link>
-          </Button>
+          </Button> */}
         </div>
       </div>
 
