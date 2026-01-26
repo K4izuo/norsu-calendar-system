@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useCallback } from "react";
+import React, { useMemo, useState, useCallback, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { CalendarClock, ChevronLeft, ChevronRight } from "lucide-react";
 import {
@@ -18,7 +18,7 @@ import { calendarVariants, headerVariants } from "@/utils/calendar-animations"
 export function Calendar<T>({
   onDaySelect,
   getEventsForDate,
-  initialDate = new Date(),
+  // initialDate = new Date(),
   role,
   currentMonth,
   currentYear,
@@ -36,7 +36,13 @@ export function Calendar<T>({
   currentYear: number;
   onMonthYearChange: (month: number, year: number) => void;
 }) {
-  const today = useMemo(() => initialDate || new Date(), [initialDate]);
+  // Fix: Use state for today to ensure client-side calculation
+  const [today, setToday] = useState<Date>(new Date());
+
+  // Update today on client side only
+  useEffect(() => {
+    setToday(new Date());
+  }, []);
 
   // Get role-specific colors
   const roleColors = useMemo(() => getRoleColors(role), [role]);
@@ -85,9 +91,9 @@ export function Calendar<T>({
     );
 
     setTimeout(() => {
-      onMonthYearChange(today.getMonth(), today.getFullYear());
+      onMonthYearChange(currentDate.getMonth(), currentDate.getFullYear());
     }, 300);
-  }, [currentMonth, currentYear, today, onMonthYearChange]);
+  }, [currentMonth, currentYear, onMonthYearChange]);
 
   // Build calendar days (6 rows x 7 columns = 42 cells)
   const calendarDays = useMemo(() => {

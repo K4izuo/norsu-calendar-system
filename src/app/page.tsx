@@ -12,9 +12,18 @@ import Link from "next/link";
 import { useReservations, useAssets } from "@/services/reservation-service";
 
 export default function Home() {
-  const today = useMemo(() => new Date(), []);
-  const [currentMonth, setCurrentMonth] = useState(today.getMonth());
-  const [currentYear, setCurrentYear] = useState(today.getFullYear());
+  // Fix: Use state instead of useMemo for today's date to ensure client-side calculation
+  const [today, setToday] = useState<Date>(new Date());
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+
+  // Set the correct date on the client side only
+  useEffect(() => {
+    const clientDate = new Date();
+    setToday(clientDate);
+    setCurrentMonth(clientDate.getMonth());
+    setCurrentYear(clientDate.getFullYear());
+  }, []);
 
   // Modal states
   const [modalOpen, setModalOpen] = useState(false);
@@ -112,8 +121,13 @@ export default function Home() {
   }, [reservations, assets]);
 
   // Get upcoming events (next 5 approved events from today)
+  // Fix: Recalculate on client side to use correct timezone
   const upcomingEvents = useMemo(() => {
-    const todayStr = new Date().toISOString().split('T')[0];
+    // Create date string in local timezone
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const todayStr = `${year}-${month}-${day}`;
     
     return events
       .filter(event => event.date >= todayStr)
@@ -123,7 +137,7 @@ export default function Home() {
         title: event.title_name,
         date: event.date
       }));
-  }, [events]);
+  }, [events, today]);
 
   // Get events for a particular day
   const getEventsForDate = useCallback((year: number, month: number, day: number) => {
@@ -293,8 +307,6 @@ export default function Home() {
                   onDaySelect={handleDaySelect}
                   getEventsForDate={getEventsForDate}
                   initialDate={today}
-                  // isLoading={loading}
-                  // setLoading={() => {}}
                   currentMonth={currentMonth}
                   currentYear={currentYear}
                   onMonthYearChange={handleMonthYearChange}
