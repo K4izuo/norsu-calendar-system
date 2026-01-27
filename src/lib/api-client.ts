@@ -54,7 +54,7 @@ const isPublicEndpoint = (endpoint: string): boolean => {
     'reservations/all',
     'reservations/assets/',
   ];
-  
+
   return publicEndpoints.some(publicPath => endpoint.includes(publicPath));
 };
 
@@ -69,7 +69,7 @@ const isProtectedEndpoint = (endpoint: string): boolean => {
     'event/reservation',
     // Note: 'reservations/{id}' (single ID) is protected, but 'reservations/all' is public
   ];
-  
+
   // Special case: reservations/{id} is protected, but reservations/all and reservations/assets/{id} are public
   if (endpoint.startsWith('reservations/')) {
     // If it's /all or /assets/, it's public
@@ -79,7 +79,7 @@ const isProtectedEndpoint = (endpoint: string): boolean => {
     // Otherwise it's a single reservation by ID, which is protected
     return /^reservations\/\d+$/.test(endpoint);
   }
-  
+
   return protectedPatterns.some(pattern => endpoint.includes(pattern));
 };
 
@@ -95,10 +95,10 @@ export const apiClient = {
 
     // Only fail fast if it's a protected endpoint and token is missing
     if (!token && !isPublicEndpoint(endpoint) && isProtectedEndpoint(endpoint)) {
-      return { 
-        data: null, 
-        error: 'Authentication required. Please log in.', 
-        status: 401 
+      return {
+        data: null,
+        error: 'Authentication required. Please log in.',
+        status: 401
       };
     }
 
@@ -114,10 +114,10 @@ export const apiClient = {
 
       if (response.status === 401) {
         handleUnauthorized();
-        return { 
-          data: null, 
-          error: 'Unauthorized. Please log in again.', 
-          status: 401 
+        return {
+          data: null,
+          error: 'Unauthorized. Please log in again.',
+          status: 401
         };
       }
 

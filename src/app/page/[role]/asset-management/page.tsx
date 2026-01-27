@@ -7,9 +7,9 @@ import { Input } from "@/components/ui/input";
 import { AssetRegistrationModal } from "@/components/modal/asset-register-modal";
 import { AssetRegistrationPayload } from "@/interface/user-props";
 import { AssetsTable } from "@/components/user-dashboard-ui/asset-management/asset-table";
-import { 
-  campusesQueryOptions, 
-  officesQueryOptions 
+import {
+  campusesQueryOptions,
+  officesQueryOptions
 } from "@/services/academicDataService";
 import { useAssets, useCreateAsset, Asset } from "@/services/asset-service";
 import { Search, Calendar, Filter, PackagePlus } from "lucide-react";
@@ -20,7 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Loading from "../loading";
 
 export default function AssetsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -36,7 +35,8 @@ export default function AssetsPage() {
     queryClient.prefetchQuery(officesQueryOptions);
   }, [queryClient]);
 
-  const { assets, loading, error, refetch } = useAssets();
+  // ✅ PROPER DATA FETCHING: Let TanStack Query and layout handle loading
+  const { assets, error, refetch } = useAssets();
   const { mutateAsync: createAsset } = useCreateAsset();
 
   const filteredAssets = useMemo(() => {
@@ -64,7 +64,8 @@ export default function AssetsPage() {
 
   return (
     <div className="flex flex-col w-full min-w-0">
-      {loading && <Loading />}
+      {/* ✅ REMOVED: Layout handles loading state now */}
+
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Assets Management</h1>
       </div>
@@ -144,7 +145,7 @@ export default function AssetsPage() {
       <AssetsTable
         assets={filteredAssets}
         role="admin"
-        isLoading={loading}
+        isLoading={false}
         onAssetClick={handleAssetClick}
       />
 

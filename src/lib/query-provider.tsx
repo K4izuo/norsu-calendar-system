@@ -8,35 +8,36 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
-        // CRITICAL: Data stays fresh for 5 minutes - no refetch during navigation
-        staleTime: 5 * 60 * 1000, // 5 minutes
+        // ✅ CRITICAL: Data is fresh for 30 seconds, then refetch
+        // This ensures you see real-time data while minimizing unnecessary requests
+        staleTime: 30 * 1000, // 30 seconds
 
-        // CRITICAL: Keep unused data in cache for 10 minutes
-        gcTime: 10 * 60 * 1000, // 10 minutes
+        // ✅ Keep unused data in cache for 5 minutes
+        gcTime: 5 * 60 * 1000, // 5 minutes
 
-        // Don't refetch when window regains focus
+        // ✅ Don't refetch when window regains focus (prevents surprise refetches)
         refetchOnWindowFocus: false,
 
-        // CRITICAL FOR INSTANT NAV: Don't refetch on mount if data is fresh
-        refetchOnMount: false,
+        // ✅ CRITICAL FOR REAL-TIME: Refetch on mount if data is stale
+        // This is the key to showing loading states and fetching fresh data
+        refetchOnMount: true,
 
-        // CRITICAL: Keep components mounted, only fetch once
-        refetchOnReconnect: false,
+        // ✅ Refetch on reconnect to get latest data after connection loss
+        refetchOnReconnect: true,
 
-        // Retry failed requests once
-        retry: 1,
-
-        // Exponential backoff for retries
+        // ✅ Retry failed requests twice with exponential backoff
+        retry: 2,
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
 
-        // Prevent multiple identical requests
+        // ✅ Network mode
         networkMode: 'online',
+
+        // ✅ CRITICAL: Keep previous data while refetching
+        // This prevents UI flicker - old data stays visible until new data arrives
+        placeholderData: (previousData: unknown) => previousData,
       },
       mutations: {
-        // Retry mutations once on failure
         retry: 1,
-
-        // Network mode for mutations
         networkMode: 'online',
       },
     },

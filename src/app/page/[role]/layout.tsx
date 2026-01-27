@@ -17,6 +17,7 @@ import toast from "react-hot-toast";
 import { getRoleLabelFromNumber } from "@/lib/role-utils";
 import { Separator } from "@/components/ui/separator"
 import Loading from "./loading";
+import { useIsFetching } from "@tanstack/react-query";
 
 import { AppSidebar } from "@/components/app-sidebar"
 import {
@@ -34,20 +35,26 @@ export default function RoleLayout({ children }: { children: React.ReactNode }) 
   const auth = useContext(AuthContext);
   const user = auth?.user;
   const pathname = usePathname();
+
+  // Track navigation state
   const [isNavigating, setIsNavigating] = useState(false);
+
+  // Track if ANY queries are currently fetching
+  const isFetching = useIsFetching();
+
   const [userData, setUserData] = useState<UserData>({
     name: "User",
     role: 4
   });
 
-  // Track navigation changes to show loading
+  // ✅ PROPER NAVIGATION TRACKING: Show loading immediately on route change
   useEffect(() => {
     setIsNavigating(true);
-    
-    // Small delay to show loading animation
+
+    // Keep navigation flag active briefly to ensure smooth transition
     const timer = setTimeout(() => {
       setIsNavigating(false);
-    }, 300);
+    }, 150);
 
     return () => clearTimeout(timer);
   }, [pathname]);
@@ -94,6 +101,9 @@ export default function RoleLayout({ children }: { children: React.ReactNode }) 
     }
   }, [user]);
 
+  // ✅ CRITICAL: Show loading if navigating OR any queries are fetching
+  const shouldShowLoading = isNavigating || isFetching > 0;
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -102,7 +112,7 @@ export default function RoleLayout({ children }: { children: React.ReactNode }) 
           <div className="flex items-center">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-1 h-4" />
-            
+
             <div className="flex items-center ml-2">
               <div className="relative w-80">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -119,53 +129,54 @@ export default function RoleLayout({ children }: { children: React.ReactNode }) 
           </div>
 
           <div className="flex items-center gap-3">
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="relative cursor-pointer bg-white h-12 w-12 rounded-full border border-transparent hover:border-gray-300 hover:bg-white"
-                >
-                  <Mail className="size-6 text-gray-600" />
-                  <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-green-500 rounded-full"></span>
-                </Button>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative cursor-pointer bg-white h-12 w-12 rounded-full border border-transparent hover:border-gray-300 hover:bg-white"
+              >
+                <Mail className="size-6 text-gray-600" />
+                <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-green-500 rounded-full"></span>
+              </Button>
 
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="relative cursor-pointer bg-white h-12 w-12 rounded-full border border-transparent hover:border-gray-300 hover:bg-white"
-                >
-                  <Bell className="size-6 text-gray-600" />
-                  <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-red-500 rounded-full"></span>
-                </Button>
-              </div>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="cursor-pointer bg-white h-12 w-12 rounded-full border border-transparent hover:border-gray-300 hover:bg-white focus:outline-none"
-                  >
-                    <CircleUserRound className="size-7 text-gray-600" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="end"
-                  sideOffset={8}
-                  className="w-70 sm:w-80 bg-background border-border rounded-lg shadow-lg"
-                >
-                  <UserProfile
-                    name={userData.name}
-                    role={getRoleLabelFromNumber(userData.role)}
-                    avatar="https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-01-n0x8HFv8EUetf9z6ht0wScJKoTHqf8.png"
-                  />
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative cursor-pointer bg-white h-12 w-12 rounded-full border border-transparent hover:border-gray-300 hover:bg-white"
+              >
+                <Bell className="size-6 text-gray-600" />
+                <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-red-500 rounded-full"></span>
+              </Button>
             </div>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="cursor-pointer bg-white h-12 w-12 rounded-full border border-transparent hover:border-gray-300 hover:bg-white focus:outline-none"
+                >
+                  <CircleUserRound className="size-7 text-gray-600" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                sideOffset={8}
+                className="w-70 sm:w-80 bg-background border-border rounded-lg shadow-lg"
+              >
+                <UserProfile
+                  name={userData.name}
+                  role={getRoleLabelFromNumber(userData.role)}
+                  avatar="https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-01-n0x8HFv8EUetf9z6ht0wScJKoTHqf8.png"
+                />
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </header>
 
         <div className="flex-1 bg-muted/50 flex flex-col gap-4 p-3 sm:p-6 overflow-y-auto overflow-x-hidden relative">
-           {isNavigating ? <Loading /> : children}
+          {/* ✅ PROPER LOADING: Show when navigating OR fetching data */}
+          {shouldShowLoading ? <Loading /> : children}
         </div>
       </SidebarInset>
     </SidebarProvider>

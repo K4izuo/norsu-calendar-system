@@ -8,7 +8,6 @@ import { EventDetails, CalendarDayType } from "@/interface/user-props";
 import { useReservations, useAssets } from "@/services/reservation-service";
 import { useQueryClient } from "@tanstack/react-query";
 import { getUserId } from "@/lib/auth";
-import Loading from "../loading";
 
 // Helper function to check if an event has finished
 const isEventFinished = (eventDate: string, timeEnd: string): boolean => {
@@ -35,7 +34,8 @@ export default function CalendarPage() {
 
   const [showRecent, setShowRecent] = useState(false);
 
-  const { reservations, loading, error } = useReservations();
+  // ✅ PROPER DATA FETCHING: Let TanStack Query handle loading states
+  const { reservations, error } = useReservations();
 
   const assetIds = useMemo(() => {
     return [...new Set(reservations.map(r => r.asset_id))];
@@ -47,7 +47,7 @@ export default function CalendarPage() {
   const userId = getUserId();
 
   const handleNewReservation = useCallback(async () => {
-    queryClient.invalidateQueries({ 
+    queryClient.invalidateQueries({
       queryKey: ['reservations', userId],
       refetchType: 'none'
     });
@@ -153,8 +153,8 @@ export default function CalendarPage() {
   ];
 
   return (
-    <div className="h-full flex flex-col max-w-full min-h-[500px]">
-      {loading && <Loading />}
+    <div className="h-full flex flex-col max-w-full min-h-125">
+      {/* ✅ REMOVED: Layout handles loading state now */}
 
       <h1 className="text-2xl sm:text-3xl font-normal leading-tight mb-4 sm:mb-6 px-2 sm:px-0">
         Admin Calendar

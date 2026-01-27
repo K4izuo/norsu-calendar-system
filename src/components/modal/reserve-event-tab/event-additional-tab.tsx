@@ -100,8 +100,8 @@ export function ReserveEventAdditionalTab({
                       setShowDropdown(tagInput.length > 0);
                     }}
                     className={`h-12 border-2 text-base w-full transition-all duration-150 ${hasError
-                        ? "border-red-400 focus:border-red-500 focus:ring-red-200"
-                        : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+                      ? "border-red-400 focus:border-red-500 focus:ring-red-200"
+                      : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
                       }`}
                     autoComplete="off"
                   />

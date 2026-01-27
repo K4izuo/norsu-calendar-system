@@ -20,13 +20,9 @@ import { Button } from "../ui/button";
 import { EventDetails } from "@/interface/user-props";
 import { ReserveEventModal } from "./reserve-event-modal";
 import { getRoleColors, UserRole } from "@/utils/role-colors"
-import {
-  handleApproveReservation,
-  handleDeclineReservation,
-  // handleEditReservation,
-} from "@/hooks/useHandleReservations";
+// ✅ CRITICAL FIX: Import the mutation hooks instead of manual handlers
+import { useApproveReservation, useDeclineReservation } from "@/services/reservation-service";
 import { ConfirmationModal } from "./confirmation-modal";
-// import { apiClient } from "@/lib/api-client";
 
 interface ModalProps {
   isOpen: boolean;
@@ -105,9 +101,11 @@ export const EventInfoModal = React.memo(function EventInfoModal({
   const [showEditModal, setShowEditModal] = useState(false);
   const [showApproveConfirm, setShowApproveConfirm] = useState(false);
   const [showDeclineConfirm, setShowDeclineConfirm] = useState(false);
-  const [isApproving, setIsApproving] = useState(false);
-  const [isDeclining, setIsDeclining] = useState(false);
-  // const [conflictingReservations, setConflictingReservations] = useState<EventDetails[]>([]);
+
+  // ✅ CRITICAL FIX: Use the mutation hooks
+  const { mutate: approveReservation, isPending: isApproving } = useApproveReservation();
+  const { mutate: declineReservation, isPending: isDeclining } = useDeclineReservation();
+
   const roleLoadingColors = getRoleColors(role);
 
   useEffect(() => {
@@ -146,42 +144,43 @@ export const EventInfoModal = React.memo(function EventInfoModal({
 
   const handleApprove = () => {
     if (!event) return;
-    setShowApproveConfirm(true); // Show modal instantly
+    setShowApproveConfirm(true);
   };
 
   const handleDecline = () => {
     setShowDeclineConfirm(true);
   };
 
-  const handleApproveConfirm = async () => {
+  // ✅ CRITICAL FIX: Use mutation hook instead of manual API call
+  const handleApproveConfirm = () => {
     if (!event) return;
 
-    setIsApproving(true);
     setShowApproveConfirm(false);
 
-    await handleApproveReservation({
-      event,
-      onSuccess: onApprove,
-      onClose,
+    // Call the mutation - this will automatically invalidate cache
+    approveReservation(event.id, {
+      onSuccess: () => {
+        // Call parent callbacks if provided
+        if (onApprove) onApprove();
+        onClose();
+      },
     });
-
-    setIsApproving(false);
   };
 
-  const handleDeclineConfirm = async (reason?: string) => {
+  // ✅ CRITICAL FIX: Use mutation hook instead of manual API call
+  const handleDeclineConfirm = (reason?: string) => {
     if (!event) return;
 
-    setIsDeclining(true);
     setShowDeclineConfirm(false);
 
-    await handleDeclineReservation({
-      event,
-      onSuccess: onDecline,
-      onClose,
-      reason,
+    // Call the mutation - this will automatically invalidate cache
+    declineReservation({ reservationId: event.id, reason }, {
+      onSuccess: () => {
+        // Call parent callbacks if provided
+        if (onDecline) onDecline();
+        onClose();
+      },
     });
-
-    setIsDeclining(false);
   };
 
   return (
@@ -212,149 +211,104 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                 duration: 0.25,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className="relative max-w-216 max-h-[89vh] sm:max-h-[92vh] bg-white rounded-lg shadow-xl w-[94%] sm:w-full sm:mx-4 overflow-hidden"
-              style={{
-                transform: "translateZ(0)",
-                backfaceVisibility: "hidden",
-                transformOrigin: "center",
-                willChange: "transform, opacity",
-              }}
+              className="relative w-full max-w-4xl max-h-[90vh] bg-white rounded-xl shadow-2xl flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="sticky top-0 bg-white z-10 p-4 sm:p-6 pb-4 sm:pb-6 border-b border-gray-200">
-                <div className="flex justify-between items-center">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                    <NotebookText strokeWidth={2.5} className="w-8 h-8 text-gray-800" />
-                    <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">
-                      Event Information
-                    </h2>
-                    {startedAgoText && (
-                      <span className={`text-sm font-medium ${startedAgoText === "Upcoming"
-                        ? "text-blue-600 bg-blue-50"
-                        : "text-amber-600 bg-amber-50"
-                        } px-2 py-0.5 rounded-full inline-flex items-center`}>
-                        <Clock className="w-3 h-3 mr-1" />
-                        {startedAgoText}
-                      </span>
-                    )}
-                  </div>
-                  <Button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onClose();
-                    }}
-                    className="p-2 shadow-none bg-white cursor-pointer rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-200"
-                    aria-label="Close"
-                  >
-                    <X className="w-5 h-5 text-gray-500" />
-                  </Button>
+              <div className="sticky top-0 bg-white z-10 p-4 sm:p-6 border-b border-gray-200 flex justify-between items-center rounded-t-xl">
+                <div className="flex items-center gap-2">
+                  <CalendarClock className="text-gray-700 h-6 w-6" />
+                  <h2 className="text-xl font-bold text-gray-800">
+                    Event Details
+                  </h2>
                 </div>
+                <Button
+                  onClick={onClose}
+                  className="p-2 cursor-pointer shadow-none bg-white rounded-full hover:bg-gray-100 focus:outline-none"
+                  aria-label="Close"
+                >
+                  <X className="w-6 h-6 text-gray-600" />
+                </Button>
               </div>
 
-              {loading || !event ? (
-                <motion.div
-                  className="flex items-center justify-center py-20"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                >
+              {loading && (
+                <div className="flex justify-center items-center py-20">
                   <div className="relative h-16 w-16 flex items-center justify-center">
                     <motion.div
                       className={`absolute inset-0 h-16 w-16 rounded-full border-t-4 border-b-4 ${roleLoadingColors.spinner}`}
                       animate={{ rotate: 360 }}
-                      transition={{
-                        duration: 1.5,
-                        ease: "linear",
-                        repeat: Infinity,
-                      }}
+                      transition={{ duration: 1.5, ease: "linear", repeat: Infinity }}
                     />
                     <CalendarClock className={`absolute inset-0 m-auto h-7 w-7 ${roleLoadingColors.icon}`} />
                   </div>
-                </motion.div>
-              ) : (
-                <div
-                  className="overflow-y-auto custom-scrollbar p-4 sm:p-6 pt-4 sm:pt-6 pb-4 sm:pb-6 max-h-[calc(89vh-100px)] sm:max-h-[calc(94vh-100px)]"
-                  style={{
-                    // Only add extra padding if buttons will actually be shown (user is authenticated and status is pending)
-                    paddingBottom: !loading && event && getStatus(event) === "PENDING" && role && role !== 'public' ? "112px" : ""
-                  }}
-                >
-                  <div className="space-y-6">
+                </div>
+              )}
+
+              {!loading && event && (
+                <div className="flex-1 overflow-y-auto">
+                  <div className="p-4 sm:p-6 space-y-6">
                     <div className="bg-gray-50 shadow-sm rounded-lg p-4">
-                      <div className="flex items-center mb-3">
-                        <CalendarPlus2 className="text-gray-500 mr-2 h-5 w-5" />
-                        <h3 className="text-lg font-medium text-gray-700">
-                          Basic Information
-                        </h3>
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <NotebookText className="text-gray-500 shrink-0 h-5 w-5" />
+                            <h3 className="text-lg font-medium text-gray-700">
+                              {event.title_name || "Event Title"}
+                            </h3>
+                          </div>
+                          <p className="text-sm text-gray-500 flex items-center gap-1.5 mt-1">
+                            <MapPin className="h-4 w-4" />
+                            {assetName}
+                            {startedAgoText && ` • ${startedAgoText}`}
+                          </p>
+                        </div>
+                        <div className="shrink-0">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusColor(
+                              getStatus(event)
+                            )}`}
+                          >
+                            {getStatus(event).charAt(0).toUpperCase() +
+                              getStatus(event).slice(1)}
+                          </span>
+                        </div>
                       </div>
                       <div className="border-b border-gray-300 mb-4" />
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div>
-                          <p className="text-base text-gray-500">Event Title</p>
-                          <p className="font-medium text-base">{event.title_name}</p>
-                        </div>
-                        <div>
-                          <p className="text-base text-gray-500">
-                            Information Type
-                          </p>
-                          <p className="font-medium text-base">{event.info_type || "—"}</p>
-                        </div>
-                        <div>
-                          <p className="text-base text-gray-500">People Tag</p>
-                          <div className="flex flex-wrap gap-2 mt-1">
-                            {event.people_tag && event.people_tag.length > 0 ? (
-                              event.people_tag.map((person) => (
-                                <span
-                                  key={person}
-                                  className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium border border-gray-300 text-gray-800 bg-transparent"
-                                >
-                                  <User className="w-3 h-3 mr-1.5 text-gray-800" />
-                                  {person}
-                                </span>
-                              ))
-                            ) : (
-                              <p className="font-medium">None</p>
-                            )}
+                          <p className="text-base text-gray-500">Date</p>
+                          <div className="flex items-center">
+                            <CalendarPlus2 className="h-4 w-4 mr-1.5 text-gray-500" />
+                            <p className="font-medium text-base">{event.date}</p>
                           </div>
+                        </div>
+                        <div>
+                          <p className="text-base text-gray-500">Info Type</p>
+                          <p className="font-medium text-base">
+                            {event.info_type}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-base text-gray-500">Venue Capacity</p>
+                          <p className="font-medium text-base">
+                            {assetCapacity} people
+                          </p>
                         </div>
                         <div>
                           <p className="text-base text-gray-500">Category</p>
                           <p className="font-medium text-base">
-                            {event.category || "General"}
+                            {event.category}
                           </p>
                         </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-gray-50 shadow-sm rounded-lg p-4">
-                      <div className="flex items-center mb-3">
-                        <MapPin className="text-gray-500 mr-2 h-5 w-5" />
-                        <h3 className="text-lg font-medium text-gray-700">
-                          Asset Information
-                        </h3>
-                      </div>
-                      <div className="border-b border-gray-300 mb-4" />
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-base text-gray-500">Asset Name</p>
-                          <p className="font-medium text-base">{assetName}</p>
-                        </div>
-                        <div>
-                          <p className="text-base text-gray-500">Capacity</p>
-                          <p className="font-medium text-base">{assetCapacity}</p>
-                        </div>
-                        <div>
-                          <p className="text-base text-gray-500">Date</p>
-                          <p className="font-medium text-base">{event.date}</p>
-                        </div>
-                        {assetAminities && (
-                          <div>
-                            <p className="text-base text-gray-500">Facilities</p>
-                            <div className="flex flex-wrap gap-1 mt-1">
+                        {assetAminities && assetAminities.length > 0 && (
+                          <div className="col-span-1 md:col-span-2 lg:col-span-4">
+                            <p className="text-base text-gray-500 mb-2">
+                              Venue Facilities
+                            </p>
+                            <div className="flex flex-wrap gap-2">
                               {assetAminities.map((facility, index) => (
                                 <span
                                   key={index}
-                                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-gray-200 text-gray-700"
+                                  className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium border border-gray-300 text-gray-800 bg-transparent"
                                 >
                                   {facility}
                                 </span>
@@ -499,7 +453,8 @@ export const EventInfoModal = React.memo(function EventInfoModal({
 
                   <Button
                     onClick={handleDecline}
-                    className="inline-flex cursor-pointer items-center justify-center flex-1 max-w-xs px-6 py-5 bg-rose-500 hover:bg-rose-600 text-white font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
+                    disabled={isDeclining}
+                    className="inline-flex cursor-pointer items-center justify-center flex-1 max-w-xs px-6 py-5 bg-rose-500 hover:bg-rose-600 text-white font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isDeclining ? (
                       <>
@@ -550,7 +505,6 @@ export const EventInfoModal = React.memo(function EventInfoModal({
         onConfirm={handleApproveConfirm}
         event={event}
         type="APPROVE"
-      // conflictingReservations={conflictingReservations}
       />
 
       <ConfirmationModal

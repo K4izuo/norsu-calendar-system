@@ -4,11 +4,10 @@ import { useMemo } from "react";
 import { ReservationsTable } from "@/components/user-dashboard-ui/reservations/reservation-table";
 import { EventDetails } from "@/interface/user-props";
 import { useReservations, useAssets } from "@/services/reservation-service";
-import Loading from "../loading";
 
 export default function ReservationsPage() {
-  // Fetch reservations using TanStack Query - smart caching!
-  const { reservations, loading, error } = useReservations();
+  // ✅ PROPER DATA FETCHING: Let TanStack Query and layout handle loading
+  const { reservations, error } = useReservations();
 
   // Get unique asset IDs from reservations
   const assetIds = useMemo(() => {
@@ -55,13 +54,10 @@ export default function ReservationsPage() {
         range: reservation.range,
         registration_status: reservation.status.toUpperCase() as "PENDING" | "APPROVED" | "DECLINED",
         registration_deadline: reservation.date,
-        // Map the user details from API
         reserved_by_user: reservation.reserved_by_user,
-        // Fix: Better fallback that shows "Unknown User" if reserved_by_user is missing
         reserve_by_user: reservation.reserved_by_user
           ? `${reservation.reserved_by_user.first_name} ${reservation.reserved_by_user.last_name}`
           : "Unknown User",
-        // Fix: Map approval/decline details with correct field names from API
         approved_by_user_details: reservation.approved_by_user,
         declined_by_user_details: reservation.declined_by_user,
       };
@@ -70,7 +66,8 @@ export default function ReservationsPage() {
 
   return (
     <div className="flex flex-col max-w-full">
-      {loading && <Loading />}
+      {/* ✅ REMOVED: Layout handles loading state now */}
+
       {/* Error Message */}
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
@@ -80,7 +77,7 @@ export default function ReservationsPage() {
       )}
 
       {/* Pass events instead of reservations */}
-      <ReservationsTable events={events} role="admin" isLoading={loading} />
+      <ReservationsTable events={events} role="admin" isLoading={false} />
     </div>
   );
 }
