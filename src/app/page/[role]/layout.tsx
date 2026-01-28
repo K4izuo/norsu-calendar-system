@@ -99,11 +99,15 @@ export default function RoleLayout({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     const isLoading = isFetching > 0 || isMutating > 0;
 
-    if (!isLoading) {
-      // ✅ NO DELAY - Loading stops EXACTLY when API responds
-      setShowLoading(false);
+    if (!isLoading && showLoading) {
+      // ✅ Small delay to ensure React has finished mounting the new page
+      // This prevents infinite loop on pages with no queries (Dashboard, Accounts)
+      const timer = setTimeout(() => {
+        setShowLoading(false);
+      }, 150);
+      return () => clearTimeout(timer);
     }
-  }, [isFetching, isMutating]);
+  }, [isFetching, isMutating, showLoading]);
 
   return (
     <SidebarProvider>
