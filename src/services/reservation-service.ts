@@ -56,7 +56,7 @@ const fetchPublicAsset = async (id: number): Promise<Asset | null> => {
   return response.data[0];
 };
 
-// ✅ NEW: Approve reservation mutation
+// ✅ Approve reservation mutation
 const approveReservation = async ({ reservationId, userId }: { reservationId: number; userId: string | number }): Promise<void> => {
   const response = await apiClient.put(`/reservations/${reservationId}`, {
     status: 'APPROVED',
@@ -68,7 +68,7 @@ const approveReservation = async ({ reservationId, userId }: { reservationId: nu
   }
 };
 
-// ✅ NEW: Decline reservation mutation  
+// ✅ Decline reservation mutation  
 const declineReservation = async ({ reservationId, userId, reason }: { reservationId: number; userId: string | number; reason?: string }): Promise<void> => {
   const response = await apiClient.put(`/reservations/${reservationId}`, {
     status: 'DECLINED',
@@ -88,11 +88,9 @@ export const useReservations = () => {
   const { data, isFetching, error, refetch } = useQuery({
     queryKey: ['reservations', user?.id],
     queryFn: fetchReservations,
-    // ✅ CRITICAL FIX: Reduced from 5 minutes to 30 seconds
-    // This ensures you see fresh data when navigating between pages
-    staleTime: 30 * 1000, // 30 seconds (was 5 minutes)
+    // ✅ CRITICAL FIX: Set to 0 to force fresh fetch on every mount
+    staleTime: 0, // Was 30 seconds
     refetchOnWindowFocus: false,
-    // ✅ CRITICAL: Refetch stale data when component mounts
     refetchOnMount: true,
     enabled: !isAuthLoading && isAuthenticated,
     retry: (failureCount, error) => {
@@ -116,10 +114,10 @@ export const usePublicReservations = () => {
   const { data, isFetching, error, refetch } = useQuery({
     queryKey: ['public-reservations'],
     queryFn: fetchReservations,
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 0, // Force fresh fetch
     refetchOnWindowFocus: false,
     refetchOnMount: true,
-    enabled: true, // Always enabled, no auth required
+    enabled: true,
     retry: 2,
   });
 
@@ -169,7 +167,7 @@ export const useAssets = (assetIds: number[]) => {
 
       return assets;
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 5 * 60 * 1000, // Assets change less frequently
     enabled: assetIds.length > 0 && !isAuthLoading && isAuthenticated,
   });
 
@@ -218,7 +216,7 @@ export const usePublicAssets = (assetIds: number[]) => {
       return assets;
     },
     staleTime: 5 * 60 * 1000,
-    enabled: assetIds.length > 0, // Always enabled, no auth required
+    enabled: assetIds.length > 0,
     retry: 1,
     retryDelay: 1000,
   });
@@ -248,7 +246,7 @@ export const useAsset = (id: number) => {
   };
 };
 
-// ✅ NEW: Hook to approve a reservation
+// ✅ Hook to approve a reservation
 export const useApproveReservation = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -260,54 +258,28 @@ export const useApproveReservation = () => {
       }
       return approveReservation({ reservationId, userId: user.id });
     },
-    onMutate: async (reservationId) => {
-      // Cancel any outgoing refetches to prevent overwriting optimistic update
-      await queryClient.cancelQueries({ queryKey: ['reservations', user?.id] });
-
-      // Snapshot the previous value
-      const previousReservations = queryClient.getQueryData<ReservationWithRelations[]>(['reservations', user?.id]);
-
-      // Optimistically update the cache
-      if (previousReservations) {
-        queryClient.setQueryData<ReservationWithRelations[]>(
-          ['reservations', user?.id],
-          previousReservations.map(reservation =>
-            reservation.id === reservationId
-              ? { ...reservation, status: 'APPROVED' }
-              : reservation
-          )
-        );
-      }
-
-      // Return context with the previous value
-      return { previousReservations };
-    },
-    onError: (err, reservationId, context) => {
-      // Rollback on error
-      if (context?.previousReservations) {
-        queryClient.setQueryData(['reservations', user?.id], context.previousReservations);
-      }
-      toast.error("Failed to approve reservation");
-    },
     onSuccess: () => {
-      // ✅ CRITICAL: Invalidate and refetch to get fresh data from server
+      // ✅ CRITICAL FIX: Invalidate ALL reservation queries immediately
       queryClient.invalidateQueries({
-        queryKey: ['reservations', user?.id],
-        refetchType: 'active' // Refetch immediately if query is active
+        queryKey: ['reservations'],
+        refetchType: 'all', // Refetch ALL matching queries
       });
 
-      // Also invalidate public reservations if used
       queryClient.invalidateQueries({
         queryKey: ['public-reservations'],
-        refetchType: 'active'
+        refetchType: 'all',
       });
 
       toast.success("Reservation approved successfully!");
     },
+    onError: (err) => {
+      console.error('Approve error:', err);
+      toast.error("Failed to approve reservation");
+    },
   });
 };
 
-// ✅ NEW: Hook to decline a reservation
+// ✅ Hook to decline a reservation
 export const useDeclineReservation = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -319,42 +291,23 @@ export const useDeclineReservation = () => {
       }
       return declineReservation({ reservationId, userId: user.id, reason });
     },
-    onMutate: async ({ reservationId }) => {
-      await queryClient.cancelQueries({ queryKey: ['reservations', user?.id] });
-
-      const previousReservations = queryClient.getQueryData<ReservationWithRelations[]>(['reservations', user?.id]);
-
-      if (previousReservations) {
-        queryClient.setQueryData<ReservationWithRelations[]>(
-          ['reservations', user?.id],
-          previousReservations.map(reservation =>
-            reservation.id === reservationId
-              ? { ...reservation, status: 'DECLINED' }
-              : reservation
-          )
-        );
-      }
-
-      return { previousReservations };
-    },
-    onError: (err, reservationId, context) => {
-      if (context?.previousReservations) {
-        queryClient.setQueryData(['reservations', user?.id], context.previousReservations);
-      }
-      toast.error("Failed to decline reservation");
-    },
     onSuccess: () => {
+      // ✅ CRITICAL FIX: Invalidate ALL reservation queries immediately
       queryClient.invalidateQueries({
-        queryKey: ['reservations', user?.id],
-        refetchType: 'active'
+        queryKey: ['reservations'],
+        refetchType: 'all',
       });
 
       queryClient.invalidateQueries({
         queryKey: ['public-reservations'],
-        refetchType: 'active'
+        refetchType: 'all',
       });
 
       toast.success("Reservation declined successfully!");
+    },
+    onError: (err) => {
+      console.error('Decline error:', err);
+      toast.error("Failed to decline reservation");
     },
   });
 };

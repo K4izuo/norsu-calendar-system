@@ -132,6 +132,7 @@ const createAsset = async (data: AssetRegistrationPayload): Promise<Asset> => {
 export const campusesQueryOptions = {
   queryKey: queryKeys.campuses,
   queryFn: fetchCampuses,
+  // ✅ These can have longer staleTime since they rarely change
   staleTime: 30 * 60 * 1000, // 30 minutes
   gcTime: 60 * 60 * 1000, // 1 hour
 } as const;
@@ -190,7 +191,8 @@ export const useAssets = () => {
   const query = useQuery({
     queryKey: queryKeys.assets(user?.id),
     queryFn: fetchAssets,
-    staleTime: 1 * 60 * 1000, // 1 minute
+    // ✅ CRITICAL FIX: Set to 0 to force fresh fetch on every mount
+    staleTime: 0, // Was 1 minute
     gcTime: 5 * 60 * 1000, // 5 minutes
     enabled: !isAuthLoading && isAuthenticated,
     retry: (failureCount, error) => {
@@ -213,18 +215,15 @@ export const useAssets = () => {
 // ============ MUTATIONS ============
 export const useCreateAsset = () => {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
 
   return useMutation({
     mutationFn: createAsset,
-    onSuccess: (newAsset) => {
-      // Optimistic update
-      queryClient.setQueryData<Asset[]>(queryKeys.assets(user?.id), (old) => {
-        return old ? [...old, newAsset] : [newAsset];
+    onSuccess: () => {
+      // ✅ CRITICAL FIX: Invalidate ALL asset queries immediately
+      queryClient.invalidateQueries({
+        queryKey: ['assets'],
+        refetchType: 'all'
       });
-
-      // Invalidate to ensure consistency
-      queryClient.invalidateQueries({ queryKey: queryKeys.assets(user?.id) });
 
       toast.success("Asset registered successfully!");
     },

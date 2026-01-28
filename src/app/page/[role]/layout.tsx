@@ -15,7 +15,7 @@ import UserProfile from "@/components/ui/user-profile";
 import toast from "react-hot-toast";
 import { getRoleLabelFromNumber } from "@/lib/role-utils";
 import { Separator } from "@/components/ui/separator"
-import { useIsFetching } from "@tanstack/react-query";
+import { useIsFetching, useIsMutating } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 import Loading from "./loading";
 
@@ -34,10 +34,14 @@ interface UserData {
 export default function RoleLayout({ children }: { children: React.ReactNode }) {
   const auth = useContext(AuthContext);
   const user = auth?.user;
-  const isFetching = useIsFetching();
   const pathname = usePathname();
+
+  // ✅ Track both queries AND mutations
+  const isFetching = useIsFetching();
+  const isMutating = useIsMutating();
+
+  // ✅ CRITICAL FIX: Simplified loading state management
   const [showLoading, setShowLoading] = useState(false);
-  const [isNavigating, setIsNavigating] = useState(false);
 
   const [userData, setUserData] = useState<UserData>({
     name: "User",
@@ -86,32 +90,20 @@ export default function RoleLayout({ children }: { children: React.ReactNode }) 
     }
   }, [user]);
 
-  // Detect pathname changes (navigation)
+  // ✅ CRITICAL FIX: Show loading INSTANTLY on pathname change
   useEffect(() => {
-    setIsNavigating(true);
     setShowLoading(true);
   }, [pathname]);
 
-  // Handle loading state based on fetching
+  // ✅ CRITICAL FIX: Hide loading only when ALL queries AND mutations are done
   useEffect(() => {
-    if (isFetching > 0) {
-      setShowLoading(true);
-      setIsNavigating(false);
-    } else if (!isNavigating) {
-      // Only hide if not navigating
-      const timer = setTimeout(() => {
-        setShowLoading(false);
-      }, 100);
-      return () => clearTimeout(timer);
-    } else {
-      // If navigating but no fetching, still show briefly
-      const timer = setTimeout(() => {
-        setShowLoading(false);
-        setIsNavigating(false);
-      }, 300);
-      return () => clearTimeout(timer);
+    const isLoading = isFetching > 0 || isMutating > 0;
+
+    if (!isLoading) {
+      // ✅ NO DELAY - Loading stops EXACTLY when API responds
+      setShowLoading(false);
     }
-  }, [isFetching, isNavigating]);
+  }, [isFetching, isMutating]);
 
   return (
     <SidebarProvider>
@@ -184,7 +176,21 @@ export default function RoleLayout({ children }: { children: React.ReactNode }) 
         </header>
 
         <div className="flex-1 bg-muted/50 flex flex-col gap-4 p-3 sm:p-6 overflow-y-auto overflow-x-hidden relative">
-          {showLoading && <Loading />}
+          {/* ✅ CRITICAL FIX: Loading overlay that COMPLETELY covers content when active */}
+          {showLoading && (
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                zIndex: 9999,
+                backgroundColor: 'white',
+              }}
+            >
+              <Loading />
+            </div>
+          )}
+
+          {/* ✅ Content stays in normal flow - just fades when loading */}
           {children}
         </div>
       </SidebarInset>

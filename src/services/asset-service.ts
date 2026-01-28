@@ -55,14 +55,13 @@ export const useAssets = () => {
   const { data, isFetching, error, refetch } = useQuery({
     queryKey: ['assets', user?.id],
     queryFn: fetchAssets,
-    staleTime: 1 * 60 * 1000, // 1 minute
+    // ✅ CRITICAL FIX: Set to 0 to force fresh fetch on every mount
+    staleTime: 0, // Was 1 minute
     gcTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: true,
-    refetchOnMount: true, // ✅ CRITICAL: Refetch every time component mounts
-    // Critical: Only fetch when auth is loaded AND user is authenticated
+    refetchOnWindowFocus: false,
+    refetchOnMount: true, // ✅ Always refetch when component mounts
     enabled: !isAuthLoading && isAuthenticated,
     retry: (failureCount, error) => {
-      // Don't retry on 401 errors
       if (error instanceof Error && error.message.includes('401')) {
         return false;
       }
@@ -81,18 +80,15 @@ export const useAssets = () => {
 // Hook to create asset
 export const useCreateAsset = () => {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
 
   return useMutation({
     mutationFn: createAsset,
-    onSuccess: (newAsset) => {
-      // Optimistic update
-      queryClient.setQueryData<Asset[]>(['assets', user?.id], (old) => {
-        return old ? [...old, newAsset] : [newAsset];
+    onSuccess: () => {
+      // ✅ CRITICAL FIX: Invalidate ALL asset queries immediately
+      queryClient.invalidateQueries({
+        queryKey: ['assets'],
+        refetchType: 'all', // Refetch ALL matching queries
       });
-
-      // Invalidate to ensure data consistency
-      queryClient.invalidateQueries({ queryKey: ['assets', user?.id] });
 
       toast.success('Asset registered successfully!', {
         position: 'top-right',

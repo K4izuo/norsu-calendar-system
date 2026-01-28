@@ -8,18 +8,17 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
-        // ✅ CRITICAL: Data is fresh for 30 seconds, then refetch
-        // This ensures you see real-time data while minimizing unnecessary requests
-        staleTime: 30 * 1000, // 30 seconds
+        // ✅ CRITICAL FIX: Set staleTime to 0 to always show loading on navigation
+        // This forces queries to be treated as stale immediately
+        staleTime: 0, // Was 30 seconds - this caused instant cached data display
 
-        // ✅ Keep unused data in cache for 5 minutes
+        // ✅ Keep unused data in cache for 5 minutes for back navigation
         gcTime: 5 * 60 * 1000, // 5 minutes
 
-        // ✅ Don't refetch when window regains focus (prevents surprise refetches)
+        // ✅ Don't refetch when window regains focus
         refetchOnWindowFocus: false,
 
-        // ✅ CRITICAL FOR REAL-TIME: Refetch on mount if data is stale
-        // This is the key to showing loading states and fetching fresh data
+        // ✅ CRITICAL: Refetch on mount if data is stale
         refetchOnMount: true,
 
         // ✅ Refetch on reconnect to get latest data after connection loss
@@ -32,9 +31,9 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
         // ✅ Network mode
         networkMode: 'online',
 
-        // ✅ CRITICAL: Keep previous data while refetching
-        // This prevents UI flicker - old data stays visible until new data arrives
-        placeholderData: (previousData: unknown) => previousData,
+        // ✅ CRITICAL FIX: Remove placeholderData to prevent showing stale data
+        // This was the main issue - it was showing old data immediately
+        // placeholderData: (previousData: unknown) => previousData, // REMOVED
       },
       mutations: {
         retry: 1,
