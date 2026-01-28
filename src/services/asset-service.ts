@@ -2,7 +2,7 @@ import { apiClient } from "@/lib/api-client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { AssetRegistrationPayload } from "@/interface/user-props";
-import { useAuth } from "@/contexts/auth-context"; // Import auth context
+import { useAuth } from "@/contexts/auth-context";
 
 export type Asset = {
   id: number;
@@ -58,6 +58,7 @@ export const useAssets = () => {
     staleTime: 1 * 60 * 1000, // 1 minute
     gcTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: true,
+    refetchOnMount: true, // ✅ CRITICAL: Refetch every time component mounts
     // Critical: Only fetch when auth is loaded AND user is authenticated
     enabled: !isAuthLoading && isAuthenticated,
     retry: (failureCount, error) => {

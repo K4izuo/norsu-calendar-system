@@ -34,7 +34,7 @@ export default function CalendarPage() {
 
   const [showRecent, setShowRecent] = useState(false);
 
-  // ✅ PROPER DATA FETCHING: Let TanStack Query handle loading states
+  // Data fetching - TanStack Query handles caching
   const { reservations, error } = useReservations();
 
   const assetIds = useMemo(() => {
@@ -154,8 +154,6 @@ export default function CalendarPage() {
 
   return (
     <div className="h-full flex flex-col max-w-full min-h-125">
-      {/* ✅ REMOVED: Layout handles loading state now */}
-
       <h1 className="text-2xl sm:text-3xl font-normal leading-tight mb-4 sm:mb-6 px-2 sm:px-0">
         Admin Calendar
       </h1>

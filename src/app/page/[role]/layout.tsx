@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useContext } from "react";
-import { usePathname } from "next/navigation";
 import {
   Search,
   Bell,
@@ -16,8 +15,9 @@ import UserProfile from "@/components/ui/user-profile";
 import toast from "react-hot-toast";
 import { getRoleLabelFromNumber } from "@/lib/role-utils";
 import { Separator } from "@/components/ui/separator"
-import Loading from "./loading";
 import { useIsFetching } from "@tanstack/react-query";
+import { usePathname } from "next/navigation";
+import Loading from "./loading";
 
 import { AppSidebar } from "@/components/app-sidebar"
 import {
@@ -34,30 +34,15 @@ interface UserData {
 export default function RoleLayout({ children }: { children: React.ReactNode }) {
   const auth = useContext(AuthContext);
   const user = auth?.user;
-  const pathname = usePathname();
-
-  // Track navigation state
-  const [isNavigating, setIsNavigating] = useState(false);
-
-  // Track if ANY queries are currently fetching
   const isFetching = useIsFetching();
+  const pathname = usePathname();
+  const [showLoading, setShowLoading] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const [userData, setUserData] = useState<UserData>({
     name: "User",
     role: 4
   });
-
-  // ✅ PROPER NAVIGATION TRACKING: Show loading immediately on route change
-  useEffect(() => {
-    setIsNavigating(true);
-
-    // Keep navigation flag active briefly to ensure smooth transition
-    const timer = setTimeout(() => {
-      setIsNavigating(false);
-    }, 150);
-
-    return () => clearTimeout(timer);
-  }, [pathname]);
 
   useEffect(() => {
     try {
@@ -101,8 +86,32 @@ export default function RoleLayout({ children }: { children: React.ReactNode }) 
     }
   }, [user]);
 
-  // ✅ CRITICAL: Show loading if navigating OR any queries are fetching
-  const shouldShowLoading = isNavigating || isFetching > 0;
+  // Detect pathname changes (navigation)
+  useEffect(() => {
+    setIsNavigating(true);
+    setShowLoading(true);
+  }, [pathname]);
+
+  // Handle loading state based on fetching
+  useEffect(() => {
+    if (isFetching > 0) {
+      setShowLoading(true);
+      setIsNavigating(false);
+    } else if (!isNavigating) {
+      // Only hide if not navigating
+      const timer = setTimeout(() => {
+        setShowLoading(false);
+      }, 100);
+      return () => clearTimeout(timer);
+    } else {
+      // If navigating but no fetching, still show briefly
+      const timer = setTimeout(() => {
+        setShowLoading(false);
+        setIsNavigating(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isFetching, isNavigating]);
 
   return (
     <SidebarProvider>
@@ -175,8 +184,8 @@ export default function RoleLayout({ children }: { children: React.ReactNode }) 
         </header>
 
         <div className="flex-1 bg-muted/50 flex flex-col gap-4 p-3 sm:p-6 overflow-y-auto overflow-x-hidden relative">
-          {/* ✅ PROPER LOADING: Show when navigating OR fetching data */}
-          {shouldShowLoading ? <Loading /> : children}
+          {showLoading && <Loading />}
+          {children}
         </div>
       </SidebarInset>
     </SidebarProvider>

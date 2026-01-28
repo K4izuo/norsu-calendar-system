@@ -6,8 +6,8 @@ import { EventDetails } from "@/interface/user-props";
 import { useReservations, useAssets } from "@/services/reservation-service";
 
 export default function ReservationsPage() {
-  // ✅ PROPER DATA FETCHING: Let TanStack Query and layout handle loading
-  const { reservations, error } = useReservations();
+  // Data fetching - TanStack Query handles caching
+  const { reservations, error, loading } = useReservations();
 
   // Get unique asset IDs from reservations
   const assetIds = useMemo(() => {
@@ -66,8 +66,6 @@ export default function ReservationsPage() {
 
   return (
     <div className="flex flex-col max-w-full">
-      {/* ✅ REMOVED: Layout handles loading state now */}
-
       {/* Error Message */}
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
@@ -77,7 +75,11 @@ export default function ReservationsPage() {
       )}
 
       {/* Pass events instead of reservations */}
-      <ReservationsTable events={events} role="admin" isLoading={false} />
+      <ReservationsTable
+        events={events}
+        role="admin"
+        isLoading={loading}
+      />
     </div>
   );
 }

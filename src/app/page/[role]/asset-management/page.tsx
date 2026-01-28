@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useTransition } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,17 +26,20 @@ export default function AssetsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [isPending, startTransition] = useTransition();
 
   const queryClient = useQueryClient();
 
-  // ✅ Prefetch data on mount
+  // Prefetch data on mount
   useEffect(() => {
-    queryClient.prefetchQuery(campusesQueryOptions);
-    queryClient.prefetchQuery(officesQueryOptions);
+    startTransition(() => {
+      queryClient.prefetchQuery(campusesQueryOptions);
+      queryClient.prefetchQuery(officesQueryOptions);
+    });
   }, [queryClient]);
 
-  // ✅ PROPER DATA FETCHING: Let TanStack Query and layout handle loading
-  const { assets, error, refetch } = useAssets();
+  // Data fetching - TanStack Query handles caching
+  const { assets, error, refetch, loading } = useAssets();
   const { mutateAsync: createAsset } = useCreateAsset();
 
   const filteredAssets = useMemo(() => {
@@ -64,8 +67,6 @@ export default function AssetsPage() {
 
   return (
     <div className="flex flex-col w-full min-w-0">
-      {/* ✅ REMOVED: Layout handles loading state now */}
-
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Assets Management</h1>
       </div>
@@ -145,7 +146,7 @@ export default function AssetsPage() {
       <AssetsTable
         assets={filteredAssets}
         role="admin"
-        isLoading={false}
+        isLoading={loading || isPending}
         onAssetClick={handleAssetClick}
       />
 
