@@ -1,47 +1,17 @@
 "use client";
 
-// import { useState } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { CalendarClock } from "lucide-react"
-import { motion } from "framer-motion";
-import { UserRole } from "@/utils/role-colors"
 import { Asset } from "@/services/asset-service"
-
-const getRoleLoadingColors = (role: UserRole) => {
-  const colorMap = {
-    dean: {
-      spinner: "border-blue-500",
-      icon: "text-blue-500",
-    },
-    staff: {
-      spinner: "border-purple-500",
-      icon: "text-purple-500",
-    },
-    admin: {
-      spinner: "border-gray-800",
-      icon: "text-gray-800",
-    },
-    public: {
-      spinner: "border-teal-500",
-      icon: "text-teal-500",
-    },
-  };
-
-  return colorMap[role || "public"];
-};
 
 interface AssetsTableProps {
   assets: Asset[];
   isLoading?: boolean;
-  role: UserRole;
   onAssetClick?: (asset: Asset) => void;
 }
 
-export function AssetsTable({ assets, isLoading = false, role, onAssetClick }: AssetsTableProps) {
-  const roleLoadingColors = getRoleLoadingColors(role);
-
+export function AssetsTable({ assets, onAssetClick }: AssetsTableProps) {
   const getStatusColor = (status: string) => {
-    if (!status) return 'bg-gray-100 text-gray-800'; // ← Add this check
+    if (!status) return 'bg-gray-100 text-gray-800';
     const statusUpper = status.toUpperCase();
     if (statusUpper === 'AVAILABLE') return 'bg-green-100 text-green-800';
     if (statusUpper === 'IN_USE') return 'bg-blue-100 text-blue-800';
@@ -51,7 +21,7 @@ export function AssetsTable({ assets, isLoading = false, role, onAssetClick }: A
   };
 
   const getConditionColor = (condition: string) => {
-    if (!condition) return 'text-gray-600'; // ← Add this check too
+    if (!condition) return 'text-gray-600';
     const conditionLower = condition.toLowerCase();
     if (conditionLower === 'excellent') return 'text-green-600';
     if (conditionLower === 'good') return 'text-blue-600';
@@ -72,27 +42,7 @@ export function AssetsTable({ assets, isLoading = false, role, onAssetClick }: A
   return (
     <div className="w-full rounded-md">
       <div className="rounded-md text-card-foreground border shadow overflow-hidden overflow-x-auto">
-        {isLoading ? (
-          <motion.div
-            className="flex items-center justify-center py-20"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="relative h-16 w-16 flex items-center justify-center">
-              <motion.div
-                className={`absolute inset-0 h-16 w-16 rounded-full border-t-4 border-b-4 ${roleLoadingColors.spinner}`}
-                animate={{ rotate: 360 }}
-                transition={{
-                  duration: 1.5,
-                  ease: "linear",
-                  repeat: Infinity,
-                }}
-              />
-              <CalendarClock className={`absolute inset-0 m-auto h-7 w-7 ${roleLoadingColors.icon}`} />
-            </div>
-          </motion.div>
-        ) : assets.length === 0 ? (
+        {assets.length === 0 ? (
           <div className="flex items-center justify-center py-20 bg-white">
             <div className="text-center">
               <p className="text-gray-500 text-lg">No assets found</p>

@@ -388,7 +388,7 @@ export function Calendar<T>({
                       <>
                         {/* Desktop/Tablet: Top-left calendar icon and count */}
                         <motion.div
-                          className={`hidden sm:inline-flex items-center ${roleColors.todayText} px-1 sm:px-1.5 py-0.5 rounded-xl text-xs sm:text-sm md:text-base font-semibold absolute top-1.75 left-0.75`}
+                          className={`hidden sm:inline-flex items-center ${role === 'admin' ? 'text-gray-700' : roleColors.todayText} px-1 sm:px-1.5 py-0.5 rounded-xl text-xs sm:text-sm md:text-base font-semibold absolute top-1.75 left-0.75`}
                           initial={{ scale: 0, opacity: 0 }}
                           animate={{
                             scale: 1,
@@ -421,7 +421,7 @@ export function Calendar<T>({
                             },
                           }}
                         >
-                          <div className={`inline-flex items-center ${roleColors.todayText} px-1 py-0.5 rounded-xl text-xs xs:text-sm font-semibold w-min`}>
+                          <div className={`inline-flex items-center ${role === 'admin' ? 'text-gray-700' : roleColors.todayText} px-1 py-0.5 rounded-xl text-xs xs:text-sm font-semibold w-min`}>
                             <CalendarClock size={12} className="mr-0.5" />
                             <span>{day.eventCount}</span>
                           </div>
@@ -439,7 +439,7 @@ export function Calendar<T>({
                             },
                           }}
                         >
-                          <span className={`${roleColors.todayText} text-xs sm:text-xs md:text-sm lg:text-base font-medium px-2 py-0.5 rounded pointer-events-auto translate-y-3`}>
+                          <span className={`${role === 'admin' ? 'text-gray-700' : roleColors.todayText} text-xs sm:text-xs md:text-sm lg:text-base font-medium px-2 py-0.5 rounded pointer-events-auto translate-y-3`}>
                             {day.eventCount === 1
                               ? "Event"
                               : "Events..."}
