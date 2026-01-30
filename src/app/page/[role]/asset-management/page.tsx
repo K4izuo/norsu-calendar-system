@@ -145,7 +145,7 @@ export default function AssetsPage() {
 
       <AssetsTable
         assets={filteredAssets}
-        role="admin"
+        // role="admin"
         isLoading={loading || isPending}
         onAssetClick={handleAssetClick}
       />

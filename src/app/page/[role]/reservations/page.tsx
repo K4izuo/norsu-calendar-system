@@ -77,7 +77,7 @@ export default function ReservationsPage() {
       {/* Pass events instead of reservations */}
       <ReservationsTable
         events={events}
-        role="admin"
+        // role="admin"
         isLoading={loading}
       />
     </div>
