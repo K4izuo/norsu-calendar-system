@@ -8,6 +8,7 @@ import { EventDetails, CalendarDayType } from "@/interface/user-props";
 import { useReservations, useAssets } from "@/services/reservation-service";
 import { useQueryClient } from "@tanstack/react-query";
 import { getUserId } from "@/lib/auth";
+import { getPhilippineMonth, getPhilippineYear } from "@/lib/timezone-utils";
 
 // Helper function to check if an event has finished
 const isEventFinished = (eventDate: string, timeEnd: string): boolean => {
@@ -26,8 +27,10 @@ export default function CalendarPage() {
   const [eventInfoModalOpen, setEventInfoModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventDetails | undefined>(undefined);
   const [selectedDay, setSelectedDay] = useState<CalendarDayType | null>(null);
-  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
-  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+
+  // FIX: Use Philippine timezone instead of server timezone
+  const [currentMonth, setCurrentMonth] = useState(getPhilippineMonth());
+  const [currentYear, setCurrentYear] = useState(getPhilippineYear());
 
   const [eventInfoLoading, setEventInfoLoading] = useState(false);
   const [eventsListLoading, setEventsListLoading] = useState(false);
@@ -171,7 +174,6 @@ export default function CalendarPage() {
           events={calendarEvents}
           onDaySelect={handleDaySelect}
           getEventsForDate={getEventsForDate}
-          initialDate={new Date()}
           currentMonth={currentMonth}
           currentYear={currentYear}
           onMonthYearChange={handleMonthYearChange}
