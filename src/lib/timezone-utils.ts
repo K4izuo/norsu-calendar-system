@@ -8,12 +8,33 @@
  * Works consistently on both server (Vercel/UTC) and client
  */
 export function getPhilippineDate(): Date {
-  // Create a date in Philippine timezone (Asia/Manila = UTC+8)
-  const phpDate = new Date(new Date().toLocaleString('en-US', {
-    timeZone: 'Asia/Manila'
-  }));
-
-  return phpDate;
+  const now = new Date();
+  
+  // Get Philippine time components using Intl.DateTimeFormat
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Manila',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  });
+  
+  const parts = formatter.formatToParts(now);
+  const getValue = (type: string) => parts.find(p => p.type === type)?.value || '0';
+  
+  // Construct date in Philippine timezone
+  // This works consistently regardless of server timezone
+  return new Date(
+    parseInt(getValue('year')),
+    parseInt(getValue('month')) - 1, // Month is 0-indexed
+    parseInt(getValue('day')),
+    parseInt(getValue('hour')),
+    parseInt(getValue('minute')),
+    parseInt(getValue('second'))
+  );
 }
 
 /**
