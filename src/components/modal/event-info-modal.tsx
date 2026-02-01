@@ -208,7 +208,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
               exit={{ opacity: 0, y: 4 }}
               transition={{
                 type: "tween",
-                duration: 0.25,
+                duration: 0.15,
                 ease: [0.22, 1, 0.36, 1],
               }}
               className="relative w-full max-w-4xl max-h-[90vh] bg-white rounded-xl shadow-2xl flex flex-col"
