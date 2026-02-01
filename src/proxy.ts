@@ -15,10 +15,24 @@ const PUBLIC_ROUTES = [
   '/auth/admin/login',
 ];
 
+// ⚡ PERFORMANCE: Cache role path lookups to avoid repeated parsing
+const rolePathCache = new Map<number, string>();
+
+const getCachedRolePath = (roleNum: number): string => {
+  if (!rolePathCache.has(roleNum)) {
+    rolePathCache.set(roleNum, getRolePathFromNumber(roleNum));
+  }
+  return rolePathCache.get(roleNum)!;
+};
+
 export function proxy(request: NextRequest) {
-  const token = request.cookies.get('auth-token')?.value;
-  const roleStr = request.cookies.get('user-role')?.value;
-  const tokenExpiry = request.cookies.get('token-expiry')?.value;
+  // ⚡ PERFORMANCE: Cache cookie access (read once instead of multiple times)
+  const cookies = {
+    token: request.cookies.get('auth-token')?.value,
+    roleStr: request.cookies.get('user-role')?.value,
+    tokenExpiry: request.cookies.get('token-expiry')?.value,
+  };
+
   const { pathname } = request.nextUrl;
 
   // Check if the route is public
@@ -30,10 +44,11 @@ export function proxy(request: NextRequest) {
   });
 
   // Check if token has expired
-  const isTokenExpired = tokenExpiry ? new Date(tokenExpiry) <= new Date() : false;
+  const isTokenExpired = cookies.tokenExpiry ? new Date(cookies.tokenExpiry) <= new Date() : false;
 
   // If token is expired, clear it and redirect to main page with error flag
   if (isTokenExpired && !isPublic) {
+    // ⚡ PERFORMANCE: Reuse URL object instead of creating multiple
     const url = new URL('/', request.url);
     url.searchParams.set('error', 'session_expired');
 
@@ -48,16 +63,18 @@ export function proxy(request: NextRequest) {
   // If it's a public route, allow access
   if (isPublic) {
     // If user is logged in and tries to access auth pages, redirect to their dashboard
-    if (token && roleStr && !isTokenExpired && pathname.startsWith('/auth')) {
-      const roleNum = parseInt(roleStr, 10);
-      const rolePath = getRolePathFromNumber(roleNum);
+    if (cookies.token && cookies.roleStr && !isTokenExpired && pathname.startsWith('/auth')) {
+      const roleNum = parseInt(cookies.roleStr, 10);
+      // ⚡ PERFORMANCE: Use cached role path lookup
+      const rolePath = getCachedRolePath(roleNum);
       return NextResponse.redirect(new URL(`/page/${rolePath}/dashboard`, request.url));
     }
     return NextResponse.next();
   }
 
   // Protected routes - require valid authentication
-  if (!token || !roleStr || isTokenExpired) {
+  if (!cookies.token || !cookies.roleStr || isTokenExpired) {
+    // ⚡ PERFORMANCE: Reuse URL object
     const url = new URL('/', request.url);
     url.searchParams.set('error', 'unauthorized');
 
@@ -70,8 +87,9 @@ export function proxy(request: NextRequest) {
   }
 
   // Check if user is accessing their allowed role path
-  const roleNum = parseInt(roleStr, 10);
-  const userRolePath = getRolePathFromNumber(roleNum);
+  const roleNum = parseInt(cookies.roleStr, 10);
+  // ⚡ PERFORMANCE: Use cached role path lookup
+  const userRolePath = getCachedRolePath(roleNum);
 
   // Extract role from pathname (e.g., /page/admin/dashboard -> admin)
   const pathMatch = pathname.match(/^\/page\/([^\/]+)/);

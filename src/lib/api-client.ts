@@ -22,12 +22,40 @@ const buildUrl = (endpoint: string): string => {
   return `${API_BASE_URL}${path}`;
 };
 
-const buildHeaders = (token: string | null, customHeaders?: Record<string, string>) => ({
-  'Accept': 'application/json',
-  'Content-Type': 'application/json',
-  ...(token && { 'Authorization': `Bearer ${token}` }),
-  ...customHeaders,
-});
+// ⚡ PERFORMANCE: Memoized header construction to avoid recreating objects
+const headerCache = new Map<string, Record<string, string>>();
+
+const buildHeaders = (token: string | null, customHeaders?: Record<string, string>): Record<string, string> => {
+  const cacheKey = `${token || 'none'}-${JSON.stringify(customHeaders || {})}`;
+  
+  if (headerCache.has(cacheKey)) {
+    return headerCache.get(cacheKey)!;
+  }
+
+  const headers = {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    // ⚡ PERFORMANCE: Enable HTTP caching for GET requests
+    'Cache-Control': 'public, max-age=120', // 2 minutes
+    // ⚡ PERFORMANCE: Keep connection alive for connection pooling
+    'Connection': 'keep-alive',
+    ...(token && { 'Authorization': `Bearer ${token}` }),
+    ...customHeaders,
+  };
+
+  headerCache.set(cacheKey, headers);
+  
+  // Clear cache periodically to prevent memory leaks
+  if (headerCache.size > 100) {
+    const keysIterator = headerCache.keys();
+    const firstKey = keysIterator.next().value;
+    if (firstKey) {
+      headerCache.delete(firstKey);
+    }
+  }
+
+  return headers;
+};
 
 const handleUnauthorized = () => {
   removeAuthToken();
@@ -89,7 +117,7 @@ export const apiClient = {
     endpoint: string,
     method: RequestMethod = 'GET',
     data?: D,
-    customOptions: Omit<RequestOptions, 'body'> = {}
+    customOptions: Omit<RequestOptions, 'body'> & { signal?: AbortSignal } = {}
   ): Promise<ApiResponse<T>> {
     const token = getAuthToken();
     const url = buildUrl(endpoint);
@@ -107,6 +135,8 @@ export const apiClient = {
       method,
       headers: buildHeaders(token, customOptions.headers),
       credentials: customOptions.credentials || 'include',
+      // ⚡ PERFORMANCE: Support AbortSignal for request cancellation
+      signal: customOptions.signal,
       ...(data && { body: JSON.stringify(data) })
     };
 
@@ -141,6 +171,15 @@ export const apiClient = {
 
       return { data: responseData, error: null, status: response.status };
     } catch (error) {
+      // ⚡ PERFORMANCE: Don't treat AbortError as actual error
+      if (error instanceof Error && error.name === 'AbortError') {
+        return {
+          data: null,
+          error: 'Request cancelled',
+          status: 0
+        };
+      }
+      
       return {
         data: null,
         error: error instanceof Error ? error.message : 'Network error',

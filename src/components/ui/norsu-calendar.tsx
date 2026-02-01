@@ -49,9 +49,16 @@ export function Calendar<T>({
 
   // Animation direction state
   const [direction, setDirection] = useState(0);
+  
+  // ⚡ PERFORMANCE: Debounce state for rapid navigation prevention
+  const [isNavigating, setIsNavigating] = useState(false);
 
+  // ⚡ PERFORMANCE: Debounced navigation functions to prevent rapid clicking issues
   // Navigation functions
   const goToPreviousMonth = useCallback(() => {
+    if (isNavigating) return; // Prevent rapid clicks
+    
+    setIsNavigating(true);
     setDirection(-1);
 
     setTimeout(() => {
@@ -60,10 +67,14 @@ export function Calendar<T>({
       } else {
         onMonthYearChange(currentMonth - 1, currentYear);
       }
+      setIsNavigating(false);
     }, 100);
-  }, [currentMonth, currentYear, onMonthYearChange]);
+  }, [currentMonth, currentYear, onMonthYearChange, isNavigating]);
 
   const goToNextMonth = useCallback(() => {
+    if (isNavigating) return; // Prevent rapid clicks
+    
+    setIsNavigating(true);
     setDirection(1);
 
     setTimeout(() => {
@@ -72,8 +83,9 @@ export function Calendar<T>({
       } else {
         onMonthYearChange(currentMonth + 1, currentYear);
       }
+      setIsNavigating(false);
     }, 100);
-  }, [currentMonth, currentYear, onMonthYearChange]);
+  }, [currentMonth, currentYear, onMonthYearChange, isNavigating]);
 
   const goToToday = useCallback(() => {
     // FIX: Use Philippine time for "Today" button

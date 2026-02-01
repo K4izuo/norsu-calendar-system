@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, ReactNode, useMemo } from 'react';
 
 interface NavigationContextType {
   isNavigating: boolean;
@@ -13,6 +13,7 @@ const NavigationContext = createContext<NavigationContextType | undefined>(undef
 export function NavigationProvider({ children }: { children: ReactNode }) {
   const [isNavigating, setIsNavigating] = useState(false);
 
+  // ⚡ PERFORMANCE: Memoize actions (already done - good!)
   const startNavigation = useCallback(() => {
     setIsNavigating(true);
   }, []);
@@ -21,8 +22,15 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
     setIsNavigating(false);
   }, []);
 
+  // ⚡ PERFORMANCE: Memoize context value to prevent re-renders
+  const contextValue = useMemo<NavigationContextType>(() => ({
+    isNavigating,
+    startNavigation,
+    endNavigation
+  }), [isNavigating, startNavigation, endNavigation]);
+
   return (
-    <NavigationContext.Provider value={{ isNavigating, startNavigation, endNavigation }}>
+    <NavigationContext.Provider value={contextValue}>
       {children}
     </NavigationContext.Provider>
   );

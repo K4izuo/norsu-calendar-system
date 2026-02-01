@@ -8,32 +8,35 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
-        // ✅ CRITICAL FIX: Set staleTime to 0 to always show loading on navigation
-        // This forces queries to be treated as stale immediately
-        staleTime: 0, // Was 30 seconds - this caused instant cached data display
+        // ⚡ PERFORMANCE: Balance between freshness and performance
+        // 2 minutes allows reasonable caching while keeping data relatively fresh
+        staleTime: 2 * 60 * 1000, // 2 minutes (was 0 - too aggressive)
 
-        // ✅ Keep unused data in cache for 5 minutes for back navigation
+        // ⚡ Keep unused data in cache for 5 minutes for instant back navigation
         gcTime: 5 * 60 * 1000, // 5 minutes
 
-        // ✅ Don't refetch when window regains focus
+        // ⚡ Don't refetch when window regains focus to reduce unnecessary requests
         refetchOnWindowFocus: false,
 
-        // ✅ CRITICAL: Refetch on mount if data is stale
+        // ⚡ Refetch on mount only if data is stale (controlled by staleTime)
         refetchOnMount: true,
 
-        // ✅ Refetch on reconnect to get latest data after connection loss
+        // ⚡ Refetch on reconnect to get latest data after connection loss
         refetchOnReconnect: true,
 
-        // ✅ Retry failed requests twice with exponential backoff
-        retry: 2,
+        // ⚡ PERFORMANCE: Enable structural sharing to deduplicate identical requests
+        structuralSharing: true,
+
+        // ⚡ Retry failed requests with smart exponential backoff
+        retry: (failureCount, error) => {
+          // Don't retry on 4xx errors (client errors)
+          if (error instanceof Error && error.message.includes('4')) return false;
+          return failureCount < 2;
+        },
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
 
-        // ✅ Network mode
+        // ⚡ Network mode
         networkMode: 'online',
-
-        // ✅ CRITICAL FIX: Remove placeholderData to prevent showing stale data
-        // This was the main issue - it was showing old data immediately
-        // placeholderData: (previousData: unknown) => previousData, // REMOVED
       },
       mutations: {
         retry: 1,

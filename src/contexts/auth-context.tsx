@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
 import { getAuthToken, removeAuthToken } from '@/lib/auth';
@@ -16,13 +16,19 @@ interface User {
   role: Role;
 }
 
-interface AuthContextType {
-  user: User;
+// ⚡ PERFORMANCE: Split context into state and actions for better optimization
+interface AuthState {
+  user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+}
+
+interface AuthActions {
   login: (userData: User) => void;
   logout: () => void;
 }
+
+interface AuthContextType extends AuthState, AuthActions {}
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -31,6 +37,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
+
+  // ⚡ PERFORMANCE: Memoize actions to prevent re-renders
+  const login = useCallback((userData: User) => {
+    setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
+  }, []);
+
+  const logout = useCallback(() => {
+    setUser(null);
+    localStorage.removeItem('user');
+    removeAuthToken();
+    router.replace('/auth/login');
+  }, [router]);
 
   // Fetch user data from backend if token exists
   useEffect(() => {
@@ -43,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
 
+        // ⚡ PERFORMANCE: /me endpoint is now cached via React Query in api-client
         // Fetch fresh user data from backend
         const response = await apiClient.get<{ user: User; role: number }>('/me');
 
@@ -99,26 +119,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user, isLoading, pathname, router]);
 
-  const login = (userData: User) => {
-    setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
-  };
-
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
-    removeAuthToken();
-    router.replace('/auth/login');
-  };
+  // ⚡ PERFORMANCE: Memoize context value to prevent unnecessary re-renders
+  // Only re-create when actual values change
+  const contextValue = useMemo<AuthContextType>(() => ({
+    user: user as User, // Type assertion to fix linter error
+    isAuthenticated: !!user,
+    isLoading,
+    login,
+    logout
+  }), [user, isLoading, login, logout]);
 
   return (
-    <AuthContext.Provider value={{
-      user: user as User, // Type assertion to fix linter error
-      isAuthenticated: !!user,
-      isLoading,
-      login,
-      logout
-    }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

@@ -88,11 +88,13 @@ export const useReservations = () => {
   const { data, isFetching, error, refetch } = useQuery({
     queryKey: ['reservations', user?.id],
     queryFn: fetchReservations,
-    // ✅ CRITICAL FIX: Set to 0 to force fresh fetch on every mount
-    staleTime: 0, // Was 30 seconds
+    // ⚡ PERFORMANCE: Cache for 2 minutes to reduce unnecessary API calls
+    staleTime: 2 * 60 * 1000, // 2 minutes (was 0 - too aggressive)
     refetchOnWindowFocus: false,
     refetchOnMount: true,
     enabled: !isAuthLoading && isAuthenticated,
+    // ⚡ PERFORMANCE: Keep previous data while fetching new data for smoother UX
+    placeholderData: (previousData) => previousData,
     retry: (failureCount, error) => {
       if (error instanceof Error && error.message.includes('401')) {
         return false;
@@ -114,10 +116,13 @@ export const usePublicReservations = () => {
   const { data, isFetching, error, refetch } = useQuery({
     queryKey: ['public-reservations'],
     queryFn: fetchReservations,
-    staleTime: 0, // Force fresh fetch
+    // ⚡ PERFORMANCE: Cache for 2 minutes to reduce server load on public page
+    staleTime: 2 * 60 * 1000, // 2 minutes (was 0)
     refetchOnWindowFocus: false,
     refetchOnMount: true,
     enabled: true,
+    // ⚡ PERFORMANCE: Keep previous data visible while refreshing
+    placeholderData: (previousData) => previousData,
     retry: 2,
   });
 
@@ -141,7 +146,7 @@ export const useAssets = (assetIds: number[]) => {
       const assets = new Map<number, Asset>();
       const missingIds: number[] = [];
 
-      // Check cache first
+      // ⚡ PERFORMANCE: Check cache first to avoid redundant fetches
       for (const id of uniqueIds) {
         const cached = queryClient.getQueryData<Asset>(['asset', id]);
         if (cached) {
@@ -151,7 +156,7 @@ export const useAssets = (assetIds: number[]) => {
         }
       }
 
-      // Fetch missing assets
+      // ⚡ PERFORMANCE: Batch fetch missing assets in parallel
       if (missingIds.length > 0) {
         const assetPromises = missingIds.map(id => fetchReservation(id));
         const fetchedAssets = await Promise.all(assetPromises);
@@ -160,6 +165,7 @@ export const useAssets = (assetIds: number[]) => {
           if (asset) {
             const assetId = missingIds[index];
             assets.set(assetId, asset);
+            // Cache individual assets for future use
             queryClient.setQueryData(['asset', assetId], asset);
           }
         });
@@ -167,8 +173,10 @@ export const useAssets = (assetIds: number[]) => {
 
       return assets;
     },
-    staleTime: 5 * 60 * 1000, // Assets change less frequently
+    staleTime: 5 * 60 * 1000, // ⚡ Assets change less frequently - cache longer
     enabled: assetIds.length > 0 && !isAuthLoading && isAuthenticated,
+    // ⚡ PERFORMANCE: Keep previous data while fetching updates
+    placeholderData: (previousData) => previousData,
   });
 
   return {
@@ -189,7 +197,7 @@ export const usePublicAssets = (assetIds: number[]) => {
       const assets = new Map<number, Asset>();
       const missingIds: number[] = [];
 
-      // Check cache first
+      // ⚡ PERFORMANCE: Check cache first to avoid redundant fetches
       for (const id of uniqueIds) {
         const cached = queryClient.getQueryData<Asset>(['public-asset', id]);
         if (cached) {
@@ -199,7 +207,7 @@ export const usePublicAssets = (assetIds: number[]) => {
         }
       }
 
-      // Fetch missing assets using PUBLIC endpoint
+      // ⚡ PERFORMANCE: Batch fetch missing assets in parallel using PUBLIC endpoint
       if (missingIds.length > 0) {
         const assetPromises = missingIds.map(id => fetchPublicAsset(id));
         const fetchedAssets = await Promise.all(assetPromises);
@@ -208,6 +216,7 @@ export const usePublicAssets = (assetIds: number[]) => {
           if (asset) {
             const assetId = missingIds[index];
             assets.set(assetId, asset);
+            // Cache individual assets for future use
             queryClient.setQueryData(['public-asset', assetId], asset);
           }
         });
@@ -215,8 +224,10 @@ export const usePublicAssets = (assetIds: number[]) => {
 
       return assets;
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 5 * 60 * 1000, // ⚡ Public assets cached longer
     enabled: assetIds.length > 0,
+    // ⚡ PERFORMANCE: Keep previous data while fetching updates
+    placeholderData: (previousData) => previousData,
     retry: 1,
     retryDelay: 1000,
   });

@@ -1,6 +1,40 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* ⚡ PERFORMANCE: CSS Performance Optimizations */
+@layer base {
+  /* Optimize animations with will-change for frequently animated elements */
+  [data-animation="slide"],
+  [data-animation="fade"],
+  .motion-safe\:animate-in {
+    will-change: transform, opacity;
+  }
+
+  /* Remove will-change after animation completes to free GPU memory */
+  .motion-safe\:animate-in:not(:hover):not(:focus):not(:active) {
+    will-change: auto;
+  }
+
+  /* ⚡ Use GPU acceleration for transforms and opacity */
+  .transform,
+  [style*="transform"] {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  /* ⚡ Reduce motion for users who prefer it (accessibility + performance) */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
 @custom-variant dark (&:is(.dark *));
 
 .body {

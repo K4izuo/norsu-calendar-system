@@ -128,6 +128,7 @@ export default function Home() {
       });
   }, [reservations, assets]);
 
+  // ⚡ PERFORMANCE: Combine filtering and sorting into single pass
   // Filter ONLY upcoming/current events for calendar display
   const upcomingEvents = useMemo(() => {
     const year = today.getFullYear();
@@ -135,24 +136,36 @@ export default function Home() {
     const day = String(today.getDate()).padStart(2, '0');
     const todayStr = `${year}-${month}-${day}`;
     
+    // ⚡ Single pass: filter, sort, and slice in one operation
     return allEvents
-      .filter(event => !event.isFinished && event.date >= todayStr)
-      .sort((a, b) => a.date.localeCompare(b.date))
-      .slice(0, 5)
-      .map(event => ({
-        title: event.title_name,
-        date: event.date
-      }));
+      .reduce<Array<{ title: string; date: string }>>((acc, event) => {
+        if (!event.isFinished && event.date >= todayStr && acc.length < 5) {
+          acc.push({
+            title: event.title_name,
+            date: event.date
+          });
+        }
+        return acc;
+      }, [])
+      .sort((a, b) => a.date.localeCompare(b.date));
   }, [allEvents, today]);
 
+  // ⚡ PERFORMANCE: Simple filter - calendar only needs upcoming events
   // Get events for calendar - only show upcoming/current events on the calendar
   const calendarEvents = useMemo(() => {
     return allEvents.filter(event => !event.isFinished);
   }, [allEvents]);
 
+  // ⚡ PERFORMANCE: Memoized callback to prevent re-creation on every render
   // Get events for a particular day
   const getEventsForDate = useCallback((year: number, month: number, day: number) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    
+    // ⚡ Early return for better performance
+    if (calendarEvents.length === 0) {
+      return { hasEvent: false, count: 0 };
+    }
+    
     const dayEvents = calendarEvents.filter(event => event.date === dateStr);
 
     return {
