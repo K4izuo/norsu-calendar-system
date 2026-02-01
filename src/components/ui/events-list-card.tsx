@@ -47,7 +47,7 @@ export const EventCardsList = React.memo(function EventCardsList({
               </div>
 
               {/* Blur Gradient Transition */}
-              <div className="absolute bottom-0 left-0 right-0 h-8 bg-linear-to-b from-transparent via-white/30 to-white backdrop-blur-[0.4px]"></div>
+              <div className="absolute inset-0 bg-linear-to-b from-black/60 via-black/30 to-white"></div>
 
               {/* Calendar Icon Badge (overlapping on left) */}
               <div className="absolute left-6 -bottom-7.5 z-10">
