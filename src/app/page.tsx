@@ -213,6 +213,15 @@ export default function Home() {
     setCurrentYear(year);
   }, []);
 
+  // Handle smooth scroll to about section
+  const scrollToAbout = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    const aboutSection = document.getElementById('about-section');
+    if (aboutSection) {
+      aboutSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-muted/50 flex flex-col overflow-x-hidden">
       {/* Navbar */}
@@ -244,9 +253,9 @@ export default function Home() {
         </div>
         <div className="flex items-center space-x-1 shrink-0 mt-2 sm:mt-0 w-full sm:w-auto justify-center sm:justify-end">
           <Button asChild variant="ghost">
-            <Link href="/about" className="px-2 text-base sm:text-lg md:text-xl">
+            <a href="#about-section" onClick={scrollToAbout} className="px-2 text-base sm:text-lg md:text-xl">
               ABOUT
-            </Link>
+            </a>
           </Button>
           {/* <span className="text-gray-200 text-xl select-none xs:inline">|</span>
           <Button asChild variant="ghost">
