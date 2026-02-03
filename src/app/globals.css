@@ -22,11 +22,12 @@
     backface-visibility: hidden;
   }
 
-  /* ⚡ Reduce motion for users who prefer it (accessibility + performance) */
+  /* ⚡ FIXED: Reduce motion for users who prefer it, but KEEP loading spinners working!
+   * Loading indicators are functional UI, not decorative, so they should always work */
   @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
+    *:not(.animate-spin):not([class*="animate-spin"]),
+    *:not(.animate-spin):not([class*="animate-spin"])::before,
+    *:not(.animate-spin):not([class*="animate-spin"])::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;

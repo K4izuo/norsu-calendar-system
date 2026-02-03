@@ -62,7 +62,7 @@ export function ReserveEventAdditionalTab({
   const inputError = getInputError();
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-6 min-h-100">
       <div className="space-y-4 sm:space-y-5">
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="people" className="text-base inline-flex pointer-events-none">

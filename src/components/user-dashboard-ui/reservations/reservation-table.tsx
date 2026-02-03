@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { Search, MoreVertical } from "lucide-react"
@@ -19,10 +19,31 @@ export function ReservationsTable({ events }: ReservationsTableProps) {
   const [selectedEvent, setSelectedEvent] = useState<EventDetails | undefined>(undefined)
   const [eventInfoLoading, setEventInfoLoading] = useState(false)
 
-  // Filter reservations based on search query
-  const filteredEvents = events.filter((event) =>
-    event.title_name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  // Filter and sort reservations based on search query and date
+  const filteredEvents = useMemo(() => {
+    // First, filter by search query
+    const filtered = events.filter((event) =>
+      event.title_name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    // Then, sort by status first (PENDING first), then by date descending
+    return filtered.sort((a, b) => {
+      // Priority order: PENDING > APPROVED > DECLINED
+      const statusOrder = { PENDING: 0, APPROVED: 1, DECLINED: 2 };
+      const statusA = statusOrder[a.registration_status];
+      const statusB = statusOrder[b.registration_status];
+
+      // If statuses are different, sort by status
+      if (statusA !== statusB) {
+        return statusA - statusB;
+      }
+
+      // If statuses are the same, sort by date in descending order (future → now → past)
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      return dateB.getTime() - dateA.getTime();
+    });
+  }, [events, searchQuery]);
 
   const handleRowClick = (event: EventDetails) => {
     setEventInfoLoading(true)
@@ -70,13 +91,13 @@ export function ReservationsTable({ events }: ReservationsTableProps) {
                   Time end
                 </TableHead>
                 <TableHead className="h-12 px-6 py-3 text-sm font-medium text-muted-foreground text-left">
+                  Status
+                </TableHead>
+                <TableHead className="h-12 px-6 py-3 text-sm font-medium text-muted-foreground text-left">
                   Asset name
                 </TableHead>
                 <TableHead className="h-12 px-6 py-3 text-sm font-medium text-muted-foreground text-left">
                   People tag
-                </TableHead>
-                <TableHead className="h-12 px-6 py-3 text-sm font-medium text-muted-foreground text-left">
-                  Status
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -91,10 +112,6 @@ export function ReservationsTable({ events }: ReservationsTableProps) {
                   <TableCell className="px-6 py-4 text-sm text-foreground">{event.date}</TableCell>
                   <TableCell className="px-6 py-4 text-sm text-foreground">{event.time_start}</TableCell>
                   <TableCell className="px-6 py-4 text-sm text-foreground">{event.time_end}</TableCell>
-                  <TableCell className="px-6 py-4 text-sm text-foreground">{event.asset.asset_name}</TableCell>
-                  <TableCell className="px-6 py-4 text-center text-sm text-foreground">
-                    {event.people_tag.length}
-                  </TableCell>
                   <TableCell className="px-6 py-4 text-sm text-foreground">
                     <span className={`px-2 py-1 rounded-md text-xs font-medium ${event.registration_status === 'APPROVED' ? 'bg-green-100 text-green-800' :
                       event.registration_status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
@@ -102,6 +119,10 @@ export function ReservationsTable({ events }: ReservationsTableProps) {
                       }`}>
                       {event.registration_status}
                     </span>
+                  </TableCell>
+                  <TableCell className="px-6 py-4 text-sm text-foreground">{event.asset.asset_name}</TableCell>
+                  <TableCell className="px-6 py-4 text-center text-sm text-foreground">
+                    {event.people_tag.length}
                   </TableCell>
                 </TableRow>
               ))}

@@ -30,7 +30,7 @@ export const EventCardsList = React.memo(function EventCardsList({
         return (
           <div
             key={event.id || index}
-            className="bg-white text-card-foreground border rounded-3xl overflow-hidden shadow w-full cursor-pointer"
+            className="bg-white hover:shadow-md text-card-foreground border rounded-3xl overflow-hidden shadow w-full cursor-pointer"
             onClick={() => onEventClick?.(event)}
             data-index={index}
           >

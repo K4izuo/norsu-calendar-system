@@ -27,7 +27,7 @@ const headerCache = new Map<string, Record<string, string>>();
 
 const buildHeaders = (token: string | null, customHeaders?: Record<string, string>): Record<string, string> => {
   const cacheKey = `${token || 'none'}-${JSON.stringify(customHeaders || {})}`;
-  
+
   if (headerCache.has(cacheKey)) {
     return headerCache.get(cacheKey)!;
   }
@@ -44,7 +44,7 @@ const buildHeaders = (token: string | null, customHeaders?: Record<string, strin
   };
 
   headerCache.set(cacheKey, headers);
-  
+
   // Clear cache periodically to prevent memory leaks
   if (headerCache.size > 100) {
     const keysIterator = headerCache.keys();
@@ -179,7 +179,7 @@ export const apiClient = {
           status: 0
         };
       }
-      
+
       return {
         data: null,
         error: error instanceof Error ? error.message : 'Network error',

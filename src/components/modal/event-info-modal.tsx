@@ -11,14 +11,14 @@ import {
   Info,
   X,
   User,
-  Edit,
+  // Edit,
   CircleCheckBig,
   XCircle,
   NotebookText
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { EventDetails } from "@/interface/user-props";
-import { ReserveEventModal } from "./reserve-event-modal";
+// import { ReserveEventModal } from "./reserve-event-modal";
 import { getRoleColors, UserRole } from "@/utils/role-colors"
 // ✅ CRITICAL FIX: Import the mutation hooks instead of manual handlers
 import { useApproveReservation, useDeclineReservation } from "@/services/reservation-service";
@@ -98,7 +98,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
   showBackdropBlur = false,
 }: ModalProps) {
   const contentRef = useRef<HTMLDivElement>(null);
-  const [showEditModal, setShowEditModal] = useState(false);
+  // const [showEditModal, setShowEditModal] = useState(false);
   const [showApproveConfirm, setShowApproveConfirm] = useState(false);
   const [showDeclineConfirm, setShowDeclineConfirm] = useState(false);
 
@@ -134,13 +134,13 @@ export const EventInfoModal = React.memo(function EventInfoModal({
   const assetCapacity = asset?.capacity || "N/A";
   const assetAminities = asset?.aminities;
 
-  const handleEdit = () => {
-    setShowEditModal(true);
-  };
+  // const handleEdit = () => {
+  //   setShowEditModal(true);
+  // };
 
-  const handleEditModalClose = () => {
-    setShowEditModal(false);
-  };
+  // const handleEditModalClose = () => {
+  //   setShowEditModal(false);
+  // };
 
   const handleApprove = () => {
     if (!event) return;
@@ -406,15 +406,15 @@ export const EventInfoModal = React.memo(function EventInfoModal({
 
               {!loading && event && getStatus(event) === "PENDING" && role && role !== 'public' && (
                 <div
-                  className="sticky bottom-0 bg-white z-10 p-4 sm:p-6 border-t border-gray-200 flex justify-center gap-3"
+                  className="sticky bottom-0 bg-white z-10 p-4 sm:p-6 border-t border-gray-200 flex justify-center gap-3 rounded-b-xl"
                 >
-                  <Button
+                  {/* <Button
                     onClick={handleEdit}
                     className="inline-flex cursor-pointer items-center justify-center flex-1 max-w-xs px-6 py-5 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
                   >
                     <Edit className="w-4 h-4" />
                     EDIT
-                  </Button>
+                  </Button> */}
 
                   <Button
                     onClick={handleApprove}
@@ -492,12 +492,12 @@ export const EventInfoModal = React.memo(function EventInfoModal({
         )}
       </AnimatePresence>
 
-      <ReserveEventModal
+      {/* <ReserveEventModal
         isOpen={showEditModal}
         onClose={handleEditModalClose}
         editMode={true}
         eventData={event}
-      />
+      /> */}
 
       <ConfirmationModal
         isOpen={showApproveConfirm}

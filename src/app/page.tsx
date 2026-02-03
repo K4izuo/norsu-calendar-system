@@ -6,6 +6,7 @@ import { useMemo, useState, useEffect, useCallback } from "react";
 import { EventsListModal } from "@/components/modal/events-list-modal";
 import { EventInfoModal } from "@/components/modal/event-info-modal";
 import { Calendar } from "@/components/ui/norsu-calendar";
+import AboutSection from "@/components/ui/about-section";
 import type { EventDetails, CalendarDayType } from "@/interface/user-props";
 import { toast } from "react-hot-toast";
 import Link from "next/link";
@@ -135,7 +136,7 @@ export default function Home() {
     const month = String(today.getMonth() + 1).padStart(2, '0');
     const day = String(today.getDate()).padStart(2, '0');
     const todayStr = `${year}-${month}-${day}`;
-    
+
     // ⚡ Single pass: filter, sort, and slice in one operation
     return allEvents
       .reduce<Array<{ title: string; date: string }>>((acc, event) => {
@@ -160,12 +161,12 @@ export default function Home() {
   // Get events for a particular day
   const getEventsForDate = useCallback((year: number, month: number, day: number) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    
+
     // ⚡ Early return for better performance
     if (calendarEvents.length === 0) {
       return { hasEvent: false, count: 0 };
     }
-    
+
     const dayEvents = calendarEvents.filter(event => event.date === dateStr);
 
     return {
@@ -269,23 +270,24 @@ export default function Home() {
       </div>
 
       {/* Main content */}
-      <div className="w-full flex flex-col flex-1">
-        <div className="flex-1 flex justify-center p-3.5 sm:p-6 md:p-6">
+      <div className="w-full flex flex-col">
+        {/* Calendar Section - Takes full viewport height minus navbar */}
+        <div className="flex-1 flex justify-center p-3.5 sm:p-6 md:p-6 min-h-[calc(100vh-80px)]">
           <div className="w-full flex flex-col lg:flex-row gap-4 lg:gap-6 flex-1">
-            {/* Sidebar */}
-            <div className="w-full text-card-foreground border lg:w-[320px] h-100 lg:h-125.5 bg-white rounded-md shadow flex flex-col p-4 sm:p-6">
-              <h2 className="text-2xl font-semibold mb-4 text-gray-700 text-center">
+            {/* Sidebar - Fixed width, height matches parent */}
+            <div className="w-full text-card-foreground border lg:w-[320px] bg-white rounded-md shadow flex flex-col p-4 sm:p-6 self-stretch">
+              <h2 className="text-2xl font-semibold mb-4 text-gray-700 text-center shrink-0">
                 Upcoming Events
               </h2>
-              
+
               {loading && (
-                <div className="flex-1 flex items-center justify-center">
+                <div className="flex-1 flex items-center justify-center min-h-0">
                   <div className="text-gray-500">Loading events...</div>
                 </div>
               )}
 
               {error && (
-                <div className="flex-1 flex items-center justify-center">
+                <div className="flex-1 flex items-center justify-center min-h-0">
                   <div className="text-red-500 text-center">
                     <p className="font-semibold">Error loading events</p>
                     <p className="text-sm">{error}</p>
@@ -296,11 +298,11 @@ export default function Home() {
               {!loading && !error && (
                 <>
                   {upcomingEvents.length > 0 ? (
-                    <ul className="custom-scrollbar flex flex-col gap-2 overflow-y-auto flex-1">
+                    <ul className="custom-scrollbar flex flex-col gap-2 overflow-y-auto flex-1 min-h-0">
                       {upcomingEvents.map((event, idx) => (
                         <li
                           key={idx}
-                          className="bg-gray-50 rounded-md px-3 py-2 border border-gray-100"
+                          className="bg-gray-50 rounded-md px-3 py-2 border border-gray-100 shrink-0"
                         >
                           <div className="font-medium text-gray-800 text-lg">{event.title}</div>
                           <div className="text-base text-gray-500">{event.date}</div>
@@ -308,7 +310,7 @@ export default function Home() {
                       ))}
                     </ul>
                   ) : (
-                    <div className="flex-1 flex items-center justify-center">
+                    <div className="flex-1 flex items-center justify-center min-h-0">
                       <div className="text-gray-500 text-center">
                         <p className="font-semibold">No upcoming events</p>
                         <p className="text-sm">Check back later for new events</p>
@@ -319,8 +321,8 @@ export default function Home() {
               )}
             </div>
 
-            {/* Calendar */}
-            <div className="flex-1 flex flex-col items-start justify-center">
+            {/* Calendar - Takes remaining space */}
+            <div className="flex-1 flex flex-col items-start justify-center min-h-0">
               <div className="w-full text-card-foreground border bg-white rounded-md shadow flex flex-col items-start self-stretch p-4 sm:p-6 gap-6 relative flex-1 min-h-0">
                 <Calendar
                   role="public"
@@ -336,6 +338,9 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        {/* About Section */}
+        <AboutSection />
       </div>
 
       {/* Modals */}

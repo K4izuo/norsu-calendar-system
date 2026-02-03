@@ -5,6 +5,9 @@ import { ReservationFormData, ReservationAPIPayload, Reservation, EventDetails }
 import { RESERVATION_VALIDATION_RULES } from "@/utils/reserve-event/reservation-validation-rules"
 import { apiClient } from "@/lib/api-client"
 import { useAuth } from "@/contexts/auth-context"
+import { checkReservationConflicts } from "@/utils/reserve-event/reservation-conflict-check"
+import { useReservations } from "@/services/reservation-service"
+import { useQueryClient } from "@tanstack/react-query"
 
 interface ReservationResponse {
   reservation: {
@@ -50,6 +53,10 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
   const [taggedPeople, setTaggedPeople] = useState<{ id: string; name: string }[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const { user } = useAuth();
+
+  // Fetch all reservations for conflict checking
+  const { reservations } = useReservations();
+  const queryClient = useQueryClient();
 
   const peopleFieldRef = useRef<HTMLInputElement>(null);
 
@@ -204,17 +211,43 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         };
 
         const { asset, ...rest } = data;
-        // kung di mo gana i balik tung people_tag sa const { asset, ...rest } = data;
+
+        const normalizedTimeStart = normalizeTime(rest.time_start);
+        const normalizedTimeEnd = normalizeTime(rest.time_end);
+        const normalizedDate = normalizeDate(rest.date);
+
+        // Check for conflicts before submitting
+        const conflicts = checkReservationConflicts({
+          assetId: asset?.id ?? 0,
+          date: normalizedDate,
+          timeStart: normalizedTimeStart,
+          timeEnd: normalizedTimeEnd,
+          reservations: reservations,
+          excludeId: editMode ? eventData?.id : undefined
+        });
+
+        if (conflicts.length > 0) {
+          // Show error with conflict details
+          const conflictDetails = conflicts.map(c =>
+            `- ${c.title_name} (${c.time_start} - ${c.time_end})`
+          ).join('\n');
+
+          toast.error(
+            `Cannot reserve: Time slot conflicts with ${conflicts.length} existing reservation(s):\n${conflictDetails}`,
+            { duration: 6000 }
+          );
+          return;
+        }
 
         // Final payload you're actually sending
         const formDataWithPeople = {
           ...rest,
-          time_start: normalizeTime(rest.time_start),
-          time_end: normalizeTime(rest.time_end),
-          date: normalizeDate(rest.date), // Normalize the date to YYYY-MM-DD
+          time_start: normalizedTimeStart,
+          time_end: normalizedTimeEnd,
+          date: normalizedDate,
           asset_id: asset?.id ?? 0,
           people_tag: taggedPeople.map(p => p.name).join(", "),
-          reserved_by_user: parseInt(user?.id || "0"), // TODO: Replace with actual authenticated user ID
+          reserved_by_user: parseInt(user?.id || "0"),
         };
 
         // Different API calls for create vs update
@@ -234,6 +267,8 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
             return;
           }
 
+          // ✅ CLOSE MODAL AND SHOW SUCCESS TOAST AT THE SAME TIME
+          onClose();
           toast.success("Event reservation updated successfully!");
         } else {
           // Create new reservation
@@ -254,8 +289,15 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
             onNewReservation?.(response.data.reservation);
           }
 
+          // ✅ CLOSE MODAL AND SHOW SUCCESS TOAST AT THE SAME TIME
+          onClose();
           toast.success("Event reservation sent successfully!");
         }
+
+        // Invalidate cache to refresh reservations (in background)
+        await queryClient.invalidateQueries({
+          queryKey: ['reservations', user?.id]
+        });
 
         const currentTime = getCurrentTime();
 
@@ -292,8 +334,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         toast.error(editMode ? "Failed to update event. Please try again." : "Failed to reserve event. Please try again.");
       }
     },
-    [reset, onClose, taggedPeople, eventDate, onNewReservation, editMode, eventData, user?.id]
-    // kung di mo gana i remove ang user?.id sa dependencies array
+    [reset, onClose, taggedPeople, eventDate, onNewReservation, editMode, eventData, user?.id, reservations, queryClient]
   );
 
   const handleFormTabNext = useCallback(() => {
@@ -334,7 +375,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
     errors,
     isSubmitting,
     register,
-    watch, // Add this line
+    watch,
     activeTab,
     setActiveTab,
     showVenueModal,
