@@ -227,14 +227,20 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         });
 
         if (conflicts.length > 0) {
-          // Show error with conflict details
-          const conflictDetails = conflicts.map(c =>
-            `- ${c.title_name} (${c.time_start} - ${c.time_end})`
-          ).join('\n');
+          // Show detailed error with conflict type
+          const conflictDetails = conflicts.map(c => {
+            const conflictMsg = c.conflictType === 'start'
+              ? 'START time conflicts'
+              : c.conflictType === 'end'
+                ? 'END time conflicts'
+                : 'Both START and END times conflict';
+
+            return `- ${c.title_name} (${c.time_start} - ${c.time_end}) - ${conflictMsg}`;
+          }).join('\n');
 
           toast.error(
-            `Cannot reserve: Time slot conflicts with ${conflicts.length} existing reservation(s):\n${conflictDetails}`,
-            { duration: 6000 }
+            `Cannot reserve: Time slot conflicts detected with ${conflicts.length} approved event(s):\n\n${conflictDetails}`,
+            { duration: 8000 }
           );
           return;
         }

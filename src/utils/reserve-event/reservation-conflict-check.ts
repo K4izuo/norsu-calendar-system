@@ -15,11 +15,15 @@ export interface ConflictingReservation {
   time_start: string;
   time_end: string;
   reserved_by_user: string;
+  conflictType: 'start' | 'end' | 'both';
 }
 
 /**
- * Checks if a time range overlaps with existing reservations
- * @returns Array of conflicting reservations
+ * Two-step conflict checking as per boss requirements:
+ * Check 1: Does the START TIME overlap with any approved events on the same date and venue?
+ * Check 2: If Check 1 passes, does the END TIME overlap with any approved events on the same date and venue?
+ * 
+ * @returns Array of conflicting reservations with conflict type
  */
 export const checkReservationConflicts = ({
   assetId,
@@ -40,44 +44,62 @@ export const checkReservationConflicts = ({
   const newStart = normalizeTime(timeStart);
   const newEnd = normalizeTime(timeEnd);
 
-  const conflicts = reservations
-    .filter(r => {
-      // Skip if it's the same reservation (edit mode)
-      if (excludeId && r.id === excludeId) return false;
+  // Filter to get only relevant reservations (same date, same venue, approved status)
+  const relevantReservations = reservations.filter(r => {
+    // Skip if it's the same reservation (edit mode)
+    if (excludeId && r.id === excludeId) return false;
 
-      // Must be same asset and date
-      if (r.asset_id !== assetId || r.date !== date) return false;
+    // Must be same asset (venue) and date
+    if (r.asset_id !== assetId || r.date !== date) return false;
 
-      // Only check APPROVED and PENDING reservations
-      const status = r.status?.toUpperCase();
-      if (status !== 'APPROVED' && status !== 'PENDING') return false;
+    // Only check APPROVED reservations (not PENDING or DECLINED)
+    const status = r.status?.toUpperCase();
+    return status === 'APPROVED';
+  });
 
-      // Normalize existing reservation times
-      const existingStart = normalizeTime(r.time_start);
-      const existingEnd = normalizeTime(r.time_end);
+  const conflicts: ConflictingReservation[] = [];
 
-      // Check for time overlap
-      // Overlap occurs if:
-      // 1. New start is within existing range: existingStart <= newStart < existingEnd
-      // 2. New end is within existing range: existingStart < newEnd <= existingEnd
-      // 3. New range completely contains existing range: newStart <= existingStart && newEnd >= existingEnd
-      const overlaps = (
-        (existingStart <= newStart && newStart < existingEnd) ||
-        (existingStart < newEnd && newEnd <= existingEnd) ||
-        (newStart <= existingStart && newEnd >= existingEnd)
-      );
+  for (const reservation of relevantReservations) {
+    const existingStart = normalizeTime(reservation.time_start);
+    const existingEnd = normalizeTime(reservation.time_end);
 
-      return overlaps;
-    })
-    .map(r => ({
-      id: r.id,
-      title_name: r.title_name,
-      time_start: r.time_start,
-      time_end: r.time_end,
-      reserved_by_user: r.reserved_by_user
-        ? `${r.reserved_by_user.first_name} ${r.reserved_by_user.last_name}`
-        : "Unknown User"
-    }));
+    // CHECK 1: Does the START TIME of the new event overlap with this approved event?
+    // Start time overlaps if: existingStart <= newStart < existingEnd
+    const startOverlaps = existingStart <= newStart && newStart < existingEnd;
+
+    // CHECK 2: Does the END TIME of the new event overlap with this approved event?
+    // End time overlaps if: existingStart < newEnd <= existingEnd
+    const endOverlaps = existingStart < newEnd && newEnd <= existingEnd;
+
+    // ADDITIONAL CHECK: Does the new event completely contain the existing event?
+    // This happens when: newStart <= existingStart && newEnd >= existingEnd
+    const completelyContains = newStart <= existingStart && newEnd >= existingEnd;
+
+    if (startOverlaps || endOverlaps || completelyContains) {
+      let conflictType: 'start' | 'end' | 'both';
+
+      if (completelyContains) {
+        conflictType = 'both';
+      } else if (startOverlaps && endOverlaps) {
+        conflictType = 'both';
+      } else if (startOverlaps) {
+        conflictType = 'start';
+      } else {
+        conflictType = 'end';
+      }
+
+      conflicts.push({
+        id: reservation.id,
+        title_name: reservation.title_name,
+        time_start: reservation.time_start,
+        time_end: reservation.time_end,
+        reserved_by_user: reservation.reserved_by_user
+          ? `${reservation.reserved_by_user.first_name} ${reservation.reserved_by_user.last_name}`
+          : "Unknown User",
+        conflictType
+      });
+    }
+  }
 
   return conflicts;
 };
