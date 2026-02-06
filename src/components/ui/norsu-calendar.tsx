@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useCallback, useEffect } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { CalendarClock, ChevronLeft, ChevronRight } from "lucide-react";
 import {
@@ -13,7 +13,7 @@ import {
 import { CalendarDayType } from "@/interface/user-props";
 import { getRoleColors, UserRole } from "@/utils/role-colors";
 import { calendarVariants, headerVariants } from "@/utils/calendar-animations";
-import { getPhilippineDate } from "@/lib/timezone-utils";
+import { getPhilippineDay, getPhilippineMonth, getPhilippineYear } from "@/lib/timezone-utils";
 
 // Updated props interface
 export function Calendar<T>({
@@ -36,20 +36,12 @@ export function Calendar<T>({
   currentYear: number;
   onMonthYearChange: (month: number, year: number) => void;
 }) {
-  // FIX: Use Philippine timezone to ensure correct "today" highlighting
-  const [today, setToday] = useState<Date>(() => getPhilippineDate());
-
-  // Update today on client side only, using Philippine timezone
-  useEffect(() => {
-    setToday(getPhilippineDate());
-  }, []);
-
   // Get role-specific colors
   const roleColors = useMemo(() => getRoleColors(role), [role]);
 
   // Animation direction state
   const [direction, setDirection] = useState(0);
-  
+
   // ⚡ PERFORMANCE: Debounce state for rapid navigation prevention
   const [isNavigating, setIsNavigating] = useState(false);
 
@@ -57,7 +49,7 @@ export function Calendar<T>({
   // Navigation functions
   const goToPreviousMonth = useCallback(() => {
     if (isNavigating) return; // Prevent rapid clicks
-    
+
     setIsNavigating(true);
     setDirection(-1);
 
@@ -73,7 +65,7 @@ export function Calendar<T>({
 
   const goToNextMonth = useCallback(() => {
     if (isNavigating) return; // Prevent rapid clicks
-    
+
     setIsNavigating(true);
     setDirection(1);
 
@@ -89,12 +81,12 @@ export function Calendar<T>({
 
   const goToToday = useCallback(() => {
     // FIX: Use Philippine time for "Today" button
-    const currentDate = getPhilippineDate();
+    const todayMonth = getPhilippineMonth();
+    const todayYear = getPhilippineYear();
+
     const currentMonthYear = new Date(currentYear, currentMonth);
-    const targetMonthYear = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth()
-    );
+    const targetMonthYear = new Date(todayYear, todayMonth);
+
     setDirection(
       targetMonthYear > currentMonthYear
         ? 1
@@ -104,7 +96,7 @@ export function Calendar<T>({
     );
 
     setTimeout(() => {
-      onMonthYearChange(currentDate.getMonth(), currentDate.getFullYear());
+      onMonthYearChange(todayMonth, todayYear);
     }, 100);
   }, [currentMonth, currentYear, onMonthYearChange]);
 
@@ -125,6 +117,11 @@ export function Calendar<T>({
       0
     ).getDate();
 
+    // FIX: Get Philippine timezone current date components once
+    const todayDay = getPhilippineDay();
+    const todayMonth = getPhilippineMonth();
+    const todayYear = getPhilippineYear();
+
     // 1. Fill in previous month's days
     for (let i = firstDayOfMonth - 1; i >= 0; i--) {
       const prevDate = lastDateOfPrevMonth - i;
@@ -140,9 +137,9 @@ export function Calendar<T>({
     for (let i = 1; i <= lastDateOfMonth; i++) {
       // FIX: Use Philippine timezone for today comparison
       const isToday =
-        i === today.getDate() &&
-        currentMonth === today.getMonth() &&
-        currentYear === today.getFullYear();
+        i === todayDay &&
+        currentMonth === todayMonth &&
+        currentYear === todayYear;
 
       // Get events for this day using the provided function
       const { hasEvent, count } = getEventsForDate(currentYear, currentMonth, i);
@@ -170,7 +167,7 @@ export function Calendar<T>({
     }
 
     return days;
-  }, [currentMonth, currentYear, today, getEventsForDate]);
+  }, [currentMonth, currentYear, getEventsForDate]);
 
   const monthNames = useMemo(
     () => [

@@ -4,6 +4,27 @@
  */
 
 /**
+ * Get current date/time in Philippine timezone as separate components
+ * This is what you should use for date comparisons in components
+ */
+export function getPhilippineDateTime(): { year: number, month: number, day: number, date: Date } {
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Manila',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric'
+  });
+
+  const parts = formatter.formatToParts(now);
+  const year = parseInt(parts.find(p => p.type === 'year')?.value || '0');
+  const month = parseInt(parts.find(p => p.type === 'month')?.value || '0') - 1; // 0-indexed
+  const day = parseInt(parts.find(p => p.type === 'day')?.value || '0');
+
+  return { year, month, day, date: now };
+}
+
+/**
  * Get current date in Philippine timezone
  * Note: This returns a Date object representing the current moment,
  * NOT a Philippines-localized date. Use getPhilippineDay/Month/Year for components.

@@ -75,7 +75,7 @@ export default function AboutSection() {
       {/* Meet the Minds Behind Norsu Section */}
       <div className="mt-32">
         <div className="mb-20 text-center max-w-2xl mx-auto">
-          <h2 className="text-4xl font-bold text-slate-900 mb-6">Meet the Minds Behind Norsu</h2>
+          <h2 className="text-4xl font-bold text-slate-900 mb-6">Meet the Minds Behind the Project</h2>
           <p className="text-lg text-slate-600">A collective of visionaries, engineers, and designers dedicated to redefining how the world manages time.</p>
         </div>
 
