@@ -9,8 +9,9 @@ import { Calendar } from "@/components/ui/norsu-calendar";
 import AboutSection from "@/components/ui/about-section";
 import type { EventDetails, CalendarDayType } from "@/interface/user-props";
 import { toast } from "react-hot-toast";
-import Link from "next/link";
+// import Link from "next/link";
 import { usePublicReservations, usePublicAssets } from "@/services/reservation-service";
+import { getPhilippineDateTime, getPhilippineMonth, getPhilippineYear, getPhilippineDay } from "@/lib/timezone-utils";
 
 // Helper function to check if an event has finished
 const isEventFinished = (eventDate: string, timeEnd: string): boolean => {
@@ -25,15 +26,18 @@ const isEventFinished = (eventDate: string, timeEnd: string): boolean => {
 };
 
 export default function Home() {
+  // FIX: Initialize with Philippine timezone to ensure SSR and client-side dates match
+  const { year: initialYear, month: initialMonth } = getPhilippineDateTime();
   const [today, setToday] = useState<Date>(new Date());
-  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
-  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [currentMonth, setCurrentMonth] = useState(initialMonth);
+  const [currentYear, setCurrentYear] = useState(initialYear);
 
   useEffect(() => {
-    const clientDate = new Date();
-    setToday(clientDate);
-    setCurrentMonth(clientDate.getMonth());
-    setCurrentYear(clientDate.getFullYear());
+    // FIX: Update with current Philippine timezone date on client
+    const { year, month, date } = getPhilippineDateTime();
+    setToday(date);
+    setCurrentMonth(month);
+    setCurrentYear(year);
   }, []);
 
   // Modal states
@@ -132,9 +136,10 @@ export default function Home() {
   // ⚡ PERFORMANCE: Combine filtering and sorting into single pass
   // Filter ONLY upcoming/current events for calendar display
   const upcomingEvents = useMemo(() => {
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
+    // FIX: Use Philippine timezone for filtering upcoming events
+    const year = getPhilippineYear();
+    const month = String(getPhilippineMonth() + 1).padStart(2, '0');
+    const day = String(getPhilippineDay()).padStart(2, '0');
     const todayStr = `${year}-${month}-${day}`;
 
     // ⚡ Single pass: filter, sort, and slice in one operation
@@ -149,7 +154,7 @@ export default function Home() {
         return acc;
       }, [])
       .sort((a, b) => a.date.localeCompare(b.date));
-  }, [allEvents, today]);
+  }, [allEvents]);
 
   // ⚡ PERFORMANCE: Simple filter - calendar only needs upcoming events
   // Get events for calendar - only show upcoming/current events on the calendar
