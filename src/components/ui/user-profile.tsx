@@ -3,7 +3,7 @@
 import { LogOut, Settings, UserRoundCog } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { useContext } from "react"
+import { useContext, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { AuthContext } from "@/contexts/auth-context"
 import { toast } from "react-hot-toast"
@@ -32,6 +32,7 @@ export default function UserProfile({
 }: Partial<UserProfileProps>) {
   const auth = useContext(AuthContext)
   const queryClient = useQueryClient()
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   const menuItems: MenuItem[] = [
     {
@@ -47,6 +48,7 @@ export default function UserProfile({
   ]
 
   const handleLogout = async () => {
+    setIsLoggingOut(true)
     const loadingToast = toast.loading("Logging out...")
 
     try {
@@ -56,6 +58,7 @@ export default function UserProfile({
 
       if (response.error) {
         toast.error(response.error || 'Logout failed')
+        setIsLoggingOut(false)
         return
       }
 
@@ -77,6 +80,7 @@ export default function UserProfile({
       console.error('Logout error:', error)
       toast.dismiss(loadingToast)
       toast.error('An error occurred during logout')
+      setIsLoggingOut(false)
     }
   }
 
@@ -125,13 +129,37 @@ export default function UserProfile({
             <Button
               type="button"
               onClick={handleLogout}
+              disabled={isLoggingOut}
               className="w-full cursor-pointer bg-white shadow-none flex items-center justify-between p-2 
                                 hover:bg-zinc-100 dark:hover:bg-zinc-800 
-                                rounded-lg transition-colors duration-200"
+                                rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <div className="flex items-center gap-2">
-                <LogOut className="size-5 text-black" />
-                <span className="text-base font-medium text-zinc-900 dark:text-zinc-100">Logout</span>
+                {isLoggingOut ? (
+                  <span className="animate-spin">
+                    <svg className="h-5 w-5 text-black" viewBox="0 0 24 24">
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="none"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                  </span>
+                ) : (
+                  <LogOut className="size-5 text-black" />
+                )}
+                <span className="text-base font-medium text-zinc-900 dark:text-zinc-100">
+                  {isLoggingOut ? 'Logging out...' : 'Logout'}
+                </span>
               </div>
             </Button>
           </div>

@@ -33,6 +33,45 @@ const config: NextConfig = {
     } : false,
   },
 
+  // 🔒 SECURITY: Security headers
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-DNS-Prefetch-Control',
+            value: 'on'
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload'
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY'
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block'
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin'
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()'
+          },
+        ],
+      },
+    ]
+  },
+
   // ⚡ PERFORMANCE: Experimental features for better performance
   experimental: {
     // Enable optimistic client cache
@@ -40,7 +79,7 @@ const config: NextConfig = {
 
     // ⚡ PERFORMANCE: Optimize package imports to reduce bundle size
     optimizePackageImports: ['lucide-react', 'framer-motion', '@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
-    
+
     // ⚡ PERFORMANCE: Use separate worker for webpack builds (faster builds)
     webpackBuildWorker: true,
 
