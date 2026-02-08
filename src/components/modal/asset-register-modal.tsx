@@ -15,9 +15,9 @@ import { getUserRole } from "@/lib/auth"
 
 const assetTypes = [
   { value: "venue", label: "Venue" },
-  { value: "vehicle", label: "Vehicle" },
-  { value: "equipment", label: "Equipment" },
-  { value: "facility", label: "Facility" },
+  // { value: "vehicle", label: "Vehicle" },
+  // { value: "equipment", label: "Equipment" },
+  // { value: "facility", label: "Facility" },
 ]
 
 const conditionOptions = [

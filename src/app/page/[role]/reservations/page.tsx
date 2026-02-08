@@ -1,11 +1,17 @@
 "use client";
 
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
 import { ReservationsTable } from "@/components/user-dashboard-ui/reservations/reservation-table";
 import { EventDetails } from "@/interface/user-props";
 import { useReservations, useAssets } from "@/services/reservation-service";
+import { PageBreadcrumb } from "@/components/ui/page-breadcrumb";
+import { useParams } from "next/navigation";
 
 export default function ReservationsPage() {
+  const params = useParams();
+  const role = params.role as string;
+  const [statusFilter, setStatusFilter] = useState("pending");
+
   // Data fetching - TanStack Query handles caching
   const { reservations, error, loading } = useReservations();
 
@@ -66,6 +72,14 @@ export default function ReservationsPage() {
 
   return (
     <div className="flex flex-col max-w-full">
+      {/* Breadcrumb */}
+      <PageBreadcrumb
+        items={[
+          { label: "Dashboard", href: `/page/${role}/dashboard` },
+          { label: "Reservations" }
+        ]}
+      />
+
       {/* Error Message */}
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
@@ -77,8 +91,9 @@ export default function ReservationsPage() {
       {/* Pass events instead of reservations */}
       <ReservationsTable
         events={events}
-        // role="admin"
         isLoading={loading}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
       />
     </div>
   );

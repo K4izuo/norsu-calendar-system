@@ -216,34 +216,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         const normalizedTimeEnd = normalizeTime(rest.time_end);
         const normalizedDate = normalizeDate(rest.date);
 
-        // Check for conflicts before submitting
-        const conflicts = checkReservationConflicts({
-          assetId: asset?.id ?? 0,
-          date: normalizedDate,
-          timeStart: normalizedTimeStart,
-          timeEnd: normalizedTimeEnd,
-          reservations: reservations,
-          excludeId: editMode ? eventData?.id : undefined
-        });
-
-        if (conflicts.length > 0) {
-          // Show detailed error with conflict type
-          const conflictDetails = conflicts.map(c => {
-            const conflictMsg = c.conflictType === 'start'
-              ? 'START time conflicts'
-              : c.conflictType === 'end'
-                ? 'END time conflicts'
-                : 'Both START and END times conflict';
-
-            return `- ${c.title_name} (${c.time_start} - ${c.time_end}) - ${conflictMsg}`;
-          }).join('\n');
-
-          toast.error(
-            `Cannot reserve: Time slot conflicts detected with ${conflicts.length} approved event(s):\n\n${conflictDetails}`,
-            { duration: 8000 }
-          );
-          return;
-        }
+        // NO CONFLICT CHECK HERE - Already checked in Event Details "Next" button
 
         // Final payload you're actually sending
         const formDataWithPeople = {
@@ -340,15 +313,93 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         toast.error(editMode ? "Failed to update event. Please try again." : "Failed to reserve event. Please try again.");
       }
     },
-    [reset, onClose, taggedPeople, eventDate, onNewReservation, editMode, eventData, user?.id, reservations, queryClient]
+    [reset, onClose, taggedPeople, eventDate, onNewReservation, editMode, eventData, user?.id, queryClient]
   );
 
-  const handleFormTabNext = useCallback(() => {
-    handleSubmit(
-      () => setActiveTab("additional")
-      // No toast error callback
-    )();
-  }, [handleSubmit]);
+  const handleFormTabNext = useCallback(async () => {
+    // First validate the form fields
+    const isValid = await trigger(['title_name', 'asset', 'time_start', 'time_end', 'description', 'range']);
+
+    if (!isValid) {
+      return; // Stop if form validation fails
+    }
+
+    // Form is valid, now check for conflicts
+    try {
+      const values = getValues();
+
+      // ⚠️ SAFETY CHECK: Make sure we have reservations data loaded
+      if (!reservations || reservations.length === 0) {
+        // If no reservations loaded yet, it's safe to proceed (no conflicts possible)
+        // console.log('No reservations data available - proceeding without conflict check');
+        setActiveTab("additional");
+        return;
+      }
+
+      // Normalize times to "HH:mm" format
+      const normalizeTime = (time: string): string => {
+        if (!time) return "00:00";
+        const [hour, minute] = time.split(":");
+        return `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}`;
+      };
+
+      // Ensure date is in YYYY-MM-DD format
+      const normalizeDate = (dateStr: string): string => {
+        if (!dateStr) return "";
+
+        // If already in YYYY-MM-DD format, return as-is
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+          return dateStr;
+        }
+
+        // Parse and format
+        const date = new Date(dateStr);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      };
+
+      const normalizedTimeStart = normalizeTime(values.time_start);
+      const normalizedTimeEnd = normalizeTime(values.time_end);
+      const normalizedDate = normalizeDate(values.date);
+
+      // ✅ CHECK FOR CONFLICTS HERE (ONLY PLACE)
+      const conflicts = checkReservationConflicts({
+        assetId: values.asset?.id ?? 0,
+        date: normalizedDate,
+        timeStart: normalizedTimeStart,
+        timeEnd: normalizedTimeEnd,
+        reservations: reservations,
+        excludeId: editMode ? eventData?.id : undefined
+      });
+
+      if (conflicts.length > 0) {
+        // Show detailed error with conflict type
+        const conflictDetails = conflicts.map(c => {
+          const conflictMsg = c.conflictType === 'start'
+            ? 'START time conflicts'
+            : c.conflictType === 'end'
+              ? 'END time conflicts'
+              : 'Both START and END times conflict';
+
+          return `- ${c.title_name} (${c.time_start} - ${c.time_end}) - ${conflictMsg}`;
+        }).join('\n');
+
+        toast.error(
+          `Cannot proceed: Time slot conflicts detected with ${conflicts.length} approved event(s):\n\n${conflictDetails}`,
+          { duration: 8000 }
+        );
+        return; // Stop here, don't advance to next tab
+      }
+
+      // No conflicts, proceed to next tab
+      setActiveTab("additional");
+    } catch (error) {
+      console.error("Error checking conflicts:", error);
+      toast.error("Failed to check for conflicts. Please try again.");
+    }
+  }, [trigger, getValues, reservations, editMode, eventData, setActiveTab]);
 
   const handleAdditionalTabNext = useCallback(async () => {
     setValue("people_tag", taggedPeople.map(p => p.name).join(', '), {

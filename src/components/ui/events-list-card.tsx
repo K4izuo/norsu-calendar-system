@@ -118,7 +118,7 @@ export const EventCardsList = React.memo(function EventCardsList({
                   <span className="text-xs text-gray-400 uppercase mb-1.5">Category</span>
                   <div className="flex items-center gap-2">
                     <Tag className="h-4 w-4 text-gray-600 shrink-0" />
-                    <span className="text-sm font-medium text-gray-900">{event.category || "Uncategorized"}</span>
+                    <span className="text-sm capitalize font-medium text-gray-900">{event.category || "Uncategorized"}</span>
                   </div>
                 </div>
 

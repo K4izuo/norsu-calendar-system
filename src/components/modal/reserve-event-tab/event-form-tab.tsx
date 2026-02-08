@@ -118,7 +118,7 @@ export function ReserveEventFormTab({
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-2">
               <Label htmlFor="range" className="text-base inline-flex pointer-events-none">
-                <span className="pointer-events-auto">Range</span>
+                <span className="pointer-events-auto">Day(s)</span>
               </Label>
               <TooltipProvider>
                 <Tooltip>

@@ -129,7 +129,7 @@ export function ReserveEventSummaryTab({
             </div>
           </div>
           <div>
-            <p className="text-base text-gray-500">Reservation Range</p>
+            <p className="text-base text-gray-500">Reservation Day(s)</p>
             <p className="font-medium text-base">{formData.range} day{formData.range > 1 ? "s" : ""}</p>
           </div>
         </div>
@@ -148,8 +148,8 @@ export function ReserveEventSummaryTab({
         </div>
       )}
       <div className={`mt-6 p-3 rounded-md flex items-center justify-center ${isFormValid()
-          ? 'bg-green-50 text-green-800'
-          : 'bg-yellow-50 text-yellow-800'
+        ? 'bg-green-50 text-green-800'
+        : 'bg-yellow-50 text-yellow-800'
         }`}>
         {isFormValid() ? (
           <>

@@ -9,6 +9,8 @@ import { useReservations, useAssets } from "@/services/reservation-service";
 import { useQueryClient } from "@tanstack/react-query";
 import { getUserId } from "@/lib/auth";
 import { getPhilippineMonth, getPhilippineYear } from "@/lib/timezone-utils";
+import { PageBreadcrumb } from "@/components/ui/page-breadcrumb";
+import { useParams } from "next/navigation";
 
 // Helper function to check if an event has finished
 const isEventFinished = (eventDate: string, timeEnd: string): boolean => {
@@ -23,6 +25,9 @@ const isEventFinished = (eventDate: string, timeEnd: string): boolean => {
 };
 
 export default function CalendarPage() {
+  const params = useParams();
+  const role = params.role as string;
+
   const [modalOpen, setModalOpen] = useState(false);
   const [eventInfoModalOpen, setEventInfoModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventDetails | undefined>(undefined);
@@ -157,9 +162,13 @@ export default function CalendarPage() {
 
   return (
     <div className="h-full flex flex-col max-w-full min-h-125">
-      <h1 className="text-2xl sm:text-3xl font-normal leading-tight mb-4 sm:mb-6 px-2 sm:px-0">
-        Admin Calendar
-      </h1>
+      {/* Breadcrumb */}
+      <PageBreadcrumb
+        items={[
+          { label: "Dashboard", href: `/page/${role}/dashboard` },
+          { label: "Calendar" }
+        ]}
+      />
 
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">

@@ -6,25 +6,36 @@ import { Input } from "@/components/ui/input"
 import { Search, MoreVertical } from "lucide-react"
 import { EventInfoModal } from "@/components/modal/event-info-modal"
 import { EventDetails } from "@/interface/user-props"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 interface ReservationsTableProps {
   events: EventDetails[];
   isLoading?: boolean;
+  statusFilter: string;
+  onStatusFilterChange: (value: string) => void;
 }
 
-export function ReservationsTable({ events }: ReservationsTableProps) {
+export function ReservationsTable({ events, statusFilter, onStatusFilterChange }: ReservationsTableProps) {
   const [searchQuery, setSearchQuery] = useState("")
 
   const [eventInfoModalOpen, setEventInfoModalOpen] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<EventDetails | undefined>(undefined)
   const [eventInfoLoading, setEventInfoLoading] = useState(false)
 
-  // Filter and sort reservations based on search query and date
+  // Filter and sort reservations based on search query, status filter, and date
   const filteredEvents = useMemo(() => {
-    // First, filter by search query
-    const filtered = events.filter((event) =>
-      event.title_name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    // First, filter by search query and status
+    const filtered = events.filter((event) => {
+      const matchesSearch = event.title_name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus = statusFilter === "all" || event.registration_status === statusFilter.toUpperCase();
+      return matchesSearch && matchesStatus;
+    });
 
     // Then, sort by status first (PENDING first), then by date descending
     return filtered.sort((a, b) => {
@@ -43,7 +54,7 @@ export function ReservationsTable({ events }: ReservationsTableProps) {
       const dateB = new Date(b.date);
       return dateB.getTime() - dateA.getTime();
     });
-  }, [events, searchQuery]);
+  }, [events, searchQuery, statusFilter]);
 
   const handleRowClick = (event: EventDetails) => {
     setEventInfoLoading(true)
@@ -57,9 +68,21 @@ export function ReservationsTable({ events }: ReservationsTableProps) {
 
   return (
     <>
-      <div className="w-full px-6.5 py-6 bg-white rounded-md shadow-sm">
+      <div className="w-full rounded-md">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-semibold text-foreground">Reservations</h1>
+          <div className="flex items-center gap-3">
+            <Select value={statusFilter} onValueChange={onStatusFilterChange}>
+              <SelectTrigger className="w-32.5 shadow-xs h-11 cursor-pointer bg-white">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem className="cursor-pointer" value="all">All Status</SelectItem>
+                <SelectItem className="cursor-pointer" value="pending">PENDING</SelectItem>
+                <SelectItem className="cursor-pointer" value="approved">APPROVED</SelectItem>
+                <SelectItem className="cursor-pointer" value="declined">DECLINED</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div className="flex items-center gap-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -135,8 +158,8 @@ export function ReservationsTable({ events }: ReservationsTableProps) {
                       </TableCell>
                       <TableCell className="px-6 py-4 text-sm text-foreground">
                         <span className={`px-2 py-1 rounded-md text-xs font-medium ${event.registration_status === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                            event.registration_status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-red-100 text-red-800'
+                          event.registration_status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
                           }`}>
                           {event.registration_status}
                         </span>

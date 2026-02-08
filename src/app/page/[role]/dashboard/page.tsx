@@ -1,16 +1,25 @@
+"use client";
+
 import { UsersRound, Calendar } from "lucide-react";
 import DashboardStatCard from "@/components/user-dashboard-ui/dashboard/stat-card";
 import AdminAssetsChart from "@/components/user-dashboard-ui/dashboard/assets-line-chart";
 import AdminUsersChart from "@/components/user-dashboard-ui/dashboard/users-bar-chart";
+import { PageBreadcrumb } from "@/components/ui/page-breadcrumb";
+// import { useParams } from "next/navigation";
 
 export default function DashboardPage() {
+  // const params = useParams();
+  // const role = params.role as string;
+
   return (
     <div className="flex flex-col items-start self-stretch">
-      {/* Dashboard Title */}
-      <div className="flex items-center mb-5 gap-x-2">
-        <span className="text-2xl font-normal text-gray-500">Home /</span>
-        <h1 className="text-2xl font-semibold text-gray-800">Dashboard</h1>
-      </div>
+      {/* Breadcrumb */}
+      <PageBreadcrumb
+        items={[
+          { label: "Dashboard" }
+        ]}
+      />
+
       <div className="flex flex-col items-start gap-9 flex-1 self-stretch">
         {/* Card row - now a responsive grid */}
         <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

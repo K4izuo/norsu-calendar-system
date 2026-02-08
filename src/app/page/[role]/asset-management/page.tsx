@@ -12,7 +12,7 @@ import {
   officesQueryOptions
 } from "@/services/academicDataService";
 import { useAssets, useCreateAsset, Asset } from "@/services/asset-service";
-import { Search, Calendar, Filter, PackagePlus } from "lucide-react";
+import { Search, PackagePlus } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -20,8 +20,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { PageBreadcrumb } from "@/components/ui/page-breadcrumb";
+import { useParams } from "next/navigation";
 
 export default function AssetsPage() {
+  const params = useParams();
+  const role = params.role as string;
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -39,7 +44,7 @@ export default function AssetsPage() {
   }, [queryClient]);
 
   // Data fetching - TanStack Query handles caching
-  const { assets, error, refetch, loading } = useAssets();
+  const { assets, error, loading } = useAssets(); // add the refetch function from the useAssets hook
   const { mutateAsync: createAsset } = useCreateAsset();
 
   const filteredAssets = useMemo(() => {
@@ -67,9 +72,13 @@ export default function AssetsPage() {
 
   return (
     <div className="flex flex-col w-full min-w-0">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Assets Management</h1>
-      </div>
+      {/* Breadcrumb */}
+      <PageBreadcrumb
+        items={[
+          { label: "Dashboard", href: `/page/${role}/dashboard` },
+          { label: "Assets" }
+        ]}
+      />
 
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
@@ -118,7 +127,7 @@ export default function AssetsPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <Button
+          {/* <Button
             variant="outline"
             className="flex items-center gap-2 h-11 px-4 bg-white cursor-pointer"
           >
@@ -132,7 +141,7 @@ export default function AssetsPage() {
           >
             <Filter className="w-4 h-4" />
             Filter
-          </Button>
+          </Button> */}
           <Button
             onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-2 h-11 px-4 cursor-pointer"
