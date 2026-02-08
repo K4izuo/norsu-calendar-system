@@ -17,7 +17,7 @@ export default function AboutSection() {
             How It Started
           </span>
 
-          <h1 className="text-5xl md:text-6xl font-bold text-slate-900 leading-[1.1] tracking-tight mb-45 mt-4">
+          <h1 className="text-5xl md:text-6xl font-bold text-slate-900 leading-[1.1] tracking-tight mb-[183px] mt-4">
             &quot;Our Dream is Global Scheduling Efficiency&quot;
           </h1>
 
@@ -52,19 +52,19 @@ export default function AboutSection() {
           </div>
 
           <div className="grid p-8 bg-white text-card-foreground shadow rounded-3xl grid-cols-2 gap-4">
-            <div className="bg-muted/50 p-6 rounded-2xl">
+            <div className="bg-muted/50 border p-6 rounded-2xl">
               <div className="text-3xl font-extrabold text-slate-900 mb-1">4.2</div>
               <div className="text-sm font-medium text-slate-500">Years Experience</div>
             </div>
-            <div className="bg-muted/50 p-6 rounded-2xl">
+            <div className="bg-muted/50 border p-6 rounded-2xl">
               <div className="text-3xl font-extrabold text-slate-900 mb-1">50+</div>
               <div className="text-sm font-medium text-slate-500">Major Projects</div>
             </div>
-            <div className="bg-muted/50 p-6 rounded-2xl">
+            <div className="bg-muted/50 border p-6 rounded-2xl">
               <div className="text-3xl font-extrabold text-slate-900 mb-1">1.2k+</div>
               <div className="text-sm font-medium text-slate-500">Active Users</div>
             </div>
-            <div className="bg-muted/50 p-6 rounded-2xl">
+            <div className="bg-muted/50 border p-6 rounded-2xl">
               <div className="text-3xl font-extrabold text-slate-900 mb-1">200+</div>
               <div className="text-sm font-medium text-slate-500">Institutions</div>
             </div>

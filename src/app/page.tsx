@@ -13,6 +13,9 @@ import { toast } from "react-hot-toast";
 import { usePublicReservations, usePublicAssets } from "@/services/reservation-service";
 import { getPhilippineDateTime, getPhilippineMonth, getPhilippineYear, getPhilippineDay } from "@/lib/timezone-utils";
 
+// Force dynamic rendering so dates are calculated on each request, not at build time
+export const dynamic = 'force-dynamic';
+
 // Helper function to check if an event has finished
 const isEventFinished = (eventDate: string, timeEnd: string): boolean => {
   try {
