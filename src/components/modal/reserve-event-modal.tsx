@@ -15,16 +15,16 @@ import { useReserveEventForm } from "@/hooks/useReserveEventForm"
 import { Reservation, ReservationAPIPayload, EventDetails } from "@/interface/user-props"
 
 const infoTypes = [
-  { value: "public", label: "Public" },
-  { value: "private", label: "Private" },
-  { value: "restricted", label: "Restricted" },
+  { value: "Public", label: "Public" },
+  { value: "Private", label: "Private" },
+  { value: "Restricted", label: "Restricted" },
 ]
 
 const categories = [
-  { value: "academic", label: "Academic" },
-  { value: "social", label: "Social" },
-  { value: "sports", label: "Sports" },
-  { value: "other", label: "Other" },
+  { value: "Acedemic", label: "Academic" },
+  { value: "Social", label: "Social" },
+  { value: "Sports", label: "Sports" },
+  { value: "Other", label: "Other" },
 ]
 
 interface ModalProps {
