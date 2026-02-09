@@ -55,7 +55,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
   const { user } = useAuth();
 
   // Fetch all reservations for conflict checking
-  const { reservations, loading: reservationsLoading } = useReservations();
+  const { reservations, loading: reservationsLoading, hasData, isQueryEnabled } = useReservations();
   const queryClient = useQueryClient();
 
   const peopleFieldRef = useRef<HTMLInputElement>(null);
@@ -328,21 +328,26 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
     try {
       const values = getValues();
 
-      // ⚠️ ADD THIS NEW CHECK FIRST
+      // ✅ PRODUCTION CHECK 1: Wait for loading to complete
       if (reservationsLoading) {
         toast.error("Loading reservation data, please wait...");
         return;
       }
 
-      // ⚠️ REMOVE OR MODIFY THE OLD SAFETY CHECK
-      // Change from:
-      // if (!reservations || reservations.length === 0) {
-      //   setActiveTab("additional");
-      //   return;
-      // }
+      // ✅ PRODUCTION CHECK 2: Verify query is enabled (user is authenticated)
+      if (!isQueryEnabled) {
+        toast.error("Authentication required. Please log in and try again.");
+        return;
+      }
 
-      // To: (optional - only if you want to allow proceeding when NO reservations exist)
-      // If reservations loaded and empty, it's safe to proceed
+      // ✅ PRODUCTION CHECK 3: Verify data has been fetched at least once
+      if (!hasData) {
+        toast.error("Unable to load reservation data. Please refresh the page.");
+        return;
+      }
+
+      // ✅ NOW SAFE: Empty array means no conflicts, not "data not loaded"
+      // reservations.length === 0 is valid - it means no existing reservations
 
       // Normalize times to "HH:mm" format
       const normalizeTime = (time: string): string => {
@@ -407,7 +412,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       console.error("Error checking conflicts:", error);
       toast.error("Failed to check for conflicts. Please try again.");
     }
-  }, [trigger, getValues, reservations, editMode, eventData, setActiveTab, reservationsLoading]);
+  }, [trigger, getValues, reservations, editMode, eventData, setActiveTab, reservationsLoading, hasData, isQueryEnabled]);
 
   const handleAdditionalTabNext = useCallback(async () => {
     setValue("people_tag", taggedPeople.map(p => p.name).join(', '), {

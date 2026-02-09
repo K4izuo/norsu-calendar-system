@@ -85,15 +85,13 @@ const declineReservation = async ({ reservationId, userId, reason }: { reservati
 export const useReservations = () => {
   const { user, isLoading: isAuthLoading, isAuthenticated } = useAuth();
 
-  const { data, isFetching, error, refetch } = useQuery({
+  const { data, isFetching, error, refetch, dataUpdatedAt } = useQuery({
     queryKey: ['reservations', user?.id],
     queryFn: fetchReservations,
-    // ⚡ PERFORMANCE: Cache for 2 minutes to reduce unnecessary API calls
     staleTime: 2 * 60 * 1000, // 2 minutes (was 0 - too aggressive)
     refetchOnWindowFocus: false,
     refetchOnMount: true,
     enabled: !isAuthLoading && isAuthenticated,
-    // ⚡ PERFORMANCE: Keep previous data while fetching new data for smoother UX
     placeholderData: (previousData) => previousData,
     retry: (failureCount, error) => {
       if (error instanceof Error && error.message.includes('401')) {
@@ -103,9 +101,14 @@ export const useReservations = () => {
     },
   });
 
+  // ✅ PRODUCTION FIX: Track if query has ever successfully fetched
+  const hasData = dataUpdatedAt > 0;
+
   return {
     reservations: data || [],
     loading: isAuthLoading || isFetching,
+    hasData, // ✅ NEW: Indicates if data has been fetched at least once
+    isQueryEnabled: !isAuthLoading && isAuthenticated, // ✅ NEW: Query execution state
     error: error?.message || null,
     refetch,
   };
@@ -116,12 +119,10 @@ export const usePublicReservations = () => {
   const { data, isFetching, error, refetch } = useQuery({
     queryKey: ['public-reservations'],
     queryFn: fetchReservations,
-    // ⚡ PERFORMANCE: Cache for 2 minutes to reduce server load on public page
     staleTime: 2 * 60 * 1000, // 2 minutes (was 0)
     refetchOnWindowFocus: false,
     refetchOnMount: true,
     enabled: true,
-    // ⚡ PERFORMANCE: Keep previous data visible while refreshing
     placeholderData: (previousData) => previousData,
     retry: 2,
   });
@@ -175,7 +176,6 @@ export const useAssets = (assetIds: number[]) => {
     },
     staleTime: 5 * 60 * 1000, // ⚡ Assets change less frequently - cache longer
     enabled: assetIds.length > 0 && !isAuthLoading && isAuthenticated,
-    // ⚡ PERFORMANCE: Keep previous data while fetching updates
     placeholderData: (previousData) => previousData,
   });
 
@@ -226,7 +226,6 @@ export const usePublicAssets = (assetIds: number[]) => {
     },
     staleTime: 5 * 60 * 1000, // ⚡ Public assets cached longer
     enabled: assetIds.length > 0,
-    // ⚡ PERFORMANCE: Keep previous data while fetching updates
     placeholderData: (previousData) => previousData,
     retry: 1,
     retryDelay: 1000,
