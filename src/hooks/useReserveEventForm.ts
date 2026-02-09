@@ -55,7 +55,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
   const { user } = useAuth();
 
   // Fetch all reservations for conflict checking
-  const { reservations } = useReservations();
+  const { reservations, loading: reservationsLoading } = useReservations();
   const queryClient = useQueryClient();
 
   const peopleFieldRef = useRef<HTMLInputElement>(null);
@@ -328,13 +328,21 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
     try {
       const values = getValues();
 
-      // ⚠️ SAFETY CHECK: Make sure we have reservations data loaded
-      if (!reservations || reservations.length === 0) {
-        // If no reservations loaded yet, it's safe to proceed (no conflicts possible)
-        // console.log('No reservations data available - proceeding without conflict check');
-        setActiveTab("additional");
+      // ⚠️ ADD THIS NEW CHECK FIRST
+      if (reservationsLoading) {
+        toast.error("Loading reservation data, please wait...");
         return;
       }
+
+      // ⚠️ REMOVE OR MODIFY THE OLD SAFETY CHECK
+      // Change from:
+      // if (!reservations || reservations.length === 0) {
+      //   setActiveTab("additional");
+      //   return;
+      // }
+
+      // To: (optional - only if you want to allow proceeding when NO reservations exist)
+      // If reservations loaded and empty, it's safe to proceed
 
       // Normalize times to "HH:mm" format
       const normalizeTime = (time: string): string => {
@@ -399,7 +407,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       console.error("Error checking conflicts:", error);
       toast.error("Failed to check for conflicts. Please try again.");
     }
-  }, [trigger, getValues, reservations, editMode, eventData, setActiveTab]);
+  }, [trigger, getValues, reservations, editMode, eventData, setActiveTab, reservationsLoading]);
 
   const handleAdditionalTabNext = useCallback(async () => {
     setValue("people_tag", taggedPeople.map(p => p.name).join(', '), {

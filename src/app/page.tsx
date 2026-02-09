@@ -6,6 +6,7 @@ import { useMemo, useState, useEffect, useCallback } from "react";
 import { EventsListModal } from "@/components/modal/events-list-modal";
 import { EventInfoModal } from "@/components/modal/event-info-modal";
 import { Calendar } from "@/components/ui/norsu-calendar";
+import { CalendarSkeleton } from "@/components/ui/skeleton";
 import AboutSection from "@/components/ui/about-section";
 import type { EventDetails, CalendarDayType } from "@/interface/user-props";
 import { toast } from "react-hot-toast";
@@ -29,14 +30,16 @@ const isEventFinished = (eventDate: string, timeEnd: string): boolean => {
 };
 
 export default function Home() {
-  // FIX: Initialize with Philippine timezone to ensure SSR and client-side dates match
-  const { year: initialYear, month: initialMonth } = getPhilippineDateTime();
+  // PRODUCTION-READY: Client-only rendering to avoid hydration mismatch
+  // This ensures 100% accurate Philippine time on every page load
+  const [mounted, setMounted] = useState(false);
   const [today, setToday] = useState<Date>(new Date());
-  const [currentMonth, setCurrentMonth] = useState(initialMonth);
-  const [currentYear, setCurrentYear] = useState(initialYear);
+  const [currentMonth, setCurrentMonth] = useState(0);
+  const [currentYear, setCurrentYear] = useState(0);
 
   useEffect(() => {
-    // FIX: Update with current Philippine timezone date on client
+    // Only runs on client - guarantees correct Philippine timezone
+    setMounted(true);
     const { year, month, date } = getPhilippineDateTime();
     setToday(date);
     setCurrentMonth(month);
@@ -341,16 +344,21 @@ export default function Home() {
             {/* Calendar - Takes remaining space */}
             <div className="flex-1 flex flex-col items-start justify-center min-h-0">
               <div className="w-full text-card-foreground border bg-white rounded-md shadow flex flex-col items-start self-stretch p-4 sm:p-6 gap-6 relative flex-1 min-h-0">
-                <Calendar
-                  role="public"
-                  events={calendarEvents}
-                  onDaySelect={handleDaySelect}
-                  getEventsForDate={getEventsForDate}
-                  initialDate={today}
-                  currentMonth={currentMonth}
-                  currentYear={currentYear}
-                  onMonthYearChange={handleMonthYearChange}
-                />
+                {!mounted ? (
+                  // CalendarSkeleton - prevents hydration mismatch
+                  <CalendarSkeleton />
+                ) : (
+                  <Calendar
+                    role="public"
+                    events={calendarEvents}
+                    onDaySelect={handleDaySelect}
+                    getEventsForDate={getEventsForDate}
+                    initialDate={today}
+                    currentMonth={currentMonth}
+                    currentYear={currentYear}
+                    onMonthYearChange={handleMonthYearChange}
+                  />
+                )}
               </div>
             </div>
           </div>
