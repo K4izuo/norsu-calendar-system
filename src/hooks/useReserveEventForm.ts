@@ -333,6 +333,9 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
     try {
       const values = getValues();
 
+      // ✅ WAIT A BIT: Let the UI update before heavy processing
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       // ✅ CRITICAL FIX 1: Check if query is enabled (user authenticated)
       if (!isQueryEnabled) {
         toast.error("Authentication required. Please log in and try again.");
@@ -361,8 +364,9 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         return;
       }
 
-      // ✅ ADD SMALL DELAY: Ensure loading state is visible (minimum 300ms)
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // ✅ PRODUCTION DEBUG: Show what we're checking (visible on Vercel)
+      const debugInfo = `Checking ${reservations.length} reservations for asset ${values.asset?.id} on ${values.date}`;
+      console.log('🔍 DEBUG:', debugInfo);
 
       // Normalize times to "HH:mm" format
       const normalizeTime = (time: string): string => {
@@ -392,6 +396,19 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       const normalizedTimeEnd = normalizeTime(values.time_end);
       const normalizedDate = normalizeDate(values.date);
 
+      // ✅ PRODUCTION DEBUG: Log normalized values
+      console.log('🔍 Normalized:', {
+        assetId: values.asset?.id,
+        date: normalizedDate,
+        timeStart: normalizedTimeStart,
+        timeEnd: normalizedTimeEnd,
+        totalReservations: reservations.length,
+        approvedReservations: reservations.filter(r => r.status?.toUpperCase() === 'APPROVED').length
+      });
+
+      // ✅ ADD MINIMUM DELAY: Ensure loading is visible (500ms minimum)
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       // ✅ CHECK FOR CONFLICTS HERE (ONLY PLACE)
       const conflicts = checkReservationConflicts({
         assetId: values.asset?.id ?? 0,
@@ -401,6 +418,12 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         reservations: reservations,
         excludeId: editMode ? eventData?.id : undefined
       });
+
+      // ✅ PRODUCTION DEBUG: Log conflict result
+      console.log('🔍 Conflicts found:', conflicts.length);
+      if (conflicts.length > 0) {
+        console.log('🔍 Conflict details:', conflicts);
+      }
 
       // ✅ STOP: Hide loading state
       setIsCheckingConflict(false);
@@ -424,10 +447,13 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         return; // Stop here, don't advance to next tab
       }
 
+      // ✅ PRODUCTION DEBUG: No conflicts, proceeding
+      console.log('✅ No conflicts detected, proceeding to next tab');
+
       // No conflicts, proceed to next tab
       setActiveTab("additional");
     } catch (error) {
-      console.error("Error checking conflicts:", error);
+      console.error("❌ Error checking conflicts:", error);
       setIsCheckingConflict(false);
       toast.error("Failed to check for conflicts. Please try again.");
     }
