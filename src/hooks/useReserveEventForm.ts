@@ -313,11 +313,11 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
     try {
       const values = getValues();
 
-      // ✅ Fetch directly from API
+      // Fetch reservations from API
       const response = await apiClient.get<ReservationWithRelations[]>("/reservations/all");
 
       if (response.error || !response.data) {
-        alert(`API ERROR: ${response.error || 'No data'}`);
+        console.error("API Error:", response.error);
         toast.error("Unable to load reservation data. Please try again.");
         setIsCheckingConflict(false);
         return;
@@ -340,24 +340,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       const normalizedTimeEnd = normalizeTime(values.time_end);
       const normalizedDate = normalizeDate(values.date);
 
-      // ✅ DEBUG: Show what we're checking
-      const matching = freshReservations.filter(r => {
-        const rDate = normalizeDate(r.date);
-        return r.asset_id === values.asset?.id &&
-          rDate === normalizedDate &&
-          r.status?.toUpperCase() === 'APPROVED';
-      });
-
-      alert(`DEBUG:
-Total: ${freshReservations.length}
-Asset: ${values.asset?.id}
-Date: ${normalizedDate}
-Time: ${normalizedTimeStart}-${normalizedTimeEnd}
-Matching: ${matching.length}
-${matching.length > 0 ? matching.map(m => `${m.title_name} ${normalizeDate(m.date)} ${m.time_start}-${m.time_end}`).join('\n') : 'None'}`);
-
-      await new Promise(resolve => setTimeout(resolve, 300));
-
+      // Check for conflicts
       const conflicts = checkReservationConflicts({
         assetId: values.asset?.id ?? 0,
         date: normalizedDate,
@@ -367,31 +350,30 @@ ${matching.length > 0 ? matching.map(m => `${m.title_name} ${normalizeDate(m.dat
         excludeId: editMode ? eventData?.id : undefined
       });
 
-      alert(`CONFLICTS FOUND: ${conflicts.length}`);
-
       setIsCheckingConflict(false);
 
       if (conflicts.length > 0) {
         const conflictDetails = conflicts.map(c => {
           const conflictMsg = c.conflictType === 'start'
-            ? 'START time conflicts'
+            ? 'Start time conflicts'
             : c.conflictType === 'end'
-              ? 'END time conflicts'
-              : 'Both START and END times conflict';
+              ? 'End time conflicts'
+              : 'Overlaps completely';
 
-          return `- ${c.title_name} (${c.time_start} - ${c.time_end}) - ${conflictMsg}`;
+          return `• ${c.title_name} (${c.time_start} - ${c.time_end}) - ${conflictMsg}`;
         }).join('\n');
 
         toast.error(
-          `Cannot proceed: Time slot conflicts detected with ${conflicts.length} approved event(s):\n\n${conflictDetails}`,
+          `Time slot conflicts detected with ${conflicts.length} approved event(s):\n\n${conflictDetails}`,
           { duration: 8000 }
         );
         return;
       }
 
+      // No conflicts, proceed to next tab
       setActiveTab("additional");
     } catch (err) {
-      alert(`EXCEPTION: ${err}`);
+      console.error("Conflict check error:", err);
       setIsCheckingConflict(false);
       toast.error("Failed to check for conflicts. Please try again.");
     }

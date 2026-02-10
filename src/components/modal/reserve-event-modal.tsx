@@ -228,7 +228,10 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.15, ease: "easeOut" }}
+          transition={{
+            duration: 0.25,
+            ease: [0.22, 1, 0.36, 1]
+          }}
         />
 
         <motion.div
@@ -236,7 +239,11 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 4 }}
-          transition={{ duration: 0.15, ease: "easeOut" }}
+          transition={{
+            type: "tween",
+            duration: 0.25,
+            ease: [0.22, 1, 0.36, 1]
+          }}
           className="relative w-full max-w-216 sm:mx-4 mx-px max-h-[92vh] bg-white rounded-xl shadow-xl overflow-hidden flex flex-col"
           style={{
             transform: "translateZ(0)",
