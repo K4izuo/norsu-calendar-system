@@ -313,28 +313,17 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
     try {
       const values = getValues();
 
-      if (!values.asset?.id) {
-        toast.error("Please select an asset first.");
-        setIsCheckingConflict(false);
-        return;
-      }
-
+      // Fetch reservations from API
       const response = await apiClient.get<ReservationWithRelations[]>("/reservations/all");
 
-      // Check API response
-      if (response.error || response.status !== 200 || !response.data) {
-        toast.error("Unable to load reservations. Please try again.");
+      if (response.error || !response.data) {
+        console.error("API Error:", response.error);
+        toast.error("Unable to load reservation data. Please try again.");
         setIsCheckingConflict(false);
         return;
       }
 
       const freshReservations = response.data;
-
-      if (!Array.isArray(freshReservations)) {
-        toast.error("Invalid reservation data received.");
-        setIsCheckingConflict(false);
-        return;
-      }
 
       const normalizeTime = (time: string): string => {
         if (!time) return "00:00";
@@ -353,7 +342,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
 
       // Check for conflicts
       const conflicts = checkReservationConflicts({
-        assetId: values.asset.id,
+        assetId: values.asset?.id ?? 0,
         date: normalizedDate,
         timeStart: normalizedTimeStart,
         timeEnd: normalizedTimeEnd,
@@ -363,7 +352,6 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
 
       setIsCheckingConflict(false);
 
-      // CRITICAL: Block progression if conflicts found
       if (conflicts.length > 0) {
         const conflictDetails = conflicts.map(c => {
           const conflictMsg = c.conflictType === 'start'
@@ -382,12 +370,12 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         return;
       }
 
-      // Only proceed if NO conflicts
+      // No conflicts, proceed to next tab
       setActiveTab("additional");
-    } catch {
+    } catch (err) {
+      console.error("Conflict check error:", err);
       setIsCheckingConflict(false);
-      toast.error("An error occurred while checking for conflicts. Please try again.");
-      return;
+      toast.error("Failed to check for conflicts. Please try again.");
     }
   }, [trigger, getValues, editMode, eventData, setActiveTab]);
 
