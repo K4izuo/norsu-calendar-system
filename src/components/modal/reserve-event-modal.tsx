@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { X, CalendarDays, Edit } from "lucide-react"
+import { X, CalendarDays, Edit, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { ReserveEventFormTab } from "@/components/modal/reserve-event-tab/event-form-tab"
@@ -66,7 +66,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
     errors,
     isSubmitting,
     register,
-    watch, // Add this line
+    watch,
     activeTab,
     setActiveTab,
     showVenueModal,
@@ -91,7 +91,8 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
     handleFormSubmit,
     validationRules,
     setValue,
-    setTaggedPeople
+    setTaggedPeople,
+    isCheckingConflict, // ✅ NEW: Destructure loading state
   } = useReserveEventForm({ eventDate, onSubmit, onClose, isOpen, onNewReservation, editMode, eventData });
 
   const [loadingVenueAssets, setLoadingVenueAssets] = useState(false);
@@ -355,8 +356,16 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
                   onClick={handleFormTabNext}
                   variant="default"
                   className="text-base cursor-pointer py-2.5"
+                  disabled={isCheckingConflict} // ✅ Disable during conflict check
                 >
-                  Next
+                  {isCheckingConflict ? (
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Checking for conflicts...
+                    </div>
+                  ) : (
+                    "Next"
+                  )}
                 </Button>
               )}
               {activeTab === "additional" && (
