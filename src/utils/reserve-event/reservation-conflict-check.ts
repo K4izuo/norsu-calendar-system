@@ -41,16 +41,27 @@ export const checkReservationConflicts = ({
     return `${parts[0].padStart(2, "0")}:${parts[1].padStart(2, "0")}`;
   };
 
+  // ✅ NEW: Normalize date to YYYY-MM-DD format (remove time if present)
+  const normalizeDate = (dateStr: string): string => {
+    if (!dateStr) return "";
+    // Extract just YYYY-MM-DD part (remove time if present)
+    return dateStr.split('T')[0].split(' ')[0];
+  };
+
   const newStart = normalizeTime(timeStart);
   const newEnd = normalizeTime(timeEnd);
+  const normalizedDate = normalizeDate(date); // ✅ Normalize the input date
 
   // Filter to get only relevant reservations (same date, same venue, approved status)
   const relevantReservations = reservations.filter(r => {
     // Skip if it's the same reservation (edit mode)
     if (excludeId && r.id === excludeId) return false;
 
+    // ✅ CRITICAL FIX: Normalize reservation date before comparison
+    const reservationDate = normalizeDate(r.date);
+
     // Must be same asset (venue) and date
-    if (r.asset_id !== assetId || r.date !== date) return false;
+    if (r.asset_id !== assetId || reservationDate !== normalizedDate) return false;
 
     // Only check APPROVED reservations (not PENDING or DECLINED)
     const status = r.status?.toUpperCase();

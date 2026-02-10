@@ -393,20 +393,28 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       const normalizedDate = normalizeDate(values.date);
 
       // ✅ PRODUCTION DEBUG: Show what data we're working with
-      const approvedReservations = reservations.filter(r =>
-        r.status?.toUpperCase() === 'APPROVED' &&
-        r.asset_id === values.asset?.id &&
-        r.date === normalizedDate
-      );
+      const approvedReservations = reservations.filter(r => {
+        const reservationDate = r.date.split('T')[0].split(' ')[0]; // ✅ Normalize date
+        return r.status?.toUpperCase() === 'APPROVED' &&
+          r.asset_id === values.asset?.id &&
+          reservationDate === normalizedDate;
+      });
 
-      // ✅ FORCE SHOW DEBUG INFO (This WILL show on Vercel)
+      // ✅ Show ALL reservations for this asset to debug
+      const allForAsset = reservations.filter(r => r.asset_id === values.asset?.id);
+
+      // ✅ FORCE SHOW DEBUG INFO with normalized dates
       alert(`DEBUG INFO:
 Total Reservations: ${reservations.length}
-Checking Asset ID: ${values.asset?.id}
+All for Asset ${values.asset?.id}: ${allForAsset.length}
 Checking Date: ${normalizedDate}
 Checking Time: ${normalizedTimeStart} - ${normalizedTimeEnd}
+
+RESERVATIONS FOR THIS ASSET:
+${allForAsset.map(r => `${r.title_name} - Date: ${r.date} (${r.date.split('T')[0].split(' ')[0]}) - Status: ${r.status}`).join('\n')}
+
 Approved on same date/asset: ${approvedReservations.length}
-${approvedReservations.length > 0 ? '\nFound:\n' + approvedReservations.map(r => `${r.title_name} (${r.time_start} - ${r.time_end})`).join('\n') : ''}`);
+${approvedReservations.length > 0 ? '\nMatched:\n' + approvedReservations.map(r => `${r.title_name} (${r.time_start} - ${r.time_end})`).join('\n') : ''}`);
 
       // ✅ ADD MINIMUM DELAY: Ensure loading is visible (500ms minimum)
       await new Promise(resolve => setTimeout(resolve, 500));
