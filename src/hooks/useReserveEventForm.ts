@@ -313,10 +313,11 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
     try {
       const values = getValues();
 
-      // ✅ Fetch directly from API - bypassing cache completely
+      // ✅ Fetch directly from API
       const response = await apiClient.get<ReservationWithRelations[]>("/reservations/all");
 
       if (response.error || !response.data) {
+        alert(`API ERROR: ${response.error || 'No data'}`);
         toast.error("Unable to load reservation data. Please try again.");
         setIsCheckingConflict(false);
         return;
@@ -332,21 +333,28 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
 
       const normalizeDate = (dateStr: string): string => {
         if (!dateStr) return "";
-
-        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-          return dateStr;
-        }
-
-        const date = new Date(dateStr);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const day = String(date.getDate()).padStart(2, "0");
-        return `${year}-${month}-${day}`;
+        return dateStr.split('T')[0].split(' ')[0];
       };
 
       const normalizedTimeStart = normalizeTime(values.time_start);
       const normalizedTimeEnd = normalizeTime(values.time_end);
       const normalizedDate = normalizeDate(values.date);
+
+      // ✅ DEBUG: Show what we're checking
+      const matching = freshReservations.filter(r => {
+        const rDate = normalizeDate(r.date);
+        return r.asset_id === values.asset?.id &&
+          rDate === normalizedDate &&
+          r.status?.toUpperCase() === 'APPROVED';
+      });
+
+      alert(`DEBUG:
+Total: ${freshReservations.length}
+Asset: ${values.asset?.id}
+Date: ${normalizedDate}
+Time: ${normalizedTimeStart}-${normalizedTimeEnd}
+Matching: ${matching.length}
+${matching.length > 0 ? matching.map(m => `${m.title_name} ${normalizeDate(m.date)} ${m.time_start}-${m.time_end}`).join('\n') : 'None'}`);
 
       await new Promise(resolve => setTimeout(resolve, 300));
 
@@ -358,6 +366,8 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         reservations: freshReservations,
         excludeId: editMode ? eventData?.id : undefined
       });
+
+      alert(`CONFLICTS FOUND: ${conflicts.length}`);
 
       setIsCheckingConflict(false);
 
@@ -380,7 +390,8 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       }
 
       setActiveTab("additional");
-    } catch {
+    } catch (err) {
+      alert(`EXCEPTION: ${err}`);
       setIsCheckingConflict(false);
       toast.error("Failed to check for conflicts. Please try again.");
     }
