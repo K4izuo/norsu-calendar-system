@@ -55,7 +55,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
   const [isCheckingConflict, setIsCheckingConflict] = useState(false);
   const { user } = useAuth();
 
-  const { reservations, loading: reservationsLoading, refetch } = usePublicReservations();
+  const { refetch } = usePublicReservations();
   const queryClient = useQueryClient();
 
   const peopleFieldRef = useRef<HTMLInputElement>(null);
@@ -101,7 +101,8 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       setValue("time_start", currentTime);
       setValue("time_end", currentTime);
       setActiveTab("form");
-      refetch();
+      // ✅ REMOVE THIS - causing lag
+      // refetch();
     } else if (!isOpen) {
       const currentTime = getCurrentTime();
       reset({
@@ -127,7 +128,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       setTagInput("");
       setIsCheckingConflict(false);
     }
-  }, [isOpen, setValue, reset, eventDate, editMode, refetch]);
+  }, [isOpen, setValue, reset, eventDate, editMode]); // ✅ REMOVE refetch from dependencies
 
   const handleAssetChange = (value: string) => {
     const numericValue = parseInt(value);
@@ -318,22 +319,10 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
 
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      if (reservationsLoading) {
-        toast.error("Loading reservation data, please wait...");
-        setIsCheckingConflict(false);
-        return;
-      }
+      // ✅ ALWAYS fetch fresh data from API before checking conflicts
+      const { data: freshData } = await refetch();
+      const freshReservations = freshData || [];
 
-      // ✅ CRITICAL FIX: Force fresh fetch and wait for result
-      let freshReservations = reservations;
-
-      if (!Array.isArray(reservations) || reservations.length === 0) {
-        const { data } = await refetch();
-        freshReservations = data || [];
-        await new Promise(resolve => setTimeout(resolve, 300));
-      }
-
-      // ✅ Use freshReservations instead of reservations
       if (!Array.isArray(freshReservations)) {
         toast.error("Unable to load reservation data. Please refresh the page.");
         setIsCheckingConflict(false);
@@ -366,7 +355,6 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
 
       await new Promise(resolve => setTimeout(resolve, 400));
 
-      // ✅ Use freshReservations for conflict check
       const conflicts = checkReservationConflicts({
         assetId: values.asset?.id ?? 0,
         date: normalizedDate,
@@ -401,7 +389,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       setIsCheckingConflict(false);
       toast.error("Failed to check for conflicts. Please try again.");
     }
-  }, [trigger, getValues, reservations, editMode, eventData, setActiveTab, reservationsLoading, refetch]);
+  }, [trigger, getValues, editMode, eventData, setActiveTab, refetch]);
 
   const handleAdditionalTabNext = useCallback(async () => {
     setValue("people_tag", taggedPeople.map(p => p.name).join(', '), {
