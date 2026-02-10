@@ -37,7 +37,7 @@ export const EventCardsList = React.memo(function EventCardsList({
             {/* Image Section with Blur Transition */}
             <div className="relative">
               {/* Main Image */}
-              <div className="h-50 overflow-hidden">
+              <div className="relative h-50 overflow-hidden">
                 <Image
                   src="https://images.unsplash.com/photo-1576678927484-cc907957088c?w=800&h=400&fit=crop"
                   alt={event.title_name}
