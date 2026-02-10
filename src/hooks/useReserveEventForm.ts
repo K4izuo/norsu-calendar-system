@@ -324,12 +324,17 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         return;
       }
 
+      // ✅ CRITICAL FIX: Force fresh fetch and wait for result
+      let freshReservations = reservations;
+
       if (!Array.isArray(reservations) || reservations.length === 0) {
-        await refetch();
+        const { data } = await refetch();
+        freshReservations = data || [];
         await new Promise(resolve => setTimeout(resolve, 300));
       }
 
-      if (!Array.isArray(reservations)) {
+      // ✅ Use freshReservations instead of reservations
+      if (!Array.isArray(freshReservations)) {
         toast.error("Unable to load reservation data. Please refresh the page.");
         setIsCheckingConflict(false);
         return;
@@ -361,12 +366,13 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
 
       await new Promise(resolve => setTimeout(resolve, 400));
 
+      // ✅ Use freshReservations for conflict check
       const conflicts = checkReservationConflicts({
         assetId: values.asset?.id ?? 0,
         date: normalizedDate,
         timeStart: normalizedTimeStart,
         timeEnd: normalizedTimeEnd,
-        reservations: reservations,
+        reservations: freshReservations,
         excludeId: editMode ? eventData?.id : undefined
       });
 
