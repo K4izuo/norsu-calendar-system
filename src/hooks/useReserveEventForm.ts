@@ -6,7 +6,7 @@ import { RESERVATION_VALIDATION_RULES } from "@/utils/reserve-event/reservation-
 import { apiClient } from "@/lib/api-client"
 import { useAuth } from "@/contexts/auth-context"
 import { checkReservationConflicts } from "@/utils/reserve-event/reservation-conflict-check"
-import { useReservations } from "@/services/reservation-service"
+import { usePublicReservations } from "@/services/reservation-service"
 import { useQueryClient } from "@tanstack/react-query"
 
 interface ReservationResponse {
@@ -52,11 +52,10 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
   const [tagInput, setTagInput] = useState("");
   const [taggedPeople, setTaggedPeople] = useState<{ id: string; name: string }[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [isCheckingConflict, setIsCheckingConflict] = useState(false); // ✅ NEW: Loading state
+  const [isCheckingConflict, setIsCheckingConflict] = useState(false);
   const { user } = useAuth();
 
-  // Fetch all reservations for conflict checking
-  const { reservations, loading: reservationsLoading, hasData, isQueryEnabled } = useReservations();
+  const { reservations, loading: reservationsLoading, refetch } = usePublicReservations();
   const queryClient = useQueryClient();
 
   const peopleFieldRef = useRef<HTMLInputElement>(null);
@@ -79,14 +78,12 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
 
   const { control, handleSubmit, setValue, getValues, watch, register, trigger, formState: { errors, isSubmitting }, reset } = form;
 
-  // Reset form when eventDate changes
   useEffect(() => {
     if (eventDate) {
       setValue("date", eventDate);
     }
   }, [eventDate, setValue]);
 
-  // Sync tagged people with form field
   useEffect(() => {
     const peopleValue = taggedPeople.map(p => p.name).join(', ');
     const hasBeenTouched = form.formState.touchedFields.people_tag;
@@ -98,15 +95,14 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
     });
   }, [taggedPeople, setValue, form.formState.touchedFields.people_tag]);
 
-  // Reset time when modal opens
   useEffect(() => {
     if (isOpen && !editMode) {
       const currentTime = getCurrentTime();
       setValue("time_start", currentTime);
       setValue("time_end", currentTime);
       setActiveTab("form");
+      refetch();
     } else if (!isOpen) {
-      // Reset form when modal closes to ensure clean state on next open
       const currentTime = getCurrentTime();
       reset({
         title_name: "",
@@ -129,9 +125,9 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       });
       setTaggedPeople([]);
       setTagInput("");
-      setIsCheckingConflict(false); // ✅ Reset loading state
+      setIsCheckingConflict(false);
     }
-  }, [isOpen, setValue, reset, eventDate, editMode]);
+  }, [isOpen, setValue, reset, eventDate, editMode, refetch]);
 
   const handleAssetChange = (value: string) => {
     const numericValue = parseInt(value);
@@ -188,23 +184,19 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
   const onSubmitForm = useCallback(
     async (data: ReservationFormData) => {
       try {
-        // Normalize times to "HH:mm" (fixes your H:i validation)
         const normalizeTime = (time: string): string => {
           if (!time) return "00:00";
           const [hour, minute] = time.split(":");
           return `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}`;
         };
 
-        // Ensure date is in YYYY-MM-DD format for backend
         const normalizeDate = (dateStr: string): string => {
           if (!dateStr) return "";
 
-          // If already in YYYY-MM-DD format, return as-is
           if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
             return dateStr;
           }
 
-          // Parse and format
           const date = new Date(dateStr);
           const year = date.getFullYear();
           const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -218,9 +210,6 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         const normalizedTimeEnd = normalizeTime(rest.time_end);
         const normalizedDate = normalizeDate(rest.date);
 
-        // NO CONFLICT CHECK HERE - Already checked in Event Details "Next" button
-
-        // Final payload you're actually sending
         const formDataWithPeople = {
           ...rest,
           time_start: normalizedTimeStart,
@@ -231,10 +220,8 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
           reserved_by_user: parseInt(user?.id || "0"),
         };
 
-        // Different API calls for create vs update
         let response;
         if (editMode && eventData?.id) {
-          // Update existing reservation
           response = await apiClient.put<
             ReservationResponse,
             ReservationAPIPayload
@@ -248,11 +235,9 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
             return;
           }
 
-          // ✅ CLOSE MODAL AND SHOW SUCCESS TOAST AT THE SAME TIME
           onClose();
           toast.success("Event reservation updated successfully!");
         } else {
-          // Create new reservation
           response = await apiClient.post<
             ReservationResponse,
             ReservationAPIPayload
@@ -270,14 +255,16 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
             onNewReservation?.(response.data.reservation);
           }
 
-          // ✅ CLOSE MODAL AND SHOW SUCCESS TOAST AT THE SAME TIME
           onClose();
           toast.success("Event reservation sent successfully!");
         }
 
-        // Invalidate cache to refresh reservations (in background)
         await queryClient.invalidateQueries({
           queryKey: ['reservations', user?.id]
+        });
+
+        await queryClient.invalidateQueries({
+          queryKey: ['public-reservations']
         });
 
         const currentTime = getCurrentTime();
@@ -310,8 +297,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         setActiveTab("form");
         onClose();
 
-      } catch (error) {
-        console.error("Reservation error:", error);
+      } catch {
         toast.error(editMode ? "Failed to update event. Please try again." : "Failed to reserve event. Please try again.");
       }
     },
@@ -319,68 +305,49 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
   );
 
   const handleFormTabNext = useCallback(async () => {
-    // First validate the form fields
     const isValid = await trigger(['title_name', 'asset', 'time_start', 'time_end', 'description', 'range']);
 
     if (!isValid) {
-      return; // Stop if form validation fails
+      return;
     }
 
-    // ✅ START: Show loading state
     setIsCheckingConflict(true);
 
-    // Form is valid, now check for conflicts
     try {
       const values = getValues();
 
-      // ✅ WAIT A BIT: Let the UI update before heavy processing
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // ✅ CRITICAL FIX 1: Check if query is enabled (user authenticated)
-      if (!isQueryEnabled) {
-        toast.error("Authentication required. Please log in and try again.");
-        setIsCheckingConflict(false);
-        return;
-      }
-
-      // ✅ CRITICAL FIX 2: Wait for loading to complete
       if (reservationsLoading) {
         toast.error("Loading reservation data, please wait...");
         setIsCheckingConflict(false);
         return;
       }
 
-      // ✅ CRITICAL FIX 3: Verify data has been fetched
-      if (!hasData) {
+      if (!Array.isArray(reservations) || reservations.length === 0) {
+        await refetch();
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+
+      if (!Array.isArray(reservations)) {
         toast.error("Unable to load reservation data. Please refresh the page.");
         setIsCheckingConflict(false);
         return;
       }
 
-      // ✅ CRITICAL FIX 4: Validate reservations array
-      if (!Array.isArray(reservations)) {
-        toast.error("Invalid reservation data. Please refresh the page.");
-        setIsCheckingConflict(false);
-        return;
-      }
-
-      // Normalize times to "HH:mm" format
       const normalizeTime = (time: string): string => {
         if (!time) return "00:00";
         const [hour, minute] = time.split(":");
         return `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}`;
       };
 
-      // Ensure date is in YYYY-MM-DD format
       const normalizeDate = (dateStr: string): string => {
         if (!dateStr) return "";
 
-        // If already in YYYY-MM-DD format, return as-is
         if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
           return dateStr;
         }
 
-        // Parse and format
         const date = new Date(dateStr);
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -392,34 +359,8 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       const normalizedTimeEnd = normalizeTime(values.time_end);
       const normalizedDate = normalizeDate(values.date);
 
-      // ✅ PRODUCTION DEBUG: Show what data we're working with
-      const approvedReservations = reservations.filter(r => {
-        const reservationDate = r.date.split('T')[0].split(' ')[0]; // ✅ Normalize date
-        return r.status?.toUpperCase() === 'APPROVED' &&
-          r.asset_id === values.asset?.id &&
-          reservationDate === normalizedDate;
-      });
+      await new Promise(resolve => setTimeout(resolve, 400));
 
-      // ✅ Show ALL reservations for this asset to debug
-      const allForAsset = reservations.filter(r => r.asset_id === values.asset?.id);
-
-      // ✅ FORCE SHOW DEBUG INFO with normalized dates
-      alert(`DEBUG INFO:
-Total Reservations: ${reservations.length}
-All for Asset ${values.asset?.id}: ${allForAsset.length}
-Checking Date: ${normalizedDate}
-Checking Time: ${normalizedTimeStart} - ${normalizedTimeEnd}
-
-RESERVATIONS FOR THIS ASSET:
-${allForAsset.map(r => `${r.title_name} - Date: ${r.date} (${r.date.split('T')[0].split(' ')[0]}) - Status: ${r.status}`).join('\n')}
-
-Approved on same date/asset: ${approvedReservations.length}
-${approvedReservations.length > 0 ? '\nMatched:\n' + approvedReservations.map(r => `${r.title_name} (${r.time_start} - ${r.time_end})`).join('\n') : ''}`);
-
-      // ✅ ADD MINIMUM DELAY: Ensure loading is visible (500ms minimum)
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // ✅ CHECK FOR CONFLICTS HERE (ONLY PLACE)
       const conflicts = checkReservationConflicts({
         assetId: values.asset?.id ?? 0,
         date: normalizedDate,
@@ -429,14 +370,9 @@ ${approvedReservations.length > 0 ? '\nMatched:\n' + approvedReservations.map(r 
         excludeId: editMode ? eventData?.id : undefined
       });
 
-      // ✅ FORCE SHOW CONFLICT RESULT
-      alert(`CONFLICT CHECK RESULT: ${conflicts.length} conflicts found`);
-
-      // ✅ STOP: Hide loading state
       setIsCheckingConflict(false);
 
       if (conflicts.length > 0) {
-        // Show detailed error with conflict type
         const conflictDetails = conflicts.map(c => {
           const conflictMsg = c.conflictType === 'start'
             ? 'START time conflicts'
@@ -447,21 +383,19 @@ ${approvedReservations.length > 0 ? '\nMatched:\n' + approvedReservations.map(r 
           return `- ${c.title_name} (${c.time_start} - ${c.time_end}) - ${conflictMsg}`;
         }).join('\n');
 
-        const errorMessage = `Cannot proceed: Time slot conflicts detected with ${conflicts.length} approved event(s):\n\n${conflictDetails}`;
-
-        alert(errorMessage);
-        toast.error(errorMessage, { duration: 8000 });
-        return; // Stop here, don't advance to next tab
+        toast.error(
+          `Cannot proceed: Time slot conflicts detected with ${conflicts.length} approved event(s):\n\n${conflictDetails}`,
+          { duration: 8000 }
+        );
+        return;
       }
 
-      // No conflicts, proceed to next tab
       setActiveTab("additional");
-    } catch (error) {
-      console.error("Error checking conflicts:", error);
+    } catch {
       setIsCheckingConflict(false);
       toast.error("Failed to check for conflicts. Please try again.");
     }
-  }, [trigger, getValues, reservations, editMode, eventData, setActiveTab, reservationsLoading, hasData, isQueryEnabled]);
+  }, [trigger, getValues, reservations, editMode, eventData, setActiveTab, reservationsLoading, refetch]);
 
   const handleAdditionalTabNext = useCallback(async () => {
     setValue("people_tag", taggedPeople.map(p => p.name).join(', '), {
@@ -521,6 +455,6 @@ ${approvedReservations.length > 0 ? '\nMatched:\n' + approvedReservations.map(r 
     handleFormSubmit,
     resetForm,
     validationRules: RESERVATION_VALIDATION_RULES,
-    isCheckingConflict, // ✅ NEW: Expose loading state
+    isCheckingConflict,
   };
 };
