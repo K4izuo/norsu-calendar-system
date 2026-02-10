@@ -1,12 +1,11 @@
 import React, { useCallback, useEffect, useState, useRef } from "react"
 import { useForm } from "react-hook-form"
 import toast from "react-hot-toast"
-import { ReservationFormData, ReservationAPIPayload, Reservation, EventDetails } from "@/interface/user-props"
+import { ReservationFormData, ReservationAPIPayload, Reservation, EventDetails, ReservationWithRelations } from "@/interface/user-props"
 import { RESERVATION_VALIDATION_RULES } from "@/utils/reserve-event/reservation-validation-rules"
 import { apiClient } from "@/lib/api-client"
 import { useAuth } from "@/contexts/auth-context"
 import { checkReservationConflicts } from "@/utils/reserve-event/reservation-conflict-check"
-import { usePublicReservations } from "@/services/reservation-service"
 import { useQueryClient } from "@tanstack/react-query"
 
 interface ReservationResponse {
@@ -55,7 +54,6 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
   const [isCheckingConflict, setIsCheckingConflict] = useState(false);
   const { user } = useAuth();
 
-  const { refetch } = usePublicReservations();
   const queryClient = useQueryClient();
 
   const peopleFieldRef = useRef<HTMLInputElement>(null);
@@ -101,8 +99,6 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       setValue("time_start", currentTime);
       setValue("time_end", currentTime);
       setActiveTab("form");
-      // ✅ REMOVE THIS - causing lag
-      // refetch();
     } else if (!isOpen) {
       const currentTime = getCurrentTime();
       reset({
@@ -128,7 +124,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       setTagInput("");
       setIsCheckingConflict(false);
     }
-  }, [isOpen, setValue, reset, eventDate, editMode]); // ✅ REMOVE refetch from dependencies
+  }, [isOpen, setValue, reset, eventDate, editMode]);
 
   const handleAssetChange = (value: string) => {
     const numericValue = parseInt(value);
@@ -317,17 +313,16 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
     try {
       const values = getValues();
 
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // ✅ Fetch directly from API - bypassing cache completely
+      const response = await apiClient.get<ReservationWithRelations[]>("/reservations/all");
 
-      // ✅ ALWAYS fetch fresh data from API before checking conflicts
-      const { data: freshData } = await refetch();
-      const freshReservations = freshData || [];
-
-      if (!Array.isArray(freshReservations)) {
-        toast.error("Unable to load reservation data. Please refresh the page.");
+      if (response.error || !response.data) {
+        toast.error("Unable to load reservation data. Please try again.");
         setIsCheckingConflict(false);
         return;
       }
+
+      const freshReservations = response.data;
 
       const normalizeTime = (time: string): string => {
         if (!time) return "00:00";
@@ -353,7 +348,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       const normalizedTimeEnd = normalizeTime(values.time_end);
       const normalizedDate = normalizeDate(values.date);
 
-      await new Promise(resolve => setTimeout(resolve, 400));
+      await new Promise(resolve => setTimeout(resolve, 300));
 
       const conflicts = checkReservationConflicts({
         assetId: values.asset?.id ?? 0,
@@ -389,7 +384,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       setIsCheckingConflict(false);
       toast.error("Failed to check for conflicts. Please try again.");
     }
-  }, [trigger, getValues, editMode, eventData, setActiveTab, refetch]);
+  }, [trigger, getValues, editMode, eventData, setActiveTab]);
 
   const handleAdditionalTabNext = useCallback(async () => {
     setValue("people_tag", taggedPeople.map(p => p.name).join(', '), {
