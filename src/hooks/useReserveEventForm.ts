@@ -364,10 +364,6 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         return;
       }
 
-      // ✅ PRODUCTION DEBUG: Show what we're checking (visible on Vercel)
-      const debugInfo = `Checking ${reservations.length} reservations for asset ${values.asset?.id} on ${values.date}`;
-      console.log('🔍 DEBUG:', debugInfo);
-
       // Normalize times to "HH:mm" format
       const normalizeTime = (time: string): string => {
         if (!time) return "00:00";
@@ -396,15 +392,16 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       const normalizedTimeEnd = normalizeTime(values.time_end);
       const normalizedDate = normalizeDate(values.date);
 
-      // ✅ PRODUCTION DEBUG: Log normalized values
-      console.log('🔍 Normalized:', {
-        assetId: values.asset?.id,
-        date: normalizedDate,
-        timeStart: normalizedTimeStart,
-        timeEnd: normalizedTimeEnd,
-        totalReservations: reservations.length,
-        approvedReservations: reservations.filter(r => r.status?.toUpperCase() === 'APPROVED').length
-      });
+      // ✅ VISUAL DEBUG FOR VERCEL: Show what we're checking
+      const approvedCount = reservations.filter(r => r.status?.toUpperCase() === 'APPROVED').length;
+
+      // Show a temporary debug toast (only in development or for testing)
+      if (process.env.NODE_ENV === 'development') {
+        toast(`Checking: ${approvedCount} approved events for asset ${values.asset?.id} on ${normalizedDate}`, {
+          duration: 2000,
+          icon: '🔍'
+        });
+      }
 
       // ✅ ADD MINIMUM DELAY: Ensure loading is visible (500ms minimum)
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -418,12 +415,6 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         reservations: reservations,
         excludeId: editMode ? eventData?.id : undefined
       });
-
-      // ✅ PRODUCTION DEBUG: Log conflict result
-      console.log('🔍 Conflicts found:', conflicts.length);
-      if (conflicts.length > 0) {
-        console.log('🔍 Conflict details:', conflicts);
-      }
 
       // ✅ STOP: Hide loading state
       setIsCheckingConflict(false);
@@ -440,20 +431,19 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
           return `- ${c.title_name} (${c.time_start} - ${c.time_end}) - ${conflictMsg}`;
         }).join('\n');
 
-        toast.error(
-          `Cannot proceed: Time slot conflicts detected with ${conflicts.length} approved event(s):\n\n${conflictDetails}`,
-          { duration: 8000 }
-        );
+        const errorMessage = `Cannot proceed: Time slot conflicts detected with ${conflicts.length} approved event(s):\n\n${conflictDetails}`;
+
+        // ✅ PRODUCTION DEBUG: Use alert to ensure visibility on Vercel
+        alert(errorMessage);
+
+        toast.error(errorMessage, { duration: 8000 });
         return; // Stop here, don't advance to next tab
       }
-
-      // ✅ PRODUCTION DEBUG: No conflicts, proceeding
-      console.log('✅ No conflicts detected, proceeding to next tab');
 
       // No conflicts, proceed to next tab
       setActiveTab("additional");
     } catch (error) {
-      console.error("❌ Error checking conflicts:", error);
+      console.error("Error checking conflicts:", error);
       setIsCheckingConflict(false);
       toast.error("Failed to check for conflicts. Please try again.");
     }
