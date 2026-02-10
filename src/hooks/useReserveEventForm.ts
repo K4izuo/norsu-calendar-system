@@ -392,16 +392,21 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       const normalizedTimeEnd = normalizeTime(values.time_end);
       const normalizedDate = normalizeDate(values.date);
 
-      // ✅ VISUAL DEBUG FOR VERCEL: Show what we're checking
-      const approvedCount = reservations.filter(r => r.status?.toUpperCase() === 'APPROVED').length;
+      // ✅ PRODUCTION DEBUG: Show what data we're working with
+      const approvedReservations = reservations.filter(r =>
+        r.status?.toUpperCase() === 'APPROVED' &&
+        r.asset_id === values.asset?.id &&
+        r.date === normalizedDate
+      );
 
-      // Show a temporary debug toast (only in development or for testing)
-      if (process.env.NODE_ENV === 'development') {
-        toast(`Checking: ${approvedCount} approved events for asset ${values.asset?.id} on ${normalizedDate}`, {
-          duration: 2000,
-          icon: '🔍'
-        });
-      }
+      // ✅ FORCE SHOW DEBUG INFO (This WILL show on Vercel)
+      alert(`DEBUG INFO:
+Total Reservations: ${reservations.length}
+Checking Asset ID: ${values.asset?.id}
+Checking Date: ${normalizedDate}
+Checking Time: ${normalizedTimeStart} - ${normalizedTimeEnd}
+Approved on same date/asset: ${approvedReservations.length}
+${approvedReservations.length > 0 ? '\nFound:\n' + approvedReservations.map(r => `${r.title_name} (${r.time_start} - ${r.time_end})`).join('\n') : ''}`);
 
       // ✅ ADD MINIMUM DELAY: Ensure loading is visible (500ms minimum)
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -415,6 +420,9 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         reservations: reservations,
         excludeId: editMode ? eventData?.id : undefined
       });
+
+      // ✅ FORCE SHOW CONFLICT RESULT
+      alert(`CONFLICT CHECK RESULT: ${conflicts.length} conflicts found`);
 
       // ✅ STOP: Hide loading state
       setIsCheckingConflict(false);
@@ -433,9 +441,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
 
         const errorMessage = `Cannot proceed: Time slot conflicts detected with ${conflicts.length} approved event(s):\n\n${conflictDetails}`;
 
-        // ✅ PRODUCTION DEBUG: Use alert to ensure visibility on Vercel
         alert(errorMessage);
-
         toast.error(errorMessage, { duration: 8000 });
         return; // Stop here, don't advance to next tab
       }
