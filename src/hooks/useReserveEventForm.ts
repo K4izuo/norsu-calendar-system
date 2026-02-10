@@ -313,7 +313,6 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
     try {
       const values = getValues();
 
-      // Validate required values
       if (!values.asset?.id) {
         toast.error("Please select an asset first.");
         setIsCheckingConflict(false);
@@ -323,32 +322,23 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       // Fetch reservations from API
       const response = await apiClient.get<ReservationWithRelations[]>("/reservations/all");
 
-      console.log("API Response:", {
-        hasError: !!response.error,
-        hasData: !!response.data,
-        status: response.status,
-        dataLength: response.data?.length
+      // DEBUG: Show what we got from API (temporary - remove after testing)
+      toast(`API Response: ${response.status}, Data: ${response.data ? response.data.length : 0} items`, {
+        duration: 3000,
+        icon: '🔍'
       });
 
-      // Better error handling - check both error and status
+      // Check API response
       if (response.error || response.status !== 200 || !response.data) {
-        console.error("API Error:", {
-          error: response.error,
-          status: response.status,
-          hasData: !!response.data
-        });
-        toast.error("Unable to verify availability. Please try again.");
+        toast.error("Unable to load reservations. Please try again.");
         setIsCheckingConflict(false);
-        return; // CRITICAL: Don't proceed if API fails
+        return;
       }
 
       const freshReservations = response.data;
-      console.log("Total reservations fetched:", freshReservations.length);
 
-      // Validation: ensure we got an array
       if (!Array.isArray(freshReservations)) {
-        console.error("Invalid data format - expected array, got:", typeof freshReservations);
-        toast.error("Invalid reservation data received. Please try again.");
+        toast.error("Invalid reservation data received.");
         setIsCheckingConflict(false);
         return;
       }
@@ -368,36 +358,18 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       const normalizedTimeEnd = normalizeTime(values.time_end);
       const normalizedDate = normalizeDate(values.date);
 
-      console.log("Checking conflicts for:", {
-        assetId: values.asset.id,
-        assetName: values.asset.asset_name,
-        date: normalizedDate,
-        timeStart: normalizedTimeStart,
-        timeEnd: normalizedTimeEnd,
-        totalReservations: freshReservations.length
-      });
-
-      // Filter to see what we're checking against (for debugging)
-      const relevantReservations = freshReservations.filter(r => {
+      // DEBUG: Show what we're checking (temporary - remove after testing)
+      const relevantCount = freshReservations.filter(r => {
         const rDate = normalizeDate(r.date);
-        const sameAsset = r.asset_id === values.asset?.id;
-        const sameDate = rDate === normalizedDate;
-        const isApproved = r.status?.toUpperCase() === 'APPROVED';
+        return r.asset_id === values.asset.id &&
+          rDate === normalizedDate &&
+          r.status?.toUpperCase() === 'APPROVED';
+      }).length;
 
-        if (sameAsset && sameDate) {
-          console.log("Relevant reservation:", {
-            id: r.id,
-            title: r.title_name,
-            status: r.status,
-            time: `${r.time_start}-${r.time_end}`,
-            isApproved
-          });
-        }
-
-        return sameAsset && sameDate && isApproved;
+      toast(`Checking Asset ${values.asset.id} on ${normalizedDate} (${normalizedTimeStart}-${normalizedTimeEnd}). Found ${relevantCount} relevant approved events.`, {
+        duration: 3000,
+        icon: '📅'
       });
-
-      console.log("Relevant approved reservations for same asset/date:", relevantReservations.length);
 
       // Check for conflicts
       const conflicts = checkReservationConflicts({
@@ -409,13 +381,15 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         excludeId: editMode ? eventData?.id : undefined
       });
 
-      console.log("Conflicts detected:", conflicts.length);
-      if (conflicts.length > 0) {
-        console.log("Conflict details:", conflicts);
-      }
+      // DEBUG: Show conflict result (temporary - remove after testing)
+      toast(`Conflicts found: ${conflicts.length}`, {
+        duration: 3000,
+        icon: conflicts.length > 0 ? '⚠️' : '✅'
+      });
 
       setIsCheckingConflict(false);
 
+      // CRITICAL: Block progression if conflicts found
       if (conflicts.length > 0) {
         const conflictDetails = conflicts.map(c => {
           const conflictMsg = c.conflictType === 'start'
@@ -431,17 +405,15 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
           `Time slot conflicts detected with ${conflicts.length} approved event(s):\n\n${conflictDetails}`,
           { duration: 8000 }
         );
-        return; // CRITICAL: Don't proceed if conflicts found
+        return;
       }
 
-      // No conflicts, proceed to next tab
-      console.log("✅ No conflicts found, proceeding to additional info tab");
+      // Only proceed if NO conflicts
       setActiveTab("additional");
-    } catch (err) {
-      console.error("Unexpected error during conflict check:", err);
+    } catch {
       setIsCheckingConflict(false);
       toast.error("An error occurred while checking for conflicts. Please try again.");
-      return; // CRITICAL: Don't proceed if there's an error
+      return;
     }
   }, [trigger, getValues, editMode, eventData, setActiveTab]);
 
