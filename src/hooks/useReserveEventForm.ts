@@ -328,28 +328,49 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
     try {
       const values = getValues();
 
+      // ✅ ADD DEBUGGING - Log the actual state
+      console.log('🔍 DEBUG - Conflict Check State:', {
+        isQueryEnabled,
+        reservationsLoading,
+        hasData,
+        reservationsLength: reservations.length,
+        reservationsArray: Array.isArray(reservations),
+        assetId: values.asset?.id,
+        date: values.date,
+        timeStart: values.time_start,
+        timeEnd: values.time_end
+      });
+
       // ✅ CRITICAL FIX 1: Check if query is enabled (user authenticated)
       if (!isQueryEnabled) {
+        console.error('❌ Query not enabled - user not authenticated');
         toast.error("Authentication required. Please log in and try again.");
         return;
       }
 
-      // ✅ CRITICAL FIX 2: Wait for initial data load to complete
-      // Don't proceed if loading OR if no data has been fetched yet
-      if (reservationsLoading || !hasData) {
+      // ✅ CRITICAL FIX 2: Wait for loading to complete
+      if (reservationsLoading) {
+        console.warn('⏳ Still loading reservations...');
         toast.error("Loading reservation data, please wait...");
         return;
       }
 
-      // ✅ CRITICAL FIX 3: Validate reservations array is ready
-      // On Vercel, ensure we actually have the data structure even if empty
-      if (!Array.isArray(reservations)) {
+      // ✅ CRITICAL FIX 3: Verify data has been fetched
+      if (!hasData) {
+        console.error('❌ No data loaded yet');
         toast.error("Unable to load reservation data. Please refresh the page.");
         return;
       }
 
-      // ✅ NOW SAFE: Empty array means no conflicts, not "data not loaded"
-      // reservations.length === 0 is valid - it means no existing reservations
+      // ✅ CRITICAL FIX 4: Validate reservations array
+      if (!Array.isArray(reservations)) {
+        console.error('❌ Reservations is not an array:', typeof reservations);
+        toast.error("Invalid reservation data. Please refresh the page.");
+        return;
+      }
+
+      console.log('✅ All checks passed, proceeding with conflict check...');
+      console.log(`📊 Found ${reservations.length} total reservations`);
 
       // Normalize times to "HH:mm" format
       const normalizeTime = (time: string): string => {
@@ -379,17 +400,27 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       const normalizedTimeEnd = normalizeTime(values.time_end);
       const normalizedDate = normalizeDate(values.date);
 
+      console.log('🔍 Normalized values:', {
+        date: normalizedDate,
+        timeStart: normalizedTimeStart,
+        timeEnd: normalizedTimeEnd,
+        assetId: values.asset?.id
+      });
+
       // ✅ CHECK FOR CONFLICTS HERE (ONLY PLACE)
       const conflicts = checkReservationConflicts({
         assetId: values.asset?.id ?? 0,
         date: normalizedDate,
         timeStart: normalizedTimeStart,
         timeEnd: normalizedTimeEnd,
-        reservations: reservations, // Now guaranteed to be valid
+        reservations: reservations,
         excludeId: editMode ? eventData?.id : undefined
       });
 
+      console.log(`🔍 Conflict check result: ${conflicts.length} conflicts found`);
+
       if (conflicts.length > 0) {
+        console.log('❌ Conflicts detected:', conflicts);
         // Show detailed error with conflict type
         const conflictDetails = conflicts.map(c => {
           const conflictMsg = c.conflictType === 'start'
@@ -408,10 +439,11 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         return; // Stop here, don't advance to next tab
       }
 
+      console.log('✅ No conflicts found, proceeding to next tab');
       // No conflicts, proceed to next tab
       setActiveTab("additional");
     } catch (error) {
-      console.error("Error checking conflicts:", error);
+      console.error("❌ Error checking conflicts:", error);
       toast.error("Failed to check for conflicts. Please try again.");
     }
   }, [trigger, getValues, reservations, editMode, eventData, setActiveTab, reservationsLoading, hasData, isQueryEnabled]);
