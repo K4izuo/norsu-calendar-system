@@ -92,7 +92,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
     validationRules,
     setValue,
     setTaggedPeople,
-    isCheckingConflict, // ✅ NEW: Destructure loading state
+    isCheckingConflict,
   } = useReserveEventForm({ eventDate, onSubmit, onClose, isOpen, onNewReservation, editMode, eventData });
 
   const [loadingVenueAssets, setLoadingVenueAssets] = useState(false);
@@ -219,243 +219,235 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
   if (!isOpen) return null;
 
   return (
-    <AnimatePresence>
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 overscroll-none"
-      >
-        <motion.div
-          className="absolute inset-0"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{
-            duration: 0.25,
-            ease: [0.22, 1, 0.36, 1]
-          }}
-        />
-
-        <motion.div
-          ref={contentRef}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 4 }}
-          transition={{
-            type: "tween",
-            duration: 0.25,
-            ease: [0.22, 1, 0.36, 1]
-          }}
-          className="relative w-full max-w-216 sm:mx-4 mx-px max-h-[92vh] bg-white rounded-xl shadow-xl overflow-hidden flex flex-col"
-          style={{
-            transform: "translateZ(0)",
-            backfaceVisibility: "hidden",
-            transformOrigin: "center",
-            willChange: "transform, opacity",
-          }}
-          onClick={e => e.stopPropagation()}
+    <AnimatePresence mode="wait">
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 overscroll-none"
         >
-          <div className="sticky top-0 bg-white z-10 p-4 sm:p-6 pb-4 sm:pb-6 border-b border-gray-200">
-            <div className="flex justify-between items-start">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  {editMode ? (
-                    <Edit strokeWidth={2.5} className="w-8 h-8 text-gray-800 shrink-0" />
-                  ) : (
-                    <CalendarDays strokeWidth={2.5} className="w-8 h-8 text-gray-800 shrink-0" />
+          {/* Backdrop */}
+          <motion.div
+            className="absolute inset-0 bg-black/50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            onClick={onClose}
+          />
+
+          {/* Modal Content */}
+          <motion.div
+            ref={contentRef}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="relative w-full max-w-216 sm:mx-4 mx-px max-h-[92vh] bg-white rounded-xl shadow-xl overflow-hidden flex flex-col"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-white z-10 p-4 sm:p-6 pb-4 sm:pb-6 border-b border-gray-200">
+              <div className="flex justify-between items-start">
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-2">
+                    {editMode ? (
+                      <Edit strokeWidth={2.5} className="w-8 h-8 text-gray-800 shrink-0" />
+                    ) : (
+                      <CalendarDays strokeWidth={2.5} className="w-8 h-8 text-gray-800 shrink-0" />
+                    )}
+                    <h2 className="text-2xl sm:text-3xl font-semibold text-gray-800 leading-tight">
+                      {editMode ? "Update Reservation Form" : "Reservation Form"}
+                    </h2>
+                  </div>
+                  {displayDate && !editMode && (
+                    <span className="text-sm sm:text-base font-medium text-gray-600 ml-10">
+                      Date: {displayDate}
+                    </span>
                   )}
-                  <h2 className="text-2xl sm:text-3xl font-semibold text-gray-800 leading-tight">
-                    {editMode ? "Update Reservation Form" : "Reservation Form"}
-                  </h2>
                 </div>
-                {displayDate && !editMode && (
-                  <span className="text-sm sm:text-base font-medium text-gray-600 ml-10">
-                    Date: {displayDate}
-                  </span>
-                )}
-              </div>
-              <Button
-                onClick={e => {
-                  e.stopPropagation();
-                  onClose();
-                }}
-                size="sm"
-                className="p-2 shadow-none bg-white cursor-pointer rounded-full hover:bg-gray-100 transition-colors shrink-0"
-                aria-label="Close"
-              >
-                <X className="w-4 h-4 text-gray-500" />
-              </Button>
-            </div>
-          </div>
-
-          <form className="flex flex-col flex-1" onSubmit={handleFormSubmit}>
-            <div className="overflow-y-auto p-4 sm:p-6 pt-2 sm:pt-4 flex-1 max-h-[calc(91vh-155px)]">
-              <Tabs value={activeTab} className="w-full">
-                <div className="grid grid-cols-3 mb-4 sm:mb-4 bg-muted rounded-lg p-1 overflow-x-auto">
-                  {tabOrder.map(tab => (
-                    <div
-                      key={tab}
-                      className={`flex items-center justify-center py-2 px-2 sm:py-2.5 sm:px-4 rounded-md text-base font-medium transition-colors ${activeTab === tab
-                        ? "bg-background text-foreground shadow-sm"
-                        : "text-muted-foreground"
-                        }`}
-                      style={{ cursor: "default", minWidth: "100px" }}
-                    >
-                      {tabLabels[tab]}
-                    </div>
-                  ))}
-                </div>
-
-                <TabsContent value="form" className="space-y-4 sm:space-y-6">
-                  <ReserveEventFormTab
-                    control={control}
-                    errors={errors}
-                    assets={formattedAssets}
-                    handleAssetChange={handleAssetChange}
-                    selectedAsset={watchedAsset}
-                    validationRules={validationRules}
-                    register={register}
-                    watch={watch}
-                  />
-                </TabsContent>
-
-                <TabsContent value="additional" className="space-y-4 sm:space-y-6">
-                  <ReserveEventAdditionalTab
-                    control={control}
-                    errors={errors}
-                    infoTypes={infoTypes}
-                    categories={categories}
-                    tagInput={tagInput}
-                    taggedPeople={taggedPeople}
-                    peopleSuggestions={peopleSuggestions}
-                    showDropdown={showDropdown}
-                    handleTagInputChange={handleTagInputChange}
-                    handleTagSelect={handleTagSelect}
-                    handleRemoveTag={handleRemoveTag}
-                    setShowDropdown={setShowDropdown}
-                    validationRules={validationRules}
-                    register={register}
-                    peopleFieldRef={peopleFieldRef}
-                  />
-                </TabsContent>
-
-                <TabsContent value="summary" className="space-y-4 sm:space-y-6">
-                  <ReserveEventSummaryTab
-                    formData={getValues()}
-                    categories={categories}
-                    infoTypes={infoTypes}
-                    taggedPeople={taggedPeople}
-                    isFormValid={isFormValid}
-                  />
-                </TabsContent>
-              </Tabs>
-            </div>
-
-            <div className="sticky bottom-0 bg-white z-10 p-4 sm:p-6 border-t border-gray-200 flex justify-end">
-              {activeTab === "form" && (
                 <Button
-                  type="button"
-                  onClick={handleFormTabNext}
-                  variant="default"
-                  className="text-base cursor-pointer py-2.5"
-                  disabled={isCheckingConflict} // ✅ Disable during conflict check
+                  onClick={e => {
+                    e.stopPropagation();
+                    onClose();
+                  }}
+                  size="sm"
+                  className="p-2 shadow-none bg-white cursor-pointer rounded-full hover:bg-gray-100 transition-colors shrink-0"
+                  aria-label="Close"
                 >
-                  {isCheckingConflict ? (
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Checking for conflicts...
-                    </div>
-                  ) : (
-                    "Next"
-                  )}
+                  <X className="w-4 h-4 text-gray-500" />
                 </Button>
-              )}
-              {activeTab === "additional" && (
-                <div className="flex gap-3">
+              </div>
+            </div>
+
+            <form className="flex flex-col flex-1" onSubmit={handleFormSubmit}>
+              <div className="overflow-y-auto p-4 sm:p-6 pt-2 sm:pt-4 flex-1 max-h-[calc(91vh-155px)]">
+                <Tabs value={activeTab} className="w-full">
+                  <div className="grid grid-cols-3 mb-4 sm:mb-4 bg-muted rounded-lg p-1 overflow-x-auto">
+                    {tabOrder.map(tab => (
+                      <div
+                        key={tab}
+                        className={`flex items-center justify-center py-2 px-2 sm:py-2.5 sm:px-4 rounded-md text-base font-medium transition-colors ${activeTab === tab
+                          ? "bg-background text-foreground shadow-sm"
+                          : "text-muted-foreground"
+                          }`}
+                        style={{ cursor: "default", minWidth: "100px" }}
+                      >
+                        {tabLabels[tab]}
+                      </div>
+                    ))}
+                  </div>
+
+                  <TabsContent value="form" className="space-y-4 sm:space-y-6">
+                    <ReserveEventFormTab
+                      control={control}
+                      errors={errors}
+                      assets={formattedAssets}
+                      handleAssetChange={handleAssetChange}
+                      selectedAsset={watchedAsset}
+                      validationRules={validationRules}
+                      register={register}
+                      watch={watch}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="additional" className="space-y-4 sm:space-y-6">
+                    <ReserveEventAdditionalTab
+                      control={control}
+                      errors={errors}
+                      infoTypes={infoTypes}
+                      categories={categories}
+                      tagInput={tagInput}
+                      taggedPeople={taggedPeople}
+                      peopleSuggestions={peopleSuggestions}
+                      showDropdown={showDropdown}
+                      handleTagInputChange={handleTagInputChange}
+                      handleTagSelect={handleTagSelect}
+                      handleRemoveTag={handleRemoveTag}
+                      setShowDropdown={setShowDropdown}
+                      validationRules={validationRules}
+                      register={register}
+                      peopleFieldRef={peopleFieldRef}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="summary" className="space-y-4 sm:space-y-6">
+                    <ReserveEventSummaryTab
+                      formData={getValues()}
+                      categories={categories}
+                      infoTypes={infoTypes}
+                      taggedPeople={taggedPeople}
+                      isFormValid={isFormValid}
+                    />
+                  </TabsContent>
+                </Tabs>
+              </div>
+
+              <div className="sticky bottom-0 bg-white z-10 p-4 sm:p-6 border-t border-gray-200 flex justify-end">
+                {activeTab === "form" && (
                   <Button
                     type="button"
-                    onClick={() => setActiveTab("form")}
-                    variant="outline"
-                    className="text-base cursor-pointer py-2.5"
-                    disabled={isSubmitting}
-                  >
-                    Back
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={handleAdditionalTabNext}
+                    onClick={handleFormTabNext}
                     variant="default"
                     className="text-base cursor-pointer py-2.5"
+                    disabled={isCheckingConflict}
                   >
-                    Next
-                  </Button>
-                </div>
-              )}
-              {activeTab === "summary" && (
-                <div className="flex gap-3">
-                  <Button
-                    type="button"
-                    onClick={() => setActiveTab("additional")}
-                    variant="outline"
-                    className="text-base cursor-pointer py-2.5"
-                    disabled={isSubmitting}
-                  >
-                    Back
-                  </Button>
-                  <Button
-                    type="submit"
-                    variant="default"
-                    disabled={isSubmitting}
-                    className="text-base cursor-pointer py-2.5"
-                  >
-                    {isSubmitting ? (
-                      <div className="flex items-center">
-                        <span className="animate-spin mr-2">
-                          <svg className="h-5 w-5" viewBox="0 0 24 24">
-                            <circle
-                              className="opacity-25"
-                              cx="12"
-                              cy="12"
-                              r="10"
-                              stroke="currentColor"
-                              strokeWidth="4"
-                              fill="none"
-                            />
-                            <path
-                              className="opacity-75"
-                              fill="currentColor"
-                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            />
-                          </svg>
-                        </span>
-                        Processing...
+                    {isCheckingConflict ? (
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Checking for conflicts...
                       </div>
                     ) : (
-                      editMode ? "Update Reservation" : "Submit Reservation"
+                      "Next"
                     )}
                   </Button>
-                </div>
-              )}
-            </div>
-          </form>
-        </motion.div>
+                )}
+                {activeTab === "additional" && (
+                  <div className="flex gap-3">
+                    <Button
+                      type="button"
+                      onClick={() => setActiveTab("form")}
+                      variant="outline"
+                      className="text-base cursor-pointer py-2.5"
+                      disabled={isSubmitting}
+                    >
+                      Back
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={handleAdditionalTabNext}
+                      variant="default"
+                      className="text-base cursor-pointer py-2.5"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                )}
+                {activeTab === "summary" && (
+                  <div className="flex gap-3">
+                    <Button
+                      type="button"
+                      onClick={() => setActiveTab("additional")}
+                      variant="outline"
+                      className="text-base cursor-pointer py-2.5"
+                      disabled={isSubmitting}
+                    >
+                      Back
+                    </Button>
+                    <Button
+                      type="submit"
+                      variant="default"
+                      disabled={isSubmitting}
+                      className="text-base cursor-pointer py-2.5"
+                    >
+                      {isSubmitting ? (
+                        <div className="flex items-center">
+                          <span className="animate-spin mr-2">
+                            <svg className="h-5 w-5" viewBox="0 0 24 24">
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                                fill="none"
+                              />
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              />
+                            </svg>
+                          </span>
+                          Processing...
+                        </div>
+                      ) : (
+                        editMode ? "Update Reservation" : "Submit Reservation"
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </form>
+          </motion.div>
 
-        <AssetsVenueModal
-          isOpen={showVenueModal}
-          onClose={() => setShowVenueModal(false)}
-          assets={venueAssets}
-          onAssetSelect={handleAssetItemSelect}
-          loading={loadingVenueAssets}
-          role="admin"
-        />
+          <AssetsVenueModal
+            isOpen={showVenueModal}
+            onClose={() => setShowVenueModal(false)}
+            assets={venueAssets}
+            onAssetSelect={handleAssetItemSelect}
+            loading={loadingVenueAssets}
+            role="admin"
+          />
 
-        <AssetsVehicleModal
-          isOpen={showVehicleModal}
-          onClose={() => setShowVehicleModal(false)}
-          assets={vehicleAssets}
-          onAssetSelect={handleAssetItemSelect}
-          loading={loadingVehicleAssets}
-          role="admin"
-        />
-      </div>
+          <AssetsVehicleModal
+            isOpen={showVehicleModal}
+            onClose={() => setShowVehicleModal(false)}
+            assets={vehicleAssets}
+            onAssetSelect={handleAssetItemSelect}
+            loading={loadingVehicleAssets}
+            role="admin"
+          />
+        </div>
+      )}
     </AnimatePresence>
   )
 }
