@@ -6,7 +6,7 @@ import { RESERVATION_VALIDATION_RULES } from "@/utils/reserve-event/reservation-
 import { apiClient } from "@/lib/api-client"
 import { useAuth } from "@/contexts/auth-context"
 import { checkReservationConflicts } from "@/utils/reserve-event/reservation-conflict-check"
-import { usePublicReservations } from "@/services/reservation-service"
+import { useReservations } from "@/services/reservation-service"
 import { useQueryClient } from "@tanstack/react-query"
 
 interface ReservationResponse {
@@ -54,10 +54,8 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
   const [showDropdown, setShowDropdown] = useState(false);
   const { user } = useAuth();
 
-  // ✅ PRODUCTION FIX: Use public endpoint for conflict checking
-  // Works for both authenticated and unauthenticated users
-  // Public endpoint returns all APPROVED reservations for availability checking
-  const { reservations, loading: reservationsLoading } = usePublicReservations();
+  // Fetch all reservations for conflict checking
+  const { reservations, loading: reservationsLoading, hasData, isQueryEnabled } = useReservations();
   const queryClient = useQueryClient();
 
   const peopleFieldRef = useRef<HTMLInputElement>(null);
@@ -330,14 +328,28 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
     try {
       const values = getValues();
 
-      // ✅ PRODUCTION CHECK: Wait for data loading to complete
-      if (reservationsLoading) {
+      // ✅ CRITICAL FIX 1: Check if query is enabled (user authenticated)
+      if (!isQueryEnabled) {
+        toast.error("Authentication required. Please log in and try again.");
+        return;
+      }
+
+      // ✅ CRITICAL FIX 2: Wait for initial data load to complete
+      // Don't proceed if loading OR if no data has been fetched yet
+      if (reservationsLoading || !hasData) {
         toast.error("Loading reservation data, please wait...");
         return;
       }
 
-      // ✅ NOW SAFE: Empty array legitimately means no conflicts
-      // Public endpoint always returns data (empty array if no reservations)
+      // ✅ CRITICAL FIX 3: Validate reservations array is ready
+      // On Vercel, ensure we actually have the data structure even if empty
+      if (!Array.isArray(reservations)) {
+        toast.error("Unable to load reservation data. Please refresh the page.");
+        return;
+      }
+
+      // ✅ NOW SAFE: Empty array means no conflicts, not "data not loaded"
+      // reservations.length === 0 is valid - it means no existing reservations
 
       // Normalize times to "HH:mm" format
       const normalizeTime = (time: string): string => {
@@ -373,7 +385,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         date: normalizedDate,
         timeStart: normalizedTimeStart,
         timeEnd: normalizedTimeEnd,
-        reservations: reservations,
+        reservations: reservations, // Now guaranteed to be valid
         excludeId: editMode ? eventData?.id : undefined
       });
 
@@ -402,7 +414,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       console.error("Error checking conflicts:", error);
       toast.error("Failed to check for conflicts. Please try again.");
     }
-  }, [trigger, getValues, reservations, editMode, eventData, setActiveTab, reservationsLoading]);
+  }, [trigger, getValues, reservations, editMode, eventData, setActiveTab, reservationsLoading, hasData, isQueryEnabled]);
 
   const handleAdditionalTabNext = useCallback(async () => {
     setValue("people_tag", taggedPeople.map(p => p.name).join(', '), {

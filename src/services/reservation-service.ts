@@ -85,7 +85,7 @@ const declineReservation = async ({ reservationId, userId, reason }: { reservati
 export const useReservations = () => {
   const { user, isLoading: isAuthLoading, isAuthenticated } = useAuth();
 
-  const { data, isFetching, error, refetch, dataUpdatedAt } = useQuery({
+  const { data, isFetching, error, refetch, dataUpdatedAt, isSuccess } = useQuery({
     queryKey: ['reservations', user?.id],
     queryFn: fetchReservations,
     staleTime: 2 * 60 * 1000, // 2 minutes (was 0 - too aggressive)
@@ -101,13 +101,14 @@ export const useReservations = () => {
     },
   });
 
-  // ✅ PRODUCTION FIX: Track if query has ever successfully fetched
-  const hasData = dataUpdatedAt > 0;
+  // ✅ PRODUCTION FIX: Only trust data if query succeeded AND has data
+  // Don't rely on dataUpdatedAt alone - it can be from stale cache
+  const hasValidData = isSuccess && !!data && dataUpdatedAt > 0;
 
   return {
     reservations: data || [],
     loading: isAuthLoading || isFetching,
-    hasData, // ✅ NEW: Indicates if data has been fetched at least once
+    hasData: hasValidData, // ✅ FIXED: Only true if fresh fetch succeeded
     isQueryEnabled: !isAuthLoading && isAuthenticated, // ✅ NEW: Query execution state
     error: error?.message || null,
     refetch,
