@@ -38,7 +38,7 @@ export const checkReservationConflicts = ({
     // Extract date portion from ISO string or datetime string
     // This prevents timezone conversion issues
     const datePart = dateStr.split('T')[0].split(' ')[0];
-    if (/^\\d{4}-\\d{2}-\\d{2}$/.test(datePart)) {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
       return datePart;
     }
     

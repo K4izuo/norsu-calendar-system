@@ -342,6 +342,17 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
 
       const freshReservations = response.data;
 
+      // Provide feedback about fetched data
+      const approvedCount = freshReservations.filter(r => 
+        r.status?.toUpperCase() === 'APPROVED'
+      ).length;
+      
+      if (freshReservations.length === 0) {
+        toast.error("No reservations found in the system. Please contact support if this seems incorrect.");
+        setIsCheckingConflict(false);
+        return;
+      }
+
       const normalizeTime = (time: string): string => {
         if (!time) return "00:00";
         const [hour, minute] = time.split(":");
@@ -401,6 +412,11 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         );
         return;
       }
+
+      // Success feedback
+      toast.success(`No conflicts found. Checked against ${approvedCount} approved reservation(s).`, {
+        duration: 3000
+      });
 
       // No conflicts, proceed to next tab
       setActiveTab("additional");
