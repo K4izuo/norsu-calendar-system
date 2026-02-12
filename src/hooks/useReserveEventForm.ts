@@ -390,7 +390,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       });
       
       const sameAssetAndDateReservations = sameDateReservations.filter(r => 
-        r.asset_id === values.asset.id
+        Number(r.asset_id) === Number(values.asset.id)
       );
 
       // Show asset IDs of existing reservations on this date

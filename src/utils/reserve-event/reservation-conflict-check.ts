@@ -61,7 +61,11 @@ export const checkReservationConflicts = ({
 
     const reservationDate = normalizeDate(r.date);
 
-    if (r.asset_id !== assetId || reservationDate !== normalizedDate) return false;
+    // Convert both asset IDs to numbers for comparison to avoid type mismatch
+    const reservationAssetId = Number(r.asset_id);
+    const targetAssetId = Number(assetId);
+    
+    if (reservationAssetId !== targetAssetId || reservationDate !== normalizedDate) return false;
 
     const status = r.status?.toUpperCase();
     return status === 'APPROVED';
