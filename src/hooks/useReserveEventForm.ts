@@ -393,8 +393,13 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         r.asset_id === values.asset.id
       );
 
-      toast(`🔍 Checking: Date="${normalizedDate}", Asset ID=${values.asset.id}, Time=${normalizedTimeStart}-${normalizedTimeEnd}\n\nFound ${sameDateReservations.length} approved reservations on this date\nFound ${sameAssetAndDateReservations.length} for this asset`, {
-        duration: 5000
+      // Show asset IDs of existing reservations on this date
+      const existingAssetIds = sameDateReservations.map(r => 
+        `Asset ${r.asset_id}: ${r.title_name} (${r.time_start}-${r.time_end})`
+      ).join('\n');
+
+      toast(`🔍 Checking: Date="${normalizedDate}", Asset ID=${values.asset.id}, Time=${normalizedTimeStart}-${normalizedTimeEnd}\n\nFound ${sameDateReservations.length} approved on this date:\n${existingAssetIds || 'None'}\n\n${sameAssetAndDateReservations.length} matched your asset ID`, {
+        duration: 8000
       });
 
       // Check for conflicts
