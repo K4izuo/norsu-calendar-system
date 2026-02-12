@@ -383,6 +383,20 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       const normalizedTimeEnd = normalizeTime(values.time_end);
       const normalizedDate = normalizeDate(values.date);
 
+      // DIAGNOSTIC: Show what we're checking
+      const sameDateReservations = freshReservations.filter(r => {
+        const rDate = normalizeDate(r.date);
+        return rDate === normalizedDate && r.status?.toUpperCase() === 'APPROVED';
+      });
+      
+      const sameAssetAndDateReservations = sameDateReservations.filter(r => 
+        r.asset_id === values.asset.id
+      );
+
+      toast(`🔍 Checking: Date="${normalizedDate}", Asset ID=${values.asset.id}, Time=${normalizedTimeStart}-${normalizedTimeEnd}\n\nFound ${sameDateReservations.length} approved reservations on this date\nFound ${sameAssetAndDateReservations.length} for this asset`, {
+        duration: 5000
+      });
+
       // Check for conflicts
       const conflicts = checkReservationConflicts({
         assetId: values.asset.id,
@@ -414,7 +428,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       }
 
       // Success feedback
-      toast.success(`No conflicts found. Checked against ${approvedCount} approved reservation(s).`, {
+      toast.success(`✅ No conflicts! Checked ${approvedCount} approved, ${sameAssetAndDateReservations.length} matched asset+date`, {
         duration: 3000
       });
 
