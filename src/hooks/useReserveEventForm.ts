@@ -403,7 +403,12 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
 
         toast.error(
           `Time slot conflicts detected with ${conflicts.length} approved event(s):\n\n${conflictDetails}`,
-          { duration: 8000 }
+          { 
+            duration: 8000,
+            style: {
+              maxWidth: '600px',
+            }
+          }
         );
         return;
       }
