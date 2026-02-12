@@ -11,7 +11,7 @@ export type Asset = {
 };
 
 // Fetch all reservations with relations (PUBLIC endpoint)
-const fetchReservations = async (): Promise<ReservationWithRelations[]> => {
+export const fetchReservations = async (): Promise<ReservationWithRelations[]> => {
   const response = await apiClient.get<ReservationWithRelations[]>("/reservations/all");
 
   if (response.error) {

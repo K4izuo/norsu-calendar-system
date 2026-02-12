@@ -7,6 +7,7 @@ import { apiClient } from "@/lib/api-client"
 import { useAuth } from "@/contexts/auth-context"
 import { checkReservationConflicts } from "@/utils/reserve-event/reservation-conflict-check"
 import { useQueryClient } from "@tanstack/react-query"
+import { fetchReservations } from "@/services/reservation-service"
 
 interface ReservationResponse {
   reservation: {
@@ -330,18 +331,24 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         return;
       }
 
-      // Fetch reservations from API
-      const response = await apiClient.get<ReservationWithRelations[]>("/reservations/all");
-
-      if (response.error || !response.data) {
-        console.error("API Error:", response.error);
+      // Fetch reservations (using cache if fresh)
+      let freshReservations: ReservationWithRelations[] = [];
+      try {
+        // Use the same query key structure as the service
+        const queryKey = user?.id ? ['reservations', user.id] : ['public-reservations'];
+        
+        freshReservations = await queryClient.ensureQueryData({
+          queryKey,
+          queryFn: fetchReservations,
+          staleTime: 1000 * 60 * 2 // 2 mins cache
+        });
+      } catch (err) {
+        console.error("API Error:", err);
         toast.error("Unable to load reservation data. Please try again.");
         setIsCheckingConflict(false);
         return;
       }
 
-      const freshReservations = response.data;
-      
       if (freshReservations.length === 0) {
         toast.error("No reservations found in the system. Please contact support if this seems incorrect.");
         setIsCheckingConflict(false);
@@ -398,7 +405,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
               ? 'End time conflicts'
               : 'Overlaps completely';
 
-          return `• ${c.title_name} (${c.time_start} - ${c.time_end}) - ${conflictMsg}`;
+          return `- ${c.title_name} (${c.time_start} - ${c.time_end})\n - ${conflictMsg}`;
         }).join('\n');
 
         toast.error(
@@ -406,7 +413,8 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
           { 
             duration: 8000,
             style: {
-              maxWidth: '600px',
+              maxWidth: '500px',
+              whiteSpace: 'pre-line',
             }
           }
         );
@@ -421,7 +429,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       toast.error("Failed to check for conflicts. Please try again.");
       return;
     }
-  }, [trigger, getValues, editMode, eventData, setActiveTab]);
+  }, [trigger, getValues, editMode, eventData, setActiveTab, queryClient, user?.id]);
 
   const handleAdditionalTabNext = useCallback(async () => {
     setValue("people_tag", taggedPeople.map(p => p.name).join(', '), {
