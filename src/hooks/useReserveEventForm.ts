@@ -398,6 +398,15 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       setIsCheckingConflict(false);
 
       if (conflicts.length > 0) {
+        const formatTimeTo12Hour = (time: string) => {
+          if (!time) return "";
+          const [hours, minutes] = time.split(':');
+          const hour = parseInt(hours);
+          const ampm = hour >= 12 ? 'PM' : 'AM';
+          const hour12 = hour % 12 || 12;
+          return `${hour12}:${minutes} ${ampm}`;
+        };
+
         const conflictDetails = conflicts.map(c => {
           const conflictMsg = c.conflictType === 'start'
             ? 'Start time conflicts'
@@ -405,7 +414,10 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
               ? 'End time conflicts'
               : 'Overlaps completely';
 
-          return `- ${c.title_name} (${c.time_start} - ${c.time_end})\n - ${conflictMsg}`;
+          const timeStart = formatTimeTo12Hour(c.time_start);
+          const timeEnd = formatTimeTo12Hour(c.time_end);
+
+          return `- ${c.title_name} (${timeStart} - ${timeEnd})\n - ${conflictMsg}`;
         }).join('\n');
 
         toast.error(
