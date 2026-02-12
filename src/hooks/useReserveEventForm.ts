@@ -341,11 +341,6 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       }
 
       const freshReservations = response.data;
-
-      // Provide feedback about fetched data
-      const approvedCount = freshReservations.filter(r => 
-        r.status?.toUpperCase() === 'APPROVED'
-      ).length;
       
       if (freshReservations.length === 0) {
         toast.error("No reservations found in the system. Please contact support if this seems incorrect.");
@@ -383,25 +378,6 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       const normalizedTimeEnd = normalizeTime(values.time_end);
       const normalizedDate = normalizeDate(values.date);
 
-      // DIAGNOSTIC: Show what we're checking
-      const sameDateReservations = freshReservations.filter(r => {
-        const rDate = normalizeDate(r.date);
-        return rDate === normalizedDate && r.status?.toUpperCase() === 'APPROVED';
-      });
-      
-      const sameAssetAndDateReservations = sameDateReservations.filter(r => 
-        Number(r.asset_id) === Number(values.asset.id)
-      );
-
-      // Show asset IDs of existing reservations on this date
-      const existingAssetIds = sameDateReservations.map(r => 
-        `Asset ${r.asset_id}: ${r.title_name} (${r.time_start}-${r.time_end})`
-      ).join('\n');
-
-      toast(`🔍 Checking: Date="${normalizedDate}", Asset ID=${values.asset.id}, Time=${normalizedTimeStart}-${normalizedTimeEnd}\n\nFound ${sameDateReservations.length} approved on this date:\n${existingAssetIds || 'None'}\n\n${sameAssetAndDateReservations.length} matched your asset ID`, {
-        duration: 8000
-      });
-
       // Check for conflicts
       const conflicts = checkReservationConflicts({
         assetId: values.asset.id,
@@ -431,11 +407,6 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         );
         return;
       }
-
-      // Success feedback
-      toast.success(`✅ No conflicts! Checked ${approvedCount} approved, ${sameAssetAndDateReservations.length} matched asset+date`, {
-        duration: 3000
-      });
 
       // No conflicts, proceed to next tab
       setActiveTab("additional");
