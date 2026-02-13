@@ -3,6 +3,7 @@
 import { type LucideIcon } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { triggerTokenUpdate } from "@/lib/token-refresh"
 
 import {
   SidebarGroup,
@@ -39,7 +40,13 @@ export function NavMain({
               tooltip={item.title}
               isActive={pathname === item.url}
             >
-              <Link href={item.url}>
+              <Link 
+                href={item.url}
+                onClick={() => {
+                  // Trigger debounced, non-blocking token update
+                  triggerTokenUpdate();
+                }}
+              >
                 {item.icon && <item.icon />}
                 <span>{item.title}</span>
               </Link>
