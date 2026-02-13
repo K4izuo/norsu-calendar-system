@@ -13,7 +13,6 @@ import { AssetsVehicleModal } from "@/components/modal/reserve-event-assets/asse
 import { useAssets } from "@/services/academicDataService"
 import { useReserveEventForm } from "@/hooks/useReserveEventForm"
 import { Reservation, ReservationAPIPayload, EventDetails } from "@/interface/user-props"
-// import { triggerTokenUpdate } from "@/lib/token-refresh"
 
 const infoTypes = [
   { value: "public", label: "Public" },
@@ -148,8 +147,6 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden"
-      // Trigger non-blocking token update (debounced, won't cause lag)
-      // triggerTokenUpdate();
       return () => { document.body.style.overflow = "" }
     }
   }, [isOpen])
@@ -356,10 +353,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
               {activeTab === "form" && (
                 <Button
                   type="button"
-                  onClick={() => {
-                    handleFormTabNext();
-                    // triggerTokenUpdate(); // Non-blocking
-                  }}
+                  onClick={handleFormTabNext}
                   variant="default"
                   className="text-base cursor-pointer py-2.5"
                   disabled={isCheckingConflict} // ✅ Disable during conflict check
@@ -387,10 +381,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
                   </Button>
                   <Button
                     type="button"
-                    onClick={() => {
-                      handleAdditionalTabNext();
-                      // triggerTokenUpdate(); // Non-blocking
-                    }}
+                    onClick={handleAdditionalTabNext}
                     variant="default"
                     className="text-base cursor-pointer py-2.5"
                   >
