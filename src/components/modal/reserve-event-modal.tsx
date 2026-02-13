@@ -13,7 +13,7 @@ import { AssetsVehicleModal } from "@/components/modal/reserve-event-assets/asse
 import { useAssets } from "@/services/academicDataService"
 import { useReserveEventForm } from "@/hooks/useReserveEventForm"
 import { Reservation, ReservationAPIPayload, EventDetails } from "@/interface/user-props"
-import { triggerTokenUpdate } from "@/lib/token-refresh"
+// import { triggerTokenUpdate } from "@/lib/token-refresh"
 
 const infoTypes = [
   { value: "public", label: "Public" },
@@ -147,18 +147,10 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
 
   useEffect(() => {
     if (isOpen) {
-      // Prevent "bounce" (layout shift) by compensating for scrollbar width
-      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-      document.body.style.paddingRight = `${scrollbarWidth}px`;
-      document.body.style.overflow = "hidden";
-      
+      document.body.style.overflow = "hidden"
       // Trigger non-blocking token update (debounced, won't cause lag)
-      triggerTokenUpdate();
-      
-      return () => { 
-        document.body.style.overflow = "";
-        document.body.style.paddingRight = "";
-      }
+      // triggerTokenUpdate();
+      return () => { document.body.style.overflow = "" }
     }
   }, [isOpen])
 
@@ -366,7 +358,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
                   type="button"
                   onClick={() => {
                     handleFormTabNext();
-                    triggerTokenUpdate(); // Non-blocking
+                    // triggerTokenUpdate(); // Non-blocking
                   }}
                   variant="default"
                   className="text-base cursor-pointer py-2.5"
@@ -397,7 +389,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
                     type="button"
                     onClick={() => {
                       handleAdditionalTabNext();
-                      triggerTokenUpdate(); // Non-blocking
+                      // triggerTokenUpdate(); // Non-blocking
                     }}
                     variant="default"
                     className="text-base cursor-pointer py-2.5"
