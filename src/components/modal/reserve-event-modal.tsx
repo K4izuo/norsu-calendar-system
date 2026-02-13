@@ -147,10 +147,18 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
 
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = "hidden"
+      // Prevent "bounce" (layout shift) by compensating for scrollbar width
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+      document.body.style.overflow = "hidden";
+      
       // Trigger non-blocking token update (debounced, won't cause lag)
       triggerTokenUpdate();
-      return () => { document.body.style.overflow = "" }
+      
+      return () => { 
+        document.body.style.overflow = "";
+        document.body.style.paddingRight = "";
+      }
     }
   }, [isOpen])
 

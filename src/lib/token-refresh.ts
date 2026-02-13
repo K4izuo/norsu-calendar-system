@@ -59,27 +59,19 @@ let debounceTimer: NodeJS.Timeout | null = null;
 const DEBOUNCE_DELAY = 30 * 1000; // Only update once every 30 seconds max
 
 // Manually trigger token update (debounced and non-blocking for UI responsiveness)
-// Uses requestIdleCallback to ensure it doesn't run during critical rendering (like modal open animations)
 export const triggerTokenUpdate = (): void => {
-  // Use requestIdleCallback if available, otherwise fallback to direct execution
-  const runOnIdle = (typeof window !== 'undefined' && 'requestIdleCallback' in window)
-    ? (cb: () => void) => window.requestIdleCallback(cb)
-    : (cb: () => void) => cb();
+  // Clear existing debounce timer
+  if (debounceTimer) {
+    clearTimeout(debounceTimer);
+  }
 
-  runOnIdle(() => {
-    // Clear existing debounce timer
-    if (debounceTimer) {
-      clearTimeout(debounceTimer);
-    }
-
-    // Set new debounce timer - this ensures we don't make excessive API calls
-    debounceTimer = setTimeout(() => {
-      // Fire and forget - don't await, don't block UI
-      updateTokenExpiration().catch(err => {
-        console.error('Background token update failed:', err);
-      });
-    }, DEBOUNCE_DELAY);
-  });
+  // Set new debounce timer - this ensures we don't make excessive API calls
+  debounceTimer = setTimeout(() => {
+    // Fire and forget - don't await, don't block UI
+    updateTokenExpiration().catch(err => {
+      console.error('Background token update failed:', err);
+    });
+  }, DEBOUNCE_DELAY);
 };
 
 // Start automatic token expiration updates
