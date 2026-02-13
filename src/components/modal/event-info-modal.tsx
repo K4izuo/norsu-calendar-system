@@ -23,6 +23,7 @@ import { getRoleColors, UserRole } from "@/utils/role-colors"
 // ✅ CRITICAL FIX: Import the mutation hooks instead of manual handlers
 import { useApproveReservation, useDeclineReservation } from "@/services/reservation-service";
 import { ConfirmationModal } from "./confirmation-modal";
+import { formatTime } from "@/lib/utils";
 
 interface ModalProps {
   isOpen: boolean;
@@ -84,6 +85,22 @@ const getStartedAgo = (eventDate: string, eventTime: string): string | null => {
     return `Started ${diffDays} day${diffDays === 1 ? "" : "s"} ago`;
   } catch {
     return null;
+  }
+};
+
+// Helper to format date "YYYY-MM-DD" to "Month DD, YYYY"
+const formatDate = (dateStr: string | undefined): string => {
+  if (!dateStr) return "";
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  } catch {
+    return dateStr;
   }
 };
 
@@ -278,7 +295,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                           <p className="text-base text-gray-500">Date</p>
                           <div className="flex items-center">
                             <CalendarPlus2 className="h-4 w-4 mr-1.5 text-gray-500" />
-                            <p className="font-medium text-base">{event.date}</p>
+                            <p className="font-medium text-base">{formatDate(event.date)}</p>
                           </div>
                         </div>
                         <div>
@@ -372,14 +389,14 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                             Registration Deadline
                           </p>
                           <p className="font-medium text-base">
-                            {event.registration_deadline}
+                            {formatDate(event.registration_deadline)}
                           </p>
                         </div>
                         <div>
                           <p className="text-base text-gray-500">Time</p>
                           <div className="flex items-center">
                             <Clock className="h-4 w-4 mr-1.5 text-gray-500" />
-                            <p className="font-medium text-base">{`${event.time_start} - ${event.time_end}`}</p>
+                            <p className="font-medium text-base">{`${formatTime(event.time_start)} - ${formatTime(event.time_end)}`}</p>
                           </div>
                         </div>
                       </div>

@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Calendar, MapPin, Clock, User, Tag } from "lucide-react"
 import type { EventCardsListProps } from "@/interface/user-props"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { formatTime } from "@/lib/utils"
 
 export const EventCardsList = React.memo(function EventCardsList({
   events,
@@ -15,7 +16,9 @@ export const EventCardsList = React.memo(function EventCardsList({
   return (
     <div className="p-4 sm:p-6 space-y-6">
       {events.map((event, index) => {
-        const reservation_time = `${event.time_start} - ${event.time_end}`
+        const formattedStartTime = formatTime(event.time_start);
+        const formattedEndTime = formatTime(event.time_end);
+        const reservation_time = `${formattedStartTime} - ${formattedEndTime}`
         const startedAgo = getStartedAgo(event.date, event.time_start, event.time_end)
         const status = getStatus(event)
         const reservedBy = event.reserve_by_user || "Unknown"
