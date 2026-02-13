@@ -300,7 +300,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                         </div>
                         <div>
                           <p className="text-base text-gray-500">Info Type</p>
-                          <p className="font-medium text-base">
+                          <p className="font-medium capitalize text-base">
                             {event.info_type}
                           </p>
                         </div>
@@ -312,7 +312,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                         </div>
                         <div>
                           <p className="text-base text-gray-500">Category</p>
-                          <p className="font-medium text-base">
+                          <p className="font-medium capitalize text-base">
                             {event.category}
                           </p>
                         </div>
