@@ -1,12 +1,12 @@
 import { apiClient } from './api-client';
-// removeAuthToken i import sa getAuthToken
-import { getAuthToken } from './auth';
+import { getAuthToken, updateTokenExpiry } from './auth';
 
 const TOKEN_REFRESH_INTERVAL = 5 * 60 * 1000; // Check every 5 minutes
 const ACTIVITY_EVENTS = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
 
 let refreshTimer: NodeJS.Timeout | null = null;
 let lastActivityTime = Date.now();
+let isUpdating = false; // Prevent duplicate simultaneous updates
 
 // Track user activity
 export const setupActivityTracking = () => {
@@ -28,22 +28,36 @@ export const setupActivityTracking = () => {
 // Update token expiration (without changing the token)
 const updateTokenExpiration = async (): Promise<boolean> => {
   const token = getAuthToken();
-  if (!token) return false;
+  if (!token || isUpdating) return false;
+
+  isUpdating = true;
 
   try {
     const response = await apiClient.post<{ message: string; expires_at: string }, { token: string }>('/update-token-expiration', { token });
 
     if (response.error) {
-      console.error('Token expiration update failed');
+      console.error('Token expiration update failed:', response.error);
       return false;
     }
 
-    console.log('Token expiration updated:', response.data?.expires_at);
+    // Update local cookie with new expiry
+    if (response.data?.expires_at) {
+      updateTokenExpiry(response.data.expires_at);
+      console.log('Token expiration updated:', response.data.expires_at);
+    }
+
     return true;
   } catch (error) {
     console.error('Token expiration update error:', error);
     return false;
+  } finally {
+    isUpdating = false;
   }
+};
+
+// Manually trigger token update (for user actions like sidebar clicks, form submissions)
+export const triggerTokenUpdate = async (): Promise<boolean> => {
+  return updateTokenExpiration();
 };
 
 // Start automatic token expiration updates

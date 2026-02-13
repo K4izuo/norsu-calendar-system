@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useEffect, useRef, useMemo } from "react";
+import React, { useEffect, useRef, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPinned, X, CalendarClock, Users } from "lucide-react";
+import { MapPinned, X, CalendarClock, Users, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { getRoleColors, UserRole } from "@/utils/role-colors";
 
 interface Asset {
@@ -33,6 +34,20 @@ export const AssetsVenueModal = React.memo(function AssetsVenueModal({
 }: ModalProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const roleColors = useMemo(() => getRoleColors(role), [role]);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Filter assets based on search query
+  const filteredAssets = useMemo(() => {
+    if (!searchQuery.trim()) return assets;
+    
+    const query = searchQuery.toLowerCase();
+    return assets.filter(asset => 
+      asset.asset_name.toLowerCase().includes(query) ||
+      asset.location.toLowerCase().includes(query) ||
+      asset.asset_type.toLowerCase().includes(query) ||
+      asset.capacity.toString().includes(query)
+    );
+  }, [assets, searchQuery]);
 
   useEffect(() => {
     if (isOpen) {
@@ -87,7 +102,7 @@ export const AssetsVenueModal = React.memo(function AssetsVenueModal({
           onClick={(e) => e.stopPropagation()}
         >
           <div className="sticky top-0 bg-white z-10 p-4 sm:p-6 pb-4 sm:pb-6 border-b border-gray-200 shrink-0">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center mb-4">
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
                 <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">
                   Assets Venue Information
@@ -100,6 +115,30 @@ export const AssetsVenueModal = React.memo(function AssetsVenueModal({
               >
                 <X className="w-5 h-5 text-gray-500" />
               </Button>
+            </div>
+            
+            {/* Search Input */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" />
+              <Input
+                type="text"
+                placeholder="Search venues by name, location, or type..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 pr-10"
+              />
+              {searchQuery && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute cursor-pointer right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 hover:bg-transparent"
+                  aria-label="Clear search"
+                >
+                  <X className="w-4 h-4 text-gray-400 hover:text-gray-600 transition-colors" />
+                </Button>
+              )}
             </div>
           </div>
 
@@ -122,12 +161,12 @@ export const AssetsVenueModal = React.memo(function AssetsVenueModal({
               </motion.div>
             ) : (
               <div className="space-y-6">
-                {assets.length === 0 ? (
-                  <div className="text-center text-gray-500 text-base">
-                    No venue assets available.
+                {filteredAssets.length === 0 ? (
+                  <div className="text-center text-gray-500 text-base py-8">
+                    {searchQuery ? `No venues found matching "${searchQuery}"` : "No venue assets available."}
                   </div>
                 ) : (
-                  assets.map((asset) => (
+                  filteredAssets.map((asset) => (
                     <Button
                       key={asset.id}
                       type="button"
@@ -165,15 +204,19 @@ export const AssetsVenueModal = React.memo(function AssetsVenueModal({
                               {asset.capacity ? `${asset.capacity} seats` : "N/A"}
                             </p>
                           </div>
-                          {/* <div>
+                          <div>
                             <p className="text-base text-gray-500 flex items-center gap-1">
                               <MapPinned className="w-4 h-4 mr-1 text-gray-500" />
                               Location
                             </p>
-                            <p className="font-medium text-base">
-                              {asset.location || "N/A"}
+                            <p className="font-medium text-base" title={asset.location || "N/A"}>
+                              {asset.location 
+                                ? asset.location.length > 25 
+                                  ? `${asset.location.substring(0, 25)}...` 
+                                  : asset.location
+                                : "N/A"}
                             </p>
-                          </div> */}
+                          </div>
                           {/* {asset.facilities && (
                             <div>
                               <p className="text-base text-gray-500">Facilities</p>

@@ -1,4 +1,4 @@
-import { getAuthToken, setAuthToken, setUserRole, removeAuthToken, setUserId } from './auth';
+import { getAuthToken, setAuthToken, setUserRole, removeAuthToken, setUserId, updateTokenExpiry } from './auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 // http://127.0.0.1:8000
@@ -64,10 +64,14 @@ const handleUnauthorized = () => {
   }
 };
 
-const storeAuthData = (responseData: { token?: string; role?: number; user?: { id: number } } | null) => {
-  if (responseData?.token) setAuthToken(responseData.token);
+const storeAuthData = (responseData: { token?: string; role?: number; user?: { id: number }; expires_at?: string } | null) => {
+  if (responseData?.token) setAuthToken(responseData.token, responseData.expires_at);
   if (responseData?.role) setUserRole(responseData.role);
   if (responseData?.user?.id) setUserId(responseData.user.id);
+  // Update token expiry if provided (for token refresh endpoint responses)
+  if (responseData?.expires_at && !responseData?.token) {
+    updateTokenExpiry(responseData.expires_at);
+  }
 };
 
 // Define public endpoints that don't require authentication
@@ -156,8 +160,8 @@ export const apiClient = {
         ? await response.json().catch(() => null)
         : null;
 
-      // Only store auth data on successful login/auth responses
-      if (response.ok && (endpoint === 'users/login' || endpoint === '/me')) {
+      // Store auth data on successful login/auth/token-refresh responses
+      if (response.ok && (endpoint === 'users/login' || endpoint === '/me' || endpoint === '/update-token-expiration')) {
         storeAuthData(responseData);
       }
 

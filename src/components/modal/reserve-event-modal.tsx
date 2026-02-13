@@ -110,8 +110,8 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
 
   const formattedAssets = useMemo(() => {
     return [
-      { id: 1, asset_name: "Assets Venue", capacity: 0 },
-      { id: 2, asset_name: "Assets Vehicle", capacity: 0 }
+      { id: 1, asset_name: "Venue", capacity: 0 },
+      // { id: 2, asset_name: "Assets Vehicle", capacity: 0 }
     ];
   }, []);
 

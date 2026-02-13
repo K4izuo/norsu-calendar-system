@@ -71,6 +71,30 @@ export const setUserId = (userId: number) => {
   }
 };
 
+export const updateTokenExpiry = (expiresAt: string) => {
+  if (typeof window !== 'undefined') {
+    const expires = new Date(expiresAt);
+    
+    // Update the token-expiry cookie with new expiration time
+    document.cookie = `token-expiry=${expires.toISOString()}; path=/; expires=${expires.toUTCString()}; SameSite=Strict`;
+    
+    // Also update the auth-token and user-role cookies to expire at the same time
+    const token = localStorage.getItem('auth-token');
+    const role = localStorage.getItem('user-role');
+    const userId = localStorage.getItem('user-id');
+    
+    if (token) {
+      document.cookie = `auth-token=${token}; path=/; expires=${expires.toUTCString()}; SameSite=Strict`;
+    }
+    if (role) {
+      document.cookie = `user-role=${role}; path=/; expires=${expires.toUTCString()}; SameSite=Strict`;
+    }
+    if (userId) {
+      document.cookie = `user-id=${userId}; path=/; expires=${expires.toUTCString()}; SameSite=Strict`;
+    }
+  }
+};
+
 export const removeAuthToken = () => {
   if (typeof window !== 'undefined') {
     localStorage.removeItem('auth-token');

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useContext } from "react";
+import { setupActivityTracking, startTokenRefresh, stopTokenRefresh } from "@/lib/token-refresh";
 import {
   Search,
   Bell,
@@ -108,6 +109,17 @@ export default function RoleLayout({ children }: { children: React.ReactNode }) 
       return () => clearTimeout(timer);
     }
   }, [isFetching, isMutating, showLoading]);
+
+  // Setup token refresh and activity tracking
+  useEffect(() => {
+    const cleanupActivityTracking = setupActivityTracking();
+    startTokenRefresh();
+
+    return () => {
+      cleanupActivityTracking();
+      stopTokenRefresh();
+    };
+  }, []);
 
   return (
     <SidebarProvider>
