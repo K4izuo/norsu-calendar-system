@@ -187,3 +187,17 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ⚡ CRITICAL: Custom spinner animation that guarantees rotation */
+@keyframes spin-loading {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-loading {
+  animation: spin-loading 0.9s linear infinite;
+}

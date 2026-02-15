@@ -1,8 +1,8 @@
 "use client"
 
 import type React from "react"
-import { AccountPageLayout } from "@/components/user-forms/account/account-page-form"
-import { useAccountForm } from "@/hooks/useAccountFormReg"
+import { AccountPageLayout } from "@/features/accounts/components/account-page-form"
+import { useAccountForm } from "@/features/accounts/hooks/useAccountFormReg"
 
 export default function StaffAccountPage() {
   const { 

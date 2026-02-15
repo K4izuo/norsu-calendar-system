@@ -3,8 +3,8 @@
 import type React from "react"
 import { motion } from "framer-motion"
 import { GraduationCap, BookOpen, Users, Award, Clock } from "lucide-react"
-import { LoginFormLayout } from "@/components/user-forms/login/dean-staff-login-form"
-import { useLoginForm } from "@/hooks/useLoginForm"
+import { LoginFormLayout } from "@/features/auth/components/login/dean-staff-login-form"
+import { useLoginForm } from "@/features/auth/hooks/useLoginForm"
 
 export default function DeanLoginPage() {
   const {

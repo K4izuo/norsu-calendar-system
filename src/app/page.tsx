@@ -1,18 +1,18 @@
 "use client";
 
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/components/ui/button";
 import { useMemo, useState, useEffect, useCallback } from "react";
-import { EventsListModal } from "@/components/modal/events-list-modal";
-import { EventInfoModal } from "@/components/modal/event-info-modal";
-import { Calendar } from "@/components/ui/norsu-calendar";
-import { CalendarSkeleton } from "@/components/ui/skeleton";
-import AboutSection from "@/components/ui/about-section";
+import { EventsListModal } from "@/features/calendar/components/events-list-modal";
+import { EventInfoModal } from "@/features/calendar/components/event-info-modal";
+import { Calendar } from "@/features/calendar/components/norsu-calendar";
+import { CalendarSkeleton } from "@/shared/components/ui/skeleton";
+import AboutSection from "@/shared/components/ui/about-section";
 import type { EventDetails, CalendarDayType } from "@/interface/user-props";
 import { toast } from "react-hot-toast";
 import Link from "next/link";
-import { usePublicReservations, usePublicAssets } from "@/services/reservation-service";
-import { getPhilippineDateTime, getPhilippineMonth, getPhilippineYear, getPhilippineDay } from "@/lib/timezone-utils";
+import { usePublicReservations, usePublicAssets } from "@/features/calendar/services/reservation-service";
+import { getPhilippineDateTime, getPhilippineMonth, getPhilippineYear, getPhilippineDay } from "@/features/calendar/utils/timezone-utils";
 
 // Force dynamic rendering so dates are calculated on each request, not at build time
 export const dynamic = 'force-dynamic';
@@ -238,7 +238,7 @@ export default function Home() {
       {/* Navbar */}
       <div className="relative bg-white px-2 sm:px-4 md:px-8 lg:px-16 xl:px-36 py-4 shadow-sm flex flex-col sm:flex-row items-center sm:items-center justify-between w-full gap-y-2">
         <div className="flex flex-row items-center justify-center sm:justify-start w-full sm:w-auto gap-2 sm:gap-0">
-          <Link href="/auth/login">
+          <Link href="/login">
             <Image
               src="/images/norsu.png"
               alt="Negros Oriental State University"

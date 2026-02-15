@@ -78,7 +78,21 @@ const config: NextConfig = {
     optimisticClientCache: true,
 
     // ⚡ PERFORMANCE: Optimize package imports to reduce bundle size
-    optimizePackageImports: ['lucide-react', 'framer-motion', '@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
+    optimizePackageImports: [
+      // External libraries
+      'lucide-react',
+      'framer-motion',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      // Our feature modules (for better code splitting)
+      '@/features/auth',
+      '@/features/calendar',
+      '@/features/reservations',
+      '@/features/assets',
+      '@/features/accounts',
+      '@/features/user-profile',
+      '@/shared/components',
+    ],
 
     // ⚡ PERFORMANCE: Use separate worker for webpack builds (faster builds)
     webpackBuildWorker: true,

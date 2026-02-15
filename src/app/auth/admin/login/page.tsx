@@ -3,8 +3,8 @@
 import type React from "react"
 import { motion } from "framer-motion"
 import { Shield, Users, Settings, BarChart3, Database } from "lucide-react"
-import { UserLoginForm } from "@/components/user-forms/login/user-login-form"
-import { useLoginForm } from "@/hooks/useLoginForm"
+import { UserLoginForm } from "@/features/auth/components/login/user-login-form"
+import { useLoginForm } from "@/features/auth/hooks/useLoginForm"
 
 export default function AdminLoginPage() {
   const {

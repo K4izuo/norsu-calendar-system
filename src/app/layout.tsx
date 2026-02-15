@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
-import { AuthProvider } from '@/contexts/auth-context';
-import { RoleProvider } from '@/contexts/user-role';
-import { QueryProvider } from '@/lib/query-provider';
+import { AuthProvider } from '@/shared/components/context/auth-context';
+import { RoleProvider } from '@/shared/components/context/user-role';
+import { QueryProvider } from '@/core/lib/query-provider';
 
 const poppins = Poppins({
   weight: ["400", "500", "600", "700"],

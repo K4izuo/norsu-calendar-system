@@ -3,19 +3,19 @@
 import React, { useEffect, useCallback, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { Button } from "@/shared/components/ui/button";
+import { Tabs, TabsContent } from "@/shared/components/ui/tabs";
 import { DeanRegisterFormData } from "@/interface/user-props";
-import { useCampuses, useOffices } from "@/services/academicDataService";
-import { DeanFormSelectField } from "@/components/user-forms/register/dean/dean-select-field";
-import { DeanSummary } from "@/components/user-forms/register/dean/dean-summary";
-import { useRole } from "@/contexts/user-role";
+import { useCampuses, useOffices } from "@/features/calendar/services/academicDataService";
+import { DeanFormSelectField } from "@/features/auth/components/register/dean/dean-select-field";
+import { DeanSummary } from "@/features/auth/components/register/dean/dean-summary";
+import { useRole } from "@/shared/components/context/user-role";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { apiClient } from "@/lib/api-client";
-import { DEAN_VALIDATION_RULES } from "@/utils/dean/dean-register-validation-rules";
-import { DeanFormInput } from "@/components/user-forms/register/dean/dean-input-field";
-import { useFieldValidation } from "@/utils/dean/dean-register-field-validation";
+import { apiClient } from "@/core/api/api-client";
+import { DEAN_VALIDATION_RULES } from "@/features/auth/utils/dean/dean-register-validation-rules";
+import { DeanFormInput } from "@/features/auth/components/register/dean/dean-input-field";
+import { useFieldValidation } from "@/features/auth/utils/dean/dean-register-field-validation";
 
 const TABS = [
   { value: "details", label: "Dean Details" },

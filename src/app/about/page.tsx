@@ -1,5 +1,5 @@
 "use client";
-import { TimelineContent } from "@/components/ui/timeline-animation";
+import { TimelineContent } from "@/shared/components/ui/timeline-animation";
 import { useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";

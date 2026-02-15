@@ -3,19 +3,19 @@
 import React, { useEffect, useCallback, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { Button } from "@/shared/components/ui/button";
+import { Tabs, TabsContent } from "@/shared/components/ui/tabs";
 import { StaffRegisterFormData } from "@/interface/user-props";
-import { useCampuses, useOffices } from "@/services/academicDataService";
-import { StaffFormSelectField } from "@/components/user-forms/register/staff/staff-select-field";
-import { StaffSummary } from "@/components/user-forms/register/staff/staff-summary";
-import { useRole } from "@/contexts/user-role";
+import { useCampuses, useOffices } from "@/features/calendar/services/academicDataService";
+import { StaffFormSelectField } from "@/features/auth/components/register/staff/staff-select-field";
+import { StaffSummary } from "@/features/auth/components/register/staff/staff-summary";
+import { useRole } from "@/shared/components/context/user-role";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { apiClient } from "@/lib/api-client";
-import { STAFF_VALIDATION_RULES } from "@/utils/staff/staff-register-validation-rules";
-import { StaffFormInput } from "@/components/user-forms/register/staff/staff-input-field";
-import { useFieldValidation } from "@/utils/staff/staff-register-field-validation";
+import { apiClient } from "@/core/api/api-client";
+import { STAFF_VALIDATION_RULES } from "@/features/auth/utils/staff/staff-register-validation-rules";
+import { StaffFormInput } from "@/features/auth/components/register/staff/staff-input-field";
+import { useFieldValidation } from "@/features/auth/utils/staff/staff-register-field-validation";
 
 const TABS = [
   { value: "details", label: "Staff Details" },
