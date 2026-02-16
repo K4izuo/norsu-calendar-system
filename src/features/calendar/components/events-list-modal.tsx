@@ -109,6 +109,22 @@ export function EventsListModal({
     }
   }, [events, searchTerm, showRecent, eventDate])
 
+  // Check if the event date is in the past
+  const isPastDate = useMemo(() => {
+    if (!eventDate) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const checkDate = new Date(eventDate);
+    if (isNaN(checkDate.getTime())) return false;
+    
+    // For +08:00 timezone, standard parsing of YYYY-MM-DD (UTC) gives 08:00 local.
+    // Resetting to 00:00 local aligns it with "today".
+    checkDate.setHours(0, 0, 0, 0);
+    
+    return checkDate < today;
+  }, [eventDate]);
+
   const getStatusColor = (status: EventStatus) => {
     const colors = {
       pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
@@ -149,7 +165,7 @@ export function EventsListModal({
 
   useEffect(() => {
     if (isOpen) {
-      setShowRecent(false)
+      setShowRecent(isPastDate)
       document.body.style.overflow = "hidden"
     } else {
       document.body.style.overflow = ""
@@ -157,7 +173,7 @@ export function EventsListModal({
     return () => {
       document.body.style.overflow = ""
     }
-  }, [isOpen, setShowRecent])
+  }, [isOpen, setShowRecent, isPastDate])
 
   return (
     <>
@@ -213,7 +229,7 @@ export function EventsListModal({
                     />
                   </div>
                   <div className="flex gap-3">
-                    {role && role !== 'public' && (
+                    {role && role !== 'public' && !isPastDate && (
                       <Button
                         onClick={handleReserve}
                         className="h-11 cursor-pointer px-6 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"

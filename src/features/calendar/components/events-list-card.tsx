@@ -1,7 +1,7 @@
 import React from "react"
 import Image from "next/image"
 import { Badge } from "@/shared/components/ui/badge"
-import { Calendar, MapPin, Clock, User, Tag } from "lucide-react"
+import { MapPin, Clock, User, Tag } from "lucide-react"
 import type { EventCardsListProps } from "@/interface/user-props"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/components/ui/tooltip"
 import { formatTime } from "@/core/lib/utils"
@@ -54,8 +54,16 @@ export const EventCardsList = React.memo(function EventCardsList({
 
               {/* Calendar Icon Badge (overlapping on left) */}
               <div className="absolute left-6 -bottom-7.5 z-10">
-                <div className="w-16 h-16 rounded-full bg-black flex items-center justify-center border-4 border-white shadow-md">
+                {/* <div className="w-16 h-16 rounded-full bg-black flex items-center justify-center border-4 border-white shadow-md">
                   <Calendar className="w-7 h-7 text-white" />
+                </div> */}
+                <div className="relative w-16 h-16 rounded-full bg-white flex items-center justify-center border-4 border-white shadow-md overflow-hidden">
+                  <Image
+                    src="/images/norsu.png"
+                    alt="NORSU Logo"
+                    fill
+                    className="object-cover"
+                  />
                 </div>
               </div>
             </div>
@@ -97,13 +105,19 @@ export const EventCardsList = React.memo(function EventCardsList({
               </div>
 
               {/* Event Details Grid */}
-              <div className="grid grid-cols-4 gap-4">
+              <div className="flex justify-between items-start gap-4">
                 {/* Venue */}
                 <div className="flex flex-col">
                   <span className="text-xs text-gray-400 uppercase mb-1.5">Venue</span>
                   <div className="flex items-center gap-2">
                     <MapPin className="h-4 w-4 text-gray-600 shrink-0" />
-                    <span className="text-sm font-medium text-gray-900">{event.asset?.asset_name}</span>
+                    <span className="text-sm font-medium text-gray-900" title={event.asset?.asset_name}>
+                      {event.asset?.asset_name
+                        ? event.asset.asset_name.length > 16
+                          ? `${event.asset.asset_name.substring(0, 16)}...`
+                          : event.asset.asset_name
+                        : "Not specified"}
+                    </span>
                   </div>
                 </div>
 
