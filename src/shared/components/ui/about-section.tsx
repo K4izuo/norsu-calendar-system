@@ -41,7 +41,7 @@ export default function AboutSection() {
 
         {/* right side */}
         <div className="flex flex-col gap-6 self-start">
-          <div className="relative w-full aspect-[16/10] rounded-3xl overflow-hidden">
+          <div className="relative w-full aspect-16/10 rounded-3xl overflow-hidden">
             <Image
               src="/images/background-image.png"
               className="object-cover w-full h-full"
@@ -82,7 +82,7 @@ export default function AboutSection() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           {/* Alex Rivera */}
           <div className="group relative flex flex-col bg-white p-4 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300">
-            <div className="relative text-card-foreground border shadow cursor-pointer w-full aspect-[4/5] overflow-hidden rounded-2xl bg-white mb-6">
+            <div className="relative text-card-foreground border shadow cursor-pointer w-full aspect-4/5 overflow-hidden rounded-2xl bg-white mb-6">
               <Image
                 src="/images/crisjustine.png"
                 className="w-full h-full object-cover group-hover:grayscale-0 transition-all duration-500 group-hover:scale-105"
@@ -100,7 +100,7 @@ export default function AboutSection() {
 
           {/* Elena Chen */}
           <div className="group relative flex flex-col bg-white p-4 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300">
-            <div className="relative text-card-foreground border shadow cursor-pointer w-full aspect-[4/5] overflow-hidden rounded-2xl bg-white mb-6">
+            <div className="relative text-card-foreground border shadow cursor-pointer w-full aspect-4/5 overflow-hidden rounded-2xl bg-white mb-6">
               <Image
                 src="/images/dexter.jpg"
                 className="w-full h-full object-cover group-hover:grayscale-0 transition-all duration-500 group-hover:scale-105"
@@ -118,7 +118,7 @@ export default function AboutSection() {
 
           {/* Marcus Thorne */}
           <div className="group relative flex flex-col bg-white p-4 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300">
-            <div className="relative text-card-foreground border shadow cursor-pointer w-full aspect-[4/5] overflow-hidden rounded-2xl bg-white mb-6">
+            <div className="relative text-card-foreground border shadow cursor-pointer w-full aspect-4/5 overflow-hidden rounded-2xl bg-white mb-6">
               <Image
                 src="/images/kenneth.jpg"
                 className="w-full h-full object-cover group-hover:grayscale-0 transition-all duration-500 group-hover:scale-105"
