@@ -105,7 +105,7 @@ export const EventCardsList = React.memo(function EventCardsList({
               </div>
 
               {/* Event Details Grid */}
-              <div className="grid grid-cols-4 gap-3">
+              <div className="flex justify-between items-start gap-4">
                 {/* Venue */}
                 <div className="flex flex-col">
                   <span className="text-xs text-gray-400 uppercase mb-1.5">Venue</span>
