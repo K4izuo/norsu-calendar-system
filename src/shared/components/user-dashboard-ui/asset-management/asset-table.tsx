@@ -91,7 +91,11 @@ export const AssetsTable = memo(function AssetsTable({ assets, onAssetClick }: A
                     {asset.asset_type}
                   </TableCell>
                   <TableCell className="px-6 py-4 text-sm text-foreground">
-                    {asset.location}
+                    {asset.location
+                      ? asset.location.length > 30
+                        ? `${asset.location.slice(0, 30)}...`
+                        : asset.location
+                      : "Not specified"}
                   </TableCell>
                   <TableCell className="px-6 py-4 text-sm text-foreground">
                     {asset.capacity}
