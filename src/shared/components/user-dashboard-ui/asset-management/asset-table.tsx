@@ -1,5 +1,6 @@
 "use client";
 
+import React, { memo } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/components/ui/table"
 import { Asset } from "@/features/assets/services/asset-service"
 
@@ -9,7 +10,7 @@ interface AssetsTableProps {
   onAssetClick?: (asset: Asset) => void;
 }
 
-export function AssetsTable({ assets, onAssetClick }: AssetsTableProps) {
+export const AssetsTable = memo(function AssetsTable({ assets, onAssetClick }: AssetsTableProps) {
   const getStatusColor = (status: string) => {
     if (!status) return 'bg-gray-100 text-gray-800';
     const statusUpper = status.toUpperCase();
@@ -116,4 +117,4 @@ export function AssetsTable({ assets, onAssetClick }: AssetsTableProps) {
       </div>
     </div>
   )
-}
+})

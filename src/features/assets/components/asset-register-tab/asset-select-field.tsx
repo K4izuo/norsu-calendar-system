@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { memo, useMemo, useState } from "react";
 import { Label } from "@/shared/components/ui/label";
 import {
   Select,
@@ -40,6 +40,13 @@ export const AssetSelectField = memo(function AssetSelectField({
   loading = false,
   error = null,
 }: AssetSelectFieldProps) {
+  const [open, setOpen] = useState(false);
+  const selectedOption = useMemo(
+    () => options.find(option => option.value === value),
+    [options, value]
+  );
+  const shouldRenderAllOptions = open || options.length <= 100;
+
   return (
     <div className="flex flex-col gap-1.5">
       <Label htmlFor={id} className="inline-flex pointer-events-none">
@@ -52,6 +59,8 @@ export const AssetSelectField = memo(function AssetSelectField({
         onValueChange={onChange}
         name={name}
         disabled={disabled || loading}
+        open={open}
+        onOpenChange={setOpen}
       >
         <SelectTrigger
           id={id}
@@ -71,15 +80,25 @@ export const AssetSelectField = memo(function AssetSelectField({
             <SelectItem value="loading" disabled>
               Loading...
             </SelectItem>
-          ) : options.length > 0 ? (
-            options.map((option) => (
-              <SelectItem className="cursor-pointer" key={option.value} value={option.value}>
-                {option.label}
+          ) : shouldRenderAllOptions ? (
+            options.length > 0 ? (
+              options.map((option) => (
+                <SelectItem className="cursor-pointer" key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))
+            ) : (
+              <SelectItem value="empty" disabled>
+                No {label.toLowerCase()} available
               </SelectItem>
-            ))
+            )
+          ) : selectedOption ? (
+            <SelectItem value={selectedOption.value}>
+              {selectedOption.label}
+            </SelectItem>
           ) : (
-            <SelectItem value="empty" disabled>
-              No {label.toLowerCase()} available
+            <SelectItem value="deferred" disabled>
+              Open to load options...
             </SelectItem>
           )}
         </SelectContent>

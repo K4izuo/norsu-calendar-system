@@ -6,6 +6,7 @@ import { Input } from "@/shared/components/ui/input"
 import { Search, MoreVertical } from "lucide-react"
 import { EventInfoModal } from "@/features/calendar/components/event-info-modal"
 import { EventDetails } from "@/interface/user-props"
+import { formatTime } from "@/core/lib/utils"
 import {
   Select,
   SelectContent,
@@ -27,6 +28,16 @@ export function ReservationsTable({ events, statusFilter, onStatusFilterChange }
   const [eventInfoModalOpen, setEventInfoModalOpen] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<EventDetails | undefined>(undefined)
   const [eventInfoLoading, setEventInfoLoading] = useState(false)
+
+  const formatDate = (dateStr: string): string => {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
 
   // Filter and sort reservations based on search query, status filter, and date
   const filteredEvents = useMemo(() => {
@@ -145,16 +156,20 @@ export function ReservationsTable({ events, statusFilter, onStatusFilterChange }
                       className="cursor-pointer hover:bg-gray-50 transition-colors"
                     >
                       <TableCell className="px-6 py-4 text-sm font-medium text-foreground">
-                        {event.title_name}
+                        {event.title_name
+                          ? event.title_name.length > 50
+                            ? `${event.title_name.slice(0, 50)}...`
+                            : event.title_name
+                          : "Untitled Event"}
                       </TableCell>
                       <TableCell className="px-6 py-4 text-sm text-foreground">
-                        {event.date}
+                        {formatDate(event.date)}
                       </TableCell>
                       <TableCell className="px-6 py-4 text-sm text-foreground">
-                        {event.time_start}
+                        {formatTime(event.time_start)}
                       </TableCell>
                       <TableCell className="px-6 py-4 text-sm text-foreground">
-                        {event.time_end}
+                        {formatTime(event.time_end)}
                       </TableCell>
                       <TableCell className="px-6 py-4 text-sm text-foreground">
                         <span className={`px-2 py-1 rounded-md text-xs font-medium ${event.registration_status === 'APPROVED' ? 'bg-green-100 text-green-800' :
@@ -165,7 +180,11 @@ export function ReservationsTable({ events, statusFilter, onStatusFilterChange }
                         </span>
                       </TableCell>
                       <TableCell className="px-6 py-4 text-sm text-foreground">
-                        {event.asset.asset_name}
+                        {event.asset.asset_name
+                          ? event.asset.asset_name.length > 30
+                            ? `${event.asset.asset_name.slice(0, 30)}...`
+                            : event.asset.asset_name
+                          : "Not specified"}
                       </TableCell>
                       <TableCell className="px-6 py-4 text-center text-sm text-foreground">
                         {event.people_tag.length}

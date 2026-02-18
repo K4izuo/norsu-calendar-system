@@ -43,8 +43,8 @@ export function AssetDetailsTab({
   conditionOptions,
   campuses,
   offices,
-  // loadingCampuses,
-  // loadingOffices,
+  loadingCampuses,
+  loadingOffices,
   campusError,
   officeError,
   isAdmin = false,
@@ -122,7 +122,7 @@ export function AssetDetailsTab({
                 value={field.value || ""}
                 onChange={field.onChange}
                 options={campuses}
-                loading={false}
+                loading={loadingCampuses}
                 error={campusError}
                 required
                 hasError={!!errors.campus_id}
@@ -147,7 +147,7 @@ export function AssetDetailsTab({
                 value={field.value || ""}
                 onChange={field.onChange}
                 options={offices}
-                loading={false}
+                loading={loadingOffices}
                 error={officeError}
                 required
                 hasError={!!errors.office_id}

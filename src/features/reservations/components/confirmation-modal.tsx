@@ -8,6 +8,7 @@ import { EventDetails, ReservationWithRelations } from "@/interface/user-props";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Label } from "@/shared/components/ui/label";
 import { apiClient } from "@/core/api/api-client";
+import { formatTime } from "@/core/lib/utils";
 
 type ConfirmationModalProps = {
   isOpen: boolean;
@@ -200,7 +201,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
                           <p className="font-medium text-gray-900">
-                            {event.time_start} - {event.time_end}
+                            {`${formatTime(event.time_start)} - ${formatTime(event.time_end)}`}
                           </p>
                         </div>
                       </div>

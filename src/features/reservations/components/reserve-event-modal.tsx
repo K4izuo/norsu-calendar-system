@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { X, CalendarDays, Edit, Loader2 } from "lucide-react"
+import { X, CalendarDays, Edit, Loader2, ArrowLeft, ArrowRight, SendHorizontal } from "lucide-react"
 import { Button } from "@/shared/components/ui/button"
 import { Tabs, TabsContent } from "@/shared/components/ui/tabs"
 import { ReserveEventFormTab } from "@/features/reservations/components/reserve-event-tab/event-form-tab"
@@ -365,7 +365,10 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
                       Checking for conflicts...
                     </div>
                   ) : (
-                    "Next"
+                    <div className="flex items-center">
+                      Next
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </div>
                   )}
                 </Button>
               )}
@@ -378,6 +381,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
                     className="text-base cursor-pointer py-2.5"
                     disabled={isSubmitting}
                   >
+                    <ArrowLeft className="w-4 h-4" />
                     Back
                   </Button>
                   <Button
@@ -386,7 +390,10 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
                     variant="default"
                     className="text-base cursor-pointer py-2.5"
                   >
-                    Next
+                    <div className="flex items-center">
+                      Next
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </div>
                   </Button>
                 </div>
               )}
@@ -399,6 +406,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
                     className="text-base cursor-pointer py-2.5"
                     disabled={isSubmitting}
                   >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
                     Back
                   </Button>
                   <Button
@@ -430,7 +438,10 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
                         Processing...
                       </div>
                     ) : (
-                      editMode ? "Update Reservation" : "Submit Reservation"
+                      <div className="flex items-center">
+                        {editMode ? "Update Reservation" : "Submit Reservation"}
+                        <SendHorizontal className="w-4 h-4 ml-2" />
+                      </div>
                     )}
                   </Button>
                 </div>
