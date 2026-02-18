@@ -200,7 +200,7 @@ export function Calendar<T>({
         {/* Left: arrow, today, select */}
         <div className="flex items-center gap-1.5 sm:gap-2.5 justify-start relative">
           {/* Arrow buttons group for desktop/tablet */}
-          <div className="hidden sm:flex items-center bg-white border border-gray-300 rounded-sm px-2 h-9 w-max">
+          <div className="hidden text-card-foreground border shadow sm:flex items-center bg-white rounded-sm px-2 h-9 w-max">
             <motion.button
               className="w-7 cursor-pointer h-7 flex items-center justify-center rounded bg-transparent border-none shadow-none hover:bg-gray-100 transition-colors"
               aria-label="Previous"
