@@ -184,7 +184,7 @@ export default function RoleLayout({ children }: { children: React.ReactNode }) 
                 <UserProfile
                   name={userData.name}
                   role={getRoleLabelFromNumber(userData.role)}
-                  avatar="https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-01-n0x8HFv8EUetf9z6ht0wScJKoTHqf8.png"
+                // avatar="https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-01-n0x8HFv8EUetf9z6ht0wScJKoTHqf8.png"
                 />
               </DropdownMenuContent>
             </DropdownMenu>

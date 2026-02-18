@@ -22,13 +22,13 @@ interface MenuItem {
 interface UserProfileProps {
   name: string
   role: string
-  avatar: string
+  // avatar: string
 }
 
 export default function UserProfile({
   name,
   role,
-  avatar,
+  // avatar,
 }: Partial<UserProfileProps>) {
   const auth = useContext(AuthContext)
   const queryClient = useQueryClient()
@@ -91,7 +91,7 @@ export default function UserProfile({
           <div className="flex items-center gap-4 mb-8">
             <div className="relative shrink-0">
               <Image
-                src={avatar ?? ""}
+                src="/images/avatar.jpg"
                 alt="Name"
                 width={72}
                 height={72}

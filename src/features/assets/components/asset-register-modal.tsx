@@ -25,7 +25,7 @@ const conditionOptions = [
   { value: "good", label: "Good" },
   { value: "fair", label: "Fair" },
   { value: "poor", label: "Poor" },
-  { value: "needs_repair", label: "Needs Repair" },
+  { value: "under_renovation", label: "Under Renovation" },
 ]
 
 interface AssetRegistrationModalProps {
