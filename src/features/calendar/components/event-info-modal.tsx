@@ -240,7 +240,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                 duration: 0.15,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className="relative w-full max-w-5xl max-h-[90vh] bg-white rounded-xl shadow-2xl flex flex-col"
+              className="relative w-full max-w-4xl max-h-[90vh] bg-white rounded-xl shadow-2xl flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="sticky top-0 bg-white z-10 p-4 sm:p-6 border-b border-gray-200 flex justify-between items-center rounded-t-xl">
