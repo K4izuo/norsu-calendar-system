@@ -37,13 +37,13 @@ export function PageBreadcrumb({ items }: PageBreadcrumbProps) {
             <div key={item.label} className="flex items-center">
               <BreadcrumbItem>
                 {isLast ? (
-                  <BreadcrumbPage className="text-lg font-semibold text-gray-800">
+                  <BreadcrumbPage className="text-base font-semibold text-gray-800">
                     {item.label}
                   </BreadcrumbPage>
                 ) : (
                   <BreadcrumbLink
                     onClick={() => item.href && handleNavigation(item.href)}
-                    className="text-lg font-normal text-gray-500 cursor-pointer hover:text-gray-700 transition-colors"
+                    className="text-base font-normal text-gray-500 cursor-pointer hover:text-gray-700 transition-colors"
                   >
                     {item.label}
                   </BreadcrumbLink>

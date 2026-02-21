@@ -1,27 +1,29 @@
-"use client"
+"use client";
 
-import { LogOut, Settings, UserRoundCog } from "lucide-react"
-import Image from "next/image"
-import Link from "next/link"
-import { useContext, useState } from "react"
-import { Button } from "@/shared/components/ui/button"
-import { AuthContext } from "@/shared/components/context/auth-context"
-import { toast } from "react-hot-toast"
-import { apiClient } from "@/core/api/api-client"
-import { removeAuthToken } from "@/core/auth/auth"
-import { useQueryClient } from "@tanstack/react-query"
+import { LogOut, Settings, UserRoundCog } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useContext, useState } from "react";
+import { Button } from "@/shared/components/ui/button";
+import { AuthContext } from "@/shared/components/context/auth-context";
+import { toast } from "react-hot-toast";
+import { apiClient } from "@/core/api/api-client";
+import { DropdownMenuItem } from "@/shared/components/ui/dropdown-menu";
+import { useParams } from "next/navigation";
+import { removeAuthToken } from "@/core/auth/auth";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface MenuItem {
-  label: string
-  value?: string
-  href: string
-  icon?: React.ReactNode
-  external?: boolean
+  label: string;
+  value?: string;
+  href: string;
+  icon?: React.ReactNode;
+  external?: boolean;
 }
 
 interface UserProfileProps {
-  name: string
-  role: string
+  name: string;
+  role: string;
   // avatar: string
 }
 
@@ -30,59 +32,61 @@ export default function UserProfile({
   role,
   // avatar,
 }: Partial<UserProfileProps>) {
-  const auth = useContext(AuthContext)
-  const queryClient = useQueryClient()
-  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const auth = useContext(AuthContext);
+  const queryClient = useQueryClient();
+  const params = useParams();
+  const roleSlug = (params?.role as string) || "admin";
+
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const menuItems: MenuItem[] = [
     {
       label: "Profile",
-      href: "#",
+      href: `/${roleSlug}/profile`,
       icon: <UserRoundCog className="size-5" />,
     },
     {
       label: "Settings",
-      href: "#",
+      href: `/${roleSlug}/settings`,
       icon: <Settings className="size-5" />,
     },
-  ]
+  ];
 
   const handleLogout = async () => {
-    setIsLoggingOut(true)
-    const loadingToast = toast.loading("Logging out...")
+    setIsLoggingOut(true);
+    const loadingToast = toast.loading("Logging out...");
 
     try {
-      const response = await apiClient.logout<{ message: string }>('/logout')
+      const response = await apiClient.logout<{ message: string }>("/logout");
 
-      toast.dismiss(loadingToast)
+      toast.dismiss(loadingToast);
 
       if (response.error) {
-        toast.error(response.error || 'Logout failed')
-        setIsLoggingOut(false)
-        return
+        toast.error(response.error || "Logout failed");
+        setIsLoggingOut(false);
+        return;
       }
 
-      queryClient.clear()
+      queryClient.clear();
 
       // Clear all auth data
-      removeAuthToken()
+      removeAuthToken();
 
       if (auth?.logout) {
-        auth.logout()
+        auth.logout();
       }
 
-      toast.success(response.data?.message || 'Logged out successfully')
+      toast.success(response.data?.message || "Logged out successfully");
 
       // Use window.location.href to force a full page reload and clear navigation history
-      window.location.href = '/'
-
+      window.location.href = "/";
     } catch (error) {
-      console.error('Logout error:', error)
-      toast.dismiss(loadingToast)
-      toast.error('An error occurred during logout')
-      setIsLoggingOut(false)
+      console.error("Logout error:", error);
+      toast.dismiss(loadingToast);
+      toast.error("An error occurred during logout");
+      setIsLoggingOut(false);
     }
-  }
+  };
 
   return (
     <div className="w-full max-w-sm mx-auto">
@@ -102,28 +106,41 @@ export default function UserProfile({
 
             {/* Profile Info */}
             <div className="flex-1">
-              <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">{name}</h2>
+              <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                {name}
+              </h2>
               <p className="text-zinc-600 dark:text-zinc-400">{role}</p>
             </div>
           </div>
           <div className="h-px bg-zinc-200 dark:bg-zinc-800 my-6" />
           <div className="space-y-2">
             {menuItems.map((item) => (
-              <Link
+              <DropdownMenuItem
                 key={item.label}
-                href={item.href}
-                className="flex items-center justify-between p-2 
-                                    hover:bg-zinc-100 dark:hover:bg-zinc-800/50 
-                                    rounded-lg transition-colors duration-200"
+                asChild
+                className="p-0 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 rounded-lg cursor-pointer"
               >
-                <div className="flex items-center gap-2">
-                  {item.icon}
-                  <span className="text-base font-medium text-zinc-900 dark:text-zinc-100">{item.label}</span>
-                </div>
-                <div className="flex items-center">
-                  {item.value && <span className="text-base text-zinc-500 dark:text-zinc-400 mr-2">{item.value}</span>}
-                </div>
-              </Link>
+                <Link
+                  href={item.href}
+                  className="flex items-center justify-between p-2 
+                                      hover:bg-zinc-100 dark:hover:bg-zinc-800/50 
+                                      rounded-lg transition-colors duration-200 w-full"
+                >
+                  <div className="flex items-center gap-2">
+                    {item.icon}
+                    <span className="text-base font-medium text-zinc-900 dark:text-zinc-100">
+                      {item.label}
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    {item.value && (
+                      <span className="text-base text-zinc-500 dark:text-zinc-400 mr-2">
+                        {item.value}
+                      </span>
+                    )}
+                  </div>
+                </Link>
+              </DropdownMenuItem>
             ))}
 
             <Button
@@ -158,7 +175,7 @@ export default function UserProfile({
                   <LogOut className="size-5 text-black" />
                 )}
                 <span className="text-base font-medium text-zinc-900 dark:text-zinc-100">
-                  {isLoggingOut ? 'Logging out...' : 'Logout'}
+                  {isLoggingOut ? "Logging out..." : "Logout"}
                 </span>
               </div>
             </Button>
@@ -166,5 +183,5 @@ export default function UserProfile({
         </div>
       </div>
     </div>
-  )
+  );
 }

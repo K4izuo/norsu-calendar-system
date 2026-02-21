@@ -1,41 +1,52 @@
-"use client"
+"use client";
 
-import React, { useEffect, useRef, useState, useMemo } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { X, CalendarDays, Edit, Loader2, ArrowLeft, ArrowRight, SendHorizontal } from "lucide-react"
-import { Button } from "@/shared/components/ui/button"
-import { Tabs, TabsContent } from "@/shared/components/ui/tabs"
-import { ReserveEventFormTab } from "@/features/reservations/components/reserve-event-tab/event-form-tab"
-import { ReserveEventAdditionalTab } from "@/features/reservations/components/reserve-event-tab/event-additional-tab"
-import { ReserveEventSummaryTab } from "@/features/reservations/components/reserve-event-tab/event-summary-tab"
-import { AssetsVenueModal } from "@/features/reservations/components/reserve-event-assets/assets-venue-modal"
-import { AssetsVehicleModal } from "@/features/reservations/components/reserve-event-assets/assets-vehicle-modal"
-import { useAssets } from "@/features/calendar/services/academicDataService"
-import { useReserveEventForm } from "@/features/reservations/hooks/useReserveEventForm"
-import { Reservation, ReservationAPIPayload } from "@/features/reservations/types/reservation.types"
-import { EventDetails } from "@/features/calendar/types/calendar.types"
+import React, { useEffect, useRef, useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  X,
+  CalendarDays,
+  Edit,
+  Loader2,
+  ArrowLeft,
+  ArrowRight,
+  SendHorizontal,
+} from "lucide-react";
+import { Button } from "@/shared/components/ui/button";
+import { Tabs, TabsContent } from "@/shared/components/ui/tabs";
+import { ReserveEventFormTab } from "@/features/reservations/components/reserve-event-tab/event-form-tab";
+import { ReserveEventAdditionalTab } from "@/features/reservations/components/reserve-event-tab/event-additional-tab";
+import { ReserveEventSummaryTab } from "@/features/reservations/components/reserve-event-tab/event-summary-tab";
+import { AssetsVenueModal } from "@/features/reservations/components/reserve-event-assets/assets-venue-modal";
+import { AssetsVehicleModal } from "@/features/reservations/components/reserve-event-assets/assets-vehicle-modal";
+import { useAssets } from "@/features/calendar/services/academicDataService";
+import { useReserveEventForm } from "@/features/reservations/hooks/useReserveEventForm";
+import {
+  Reservation,
+  ReservationAPIPayload,
+} from "@/features/reservations/types/reservation.types";
+import { EventDetails } from "@/features/calendar/types/calendar.types";
 
 const infoTypes = [
   { value: "public", label: "Public" },
   { value: "private", label: "Private" },
   { value: "restricted", label: "Restricted" },
-]
+];
 
 const categories = [
   { value: "academic", label: "Academic" },
   { value: "social", label: "Social" },
   { value: "sports", label: "Sports" },
   { value: "other", label: "Other" },
-]
+];
 
 interface ModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onSubmit?: (data: ReservationAPIPayload) => void
-  eventDate?: string | undefined
-  onNewReservation?: (reservation: Reservation) => void
-  editMode?: boolean
-  eventData?: EventDetails
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit?: (data: ReservationAPIPayload) => void;
+  eventDate?: string | undefined;
+  onNewReservation?: (reservation: Reservation) => void;
+  editMode?: boolean;
+  eventData?: EventDetails;
 }
 
 // Format date to a readable string (e.g., "February 15, 2026")
@@ -47,18 +58,26 @@ const formatDisplayDate = (dateStr: string | undefined): string => {
     if (isNaN(date.getTime())) return dateStr;
 
     const options: Intl.DateTimeFormatOptions = {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     };
-    return date.toLocaleDateString('en-US', options);
+    return date.toLocaleDateString("en-US", options);
   } catch {
     return dateStr;
   }
 };
 
-export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewReservation, editMode = false, eventData }: ModalProps) {
-  const contentRef = useRef<HTMLDivElement>(null)
+export function ReserveEventModal({
+  isOpen,
+  onClose,
+  onSubmit,
+  eventDate,
+  onNewReservation,
+  editMode = false,
+  eventData,
+}: ModalProps) {
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const { assets } = useAssets();
 
@@ -94,12 +113,36 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
     setValue,
     setTaggedPeople,
     isCheckingConflict, // ✅ NEW: Destructure loading state
-  } = useReserveEventForm({ eventDate, onSubmit, onClose, isOpen, onNewReservation, editMode, eventData });
+  } = useReserveEventForm({
+    eventDate,
+    onSubmit,
+    onClose,
+    isOpen,
+    onNewReservation,
+    editMode,
+    eventData,
+  });
 
   const [loadingVenueAssets, setLoadingVenueAssets] = useState(false);
   const [loadingVehicleAssets, setLoadingVehicleAssets] = useState(false);
-  const [venueAssets, setVenueAssets] = useState<{ id: number; asset_name: string; asset_type: string; capacity: number, location: string }[]>([]);
-  const [vehicleAssets, setVehicleAssets] = useState<{ id: number; asset_name: string; asset_type: string; capacity: number, location: string }[]>([]);
+  const [venueAssets, setVenueAssets] = useState<
+    {
+      id: number;
+      asset_name: string;
+      asset_type: string;
+      capacity: number;
+      location: string;
+    }[]
+  >([]);
+  const [vehicleAssets, setVehicleAssets] = useState<
+    {
+      id: number;
+      asset_name: string;
+      asset_type: string;
+      capacity: number;
+      location: string;
+    }[]
+  >([]);
 
   const peopleSuggestions = [
     { id: "1", name: "John Doe" },
@@ -122,63 +165,77 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
   // Populate form with edit data
   useEffect(() => {
     if (editMode && eventData && isOpen) {
-      setValue('title_name', eventData.title_name || '');
-      setValue('description', eventData.description || '');
-      setValue('time_start', eventData.time_start || '');
-      setValue('time_end', eventData.time_end || '');
-      setValue('range', eventData.range || 1);
-      setValue('info_type', eventData.info_type || '');
-      setValue('category', eventData.category || '');
+      setValue("title_name", eventData.title_name || "");
+      setValue("description", eventData.description || "");
+      setValue("time_start", eventData.time_start || "");
+      setValue("time_end", eventData.time_end || "");
+      setValue("range", eventData.range || 1);
+      setValue("info_type", eventData.info_type || "");
+      setValue("category", eventData.category || "");
 
       if (eventData.asset) {
-        setValue('asset', eventData.asset);
+        setValue("asset", eventData.asset);
       }
 
       if (eventData.people_tag && eventData.people_tag.length > 0) {
         const people = eventData.people_tag.map((name, index) => ({
           id: `edit-${index}`,
-          name: name
+          name: name,
         }));
         setTaggedPeople(people);
-        setValue('people_tag', eventData.people_tag.join(', '));
+        setValue("people_tag", eventData.people_tag.join(", "));
       }
     }
   }, [editMode, eventData, isOpen, setValue, setTaggedPeople]);
 
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = "hidden"
-      return () => { document.body.style.overflow = "" }
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = "";
+      };
     }
-  }, [isOpen])
+  }, [isOpen]);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose()
-    }
+      if (e.key === "Escape") onClose();
+    };
     if (isOpen) {
-      document.addEventListener("keydown", handleEscape)
+      document.addEventListener("keydown", handleEscape);
     }
-    return () => document.removeEventListener("keydown", handleEscape)
-  }, [isOpen, onClose])
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isOpen, onClose]);
 
   useEffect(() => {
     if (showVenueModal) {
       setLoadingVenueAssets(true);
       setTimeout(() => {
         if (assets && assets.length > 0) {
-          const venueAssetsData = assets.map(asset => ({
+          const venueAssetsData = assets.map((asset) => ({
             id: asset.id,
             asset_name: asset.asset_name,
             asset_type: asset.asset_type,
             capacity: asset.capacity || 0,
-            location: asset.location || "N/A"
+            location: asset.location || "N/A",
           }));
           setVenueAssets(venueAssetsData);
         } else {
           setVenueAssets([
-            { id: 1, asset_name: "Main Building, Room 101", asset_type: "venue", capacity: 120, location: "Main Campus" },
-            { id: 2, asset_name: "Science Building, Room 203", asset_type: "venue", capacity: 80, location: "Science Campus" },
+            {
+              id: 1,
+              asset_name: "Main Building, Room 101",
+              asset_type: "venue",
+              capacity: 120,
+              location: "Main Campus",
+            },
+            {
+              id: 2,
+              asset_name: "Science Building, Room 203",
+              asset_type: "venue",
+              capacity: 80,
+              location: "Science Campus",
+            },
           ]);
         }
         setLoadingVenueAssets(false);
@@ -191,18 +248,30 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
       setLoadingVehicleAssets(true);
       setTimeout(() => {
         if (assets && assets.length > 0) {
-          const vehicleAssetsData = assets.map(asset => ({
+          const vehicleAssetsData = assets.map((asset) => ({
             id: asset.id,
             asset_name: asset.asset_name,
             asset_type: asset.asset_type,
             capacity: asset.capacity || 0,
-            location: asset.location || "N/A"
+            location: asset.location || "N/A",
           }));
           setVehicleAssets(vehicleAssetsData);
         } else {
           setVehicleAssets([
-            { id: 3, asset_name: "School Bus", asset_type: "vehicle", capacity: 50, location: "Main Campus" },
-            { id: 4, asset_name: "Van", asset_type: "vehicle", capacity: 15, location: "Science Campus" },
+            {
+              id: 3,
+              asset_name: "School Bus",
+              asset_type: "vehicle",
+              capacity: 50,
+              location: "Main Campus",
+            },
+            {
+              id: 4,
+              asset_name: "Van",
+              asset_type: "vehicle",
+              capacity: 15,
+              location: "Science Campus",
+            },
           ]);
         }
         setLoadingVehicleAssets(false);
@@ -221,17 +290,15 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
 
   return (
     <AnimatePresence>
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 overscroll-none"
-      >
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overscroll-none">
         <motion.div
-          className="absolute inset-0 bg-black/50"
+          className="absolute inset-0"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{
             duration: 0.25,
-            ease: [0.22, 1, 0.36, 1]
+            ease: [0.22, 1, 0.36, 1],
           }}
         />
 
@@ -243,7 +310,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
           transition={{
             type: "tween",
             duration: 0.25,
-            ease: [0.22, 1, 0.36, 1]
+            ease: [0.22, 1, 0.36, 1],
           }}
           className="relative w-full max-w-216 sm:mx-4 mx-px max-h-[92vh] bg-white rounded-xl shadow-xl overflow-hidden flex flex-col"
           style={{
@@ -252,16 +319,22 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
             transformOrigin: "center",
             willChange: "transform, opacity",
           }}
-          onClick={e => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
         >
           <div className="sticky top-0 bg-white z-10 p-4 sm:p-6 pb-4 sm:pb-6 border-b border-gray-200">
             <div className="flex justify-between items-start">
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
                   {editMode ? (
-                    <Edit strokeWidth={2.5} className="w-8 h-8 text-gray-800 shrink-0" />
+                    <Edit
+                      strokeWidth={2.5}
+                      className="w-8 h-8 text-gray-800 shrink-0"
+                    />
                   ) : (
-                    <CalendarDays strokeWidth={2.5} className="w-8 h-8 text-gray-800 shrink-0" />
+                    <CalendarDays
+                      strokeWidth={2.5}
+                      className="w-8 h-8 text-gray-800 shrink-0"
+                    />
                   )}
                   <h2 className="text-2xl sm:text-3xl font-semibold text-gray-800 leading-tight">
                     {editMode ? "Update Reservation Form" : "Reservation Form"}
@@ -274,7 +347,7 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
                 )}
               </div>
               <Button
-                onClick={e => {
+                onClick={(e) => {
                   e.stopPropagation();
                   onClose();
                 }}
@@ -291,13 +364,14 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
             <div className="overflow-y-auto p-4 sm:p-6 pt-2 sm:pt-4 flex-1 max-h-[calc(91vh-155px)]">
               <Tabs value={activeTab} className="w-full">
                 <div className="grid grid-cols-3 mb-4 sm:mb-4 bg-muted rounded-lg p-1 overflow-x-auto">
-                  {tabOrder.map(tab => (
+                  {tabOrder.map((tab) => (
                     <div
                       key={tab}
-                      className={`flex items-center justify-center py-2 px-2 sm:py-2.5 sm:px-4 rounded-md text-base font-medium transition-colors ${activeTab === tab
-                        ? "bg-background text-foreground shadow-sm"
-                        : "text-muted-foreground"
-                        }`}
+                      className={`flex items-center justify-center py-2 px-2 sm:py-2.5 sm:px-4 rounded-md text-base font-medium transition-colors ${
+                        activeTab === tab
+                          ? "bg-background text-foreground shadow-sm"
+                          : "text-muted-foreground"
+                      }`}
                       style={{ cursor: "default", minWidth: "100px" }}
                     >
                       {tabLabels[tab]}
@@ -318,7 +392,10 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
                   />
                 </TabsContent>
 
-                <TabsContent value="additional" className="space-y-4 sm:space-y-6">
+                <TabsContent
+                  value="additional"
+                  className="space-y-4 sm:space-y-6"
+                >
                   <ReserveEventAdditionalTab
                     control={control}
                     errors={errors}
@@ -469,5 +546,5 @@ export function ReserveEventModal({ isOpen, onClose, onSubmit, eventDate, onNewR
         />
       </div>
     </AnimatePresence>
-  )
+  );
 }

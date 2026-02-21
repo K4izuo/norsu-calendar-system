@@ -3,7 +3,7 @@
 import { PageBreadcrumb } from "@/shared/components/ui/page-breadcrumb";
 import { useParams } from "next/navigation";
 
-export default function AccountsPage() {
+export default function ProfilePage() {
   const params = useParams();
   const role = params.role as string;
 
@@ -13,11 +13,11 @@ export default function AccountsPage() {
       <PageBreadcrumb
         items={[
           { label: "Dashboard", href: `/${role}/dashboard` },
-          { label: "Accounts" },
+          { label: "Profile" },
         ]}
       />
 
-      <div>User Accounts</div>
+      <div>Profile</div>
     </div>
   );
 }

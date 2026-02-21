@@ -376,7 +376,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <p className="text-base text-gray-500">Reserved By</p>
-                          <span className="inline-flex mt-1 items-center px-3 py-1 rounded-lg text-sm font-medium border border-gray-300 text-gray-800 bg-transparent">
+                          <span className="inline-flex mt-1 items-center text-sm font-medium">
                             <User className="w-3 h-3 mr-1.5 text-gray-800" />
                             <p className="font-medium text-base">
                               {event.reserve_by_user || "Unknown User"}
@@ -414,7 +414,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                         </div>
                         <div>
                           <p className="text-base text-gray-500">
-                            Reservation Range
+                            Reservation Day(s)
                           </p>
                           <p className="font-medium text-base">{`${event.range} ${event.range === 1 ? "day" : "days"}`}</p>
                         </div>
