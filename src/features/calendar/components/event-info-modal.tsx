@@ -240,7 +240,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                 duration: 0.15,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className="relative w-full max-w-4xl max-h-[90vh] bg-white rounded-xl shadow-2xl flex flex-col"
+              className="relative w-full max-w-5xl max-h-[90vh] bg-white rounded-xl shadow-2xl flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="sticky top-0 bg-white z-10 p-4 sm:p-6 border-b border-gray-200 flex justify-between items-center rounded-t-xl">
@@ -312,7 +312,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                       </div>
                       {/* event details grid */}
                       <div className="border-b border-gray-300 mb-4" />
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                      <div className="flex justify-between items-start gap-4">
                         <div>
                           <p className="text-base text-gray-500">Date</p>
                           <div className="flex items-center">
@@ -373,8 +373,8 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                         </h3>
                       </div>
                       <div className="border-b border-gray-300 mb-4" />
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-x-6 gap-y-6">
-                        <div className="md:col-span-1">
+                      <div className="flex flex-wrap gap-y-6 gap-x-12">
+                        <div className="w-full md:w-64">
                           <p className="text-base text-gray-500">Reserved By</p>
                           <span className="inline-flex mt-1 items-center px-3 py-1 rounded-lg text-sm font-medium border border-gray-300 text-gray-800 bg-transparent">
                             <User className="w-3 h-3 mr-1.5 text-gray-800" />
@@ -383,14 +383,14 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                             </p>
                           </span>
                         </div>
-                        <div className="md:col-span-1">
+                        <div className="w-full md:w-64">
                           <p className="text-base text-gray-500">Time</p>
                           <div className="flex items-center">
                             <Clock className="h-4 w-4 mr-1.5 text-gray-500" />
                             <p className="font-medium text-base">{`${formatTime(event.time_start)} - ${formatTime(event.time_end)}`}</p>
                           </div>
                         </div>
-                        <div className="md:col-span-2">
+                        <div className="w-full md:flex-1">
                           <p className="text-base text-gray-500">Status</p>
                           <div className="flex mt-1 items-center gap-2">
                             <span
@@ -419,7 +419,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                             )}
                           </div>
                         </div>
-                        <div className="md:col-span-1">
+                        <div className="w-full md:w-64">
                           <p className="text-base text-gray-500">
                             Registration Deadline
                           </p>
@@ -427,7 +427,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                             {formatDate(event.registration_deadline)}
                           </p>
                         </div>
-                        <div className="md:col-span-1">
+                        <div className="w-full md:w-64">
                           <p className="text-base text-gray-500">
                             Reservation Day(s)
                           </p>
