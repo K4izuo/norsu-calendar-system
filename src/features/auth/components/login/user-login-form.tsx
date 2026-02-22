@@ -1,24 +1,35 @@
-import React, { memo } from "react"
-import { Button } from "@/shared/components/ui/button"
-import { Checkbox } from "@/shared/components/ui/checkbox"
-import { Input } from "@/shared/components/ui/input"
-import { Eye, User, Lock, EyeOff, AlertCircle } from "lucide-react"
-import type { UseFormRegister, FieldErrors, RegisterOptions } from "react-hook-form"
-import type { LoginFormData } from "@/features/auth/utils/login/login-validation-rules"
-import { useFieldValidation } from "@/features/auth/utils/login/login-field-validation"
+import React, { memo } from "react";
+import { Button } from "@/shared/components/ui/button";
+import { Checkbox } from "@/shared/components/ui/checkbox";
+import { Input } from "@/shared/components/ui/input";
+import {
+  Eye,
+  User,
+  Lock,
+  EyeOff,
+  AlertCircle,
+  CheckCircle2,
+} from "lucide-react";
+import type {
+  UseFormRegister,
+  FieldErrors,
+  RegisterOptions,
+} from "react-hook-form";
+import type { LoginFormData } from "@/features/auth/utils/login/login-validation-rules";
+import { useFieldValidation } from "@/features/auth/utils/login/login-field-validation";
 
 interface UserLoginFormProps {
-  showPassword: boolean
-  rememberMe: boolean
-  isLoading: boolean
-  isSuccess: boolean
-  formData: LoginFormData
-  errors: FieldErrors<LoginFormData>
-  onShowPasswordToggle: () => void
-  onRememberMeChange: (checked: boolean) => void
-  onSubmit: (e: React.FormEvent) => void
-  register: UseFormRegister<LoginFormData>
-  validationRules: Record<keyof LoginFormData, RegisterOptions<LoginFormData>>
+  showPassword: boolean;
+  rememberMe: boolean;
+  isLoading: boolean;
+  isSuccess: boolean;
+  formData: LoginFormData;
+  errors: FieldErrors<LoginFormData>;
+  onShowPasswordToggle: () => void;
+  onRememberMeChange: (checked: boolean) => void;
+  onSubmit: (e: React.FormEvent) => void;
+  register: UseFormRegister<LoginFormData>;
+  validationRules: Record<keyof LoginFormData, RegisterOptions<LoginFormData>>;
 }
 
 export const UserLoginForm = memo(function UserLoginForm({
@@ -32,34 +43,45 @@ export const UserLoginForm = memo(function UserLoginForm({
   onRememberMeChange,
   onSubmit,
   register,
-  validationRules
+  validationRules,
 }: UserLoginFormProps) {
   // Real-time validation with debounce
-  const usernameError = useFieldValidation(formData.username, validationRules.username)
-  const passwordError = useFieldValidation(formData.password, validationRules.password)
+  const usernameError = useFieldValidation(
+    formData.username,
+    validationRules.username,
+  );
+  const passwordError = useFieldValidation(
+    formData.password,
+    validationRules.password,
+  );
 
   // Server errors take priority over client-side validation
   const displayErrors = {
     username: errors.username?.message || usernameError,
-    password: errors.password?.message || passwordError
-  }
+    password: errors.password?.message || passwordError,
+  };
 
   const getInputFieldStyles = (hasError: boolean) =>
     hasError
       ? "border-red-400 focus:border-red-500 focus:ring-red-200"
-      : "border-gray-200 focus:border-gray-500 focus:ring-gray-500/20"
+      : "border-gray-200 focus:border-gray-500 focus:ring-gray-500/20";
 
-  const isDisabled = isLoading || isSuccess
+  const isDisabled = isLoading || isSuccess;
 
   return (
     <div className="p-5 sm:p-8 w-full flex flex-col justify-center">
       {/* Heading at the top */}
       <div className="flex flex-col items-center mt-1.5 mb-7 gap-y-0.5">
         <h1 className="text-2xl font-bold text-gray-800">Welcome Back</h1>
-        <p className="text-gray-600 text-sm">Please enter your credentials to continue</p>
+        <p className="text-gray-600 text-sm">
+          Please enter your credentials to continue
+        </p>
       </div>
 
-      <form onSubmit={onSubmit} className="flex flex-col gap-y-6 max-w-md mx-auto w-full">
+      <form
+        onSubmit={onSubmit}
+        className="flex flex-col gap-y-6 max-w-md mx-auto w-full"
+      >
         <div className="flex flex-col gap-y-2 w-full sm:w-[98%] md:w-[94%] mx-auto">
           {/* Username Field */}
           <div className="space-y-1.5">
@@ -103,7 +125,11 @@ export const UserLoginForm = memo(function UserLoginForm({
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer hover:text-gray-600 transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
               </button>
             </div>
             {displayErrors.password && (
@@ -120,11 +146,16 @@ export const UserLoginForm = memo(function UserLoginForm({
               <Checkbox
                 id="remember"
                 checked={rememberMe}
-                onCheckedChange={(checked) => onRememberMeChange(checked === true)}
+                onCheckedChange={(checked) =>
+                  onRememberMeChange(checked === true)
+                }
                 disabled={isDisabled}
                 className="border-2 cursor-pointer border-gray-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
               />
-              <label htmlFor="remember" className="text-sm text-gray-700 cursor-pointer">
+              <label
+                htmlFor="remember"
+                className="text-sm text-gray-700 cursor-pointer"
+              >
                 Remember Me
               </label>
             </div>
@@ -141,13 +172,19 @@ export const UserLoginForm = memo(function UserLoginForm({
           {/* Login Button */}
           <Button
             type="submit"
-            className={`w-full mb-3 h-12 font-semibold text-sm sm:text-base text-white rounded-lg shadow-lg transition-all duration-200 flex items-center justify-center gap-x-2 ${isDisabled
-              ? 'bg-gray-400 cursor-not-allowed opacity-70'
-              : 'cursor-pointer bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl transform hover:scale-[1.02]'
-              }`}
+            className={`w-full mb-3 h-12 font-semibold text-sm sm:text-base text-white rounded-lg shadow-lg transition-all duration-300 flex items-center justify-center gap-x-2 ${
+              isLoading
+                ? "bg-gray-400 cursor-not-allowed opacity-70"
+                : "cursor-pointer bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl transform hover:scale-[1.02]"
+            }`}
             disabled={isDisabled}
           >
-            {isLoading ? (
+            {isSuccess ? (
+              <>
+                <CheckCircle2 className="h-5 w-5 animate-in zoom-in duration-300" />
+                <span>You&apos;re in!</span>
+              </>
+            ) : isLoading ? (
               <>
                 <span className="animate-spin">
                   <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -190,7 +227,7 @@ export const UserLoginForm = memo(function UserLoginForm({
         </p>
       </div> */}
     </div>
-  )
-})
+  );
+});
 
-UserLoginForm.displayName = "UserLoginForm"
+UserLoginForm.displayName = "UserLoginForm";

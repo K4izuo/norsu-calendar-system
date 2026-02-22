@@ -1,38 +1,45 @@
 "use client";
 
 import { useState, useEffect, useContext } from "react";
-import { setupActivityTracking, startTokenRefresh, stopTokenRefresh } from "@/core/auth/token-refresh";
 import {
-  Search,
-  Bell,
-  CircleUserRound,
-  Mail,
-} from "lucide-react";
+  setupActivityTracking,
+  startTokenRefresh,
+  stopTokenRefresh,
+} from "@/core/auth/token-refresh";
+import { Search, Bell, Mail } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { AuthContext } from "@/shared/components/context/auth-context";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/shared/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/shared/components/ui/dropdown-menu";
 import UserProfile from "@/features/user-profile/components/user-profile";
 import toast from "react-hot-toast";
 import { getRoleLabelFromNumber } from "@/core/lib/role-utils";
-import { Separator } from "@/shared/components/ui/separator"
+import { Separator } from "@/shared/components/ui/separator";
 import { useIsFetching, useIsMutating } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 import Loading from "@/app/(dashboard)/[role]/loading";
-
-import { AppSidebar } from "@/shared/components/layouts/app-sidebar"
+import Image from "next/image";
+import { AppSidebar } from "@/shared/components/layouts/app-sidebar";
 import {
   SidebarProvider,
   SidebarInset,
   SidebarTrigger,
-} from "@/shared/components/ui/sidebar"
+} from "@/shared/components/ui/sidebar";
 
 interface UserData {
   name: string;
   role: number;
 }
 
-export default function RoleLayout({ children }: { children: React.ReactNode }) {
+export default function RoleLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const auth = useContext(AuthContext);
   const user = auth?.user;
   const pathname = usePathname();
@@ -46,13 +53,16 @@ export default function RoleLayout({ children }: { children: React.ReactNode }) 
 
   const [userData, setUserData] = useState<UserData>({
     name: "User",
-    role: 4
+    role: 4,
   });
 
   useEffect(() => {
     try {
       if (user) {
-        const roleValue = typeof user.role === 'string' ? parseInt(user.role, 10) : Number(user.role);
+        const roleValue =
+          typeof user.role === "string"
+            ? parseInt(user.role, 10)
+            : Number(user.role);
 
         setUserData({
           name:
@@ -64,7 +74,7 @@ export default function RoleLayout({ children }: { children: React.ReactNode }) 
         return;
       }
 
-      if (typeof window === 'undefined') return;
+      if (typeof window === "undefined") return;
 
       const storedUser = localStorage.getItem("user");
       const storedRole = localStorage.getItem("user-role");
@@ -86,7 +96,7 @@ export default function RoleLayout({ children }: { children: React.ReactNode }) 
       console.error("Error loading user data:", error);
       toast.error(
         "Error loading user data: " +
-        (error instanceof Error ? error.message : "Unknown error")
+          (error instanceof Error ? error.message : "Unknown error"),
       );
     }
   }, [user]);
@@ -145,8 +155,8 @@ export default function RoleLayout({ children }: { children: React.ReactNode }) 
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
                 size="icon"
@@ -168,13 +178,16 @@ export default function RoleLayout({ children }: { children: React.ReactNode }) 
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="cursor-pointer bg-white h-12 w-12 rounded-full border border-transparent hover:border-gray-300 hover:bg-white focus:outline-none"
-                >
-                  <CircleUserRound className="size-7 text-gray-600" />
-                </Button>
+                <div className="relative shrink-0">
+                  <Image
+                    src="/images/avatar.jpg"
+                    alt="Name"
+                    width={30}
+                    height={30}
+                    className="rounded-full cursor-pointer ring-4 ring-white dark:ring-zinc-900 object-cover"
+                  />
+                  <div className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-900" />
+                </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
@@ -184,22 +197,22 @@ export default function RoleLayout({ children }: { children: React.ReactNode }) 
                 <UserProfile
                   name={userData.name}
                   role={getRoleLabelFromNumber(userData.role)}
-                // avatar="https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-01-n0x8HFv8EUetf9z6ht0wScJKoTHqf8.png"
+                  // avatar="https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-01-n0x8HFv8EUetf9z6ht0wScJKoTHqf8.png"
                 />
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </header>
 
-        <div className="flex-1 bg-muted/50 flex flex-col gap-4 p-3 sm:p-6 overflow-y-auto overflow-x-hidden relative">
+        <div className="flex-1 bg-muted/50 flex flex-col gap-4 p-3 lg:p-6 overflow-y-auto overflow-x-hidden relative">
           {/* ✅ CRITICAL FIX: Loading overlay that COMPLETELY covers content when active */}
           {showLoading && (
             <div
               style={{
-                position: 'absolute',
+                position: "absolute",
                 inset: 0,
                 zIndex: 9999,
-                backgroundColor: 'white',
+                backgroundColor: "white",
               }}
             >
               <Loading />
