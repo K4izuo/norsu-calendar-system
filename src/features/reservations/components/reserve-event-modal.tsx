@@ -95,8 +95,19 @@ export function ReserveEventModal({
   });
 
   useModalBehavior({ isOpen, onClose });
-  useEditModePopulate({ editMode, eventData, isOpen, setValue, setTaggedPeople });
-  const { loadingVenueAssets, loadingVehicleAssets, venueAssets, vehicleAssets } = useModalAssetLoader({
+  useEditModePopulate({
+    editMode,
+    eventData,
+    isOpen,
+    setValue,
+    setTaggedPeople,
+  });
+  const {
+    loadingVenueAssets,
+    loadingVehicleAssets,
+    venueAssets,
+    vehicleAssets,
+  } = useModalAssetLoader({
     showVenueModal,
     showVehicleModal,
     assets,
@@ -146,12 +157,20 @@ export function ReserveEventModal({
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          <ModalHeader editMode={editMode} displayDate={displayDate} onClose={onClose} />
+          <ModalHeader
+            editMode={editMode}
+            displayDate={displayDate}
+            onClose={onClose}
+          />
 
           <form className="flex flex-col flex-1" onSubmit={handleFormSubmit}>
             <div className="overflow-y-auto p-4 sm:p-6 pt-2 sm:pt-4 flex-1 max-h-[calc(91vh-155px)]">
               <Tabs value={activeTab} className="w-full">
-                <ModalTabBar tabOrder={tabOrder} tabLabels={tabLabels} activeTab={activeTab} />
+                <ModalTabBar
+                  tabOrder={tabOrder}
+                  tabLabels={tabLabels}
+                  activeTab={activeTab}
+                />
 
                 <TabsContent value="form" className="space-y-4 sm:space-y-6">
                   <ReserveEventFormTab
