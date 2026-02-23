@@ -1,17 +1,7 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useMemo } from "react";
+import React, { useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  X,
-  CalendarDays,
-  Edit,
-  Loader2,
-  ArrowLeft,
-  ArrowRight,
-  SendHorizontal,
-} from "lucide-react";
-import { Button } from "@/shared/components/ui/button";
 import { Tabs, TabsContent } from "@/shared/components/ui/tabs";
 import { ReserveEventFormTab } from "@/features/reservations/components/reserve-event-tab/event-form-tab";
 import { ReserveEventAdditionalTab } from "@/features/reservations/components/reserve-event-tab/event-additional-tab";
@@ -25,19 +15,19 @@ import {
   ReservationAPIPayload,
 } from "@/features/reservations/types/reservation.types";
 import { EventDetails } from "@/features/calendar/types/calendar.types";
-
-const infoTypes = [
-  { value: "public", label: "Public" },
-  { value: "private", label: "Private" },
-  { value: "restricted", label: "Restricted" },
-];
-
-const categories = [
-  { value: "academic", label: "Academic" },
-  { value: "social", label: "Social" },
-  { value: "sports", label: "Sports" },
-  { value: "other", label: "Other" },
-];
+import {
+  infoTypes,
+  categories,
+  peopleSuggestions,
+  formattedAssets,
+  formatDisplayDate,
+} from "./reserve-event-modal/modal-constants";
+import { ModalHeader } from "./reserve-event-modal/modal-header";
+import { ModalTabBar } from "./reserve-event-modal/modal-tab-bar";
+import { ModalFooter } from "./reserve-event-modal/modal-footer";
+import { useModalBehavior } from "@/features/reservations/hooks/useModalBehavior";
+import { useModalAssetLoader } from "@/features/reservations/hooks/useModalAssetLoader";
+import { useEditModePopulate } from "@/features/reservations/hooks/useEditModePopulate";
 
 interface ModalProps {
   isOpen: boolean;
@@ -48,25 +38,6 @@ interface ModalProps {
   editMode?: boolean;
   eventData?: EventDetails;
 }
-
-// Format date to a readable string (e.g., "February 15, 2026")
-const formatDisplayDate = (dateStr: string | undefined): string => {
-  if (!dateStr) return "";
-
-  try {
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return dateStr;
-
-    const options: Intl.DateTimeFormatOptions = {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    };
-    return date.toLocaleDateString("en-US", options);
-  } catch {
-    return dateStr;
-  }
-};
 
 export function ReserveEventModal({
   isOpen,
@@ -123,161 +94,15 @@ export function ReserveEventModal({
     eventData,
   });
 
-  const [loadingVenueAssets, setLoadingVenueAssets] = useState(false);
-  const [loadingVehicleAssets, setLoadingVehicleAssets] = useState(false);
-  const [venueAssets, setVenueAssets] = useState<
-    {
-      id: number;
-      asset_name: string;
-      asset_type: string;
-      capacity: number;
-      location: string;
-    }[]
-  >([]);
-  const [vehicleAssets, setVehicleAssets] = useState<
-    {
-      id: number;
-      asset_name: string;
-      asset_type: string;
-      capacity: number;
-      location: string;
-    }[]
-  >([]);
+  useModalBehavior({ isOpen, onClose });
+  useEditModePopulate({ editMode, eventData, isOpen, setValue, setTaggedPeople });
+  const { loadingVenueAssets, loadingVehicleAssets, venueAssets, vehicleAssets } = useModalAssetLoader({
+    showVenueModal,
+    showVehicleModal,
+    assets,
+  });
 
-  const peopleSuggestions = [
-    { id: "1", name: "John Doe" },
-    { id: "2", name: "Jane Smith" },
-    { id: "3", name: "Alice Johnson" },
-    { id: "4", name: "Bob Lee" },
-    { id: "5", name: "Maria Garcia" },
-  ];
-
-  const formattedAssets = useMemo(() => {
-    return [
-      { id: 1, asset_name: "Venue", capacity: 0 },
-      // { id: 2, asset_name: "Assets Vehicle", capacity: 0 }
-    ];
-  }, []);
-
-  // Format the selected date for display
   const displayDate = useMemo(() => formatDisplayDate(eventDate), [eventDate]);
-
-  // Populate form with edit data
-  useEffect(() => {
-    if (editMode && eventData && isOpen) {
-      setValue("title_name", eventData.title_name || "");
-      setValue("description", eventData.description || "");
-      setValue("time_start", eventData.time_start || "");
-      setValue("time_end", eventData.time_end || "");
-      setValue("range", eventData.range || 1);
-      setValue("info_type", eventData.info_type || "");
-      setValue("category", eventData.category || "");
-
-      if (eventData.asset) {
-        setValue("asset", eventData.asset);
-      }
-
-      if (eventData.people_tag && eventData.people_tag.length > 0) {
-        const people = eventData.people_tag.map((name, index) => ({
-          id: `edit-${index}`,
-          name: name,
-        }));
-        setTaggedPeople(people);
-        setValue("people_tag", eventData.people_tag.join(", "));
-      }
-    }
-  }, [editMode, eventData, isOpen, setValue, setTaggedPeople]);
-
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-      return () => {
-        document.body.style.overflow = "";
-      };
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    if (isOpen) {
-      document.addEventListener("keydown", handleEscape);
-    }
-    return () => document.removeEventListener("keydown", handleEscape);
-  }, [isOpen, onClose]);
-
-  useEffect(() => {
-    if (showVenueModal) {
-      setLoadingVenueAssets(true);
-      setTimeout(() => {
-        if (assets && assets.length > 0) {
-          const venueAssetsData = assets.map((asset) => ({
-            id: asset.id,
-            asset_name: asset.asset_name,
-            asset_type: asset.asset_type,
-            capacity: asset.capacity || 0,
-            location: asset.location || "N/A",
-          }));
-          setVenueAssets(venueAssetsData);
-        } else {
-          setVenueAssets([
-            {
-              id: 1,
-              asset_name: "Main Building, Room 101",
-              asset_type: "venue",
-              capacity: 120,
-              location: "Main Campus",
-            },
-            {
-              id: 2,
-              asset_name: "Science Building, Room 203",
-              asset_type: "venue",
-              capacity: 80,
-              location: "Science Campus",
-            },
-          ]);
-        }
-        setLoadingVenueAssets(false);
-      }, 1000);
-    }
-  }, [showVenueModal, assets]);
-
-  useEffect(() => {
-    if (showVehicleModal) {
-      setLoadingVehicleAssets(true);
-      setTimeout(() => {
-        if (assets && assets.length > 0) {
-          const vehicleAssetsData = assets.map((asset) => ({
-            id: asset.id,
-            asset_name: asset.asset_name,
-            asset_type: asset.asset_type,
-            capacity: asset.capacity || 0,
-            location: asset.location || "N/A",
-          }));
-          setVehicleAssets(vehicleAssetsData);
-        } else {
-          setVehicleAssets([
-            {
-              id: 3,
-              asset_name: "School Bus",
-              asset_type: "vehicle",
-              capacity: 50,
-              location: "Main Campus",
-            },
-            {
-              id: 4,
-              asset_name: "Van",
-              asset_type: "vehicle",
-              capacity: 15,
-              location: "Science Campus",
-            },
-          ]);
-        }
-        setLoadingVehicleAssets(false);
-      }, 1000);
-    }
-  }, [showVehicleModal, assets]);
 
   const tabOrder = ["form", "additional", "summary"];
   const tabLabels: Record<string, string> = {
@@ -321,63 +146,12 @@ export function ReserveEventModal({
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="sticky top-0 bg-white z-10 p-4 sm:p-6 pb-4 sm:pb-6 border-b border-gray-200">
-            <div className="flex justify-between items-start">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  {editMode ? (
-                    <Edit
-                      strokeWidth={2.5}
-                      className="w-8 h-8 text-gray-800 shrink-0"
-                    />
-                  ) : (
-                    <CalendarDays
-                      strokeWidth={2.5}
-                      className="w-8 h-8 text-gray-800 shrink-0"
-                    />
-                  )}
-                  <h2 className="text-2xl sm:text-3xl font-semibold text-gray-800 leading-tight">
-                    {editMode ? "Update Reservation Form" : "Reservation Form"}
-                  </h2>
-                </div>
-                {displayDate && !editMode && (
-                  <span className="text-sm sm:text-base font-medium text-gray-600 ml-10">
-                    Date: {displayDate}
-                  </span>
-                )}
-              </div>
-              <Button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onClose();
-                }}
-                size="sm"
-                className="p-2 shadow-none bg-white cursor-pointer rounded-full hover:bg-gray-100 transition-colors shrink-0"
-                aria-label="Close"
-              >
-                <X className="w-4 h-4 text-gray-500" />
-              </Button>
-            </div>
-          </div>
+          <ModalHeader editMode={editMode} displayDate={displayDate} onClose={onClose} />
 
           <form className="flex flex-col flex-1" onSubmit={handleFormSubmit}>
             <div className="overflow-y-auto p-4 sm:p-6 pt-2 sm:pt-4 flex-1 max-h-[calc(91vh-155px)]">
               <Tabs value={activeTab} className="w-full">
-                <div className="grid grid-cols-3 mb-4 sm:mb-4 bg-muted rounded-lg p-1 overflow-x-auto">
-                  {tabOrder.map((tab) => (
-                    <div
-                      key={tab}
-                      className={`flex items-center justify-center py-2 px-2 sm:py-2.5 sm:px-4 rounded-md text-base font-medium transition-colors ${
-                        activeTab === tab
-                          ? "bg-background text-foreground shadow-sm"
-                          : "text-muted-foreground"
-                      }`}
-                      style={{ cursor: "default", minWidth: "100px" }}
-                    >
-                      {tabLabels[tab]}
-                    </div>
-                  ))}
-                </div>
+                <ModalTabBar tabOrder={tabOrder} tabLabels={tabLabels} activeTab={activeTab} />
 
                 <TabsContent value="form" className="space-y-4 sm:space-y-6">
                   <ReserveEventFormTab
@@ -427,103 +201,15 @@ export function ReserveEventModal({
               </Tabs>
             </div>
 
-            <div className="sticky bottom-0 bg-white z-10 p-4 sm:p-6 border-t border-gray-200 flex justify-end">
-              {activeTab === "form" && (
-                <Button
-                  type="button"
-                  onClick={handleFormTabNext}
-                  variant="default"
-                  className="text-base cursor-pointer py-2.5"
-                  disabled={isCheckingConflict} // ✅ Disable during conflict check
-                >
-                  {isCheckingConflict ? (
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Checking for conflicts...
-                    </div>
-                  ) : (
-                    <div className="flex items-center">
-                      Next
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </div>
-                  )}
-                </Button>
-              )}
-              {activeTab === "additional" && (
-                <div className="flex gap-3">
-                  <Button
-                    type="button"
-                    onClick={() => setActiveTab("form")}
-                    variant="outline"
-                    className="text-base cursor-pointer py-2.5"
-                    disabled={isSubmitting}
-                  >
-                    <ArrowLeft className="w-4 h-4" />
-                    Back
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={handleAdditionalTabNext}
-                    variant="default"
-                    className="text-base cursor-pointer py-2.5"
-                  >
-                    <div className="flex items-center">
-                      Next
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </div>
-                  </Button>
-                </div>
-              )}
-              {activeTab === "summary" && (
-                <div className="flex gap-3">
-                  <Button
-                    type="button"
-                    onClick={() => setActiveTab("additional")}
-                    variant="outline"
-                    className="text-base cursor-pointer py-2.5"
-                    disabled={isSubmitting}
-                  >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back
-                  </Button>
-                  <Button
-                    type="submit"
-                    variant="default"
-                    disabled={isSubmitting}
-                    className="text-base cursor-pointer py-2.5"
-                  >
-                    {isSubmitting ? (
-                      <div className="flex items-center">
-                        <span className="animate-spin mr-2">
-                          <svg className="h-5 w-5" viewBox="0 0 24 24">
-                            <circle
-                              className="opacity-25"
-                              cx="12"
-                              cy="12"
-                              r="10"
-                              stroke="currentColor"
-                              strokeWidth="4"
-                              fill="none"
-                            />
-                            <path
-                              className="opacity-75"
-                              fill="currentColor"
-                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            />
-                          </svg>
-                        </span>
-                        Processing...
-                      </div>
-                    ) : (
-                      <div className="flex items-center">
-                        {editMode ? "Update Reservation" : "Submit Reservation"}
-                        <SendHorizontal className="w-4 h-4 ml-2" />
-                      </div>
-                    )}
-                  </Button>
-                </div>
-              )}
-            </div>
+            <ModalFooter
+              activeTab={activeTab}
+              isSubmitting={isSubmitting}
+              isCheckingConflict={isCheckingConflict}
+              editMode={editMode}
+              setActiveTab={setActiveTab}
+              handleFormTabNext={handleFormTabNext}
+              handleAdditionalTabNext={handleAdditionalTabNext}
+            />
           </form>
         </motion.div>
 
