@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, useRef } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import toast from "react-hot-toast"
 import { ReservationFormData, ReservationAPIPayload, Reservation, EventDetails, ReservationWithRelations } from "@/interface/user-props"
@@ -8,6 +8,9 @@ import { useAuth } from "@/shared/components/context/auth-context"
 import { checkReservationConflicts } from "@/features/reservations/utils/reservation-conflict-check"
 import { useQueryClient } from "@tanstack/react-query"
 import { fetchReservations } from "@/features/calendar/services/reservation-service"
+import { normalizeTime, normalizeDate } from "./useFormNormalizers"
+import { usePeopleTagging } from "./usePeopleTagging"
+import { useAssetSelection } from "./useAssetSelection"
 
 interface ReservationResponse {
   reservation: {
@@ -47,17 +50,23 @@ const getCurrentTime = () => {
 
 export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservation, editMode = false, eventData }: UseReserveEventFormProps) => {
   const [activeTab, setActiveTab] = useState<string>("form");
-  const [showVenueModal, setShowVenueModal] = useState(false);
-  const [showVehicleModal, setShowVehicleModal] = useState(false);
-  const [tagInput, setTagInput] = useState("");
-  const [taggedPeople, setTaggedPeople] = useState<{ id: string; name: string }[]>([]);
-  const [showDropdown, setShowDropdown] = useState(false);
   const [isCheckingConflict, setIsCheckingConflict] = useState(false);
   const { user } = useAuth();
 
   const queryClient = useQueryClient();
 
-  const peopleFieldRef = useRef<HTMLInputElement>(null);
+  const {
+    tagInput,
+    setTagInput,
+    taggedPeople,
+    showDropdown,
+    setShowDropdown,
+    peopleFieldRef,
+    setTaggedPeople,
+    handleTagInputChange,
+    handleTagSelect,
+    handleRemoveTag,
+  } = usePeopleTagging();
 
   const form = useForm<ReservationFormData>({
     mode: "onTouched",
@@ -76,6 +85,15 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
   });
 
   const { control, handleSubmit, setValue, getValues, watch, register, trigger, formState: { errors, isSubmitting }, reset } = form;
+
+  const {
+    showVenueModal,
+    setShowVenueModal,
+    showVehicleModal,
+    setShowVehicleModal,
+    handleAssetChange,
+    handleAssetItemSelect,
+  } = useAssetSelection(setValue);
 
   useEffect(() => {
     if (eventDate) {
@@ -125,43 +143,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       setTagInput("");
       setIsCheckingConflict(false);
     }
-  }, [isOpen, setValue, reset, eventDate, editMode]);
-
-  const handleAssetChange = (value: string) => {
-    const numericValue = parseInt(value);
-
-    if (numericValue === 1) {
-      setShowVenueModal(true);
-      return;
-    }
-    if (numericValue === 2) {
-      setShowVehicleModal(true);
-      return;
-    }
-  };
-
-  const handleAssetItemSelect = (asset: { id: number; asset_name: string; asset_type: string; capacity: number }) => {
-    setValue("asset", asset, { shouldValidate: true, shouldTouch: true });
-    setShowVenueModal(false);
-    setShowVehicleModal(false);
-  };
-
-  const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTagInput(e.target.value);
-    setShowDropdown(e.target.value.length > 0);
-  };
-
-  const handleTagSelect = (person: { id: string; name: string }) => {
-    if (!taggedPeople.some(p => p.id === person.id)) {
-      setTaggedPeople([...taggedPeople, person]);
-      setTagInput("");
-      setShowDropdown(false);
-    }
-  };
-
-  const handleRemoveTag = (id: string) => {
-    setTaggedPeople(taggedPeople.filter(p => p.id !== id));
-  };
+  }, [isOpen, setValue, reset, eventDate, editMode, setTaggedPeople, setTagInput]);
 
   const isFormValid = useCallback((): boolean => {
     const values = getValues();
@@ -182,37 +164,6 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
   const onSubmitForm = useCallback(
     async (data: ReservationFormData) => {
       try {
-        const normalizeTime = (time: string): string => {
-          if (!time) return "00:00";
-          const [hour, minute] = time.split(":");
-          return `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}`;
-        };
-
-        const normalizeDate = (dateStr: string): string => {
-          if (!dateStr) return "";
-
-          // If already in YYYY-MM-DD format, return as-is
-          if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-            return dateStr;
-          }
-
-          // Extract date portion from ISO string or datetime string
-          // This prevents timezone conversion issues
-          const datePart = dateStr.split('T')[0].split(' ')[0];
-          if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
-            return datePart;
-          }
-
-          // Fallback: parse as UTC to avoid timezone shifts
-          const date = new Date(dateStr + 'T00:00:00Z');
-          if (isNaN(date.getTime())) return "";
-          
-          const year = date.getUTCFullYear();
-          const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-          const day = String(date.getUTCDate()).padStart(2, "0");
-          return `${year}-${month}-${day}`;
-        };
-
         const { asset, ...rest } = data;
 
         const normalizedTimeStart = normalizeTime(rest.time_start);
@@ -310,7 +261,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         toast.error(editMode ? "Failed to update event. Please try again." : "Failed to reserve event. Please try again.");
       }
     },
-    [reset, onClose, taggedPeople, eventDate, onNewReservation, editMode, eventData, user?.id, queryClient]
+    [reset, onClose, taggedPeople, eventDate, onNewReservation, editMode, eventData, user?.id, queryClient, setTaggedPeople, setTagInput]
   );
 
   const handleFormTabNext = useCallback(async () => {
@@ -336,7 +287,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       try {
         // Use the same query key structure as the service
         const queryKey = user?.id ? ['reservations', user.id] : ['public-reservations'];
-        
+
         freshReservations = await queryClient.ensureQueryData({
           queryKey,
           queryFn: fetchReservations,
@@ -354,32 +305,6 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         setIsCheckingConflict(false);
         return;
       }
-
-      const normalizeTime = (time: string): string => {
-        if (!time) return "00:00";
-        const [hour, minute] = time.split(":");
-        return `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}`;
-      };
-
-      const normalizeDate = (dateStr: string): string => {
-        if (!dateStr) return "";
-        
-        // Extract date portion from ISO string or datetime string
-        // This prevents timezone conversion issues
-        const datePart = dateStr.split('T')[0].split(' ')[0];
-        if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
-          return datePart;
-        }
-        
-        // Fallback: parse as UTC to avoid timezone shifts
-        const date = new Date(dateStr + 'T00:00:00Z');
-        if (isNaN(date.getTime())) return "";
-        
-        const year = date.getUTCFullYear();
-        const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-        const day = String(date.getUTCDate()).padStart(2, "0");
-        return `${year}-${month}-${day}`;
-      };
 
       const normalizedTimeStart = normalizeTime(values.time_start);
       const normalizedTimeEnd = normalizeTime(values.time_end);
@@ -422,7 +347,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
 
         toast.error(
           `Time slot conflicts detected with ${conflicts.length} approved event(s):\n\n${conflictDetails}`,
-          { 
+          {
             duration: 8000,
             style: {
               maxWidth: '500px',
@@ -466,7 +391,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
     setTaggedPeople([]);
     setTagInput("");
     setActiveTab("form");
-  }, [reset]);
+  }, [reset, setTaggedPeople, setTagInput]);
 
   return {
     form,

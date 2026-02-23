@@ -26,6 +26,7 @@ export const usePeopleTagging = () => {
 
   return {
     tagInput,
+    setTagInput,
     taggedPeople,
     showDropdown,
     setShowDropdown,
