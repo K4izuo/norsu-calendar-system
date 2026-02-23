@@ -1,7 +1,7 @@
 # Project State
 
 **Project:** NORSU Calendar System
-**Last activity:** 2026-02-24 - Completed quick task 3: Refactor src/app/page.tsx into smaller components following single responsibility principle without changing functionality or UI
+**Last activity:** 2026-02-24 - Completed quick task 4: Refactor useReserveEventForm.ts to fix single responsibility — extracted useFormNormalizers, usePeopleTagging, useAssetSelection sub-hooks
 
 ## Current Phase
 
@@ -17,3 +17,4 @@ None.
 |---|-------------|------|--------|-----------|
 | 1 | Refactor norsu-calendar.tsx into smaller components following single responsibility principle without changing functionality or UI | 2026-02-23 | 19c0243 | [1-refactor-norsu-calendar-tsx-into-smaller](./quick/1-refactor-norsu-calendar-tsx-into-smaller/) |
 | 3 | Refactor src/app/page.tsx into smaller components following single responsibility principle without changing functionality or UI | 2026-02-24 | 71b89ea | [3-refactor-src-app-page-tsx-into-smaller-c](./quick/3-refactor-src-app-page-tsx-into-smaller-c/) |
+| 4 | Refactor useReserveEventForm.ts to fix single responsibility — extracted useFormNormalizers, usePeopleTagging, useAssetSelection sub-hooks without changing public API | 2026-02-24 | 3aa6dd5 | [4-refactor-usereserveeventform-ts-to-fix-s](./quick/4-refactor-usereserveeventform-ts-to-fix-s/) |
