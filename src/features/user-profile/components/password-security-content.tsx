@@ -1,4 +1,4 @@
-import { Lock, Eye, EyeOff } from "lucide-react";
+import { Lock, Eye, EyeOff, CircleCheckBig } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-hot-toast";
@@ -7,6 +7,27 @@ import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { apiClient } from "@/core/api/api-client";
 import { PasswordChangeFormData } from "@/features/auth/types/auth.types";
+
+function RequirementItem({
+  checked,
+  text,
+}: {
+  checked: boolean;
+  text: string;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <CircleCheckBig
+        className={`w-5 h-5 shrink-0 transition-colors duration-200 ${checked ? "text-green-600" : "text-[#e4e4e4]"}`}
+      />
+      <span
+        className={`text-[15px] font-medium transition-colors duration-200 ${checked ? "text-gray-900" : "text-[#c9c9c9]"}`}
+      >
+        {text}
+      </span>
+    </div>
+  );
+}
 
 export function PasswordSecurityContent() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -18,12 +39,29 @@ export function PasswordSecurityContent() {
     handleSubmit,
     reset,
     setError,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<PasswordChangeFormData>({
     defaultValues: {
       current_password: "",
       new_password: "",
       new_password_confirmation: "",
+    },
+    mode: "onChange",
+  });
+
+  const newPassword = watch("new_password") || "";
+  const [isNewPasswordFocused, setIsNewPasswordFocused] = useState(false);
+
+  const newPasswordReg = register("new_password", {
+    required: "New password is required",
+    validate: {
+      length: (v) => v.length >= 8 || "Password must be at least 8 characters",
+      upper: (v) => /[A-Z]/.test(v) || "Password must contain uppercase letter",
+      lower: (v) => /[a-z]/.test(v) || "Password must contain lowercase letter",
+      number: (v) => /[0-9]/.test(v) || "Password must contain number",
+      punctuation: (v) =>
+        /[^A-Za-z0-9]/.test(v) || "Password must contain punctuation",
     },
   });
 
@@ -67,7 +105,7 @@ export function PasswordSecurityContent() {
 
   return (
     <div className="flex border p-6 rounded-lg flex-col items-start gap-8 self-stretch">
-      <div className="flex border-b pb-6 justify-between items-center self-stretch">
+      <div className="flex border-b pb-3 justify-between items-center self-stretch">
         <h3 className="text-lg flex items-center gap-1 font-semibold text-gray-900">
           <Lock className="w-4 h-4" strokeWidth={2.5} />
           Password & Security
@@ -78,12 +116,12 @@ export function PasswordSecurityContent() {
         onSubmit={handleSubmit(onSubmit)}
         className="w-full max-w-xl flex flex-col gap-6"
       >
-        <div className="flex flex-col gap-2 w-full">
+        <div className="flex flex-col gap-1 w-full">
           <Label className="text-base">Current Password</Label>
           <div className="relative">
             <Input
               type={showCurrentPassword ? "text" : "password"}
-              className={`${inputClasses} ${errors.current_password ? "border-red-500 focus-visible:ring-red-100 focus-visible:border-red-500" : ""}`}
+              className={`${inputClasses} border-2 ${errors.current_password ? "border-red-500 focus-visible:ring-red-100 focus-visible:border-red-500" : ""}`}
               placeholder="Enter current password"
               {...register("current_password", {
                 required: "Current password is required",
@@ -108,20 +146,21 @@ export function PasswordSecurityContent() {
           )}
         </div>
 
-        <div className="flex flex-col gap-2 w-full">
+        <div className="flex flex-col gap-1 w-full">
           <Label className="text-base">New Password</Label>
           <div className="relative">
             <Input
               type={showNewPassword ? "text" : "password"}
-              className={`${inputClasses} ${errors.new_password ? "border-red-500 focus-visible:ring-red-100 focus-visible:border-red-500" : ""}`}
+              className={`${inputClasses} border-2 ${errors.new_password ? "border-red-500 focus-visible:ring-red-100 focus-visible:border-red-500" : ""}`}
               placeholder="Enter new password"
-              {...register("new_password", {
-                required: "New password is required",
-                minLength: {
-                  value: 8,
-                  message: "Password must be at least 8 characters",
-                },
-              })}
+              name={newPasswordReg.name}
+              ref={newPasswordReg.ref}
+              onChange={newPasswordReg.onChange}
+              onFocus={() => setIsNewPasswordFocused(true)}
+              onBlur={(e) => {
+                newPasswordReg.onBlur(e);
+                setIsNewPasswordFocused(false);
+              }}
             />
             <button
               type="button"
@@ -135,19 +174,45 @@ export function PasswordSecurityContent() {
               )}
             </button>
           </div>
-          {errors.new_password && (
-            <span className="text-red-500 text-sm font-medium ml-1">
-              {errors.new_password.message}
-            </span>
+          {(isNewPasswordFocused || newPassword.length > 0) && (
+            <div className="flex flex-col gap-2.5 mt-2 transition-opacity duration-300">
+              <RequirementItem
+                checked={newPassword.length >= 8}
+                text="At least 8 characters long."
+              />
+              <RequirementItem
+                checked={/[A-Z]/.test(newPassword)}
+                text="Contains uppercase letters."
+              />
+              <RequirementItem
+                checked={/[a-z]/.test(newPassword)}
+                text="Contains lowercase letters."
+              />
+              <RequirementItem
+                checked={/[0-9]/.test(newPassword)}
+                text="Contains numbers."
+              />
+              <RequirementItem
+                checked={/[^A-Za-z0-9]/.test(newPassword)}
+                text="Contains punctuation."
+              />
+            </div>
           )}
+          {errors.new_password &&
+            !isNewPasswordFocused &&
+            newPassword.length === 0 && (
+              <span className="text-red-500 text-sm font-medium ml-1">
+                {errors.new_password.message}
+              </span>
+            )}
         </div>
 
-        <div className="flex flex-col gap-2 w-full">
+        <div className="flex flex-col gap-1 w-full">
           <Label className="text-base">Confirm New Password</Label>
           <div className="relative">
             <Input
               type={showConfirmPassword ? "text" : "password"}
-              className={`${inputClasses} ${errors.new_password_confirmation ? "border-red-500 focus-visible:ring-red-100 focus-visible:border-red-500" : ""}`}
+              className={`${inputClasses} border-2 ${errors.new_password_confirmation ? "border-red-500 focus-visible:ring-red-100 focus-visible:border-red-500" : ""}`}
               placeholder="Confirm new password"
               {...register("new_password_confirmation", {
                 required: "Please confirm your new password",

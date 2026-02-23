@@ -17,7 +17,7 @@ export function MyProfileContent({
 }: MyProfileContentProps) {
   return (
     <div className="flex border p-6 rounded-lg flex-col items-start gap-8 self-stretch">
-      <div className="flex border-b pb-6 justify-between items-center self-stretch">
+      <div className="flex border-b pb-3 justify-between items-center self-stretch">
         <h3 className="text-lg flex items-center gap-1 font-semibold text-gray-900">
           <BookUser className="w-4 h-4" strokeWidth={2.5} />
           Personal Information
