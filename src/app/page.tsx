@@ -105,7 +105,7 @@ export default function Home() {
   );
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex flex-col overflow-x-hidden">
+    <div className="min-h-screen bg-muted/50 flex flex-col overflow-x-hidden">
       {/* Navbar */}
       <HomeNavbar onScrollToAbout={scrollToAbout} />
 
