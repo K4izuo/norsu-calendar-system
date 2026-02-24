@@ -13,7 +13,7 @@ import usePublicCalendarData from "./_hooks/use-public-calendar-data";
 import useErrorToast from "./_hooks/use-error-toast";
 
 // Force dynamic rendering so dates are calculated on each request, not at build time
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default function Home() {
   // PRODUCTION-READY: Client-only rendering to avoid hydration mismatch
@@ -35,7 +35,9 @@ export default function Home() {
   // Modal states
   const [modalOpen, setModalOpen] = useState(false);
   const [eventInfoModalOpen, setEventInfoModalOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<EventDetails | undefined>(undefined);
+  const [selectedEvent, setSelectedEvent] = useState<EventDetails | undefined>(
+    undefined,
+  );
   const [selectedDay, setSelectedDay] = useState<CalendarDayType | null>(null);
   const [eventInfoLoading, setEventInfoLoading] = useState(false);
   const [showRecent, setShowRecent] = useState(false);
@@ -43,15 +45,31 @@ export default function Home() {
 
   useErrorToast();
 
-  const { loading, error, calendarEvents, upcomingEvents, getEventsForDate, selectedDayEvents } =
-    usePublicCalendarData({ currentMonth, currentYear, selectedDay });
+  const {
+    loading,
+    error,
+    calendarEvents,
+    upcomingEvents,
+    getEventsForDate,
+    selectedDayEvents,
+  } = usePublicCalendarData({ currentMonth, currentYear, selectedDay });
 
   const monthNames = useMemo(
     () => [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December",
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
     ],
-    []
+    [],
   );
 
   const handleEventClick = useCallback((event: EventDetails) => {
@@ -75,16 +93,19 @@ export default function Home() {
   }, []);
 
   // Handle smooth scroll to about section
-  const scrollToAbout = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    const aboutSection = document.getElementById('about-section');
-    if (aboutSection) {
-      aboutSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, []);
+  const scrollToAbout = useCallback(
+    (e: React.MouseEvent<HTMLAnchorElement>) => {
+      e.preventDefault();
+      const aboutSection = document.getElementById("about-section");
+      if (aboutSection) {
+        aboutSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    },
+    [],
+  );
 
   return (
-    <div className="min-h-screen bg-muted/50 flex flex-col overflow-x-hidden">
+    <div className="min-h-screen bg-neutral-50 flex flex-col overflow-x-hidden">
       {/* Navbar */}
       <HomeNavbar onScrollToAbout={scrollToAbout} />
 
@@ -94,7 +115,11 @@ export default function Home() {
         <div className="flex-1 flex justify-center p-3.5 sm:p-6 md:p-6 min-h-[calc(100vh-80px)]">
           <div className="w-full flex flex-col lg:flex-row gap-4 lg:gap-6 flex-1 lg:items-stretch">
             {/* Sidebar - Fixed width, height matches parent */}
-            <UpcomingEventsSidebar loading={loading} error={error} upcomingEvents={upcomingEvents} />
+            <UpcomingEventsSidebar
+              loading={loading}
+              error={error}
+              upcomingEvents={upcomingEvents}
+            />
 
             {/* Calendar - Takes remaining space */}
             <div className="flex-1 flex flex-col items-start min-h-0 lg:h-full">

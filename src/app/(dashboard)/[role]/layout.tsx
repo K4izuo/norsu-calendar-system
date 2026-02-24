@@ -204,7 +204,7 @@ export default function RoleLayout({
           </div>
         </header>
 
-        <div className="flex-1 bg-muted/50 flex flex-col gap-4 p-3 lg:p-6 overflow-y-auto overflow-x-hidden relative">
+        <div className="flex-1 bg-neutral-50 flex flex-col gap-4 p-3 lg:p-6 overflow-y-auto overflow-x-hidden relative">
           {/* ✅ CRITICAL FIX: Loading overlay that COMPLETELY covers content when active */}
           {showLoading && (
             <div
