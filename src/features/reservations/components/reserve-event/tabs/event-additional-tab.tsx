@@ -1,33 +1,39 @@
-import React from "react"
-import { Label } from "@/shared/components/ui/label"
-import { Input } from "@/shared/components/ui/input"
-import { Control, FieldErrors, Controller, UseFormRegister, RegisterOptions } from "react-hook-form"
-import { ReservationFormData } from "@/interface/user-props"
-import { User, X, AlertCircle } from "lucide-react"
-import { EventSelectField } from "@/features/reservations/components/reserve-event-tab/event-select-field"
+import React from "react";
+import { Label } from "@/shared/components/ui/label";
+import { Input } from "@/shared/components/ui/input";
+import {
+  Control,
+  FieldErrors,
+  Controller,
+  UseFormRegister,
+  RegisterOptions,
+} from "react-hook-form";
+import { ReservationFormData } from "@/interface/user-props";
+import { User, X, AlertCircle } from "lucide-react";
+import { EventSelectField } from "@/features/reservations/components/reserve-event/tabs/event-select-field";
 
 interface ValidationRules {
-  people_tag: RegisterOptions<ReservationFormData, "people_tag">
-  info_type: RegisterOptions<ReservationFormData, "info_type">
-  category: RegisterOptions<ReservationFormData, "category">
+  people_tag: RegisterOptions<ReservationFormData, "people_tag">;
+  info_type: RegisterOptions<ReservationFormData, "info_type">;
+  category: RegisterOptions<ReservationFormData, "category">;
 }
 
 interface Props {
-  control: Control<ReservationFormData>
-  errors: FieldErrors<ReservationFormData>
-  infoTypes: { value: string; label: string }[]
-  categories: { value: string; label: string }[]
-  tagInput: string
-  taggedPeople: { id: string; name: string }[]
-  peopleSuggestions: { id: string; name: string }[]
-  showDropdown: boolean
-  handleTagInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void
-  handleTagSelect: (person: { id: string; name: string }) => void
-  handleRemoveTag: (id: string) => void
-  setShowDropdown: (show: boolean) => void
-  validationRules: ValidationRules
-  register: UseFormRegister<ReservationFormData>
-  peopleFieldRef: React.RefObject<HTMLInputElement | null>
+  control: Control<ReservationFormData>;
+  errors: FieldErrors<ReservationFormData>;
+  infoTypes: { value: string; label: string }[];
+  categories: { value: string; label: string }[];
+  tagInput: string;
+  taggedPeople: { id: string; name: string }[];
+  peopleSuggestions: { id: string; name: string }[];
+  showDropdown: boolean;
+  handleTagInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleTagSelect: (person: { id: string; name: string }) => void;
+  handleRemoveTag: (id: string) => void;
+  setShowDropdown: (show: boolean) => void;
+  validationRules: ValidationRules;
+  register: UseFormRegister<ReservationFormData>;
+  peopleFieldRef: React.RefObject<HTMLInputElement | null>;
 }
 
 export function ReserveEventAdditionalTab({
@@ -46,10 +52,11 @@ export function ReserveEventAdditionalTab({
   validationRules,
   peopleFieldRef,
 }: Props) {
-  const filteredSuggestions = peopleSuggestions.filter(person =>
-    person.name.toLowerCase().includes(tagInput.toLowerCase()) &&
-    !taggedPeople.some(p => p.id === person.id)
-  )
+  const filteredSuggestions = peopleSuggestions.filter(
+    (person) =>
+      person.name.toLowerCase().includes(tagInput.toLowerCase()) &&
+      !taggedPeople.some((p) => p.id === person.id),
+  );
 
   // Client-side validation for typing input
   const getInputError = () => {
@@ -65,7 +72,10 @@ export function ReserveEventAdditionalTab({
     <div className="space-y-4 sm:space-y-6 min-h-100">
       <div className="space-y-4 sm:space-y-5">
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="people" className="text-base inline-flex pointer-events-none">
+          <Label
+            htmlFor="people"
+            className="text-base inline-flex pointer-events-none"
+          >
             <span className="pointer-events-auto">
               People Tag<span className="text-red-500"> *</span>
             </span>
@@ -76,7 +86,11 @@ export function ReserveEventAdditionalTab({
             rules={validationRules.people_tag}
             render={({ field }) => {
               // Priority: input error (typing) > form validation error (no tags)
-              const displayError = inputError || (errors.people_tag ? errors.people_tag.message as string : null);
+              const displayError =
+                inputError ||
+                (errors.people_tag
+                  ? (errors.people_tag.message as string)
+                  : null);
               const hasError = !!inputError || !!errors.people_tag;
 
               return (
@@ -93,21 +107,24 @@ export function ReserveEventAdditionalTab({
                     onBlur={() => {
                       // ALWAYS mark as touched and update field value on blur
                       field.onBlur();
-                      field.onChange(taggedPeople.map(p => p.name).join(', '));
+                      field.onChange(
+                        taggedPeople.map((p) => p.name).join(", "),
+                      );
                       setTimeout(() => setShowDropdown(false), 150);
                     }}
                     onFocus={() => {
                       setShowDropdown(tagInput.length > 0);
                     }}
-                    className={`h-12 border-2 text-base w-full transition-all duration-150 ${hasError
-                      ? "border-red-400 focus:border-red-500 focus:ring-red-200"
-                      : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
-                      }`}
+                    className={`h-12 border-2 text-base w-full transition-all duration-150 ${
+                      hasError
+                        ? "border-red-400 focus:border-red-500 focus:ring-red-200"
+                        : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+                    }`}
                     autoComplete="off"
                   />
                   {showDropdown && (
                     <div className="absolute z-10 left-0 right-0 mt-1 bg-white border border-gray-200 rounded shadow-lg max-h-48 overflow-auto">
-                      {filteredSuggestions.map(person => (
+                      {filteredSuggestions.map((person) => (
                         <button
                           key={person.id}
                           type="button"
@@ -115,7 +132,9 @@ export function ReserveEventAdditionalTab({
                           onMouseDown={() => {
                             handleTagSelect(person);
                             const updatedPeople = [...taggedPeople, person];
-                            field.onChange(updatedPeople.map(p => p.name).join(', '));
+                            field.onChange(
+                              updatedPeople.map((p) => p.name).join(", "),
+                            );
                           }}
                         >
                           <User className="w-4 h-4 mr-2 text-gray-800" />
@@ -123,12 +142,14 @@ export function ReserveEventAdditionalTab({
                         </button>
                       ))}
                       {filteredSuggestions.length === 0 && (
-                        <div className="px-3 py-2 text-gray-400">No matches found</div>
+                        <div className="px-3 py-2 text-gray-400">
+                          No matches found
+                        </div>
                       )}
                     </div>
                   )}
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {taggedPeople.map(person => (
+                    {taggedPeople.map((person) => (
                       <span
                         key={person.id}
                         className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium border border-gray-300 text-gray-800 bg-transparent"
@@ -139,8 +160,12 @@ export function ReserveEventAdditionalTab({
                           type="button"
                           onClick={() => {
                             handleRemoveTag(person.id);
-                            const updatedPeople = taggedPeople.filter(p => p.id !== person.id);
-                            field.onChange(updatedPeople.map(p => p.name).join(', '));
+                            const updatedPeople = taggedPeople.filter(
+                              (p) => p.id !== person.id,
+                            );
+                            field.onChange(
+                              updatedPeople.map((p) => p.name).join(", "),
+                            );
                           }}
                           className="ml-1.5 text-gray-800 hover:text-red-600"
                         >
@@ -207,5 +232,5 @@ export function ReserveEventAdditionalTab({
         </div>
       </div>
     </div>
-  )
+  );
 }

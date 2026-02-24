@@ -3,11 +3,11 @@
 import React, { useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Tabs, TabsContent } from "@/shared/components/ui/tabs";
-import { ReserveEventFormTab } from "@/features/reservations/components/reserve-event-tab/event-form-tab";
-import { ReserveEventAdditionalTab } from "@/features/reservations/components/reserve-event-tab/event-additional-tab";
-import { ReserveEventSummaryTab } from "@/features/reservations/components/reserve-event-tab/event-summary-tab";
-import { AssetsVenueModal } from "@/features/reservations/components/reserve-event-assets/assets-venue-modal";
-import { AssetsVehicleModal } from "@/features/reservations/components/reserve-event-assets/assets-vehicle-modal";
+import { ReserveEventFormTab } from "@/features/reservations/components/reserve-event/tabs/event-form-tab";
+import { ReserveEventAdditionalTab } from "@/features/reservations/components/reserve-event/tabs/event-additional-tab";
+import { ReserveEventSummaryTab } from "@/features/reservations/components/reserve-event/tabs/event-summary-tab";
+import { AssetsVenueModal } from "@/features/reservations/components/reserve-event/assets/assets-venue-modal";
+import { AssetsVehicleModal } from "@/features/reservations/components/reserve-event/assets/assets-vehicle-modal";
 import { useAssets } from "@/features/calendar/services/academicDataService";
 import { useReserveEventForm } from "@/features/reservations/hooks/useReserveEventForm";
 import {
@@ -21,10 +21,10 @@ import {
   peopleSuggestions,
   formattedAssets,
   formatDisplayDate,
-} from "./reserve-event-modal/modal-constants";
-import { ModalHeader } from "./reserve-event-modal/modal-header";
-import { ModalTabBar } from "./reserve-event-modal/modal-tab-bar";
-import { ModalFooter } from "./reserve-event-modal/modal-footer";
+} from "./reserve-event/modal/modal-constants";
+import { ModalHeader } from "./reserve-event/modal/modal-header";
+import { ModalTabBar } from "./reserve-event/modal/modal-tab-bar";
+import { ModalFooter } from "./reserve-event/modal/modal-footer";
 import { useModalBehavior } from "@/features/reservations/hooks/useModalBehavior";
 import { useModalAssetLoader } from "@/features/reservations/hooks/useModalAssetLoader";
 import { useEditModePopulate } from "@/features/reservations/hooks/useEditModePopulate";
