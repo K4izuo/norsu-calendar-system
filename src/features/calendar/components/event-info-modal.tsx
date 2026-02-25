@@ -284,7 +284,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
               {!loading && event && (
                 <div className="flex-1 overflow-y-auto">
                   <div className="p-4 sm:p-6 space-y-6">
-                    <div className="bg-white text-card-foreground border shadow rounded-lg p-6">
+                    <div className="bg-white text-card-foreground border border-border rounded-lg p-6">
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
@@ -365,7 +365,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                     </div>
 
                     {/* reservation details */}
-                    <div className="bg-white text-card-foreground border shadow rounded-lg p-6">
+                    <div className="bg-white text-card-foreground border border-border rounded-lg p-6">
                       <div className="flex items-center mb-3">
                         <NotebookPen className="text-gray-500 mr-2 h-5 w-5" />
                         <h3 className="text-lg font-medium text-gray-700">
@@ -437,7 +437,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                     </div>
 
                     {/* additional details */}
-                    <div className="bg-white text-card-foreground border shadow rounded-lg p-6">
+                    <div className="bg-white text-card-foreground border border-border rounded-lg p-6">
                       <div className="flex items-center mb-3">
                         <Info className="text-gray-500 mr-2 h-5 w-5" />
                         <h3 className="text-lg font-medium text-gray-700">
