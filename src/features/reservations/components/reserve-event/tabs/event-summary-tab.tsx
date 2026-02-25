@@ -6,7 +6,7 @@ import {
   Clock,
   FileText,
   CheckCircle2,
-  User,
+  // User,
 } from "lucide-react";
 import { ReservationFormData } from "@/interface/user-props";
 
@@ -39,28 +39,28 @@ export function ReserveEventSummaryTab({
         {/* line below label */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <p className="text-base text-gray-500">Event Title</p>
+            <p className="text-sm text-gray-500">Event Title</p>
             <p className="font-medium text-base">
               {formData.title_name || "Not provided"}
             </p>
           </div>
           <div>
-            <p className="text-base text-gray-500">Information Type</p>
+            <p className="text-sm text-gray-500">Information Type</p>
             <p className="font-medium text-base">
               {infoTypes.find((type) => type.value === formData.info_type)
                 ?.label || "Not provided"}
             </p>
           </div>
           <div>
-            <p className="text-base text-gray-500">People Tag</p>
+            <p className="text-sm text-gray-500">People Tag</p>
             <div className="flex flex-wrap gap-2 mt-1">
               {taggedPeople.length > 0 ? (
                 taggedPeople.map((person) => (
                   <span
                     key={person.id}
-                    className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium border border-gray-300 text-gray-800 bg-transparent"
+                    className="inline-flex text-base font-medium text-gray-800"
                   >
-                    <User className="w-3 h-3 mr-1.5 text-gray-800" />
+                    {/* <User className="w-3 h-3 mr-1.5 text-gray-800" /> */}
                     {person.name}
                   </span>
                 ))
@@ -70,7 +70,7 @@ export function ReserveEventSummaryTab({
             </div>
           </div>
           <div>
-            <p className="text-base text-gray-500">Category</p>
+            <p className="text-sm text-gray-500">Category</p>
             <p className="font-medium text-base">
               {categories.find((cat) => cat.value === formData.category)
                 ?.label || "Not provided"}
@@ -93,21 +93,21 @@ export function ReserveEventSummaryTab({
             <p className="font-medium text-base">{asset?.asset_type || "Not selected"}</p>
           </div> */}
           <div>
-            <p className="text-base text-gray-500">Asset Name</p>
+            <p className="text-sm text-gray-500">Asset Name</p>
             <p className="font-medium text-base">
               {asset?.asset_name || "Not selected"}
             </p>
           </div>
           <div>
-            <p className="text-base text-gray-500">Capacity</p>
+            <p className="text-sm text-gray-500">Capacity</p>
             <p className="font-medium text-base">{asset?.capacity || "N/A"}</p>
           </div>
           <div>
-            <p className="text-base text-gray-500">Date</p>
+            <p className="text-sm text-gray-500">Date</p>
             <p className="font-medium text-base">{asset?.capacity || "N/A"}</p>
           </div>
           <div>
-            <p className="text-base text-gray-500">Aminities</p>
+            <p className="text-sm text-gray-500">Aminities</p>
             <p className="font-medium text-base">{asset?.capacity || "N/A"}</p>
           </div>
           {asset?.facilities && asset.facilities.length > 0 && (
@@ -138,7 +138,7 @@ export function ReserveEventSummaryTab({
         {/* line below label */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <p className="text-base text-gray-500">Start Time</p>
+            <p className="text-sm text-gray-500">Start Time</p>
             <div className="flex items-center">
               <Clock className="h-4 w-4 mr-1.5 text-gray-500" />
               <p className="font-medium text-base">
@@ -147,7 +147,7 @@ export function ReserveEventSummaryTab({
             </div>
           </div>
           <div>
-            <p className="text-base text-gray-500">End Time</p>
+            <p className="text-sm text-gray-500">End Time</p>
             <div className="flex items-center">
               <Clock className="h-4 w-4 mr-1.5 text-gray-500" />
               <p className="font-medium text-base">
@@ -156,7 +156,7 @@ export function ReserveEventSummaryTab({
             </div>
           </div>
           <div>
-            <p className="text-base text-gray-500">Reservation Day(s)</p>
+            <p className="text-sm text-gray-500">Reservation Day(s)</p>
             <p className="font-medium text-base">
               {formData.range} day{formData.range > 1 ? "s" : ""}
             </p>
@@ -173,17 +173,16 @@ export function ReserveEventSummaryTab({
           </div>
           <div className="border-b border-gray-300 mb-4" />
           <div>
-            <p className="text-base text-gray-500">Full Description</p>
+            <p className="text-sm text-gray-500">Description</p>
             <p className="mt-1 text-base">{formData.description}</p>
           </div>
         </div>
       )}
       <div
-        className={`mt-6 p-3 rounded-md flex items-center justify-center ${
-          isFormValid()
+        className={`mt-6 p-3 rounded-md flex items-center justify-center ${isFormValid()
             ? "bg-green-50 text-green-800"
             : "bg-yellow-50 text-yellow-800"
-        }`}
+          }`}
       >
         {isFormValid() ? (
           <>
