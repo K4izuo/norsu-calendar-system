@@ -28,7 +28,7 @@ export function ReserveEventSummaryTab({
   const asset = formData.asset;
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="bg-white text-card-foreground border border-black rounded-lg p-6">
+      <div className="bg-white text-card-foreground border border-border rounded-lg p-6">
         <div className="flex items-center mb-3">
           <CalendarPlus2 className="text-gray-500 mr-2 h-6 w-6" />
           <h3 className="text-lg font-medium text-gray-700">
