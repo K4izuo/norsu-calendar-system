@@ -5,12 +5,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   NotebookPen,
   CalendarClock,
-  Clock,
+  // Clock,
   MapPin,
-  CalendarPlus2,
+  // CalendarPlus2,
   Info,
   X,
-  User,
+  // User,
   // Edit,
   CircleCheckBig,
   XCircle,
@@ -314,16 +314,16 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                       <div className="border-b border-gray-300 mb-4" />
                       <div className="flex justify-between items-start gap-4">
                         <div>
-                          <p className="text-base text-gray-500">Date</p>
+                          <p className="text-sm text-gray-500">Date</p>
                           <div className="flex items-center">
-                            <CalendarPlus2 className="h-4 w-4 mr-1.5 text-gray-500" />
+                            {/* <CalendarPlus2 className="h-4 w-4 mr-1.5 text-gray-500" /> */}
                             <p className="font-medium text-base">
                               {formatDate(event.date)}
                             </p>
                           </div>
                         </div>
                         <div>
-                          <p className="text-base text-gray-500">
+                          <p className="text-sm text-gray-500">
                             Information Type
                           </p>
                           <p className="font-medium capitalize text-base">
@@ -331,7 +331,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                           </p>
                         </div>
                         <div>
-                          <p className="text-base text-gray-500">
+                          <p className="text-sm text-gray-500">
                             Venue Capacity
                           </p>
                           <p className="font-medium text-base">
@@ -339,14 +339,14 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                           </p>
                         </div>
                         <div>
-                          <p className="text-base text-gray-500">Category</p>
+                          <p className="text-sm text-gray-500">Category</p>
                           <p className="font-medium capitalize text-base">
                             {event.category}
                           </p>
                         </div>
                         {assetAminities && assetAminities.length > 0 && (
                           <div className="col-span-1 md:col-span-2 lg:col-span-4">
-                            <p className="text-base text-gray-500 mb-2">
+                            <p className="text-sm text-gray-500 mb-2">
                               Venue Facilities
                             </p>
                             <div className="flex flex-wrap gap-2">
@@ -375,16 +375,16 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                       <div className="border-b border-gray-300 mb-4" />
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <p className="text-base text-gray-500">Reserved By</p>
+                          <p className="text-sm text-gray-500">Reserved By</p>
                           <span className="inline-flex mt-1 items-center text-sm font-medium">
-                            <User className="w-3 h-3 mr-1.5 text-gray-800" />
+                            {/* <User className="w-3 h-3 mr-1.5 text-gray-800" /> */}
                             <p className="font-medium text-base">
                               {event.reserve_by_user || "Unknown User"}
                             </p>
                           </span>
                         </div>
                         <div>
-                          <p className="text-base text-gray-500">Status</p>
+                          <p className="text-sm text-gray-500">Status</p>
                           <div className="flex mt-1 items-center gap-2">
                             <span
                               className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-md font-medium ${getStatusColor(
@@ -413,13 +413,13 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                           </div>
                         </div>
                         <div>
-                          <p className="text-base text-gray-500">
+                          <p className="text-sm text-gray-500">
                             Reservation Day(s)
                           </p>
                           <p className="font-medium text-base">{`${event.range} ${event.range === 1 ? "day" : "days"}`}</p>
                         </div>
                         <div>
-                          <p className="text-base text-gray-500">
+                          <p className="text-sm text-gray-500">
                             Registration Deadline
                           </p>
                           <p className="font-medium text-base">
@@ -427,9 +427,9 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                           </p>
                         </div>
                         <div>
-                          <p className="text-base text-gray-500">Time</p>
+                          <p className="text-sm text-gray-500">Time</p>
                           <div className="flex items-center">
-                            <Clock className="h-4 w-4 mr-1.5 text-gray-500" />
+                            {/* <Clock className="h-4 w-4 mr-1.5 text-gray-500" /> */}
                             <p className="font-medium text-base">{`${formatTime(event.time_start)} - ${formatTime(event.time_end)}`}</p>
                           </div>
                         </div>
@@ -447,7 +447,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                       <div className="border-b border-gray-300 mb-4" />
                       <div className="space-y-3">
                         <div>
-                          <p className="text-base text-gray-500">Description</p>
+                          <p className="text-sm text-gray-500">Description</p>
                           <p className="mt-1 text-base">{event.description}</p>
                         </div>
                       </div>
