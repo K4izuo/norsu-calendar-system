@@ -414,13 +414,13 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                         </div>
                         <div>
                           <p className="text-sm text-gray-500">
-                            Reservation Day(s)
+                            Day(s)
                           </p>
                           <p className="font-medium text-base">{`${event.range} ${event.range === 1 ? "day" : "days"}`}</p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-500">
-                            Registration Deadline
+                            Deadline
                           </p>
                           <p className="font-medium text-base">
                             {formatDate(event.registration_deadline)}
