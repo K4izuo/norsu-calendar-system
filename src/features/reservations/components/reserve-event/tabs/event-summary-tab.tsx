@@ -28,7 +28,7 @@ export function ReserveEventSummaryTab({
   const asset = formData.asset;
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="bg-white text-card-foreground border shadow rounded-lg p-6">
+      <div className="bg-white text-card-foreground border rounded-lg p-6">
         <div className="flex items-center mb-3">
           <CalendarPlus2 className="text-gray-500 mr-2 h-6 w-6" />
           <h3 className="text-lg font-medium text-gray-700">
@@ -78,7 +78,7 @@ export function ReserveEventSummaryTab({
           </div>
         </div>
       </div>
-      <div className="bg-white text-card-foreground border shadow rounded-lg p-6">
+      <div className="bg-white text-card-foreground border rounded-lg p-6">
         <div className="flex items-center mb-3">
           <MapPin className="text-gray-500 mr-2 h-6 w-6" />
           <h3 className="text-lg font-medium text-gray-700">
@@ -127,7 +127,7 @@ export function ReserveEventSummaryTab({
           )}
         </div>
       </div>
-      <div className="bg-white text-card-foreground border shadow rounded-lg p-6">
+      <div className="bg-white text-card-foreground border rounded-lg p-6">
         <div className="flex items-center mb-3">
           <NotebookPen className="text-gray-500 mr-2 h-6 w-6" />
           <h3 className="text-lg font-medium text-gray-700">
@@ -140,7 +140,7 @@ export function ReserveEventSummaryTab({
           <div>
             <p className="text-sm text-gray-500">Start Time</p>
             <div className="flex items-center">
-              <Clock className="h-4 w-4 mr-1.5 text-gray-500" />
+              {/* <Clock className="h-4 w-4 mr-1.5 text-gray-500" /> */}
               <p className="font-medium text-base">
                 {formData.time_start || "Not specified"}
               </p>
@@ -149,7 +149,7 @@ export function ReserveEventSummaryTab({
           <div>
             <p className="text-sm text-gray-500">End Time</p>
             <div className="flex items-center">
-              <Clock className="h-4 w-4 mr-1.5 text-gray-500" />
+              {/* <Clock className="h-4 w-4 mr-1.5 text-gray-500" /> */}
               <p className="font-medium text-base">
                 {formData.time_end || "Not specified"}
               </p>
@@ -164,7 +164,7 @@ export function ReserveEventSummaryTab({
         </div>
       </div>
       {formData.description && (
-        <div className="bg-white text-card-foreground border shadow rounded-lg p-6">
+        <div className="bg-white text-card-foreground border rounded-lg p-6">
           <div className="flex items-center mb-3">
             <FileText className="text-gray-500 mr-2 h-6 w-6" />
             <h3 className="text-lg font-medium text-gray-700">
@@ -180,8 +180,8 @@ export function ReserveEventSummaryTab({
       )}
       <div
         className={`mt-6 p-3 rounded-md flex items-center justify-center ${isFormValid()
-            ? "bg-green-50 text-green-800"
-            : "bg-yellow-50 text-yellow-800"
+          ? "bg-green-50 text-green-800"
+          : "bg-yellow-50 text-yellow-800"
           }`}
       >
         {isFormValid() ? (
