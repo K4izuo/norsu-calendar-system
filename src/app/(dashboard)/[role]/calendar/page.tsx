@@ -5,10 +5,16 @@ import { Calendar } from "@/features/calendar/components/norsu-calendar";
 import { EventsListModal } from "@/features/calendar/components/events-list-modal";
 import { EventInfoModal } from "@/features/calendar/components/event-info-modal";
 import { EventDetails, CalendarDayType } from "@/interface/user-props";
-import { useReservations, useAssets } from "@/features/calendar/services/reservation-service";
+import {
+  useReservations,
+  useAssets,
+} from "@/features/calendar/services/reservation-service";
 import { useQueryClient } from "@tanstack/react-query";
 import { getUserId } from "@/core/auth/auth";
-import { getPhilippineMonth, getPhilippineYear } from "@/features/calendar/utils/timezone-utils";
+import {
+  getPhilippineMonth,
+  getPhilippineYear,
+} from "@/features/calendar/utils/timezone-utils";
 import { PageBreadcrumb } from "@/shared/components/ui/page-breadcrumb";
 import { useParams } from "next/navigation";
 
@@ -30,7 +36,9 @@ export default function CalendarPage() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [eventInfoModalOpen, setEventInfoModalOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<EventDetails | undefined>(undefined);
+  const [selectedEvent, setSelectedEvent] = useState<EventDetails | undefined>(
+    undefined,
+  );
   const [selectedDay, setSelectedDay] = useState<CalendarDayType | null>(null);
 
   // FIX: Use Philippine timezone instead of server timezone
@@ -46,7 +54,7 @@ export default function CalendarPage() {
   const { reservations, error } = useReservations();
 
   const assetIds = useMemo(() => {
-    return [...new Set(reservations.map(r => r.asset_id))];
+    return [...new Set(reservations.map((r) => r.asset_id))];
   }, [reservations]);
 
   const { assets } = useAssets(assetIds);
@@ -56,16 +64,16 @@ export default function CalendarPage() {
 
   const handleNewReservation = useCallback(async () => {
     queryClient.invalidateQueries({
-      queryKey: ['reservations', userId],
-      refetchType: 'none'
+      queryKey: ["reservations", userId],
+      refetchType: "none",
     });
   }, [queryClient, userId]);
 
   // Convert reservations to events format with isFinished flag
   const allEvents: EventDetails[] = useMemo(() => {
     return reservations
-      .filter(reservation => reservation.status.toUpperCase() === "APPROVED")
-      .map(reservation => {
+      .filter((reservation) => reservation.status.toUpperCase() === "APPROVED")
+      .map((reservation) => {
         const asset = assets.get(reservation.asset_id);
 
         return {
@@ -84,7 +92,10 @@ export default function CalendarPage() {
           description: reservation.description,
           people_tag: reservation.people_tag.split(", "),
           range: reservation.range,
-          registration_status: reservation.status.toUpperCase() as "PENDING" | "APPROVED" | "DECLINED",
+          registration_status: reservation.status.toUpperCase() as
+            | "PENDING"
+            | "APPROVED"
+            | "DECLINED",
           registration_deadline: reservation.date,
           reserved_by_user: reservation.reserved_by_user,
           reserve_by_user: reservation.reserved_by_user
@@ -100,19 +111,25 @@ export default function CalendarPage() {
 
   // Filter ONLY upcoming/current events for calendar display
   const calendarEvents = useMemo(() => {
-    return allEvents.filter(event => !event.isFinished);
+    return allEvents.filter((event) => !event.isFinished);
   }, [allEvents]);
 
   // Get events for a particular day - only upcoming
-  const getEventsForDate = useCallback((year: number, month: number, day: number) => {
-    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    const dayEvents = calendarEvents.filter(event => event.date === dateStr);
+  const getEventsForDate = useCallback(
+    (year: number, month: number, day: number) => {
+      const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      const dayEvents = calendarEvents.filter(
+        (event) => event.date === dateStr,
+      );
 
-    return {
-      hasEvent: dayEvents.length > 0,
-      count: dayEvents.length
-    };
-  }, [calendarEvents]);
+      return {
+        hasEvent: dayEvents.length > 0,
+        count: dayEvents.length,
+        eventsList: dayEvents,
+      };
+    },
+    [calendarEvents],
+  );
 
   // Selected day events - includes ALL events (past and upcoming) for modal filtering
   const selectedDayEvents = useMemo(() => {
@@ -156,8 +173,18 @@ export default function CalendarPage() {
   }, []);
 
   const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
 
   return (
@@ -166,7 +193,7 @@ export default function CalendarPage() {
       <PageBreadcrumb
         items={[
           { label: "Dashboard", href: `/page/${role}/dashboard` },
-          { label: "Calendar" }
+          { label: "Calendar" },
         ]}
       />
 

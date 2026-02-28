@@ -3,35 +3,60 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { CalendarClock } from "lucide-react";
+import { formatEventTimeRange } from "@/features/calendar/utils/timezone-utils";
 import { CalendarDayType } from "@/interface/user-props";
 import { getRoleColors, UserRole } from "@/shared/components/utils/role-colors";
 
-interface CalendarDayCellProps {
-  day: CalendarDayType;
+interface CalendarDayCellProps<T = unknown> {
+  day: CalendarDayType<T>;
   idx: number;
   roleColors: ReturnType<typeof getRoleColors>;
   role?: UserRole;
-  onDaySelect: (day: CalendarDayType) => void;
+  onDaySelect: (day: CalendarDayType<T>) => void;
 }
 
-export function CalendarDayCell({ day, idx, roleColors, role, onDaySelect }: CalendarDayCellProps) {
+export function CalendarDayCell<T>({
+  day,
+  idx,
+  roleColors,
+  role,
+  onDaySelect,
+}: CalendarDayCellProps<T>) {
+  const getEventTitle = (event: unknown) => {
+    if (typeof event === "object" && event !== null) {
+      if ("title_name" in event) return String(event.title_name);
+      if ("title" in event) return String(event.title);
+    }
+    return "Event";
+  };
+  const getEventTime = (event: unknown) => {
+    if (typeof event === "object" && event !== null) {
+      const timeStart =
+        "time_start" in event ? String(event.time_start) : undefined;
+      const timeEnd = "time_end" in event ? String(event.time_end) : undefined;
+
+      if (timeStart || timeEnd) {
+        return formatEventTimeRange(timeStart, timeEnd);
+      }
+
+      if ("time" in event) return String(event.time);
+    }
+    return "";
+  };
   return (
     <motion.div
       key={day.key}
       data-idx={idx}
       className={`relative border rounded-md flex flex-col p-1.5 sm:p-2 text-sm xs:text-base sm:text-lg md:text-xl font-medium
-          ${day.currentMonth
-          ? `text-gray-900 border-[1.5px] ${day.hasEvent ? roleColors.eventDayBorder : "border-gray-300"} cursor-pointer ${roleColors.hoverBg} hover:shadow-sm`
-          : "text-gray-400 border-gray-100 bg-gray-50 bg-opacity-50"
-        }
+          ${
+            day.currentMonth
+              ? `text-gray-900 border-[1.5px] ${day.hasEvent ? roleColors.eventDayBorder : "border-gray-300"} cursor-pointer ${roleColors.hoverBg} hover:shadow-sm`
+              : "text-gray-400 border-gray-100 bg-gray-50 bg-opacity-50"
+          }
           ${day.isToday ? `border-[1.5px]` : ""}
           ${day.hasEvent && day.currentMonth}
         `}
-      onClick={
-        day.currentMonth
-          ? () => onDaySelect(day)
-          : undefined
-      }
+      onClick={day.currentMonth ? () => onDaySelect(day) : undefined}
       initial={{ scale: 0.97, opacity: 0 }}
       animate={{
         scale: 1,
@@ -44,10 +69,10 @@ export function CalendarDayCell({ day, idx, roleColors, role, onDaySelect }: Cal
       whileHover={
         day.currentMonth
           ? {
-            scale: 1.02,
-            boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-            transition: { duration: 0.1 },
-          }
+              scale: 1.02,
+              boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+              transition: { duration: 0.1 },
+            }
           : {}
       }
       whileTap={day.currentMonth ? { scale: 0.98 } : {}}
@@ -55,12 +80,13 @@ export function CalendarDayCell({ day, idx, roleColors, role, onDaySelect }: Cal
       {/* Only show date number if it's a real day */}
       <div className="flex justify-end items-start w-full">
         <span
-          className={`text-sm md:text-md lg:text-lg ${day.isToday
-            ? `${roleColors.todayText} font-extrabold`
-            : day.currentMonth
-              ? ""
-              : "text-gray-400"
-            }`}
+          className={`text-sm md:text-base ${
+            day.isToday
+              ? `${roleColors.todayText} font-extrabold`
+              : day.currentMonth
+                ? ""
+                : "text-gray-400"
+          }`}
         >
           {day.date}
         </span>
@@ -71,67 +97,83 @@ export function CalendarDayCell({ day, idx, roleColors, role, onDaySelect }: Cal
         day.hasEvent &&
         day.eventCount &&
         day.eventCount > 0 && (
-          <>
+          <div className="flex mt-1 flex-col flex-1 w-full gap-0.5 sm:gap-1 overflow-hidden">
+            {/* Pill Bills rendering */}
+            {day.dayEvents &&
+              day.dayEvents.slice(0, 1).map((event, eventIdx) => {
+                const title = getEventTitle(event);
+                const time = getEventTime(event);
+
+                return (
+                  <motion.div
+                    key={`event-${idx}-${eventIdx}`}
+                    className={`w-full flex flex-col px-1.5 py-1.5 ${roleColors.pillBg} border-l-2 ${roleColors.pillBorder} rounded-r-md rounded-l-sm overflow-hidden`}
+                    initial={{ opacity: 0, x: -5 }}
+                    animate={{
+                      opacity: 1,
+                      x: 0,
+                      transition: {
+                        delay: Math.min(0.01 * idx + 0.1 * eventIdx + 0.1, 0.4),
+                        duration: 0.2,
+                      },
+                    }}
+                  >
+                    <span className="text-[10px] sm:text-xs font-semibold text-gray-800 truncate leading-tight">
+                      {title}
+                    </span>
+                    {time && (
+                      <span className="text-[9px] sm:text-[10px] text-gray-500 font-medium leading-tight">
+                        {time}
+                      </span>
+                    )}
+                  </motion.div>
+                );
+              })}
+
             {/* Desktop/Tablet: Top-left calendar icon and count */}
-            <motion.div
-              className={`hidden sm:inline-flex items-center ${role === 'admin' ? 'text-gray-700' : roleColors.todayText} px-1 sm:px-1.5 py-0.5 rounded-xl text-xs sm:text-sm md:text-base font-semibold absolute top-1.75 left-0.75`}
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{
-                scale: 1,
-                opacity: 1,
-                transition: {
-                  delay: Math.min(0.01 * idx + 0.1, 0.3),
-                  duration: 0.2,
-                  ease: "easeOut"
-                },
-              }}
-            >
-              <CalendarClock
-                size={14}
-                className="mr-0.5 sm:mr-1"
-              />
-              <span>{day.eventCount}</span>
-            </motion.div>
-
-            {/* Mobile: Centered calendar icon */}
-            <motion.div
-              className="sm:hidden grow flex items-center justify-center"
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{
-                scale: 1,
-                opacity: 1,
-                transition: {
-                  delay: Math.min(0.01 * idx + 0.1, 0.3),
-                  duration: 0.2,
-                  ease: "easeOut"
-                },
-              }}
-            >
-              <div className={`inline-flex items-center ${role === 'admin' ? 'text-gray-700' : roleColors.todayText} px-1 py-0.5 rounded-xl text-xs xs:text-sm font-semibold w-min`}>
-                <CalendarClock size={12} className="mr-0.5" />
+            {day.eventCount > 1 && (
+              <motion.div
+                className={`hidden sm:inline-flex items-center ${role === "admin" ? "text-gray-700" : roleColors.todayText} px-1 py-1 rounded-xl text-[10px] sm:text-xs md:text-sm font-semibold absolute top-1.5 left-1`}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{
+                  scale: 1,
+                  opacity: 1,
+                  transition: {
+                    delay: Math.min(0.01 * idx + 0.3, 0.4),
+                    duration: 0.2,
+                    ease: "easeOut",
+                  },
+                }}
+              >
+                <CalendarClock size={12} className="mr-0.5 sm:mr-1 shrink-0" />
                 <span>{day.eventCount}</span>
-              </div>
-            </motion.div>
+              </motion.div>
+            )}
 
-            {/* Desktop: "See event" text - hidden on mobile */}
-            <motion.div
-              className="absolute inset-0 hidden md:flex items-center justify-center pointer-events-none"
-              initial={{ opacity: 0 }}
-              animate={{
-                opacity: 1,
-                transition: {
-                  delay: Math.min(0.01 * idx + 0.2, 0.4),
-                  duration: 0.3,
-                },
-              }}
-            >
-              <span className={`${role === 'admin' ? 'text-gray-700' : roleColors.todayText} text-xs sm:text-xs md:text-sm lg:text-base font-medium px-2 py-0.5 rounded pointer-events-auto translate-y-3`}>
-                {day.eventCount === 1
-                  ? "Event"
-                  : "Events..."}
-              </span>
-            </motion.div>
-          </>
+            {/* Mobile: Top-left calendar icon */}
+            {day.eventCount > 1 && (
+              <motion.div
+                className="sm:hidden absolute top-1 left-1"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{
+                  scale: 1,
+                  opacity: 1,
+                  transition: {
+                    delay: Math.min(0.01 * idx + 0.3, 0.4),
+                    duration: 0.2,
+                    ease: "easeOut",
+                  },
+                }}
+              >
+                <div
+                  className={`inline-flex items-center ${role === "admin" ? "text-gray-700" : roleColors.todayText} px-1 py-0.5 rounded-xl text-xs xs:text-[10px]`}
+                >
+                  <CalendarClock size={10} className="mr-0.5 shrink-0" />
+                  <span>{day.eventCount}</span>
+                </div>
+              </motion.div>
+            )}
+          </div>
         )}
     </motion.div>
   );

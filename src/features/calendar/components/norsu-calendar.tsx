@@ -5,7 +5,11 @@ import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { CalendarDayType } from "@/interface/user-props";
 import { getRoleColors, UserRole } from "@/shared/components/utils/role-colors";
-import { getPhilippineDay, getPhilippineMonth, getPhilippineYear } from "@/features/calendar/utils/timezone-utils";
+import {
+  getPhilippineDay,
+  getPhilippineMonth,
+  getPhilippineYear,
+} from "@/features/calendar/utils/timezone-utils";
 import { useCalendarNavigation } from "@/features/calendar/hooks/use-calendar-navigation";
 import { CalendarHeader } from "./calendar-header";
 import { CalendarGrid } from "./calendar-grid";
@@ -20,10 +24,15 @@ export function Calendar<T>({
   onMonthYearChange,
 }: {
   events: T[];
-  onDaySelect: (day: CalendarDayType) => void;
-  getEventsForDate: (year: number, month: number, day: number) => {
+  onDaySelect: (day: CalendarDayType<T>) => void;
+  getEventsForDate: (
+    year: number,
+    month: number,
+    day: number,
+  ) => {
     hasEvent: boolean;
     count: number;
+    eventsList?: T[];
   };
   initialDate?: Date;
   role?: UserRole;
@@ -35,24 +44,29 @@ export function Calendar<T>({
   const roleColors = useMemo(() => getRoleColors(role), [role]);
 
   // Navigation state and handlers
-  const { direction, setDirection, goToPreviousMonth, goToNextMonth, goToToday } =
-    useCalendarNavigation(currentMonth, currentYear, onMonthYearChange);
+  const {
+    direction,
+    setDirection,
+    goToPreviousMonth,
+    goToNextMonth,
+    goToToday,
+  } = useCalendarNavigation(currentMonth, currentYear, onMonthYearChange);
 
   // Build calendar days (6 rows x 7 columns = 42 cells)
   const calendarDays = useMemo(() => {
-    const days: CalendarDayType[] = [];
+    const days: CalendarDayType<T>[] = [];
 
     // Get info for previous, current, and next month
     const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay(); // 0=Sun
     const lastDateOfMonth = new Date(
       currentYear,
       currentMonth + 1,
-      0
+      0,
     ).getDate();
     const lastDateOfPrevMonth = new Date(
       currentYear,
       currentMonth,
-      0
+      0,
     ).getDate();
 
     // FIX: Get Philippine timezone current date components once
@@ -80,7 +94,11 @@ export function Calendar<T>({
         currentYear === todayYear;
 
       // Get events for this day using the provided function
-      const { hasEvent, count } = getEventsForDate(currentYear, currentMonth, i);
+      const { hasEvent, count, eventsList } = getEventsForDate(
+        currentYear,
+        currentMonth,
+        i,
+      );
 
       days.push({
         date: i,
@@ -88,6 +106,7 @@ export function Calendar<T>({
         key: `curr-${i}-${currentMonth}-${currentYear}`,
         hasEvent,
         eventCount: count,
+        dayEvents: eventsList,
         isToday,
       });
     }
@@ -122,13 +141,13 @@ export function Calendar<T>({
       "November",
       "December",
     ],
-    []
+    [],
   );
 
   // Get current month name and year as a formatted string
   const currentMonthYear = useMemo(
     () => `${monthNames[currentMonth]} ${currentYear}`,
-    [currentMonth, currentYear, monthNames]
+    [currentMonth, currentYear, monthNames],
   );
 
   return (

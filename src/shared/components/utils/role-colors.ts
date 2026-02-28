@@ -14,6 +14,8 @@ export const getRoleColors = (role?: UserRole) => {
       eventDayBorder: "border-teal-300",
       hoverBg: "hover:bg-teal-50",
       activeBg: "active:bg-teal-100",
+      pillBg: "bg-teal-50",
+      pillBorder: "border-teal-500",
     },
     dean: {
       spinner: "border-blue-500",
@@ -25,6 +27,8 @@ export const getRoleColors = (role?: UserRole) => {
       eventDayBorder: "border-blue-300",
       hoverBg: "hover:bg-blue-50",
       activeBg: "active:bg-blue-100",
+      pillBg: "bg-blue-50",
+      pillBorder: "border-blue-500",
     },
     staff: {
       spinner: "border-purple-500",
@@ -36,6 +40,8 @@ export const getRoleColors = (role?: UserRole) => {
       eventDayBorder: "border-purple-300",
       hoverBg: "hover:bg-purple-50",
       activeBg: "active:bg-purple-100",
+      pillBg: "bg-purple-50",
+      pillBorder: "border-purple-500",
     },
     admin: {
       // spinner: "border-gray-800",
@@ -56,6 +62,8 @@ export const getRoleColors = (role?: UserRole) => {
       eventDayBorder: "border-gray-400",
       hoverBg: "hover:bg-gray-100",
       activeBg: "active:bg-gray-100",
+      pillBg: "bg-gray-100",
+      pillBorder: "border-gray-500",
     },
   };
 

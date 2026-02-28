@@ -31,7 +31,7 @@ interface UsePublicCalendarDataResult {
   allEvents: EventDetails[];
   upcomingEvents: { title: string; date: string }[];
   calendarEvents: EventDetails[];
-  getEventsForDate: (year: number, month: number, day: number) => { hasEvent: boolean; count: number };
+  getEventsForDate: (year: number, month: number, day: number) => { hasEvent: boolean; count: number; eventsList?: EventDetails[] };
   selectedDayEvents: EventDetails[];
 }
 
@@ -120,14 +120,15 @@ export default function usePublicCalendarData({
 
     // Early return for better performance
     if (calendarEvents.length === 0) {
-      return { hasEvent: false, count: 0 };
+      return { hasEvent: false, count: 0, eventsList: [] };
     }
 
     const dayEvents = calendarEvents.filter(event => event.date === dateStr);
 
     return {
       hasEvent: dayEvents.length > 0,
-      count: dayEvents.length
+      count: dayEvents.length,
+      eventsList: dayEvents
     };
   }, [calendarEvents]);
 

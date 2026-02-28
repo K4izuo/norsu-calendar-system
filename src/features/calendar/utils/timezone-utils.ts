@@ -79,3 +79,26 @@ export function isToday(year: number, month: number, day: number): boolean {
     year === getPhilippineYear()
   );
 }
+
+/**
+ * Format time range from "HH:mm:ss" to "h:mm A - h:mm A"
+ */
+export function formatEventTimeRange(timeStart?: string, timeEnd?: string): string {
+  const formatTime = (timeStr?: string) => {
+    if (!timeStr) return "";
+    const [hoursStr, minutesStr] = timeStr.split(':');
+    let hours = parseInt(hoursStr, 10);
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+    return `${hours}:${minutesStr} ${ampm}`;
+  };
+
+  const formattedStart = formatTime(timeStart);
+  const formattedEnd = formatTime(timeEnd);
+
+  if (formattedStart && formattedEnd) {
+    return `${formattedStart} - ${formattedEnd}`;
+  }
+  return formattedStart || formattedEnd || "";
+}

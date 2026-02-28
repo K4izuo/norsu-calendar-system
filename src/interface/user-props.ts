@@ -178,19 +178,20 @@ export type StaffRegisterFormData = {
   role: string
 }
 
-export interface CalendarDayType {
+export interface CalendarDayType<T = unknown> {
   date: number
   currentMonth: boolean
   key: string
   hasEvent: boolean
   eventCount?: number
   isToday?: boolean
+  dayEvents?: T[]
 }
 
 export interface CalendarProps<T> {
   events: T[]
-  onDaySelect: (day: CalendarDayType) => void
-  getEventsForDate: (year: number, month: number, day: number) => { hasEvent: boolean; count: number }
+  onDaySelect: (day: CalendarDayType<T>) => void
+  getEventsForDate: (year: number, month: number, day: number) => { hasEvent: boolean; count: number; eventsList?: T[] }
   initialDate?: Date
   isLoading?: boolean
   setLoading?: (loading: boolean) => void

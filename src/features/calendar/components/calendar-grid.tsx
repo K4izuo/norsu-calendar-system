@@ -7,17 +7,25 @@ import { getRoleColors, UserRole } from "@/shared/components/utils/role-colors";
 import { calendarVariants } from "@/features/calendar/utils/calendar-animations";
 import { CalendarDayCell } from "./calendar-day-cell";
 
-interface CalendarGridProps {
-  calendarDays: CalendarDayType[];
+interface CalendarGridProps<T = unknown> {
+  calendarDays: CalendarDayType<T>[];
   currentMonth: number;
   currentYear: number;
   direction: number;
   roleColors: ReturnType<typeof getRoleColors>;
   role?: UserRole;
-  onDaySelect: (day: CalendarDayType) => void;
+  onDaySelect: (day: CalendarDayType<T>) => void;
 }
 
-export function CalendarGrid({ calendarDays, currentMonth, currentYear, direction, roleColors, role, onDaySelect }: CalendarGridProps) {
+export function CalendarGrid<T>({
+  calendarDays,
+  currentMonth,
+  currentYear,
+  direction,
+  roleColors,
+  role,
+  onDaySelect,
+}: CalendarGridProps<T>) {
   return (
     <div className="flex flex-col w-full flex-1">
       {/* Calendar table header */}
