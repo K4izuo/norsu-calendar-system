@@ -284,171 +284,171 @@ export const EventInfoModal = React.memo(function EventInfoModal({
               {!loading && event && (
                 <div className="flex-1 overflow-y-auto">
                   <div className="p-4 sm:p-6 space-y-6">
-                    <div className="bg-white text-card-foreground border border-border rounded-lg p-6">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <NotebookText className="text-gray-500 shrink-0 h-5 w-5" />
-                            <h3 className="text-lg capitalize font-medium">
-                              {event.title_name || "Event Title"}
-                            </h3>
+                    <div className="bg-white text-card-foreground border border-border rounded-lg">
+                      <div className="p-6">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <NotebookText className="text-gray-500 shrink-0 h-5 w-5" />
+                              <h3 className="text-lg capitalize font-medium">
+                                {event.title_name || "Event Title"}
+                              </h3>
+                            </div>
+                            <p className="text-sm text-gray-500 flex items-center gap-1.5 mt-1">
+                              <MapPin className="h-4 w-4" />
+                              {assetName}
+                              {startedAgoText && ` - ${startedAgoText}`}
+                            </p>
                           </div>
-                          <p className="text-sm text-gray-500 flex items-center gap-1.5 mt-1">
-                            <MapPin className="h-4 w-4" />
-                            {assetName}
-                            {startedAgoText && ` - ${startedAgoText}`}
-                          </p>
                         </div>
-                        {/* <div className="shrink-0">
-                          <span
-                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusColor(
-                              getStatus(event)
-                            )}`}
-                          >
-                            {getStatus(event).charAt(0).toUpperCase() +
-                              getStatus(event).slice(1)}
-                          </span>
-                        </div> */}
                       </div>
-                      {/* event details grid */}
-                      <div className="border-b border-gray-300 mb-4" />
-                      <div className="flex justify-between items-start gap-4">
-                        <div>
-                          <p className="text-sm text-gray-500">Date</p>
-                          <div className="flex items-center">
-                            {/* <CalendarPlus2 className="h-4 w-4 mr-1.5 text-gray-500" /> */}
-                            <p className="font-medium text-base">
-                              {formatDate(event.date)}
-                            </p>
-                          </div>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">
-                            Information Type
-                          </p>
-                          <p className="font-medium capitalize text-base">
-                            {event.info_type}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">
-                            Capacity
-                          </p>
-                          <p className="font-medium text-base">
-                            {assetCapacity} people
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Category</p>
-                          <p className="font-medium capitalize text-base">
-                            {event.category}
-                          </p>
-                        </div>
-                        {assetAminities && assetAminities.length > 0 && (
-                          <div className="col-span-1 md:col-span-2 lg:col-span-4">
-                            <p className="text-sm text-gray-500 mb-2">
-                              Venue Facilities
-                            </p>
-                            <div className="flex flex-wrap gap-2">
-                              {assetAminities.map((facility, index) => (
-                                <span
-                                  key={index}
-                                  className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium border border-gray-300 text-gray-800 bg-transparent"
-                                >
-                                  {facility}
-                                </span>
-                              ))}
+
+                      <div className="border-t border-gray-200" />
+
+                      <div className="p-6">
+                        {/* event details grid */}
+                        <div className="flex justify-between items-start gap-4">
+                          <div>
+                            <p className="text-sm text-gray-500">Date</p>
+                            <div className="flex items-center">
+                              {/* <CalendarPlus2 className="h-4 w-4 mr-1.5 text-gray-500" /> */}
+                              <p className="font-medium text-base">
+                                {formatDate(event.date)}
+                              </p>
                             </div>
                           </div>
-                        )}
+                          <div>
+                            <p className="text-sm text-gray-500">
+                              Information Type
+                            </p>
+                            <p className="font-medium capitalize text-base">
+                              {event.info_type}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-500">Capacity</p>
+                            <p className="font-medium text-base">
+                              {assetCapacity} people
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-500">Category</p>
+                            <p className="font-medium capitalize text-base">
+                              {event.category}
+                            </p>
+                          </div>
+                          {assetAminities && assetAminities.length > 0 && (
+                            <div className="col-span-1 md:col-span-2 lg:col-span-4">
+                              <p className="text-sm text-gray-500 mb-2">
+                                Venue Facilities
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {assetAminities.map((facility, index) => (
+                                  <span
+                                    key={index}
+                                    className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium border border-gray-300 text-gray-800 bg-transparent"
+                                  >
+                                    {facility}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
 
                     {/* reservation details */}
-                    <div className="bg-white text-card-foreground border border-border rounded-lg p-6">
-                      <div className="flex items-center mb-3">
-                        <NotebookPen className="text-gray-500 mr-2 h-5 w-5" />
-                        <h3 className="text-lg font-medium text-gray-700">
-                          Reservation Details
-                        </h3>
+                    <div className="bg-white text-card-foreground border border-border rounded-lg">
+                      <div className="p-6">
+                        <div className="flex items-center">
+                          <NotebookPen className="text-gray-500 mr-2 h-5 w-5" />
+                          <h3 className="text-lg font-medium text-gray-700">
+                            Reservation Details
+                          </h3>
+                        </div>
                       </div>
-                      <div className="border-b border-gray-300 mb-4" />
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm text-gray-500">Reserved By</p>
-                          <span className="inline-flex mt-1 items-center text-sm font-medium">
-                            {/* <User className="w-3 h-3 mr-1.5 text-gray-800" /> */}
-                            <p className="font-medium text-base">
-                              {event.reserve_by_user || "Unknown User"}
-                            </p>
-                          </span>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Status</p>
-                          <div className="flex mt-1 items-center gap-2">
-                            <span
-                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-md font-medium ${getStatusColor(
-                                getStatus(event),
-                              )}`}
-                            >
-                              {getStatus(event).charAt(0).toUpperCase() +
-                                getStatus(event).slice(1)}
+                      <div className="border-t border-gray-200" />
+                      <div className="p-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-sm text-gray-500">Reserved By</p>
+                            <span className="inline-flex mt-1 items-center text-sm font-medium">
+                              {/* <User className="w-3 h-3 mr-1.5 text-gray-800" /> */}
+                              <p className="font-medium text-base">
+                                {event.reserve_by_user || "Unknown User"}
+                              </p>
                             </span>
-                            {getStatus(event) === "APPROVED" && (
-                              <span className="text-base text-gray-600">
-                                by:{" "}
-                                {event.approved_by_user_details
-                                  ? `${event.approved_by_user_details.first_name} ${event.approved_by_user_details.last_name}`
-                                  : "—"}
-                              </span>
-                            )}
-                            {getStatus(event) === "DECLINED" && (
-                              <span className="text-base text-gray-600">
-                                by:{" "}
-                                {event.declined_by_user_details
-                                  ? `${event.declined_by_user_details.first_name} ${event.declined_by_user_details.last_name}`
-                                  : "—"}
-                              </span>
-                            )}
                           </div>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">
-                            Day(s)
-                          </p>
-                          <p className="font-medium text-base">{`${event.range} ${event.range === 1 ? "day" : "days"}`}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">
-                            Deadline
-                          </p>
-                          <p className="font-medium text-base">
-                            {formatDate(event.registration_deadline)}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Time</p>
-                          <div className="flex items-center">
-                            {/* <Clock className="h-4 w-4 mr-1.5 text-gray-500" /> */}
-                            <p className="font-medium text-base">{`${formatTime(event.time_start)} - ${formatTime(event.time_end)}`}</p>
+                          <div>
+                            <p className="text-sm text-gray-500">Status</p>
+                            <div className="flex mt-1 items-center gap-2">
+                              <span
+                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-md font-medium ${getStatusColor(
+                                  getStatus(event),
+                                )}`}
+                              >
+                                {getStatus(event).charAt(0).toUpperCase() +
+                                  getStatus(event).slice(1)}
+                              </span>
+                              {getStatus(event) === "APPROVED" && (
+                                <span className="text-base text-gray-600">
+                                  by:{" "}
+                                  {event.approved_by_user_details
+                                    ? `${event.approved_by_user_details.first_name} ${event.approved_by_user_details.last_name}`
+                                    : "—"}
+                                </span>
+                              )}
+                              {getStatus(event) === "DECLINED" && (
+                                <span className="text-base text-gray-600">
+                                  by:{" "}
+                                  {event.declined_by_user_details
+                                    ? `${event.declined_by_user_details.first_name} ${event.declined_by_user_details.last_name}`
+                                    : "—"}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-500">Day(s)</p>
+                            <p className="font-medium text-base">{`${event.range} ${event.range === 1 ? "day" : "days"}`}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-500">Deadline</p>
+                            <p className="font-medium text-base">
+                              {formatDate(event.registration_deadline)}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-500">Time</p>
+                            <div className="flex items-center">
+                              {/* <Clock className="h-4 w-4 mr-1.5 text-gray-500" /> */}
+                              <p className="font-medium text-base">{`${formatTime(event.time_start)} - ${formatTime(event.time_end)}`}</p>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
 
                     {/* additional details */}
-                    <div className="bg-white text-card-foreground border border-border rounded-lg p-6">
-                      <div className="flex items-center mb-3">
-                        <Info className="text-gray-500 mr-2 h-5 w-5" />
-                        <h3 className="text-lg font-medium text-gray-700">
-                          Additional Details
-                        </h3>
+                    <div className="bg-white text-card-foreground border border-border rounded-lg">
+                      <div className="p-6">
+                        <div className="flex items-center">
+                          <Info className="text-gray-500 mr-2 h-5 w-5" />
+                          <h3 className="text-lg font-medium text-gray-700">
+                            Additional Details
+                          </h3>
+                        </div>
                       </div>
-                      <div className="border-b border-gray-300 mb-4" />
-                      <div className="space-y-3">
-                        <div>
-                          <p className="text-sm text-gray-500">Description</p>
-                          <p className="mt-1 text-base">{event.description}</p>
+                      <div className="border-t border-gray-200" />
+                      <div className="p-6">
+                        <div className="space-y-3">
+                          <div>
+                            <p className="text-sm text-gray-500">Description</p>
+                            <p className="mt-1 text-base">
+                              {event.description}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { CalendarClock } from "lucide-react";
+import { CalendarClock, Clock } from "lucide-react";
 import { formatEventTimeRange } from "@/features/calendar/utils/timezone-utils";
 import { CalendarDayType } from "@/interface/user-props";
 import { getRoleColors, UserRole } from "@/shared/components/utils/role-colors";
@@ -13,6 +13,7 @@ interface CalendarDayCellProps<T = unknown> {
   roleColors: ReturnType<typeof getRoleColors>;
   role?: UserRole;
   onDaySelect: (day: CalendarDayType<T>) => void;
+  onEventSelect?: (event: T) => void;
 }
 
 export function CalendarDayCell<T>({
@@ -21,6 +22,7 @@ export function CalendarDayCell<T>({
   roleColors,
   role,
   onDaySelect,
+  onEventSelect,
 }: CalendarDayCellProps<T>) {
   const getEventTitle = (event: unknown) => {
     if (typeof event === "object" && event !== null) {
@@ -107,7 +109,15 @@ export function CalendarDayCell<T>({
                 return (
                   <motion.div
                     key={`event-${idx}-${eventIdx}`}
-                    className={`w-full flex flex-col px-1.5 py-1.5 ${roleColors.pillBg} border-l-2 ${roleColors.pillBorder} rounded-r-md rounded-l-sm overflow-hidden`}
+                    onClick={
+                      onEventSelect
+                        ? (e) => {
+                            e.stopPropagation();
+                            onEventSelect(event as T);
+                          }
+                        : undefined
+                    }
+                    className={`w-full flex flex-col px-1.5 py-1.5 ${roleColors.pillBg} border-l-2 ${roleColors.pillBorder} rounded-r-md rounded-l-sm overflow-hidden ${onEventSelect ? "cursor-pointer hover:brightness-95" : ""}`}
                     initial={{ opacity: 0, x: -5 }}
                     animate={{
                       opacity: 1,
@@ -122,7 +132,8 @@ export function CalendarDayCell<T>({
                       {title}
                     </span>
                     {time && (
-                      <span className="text-[9px] sm:text-[10px] text-gray-500 font-medium leading-tight">
+                      <span className="flex items-center mt-px text-[9px] sm:text-[10px] text-gray-500 font-medium leading-tight">
+                        <Clock className="w-[9px] text-gray-500 h-[9px] sm:w-[10px] sm:h-[10px] mr-1 shrink-0" />
                         {time}
                       </span>
                     )}

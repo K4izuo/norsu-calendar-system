@@ -17,6 +17,7 @@ import { CalendarGrid } from "./calendar-grid";
 // Updated props interface
 export function Calendar<T>({
   onDaySelect,
+  onEventSelect,
   getEventsForDate,
   role,
   currentMonth,
@@ -25,6 +26,7 @@ export function Calendar<T>({
 }: {
   events: T[];
   onDaySelect: (day: CalendarDayType<T>) => void;
+  onEventSelect?: (event: T) => void;
   getEventsForDate: (
     year: number,
     month: number,
@@ -175,6 +177,7 @@ export function Calendar<T>({
         roleColors={roleColors}
         role={role}
         onDaySelect={onDaySelect}
+        onEventSelect={onEventSelect}
       />
 
       {/* Fixed arrow buttons group for mobile only */}

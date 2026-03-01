@@ -15,6 +15,7 @@ interface CalendarGridProps<T = unknown> {
   roleColors: ReturnType<typeof getRoleColors>;
   role?: UserRole;
   onDaySelect: (day: CalendarDayType<T>) => void;
+  onEventSelect?: (event: T) => void;
 }
 
 export function CalendarGrid<T>({
@@ -25,6 +26,7 @@ export function CalendarGrid<T>({
   roleColors,
   role,
   onDaySelect,
+  onEventSelect,
 }: CalendarGridProps<T>) {
   return (
     <div className="flex flex-col w-full flex-1">
@@ -63,6 +65,7 @@ export function CalendarGrid<T>({
                 roleColors={roleColors}
                 role={role}
                 onDaySelect={onDaySelect}
+                onEventSelect={onEventSelect}
               />
             ))}
           </motion.div>

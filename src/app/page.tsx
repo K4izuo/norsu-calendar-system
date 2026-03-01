@@ -132,6 +132,7 @@ export default function Home() {
                     role="public"
                     events={calendarEvents}
                     onDaySelect={handleDaySelect}
+                    onEventSelect={handleEventClick}
                     getEventsForDate={getEventsForDate}
                     initialDate={today}
                     currentMonth={currentMonth}

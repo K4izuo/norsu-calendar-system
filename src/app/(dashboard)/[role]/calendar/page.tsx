@@ -209,6 +209,7 @@ export default function CalendarPage() {
           role="admin"
           events={calendarEvents}
           onDaySelect={handleDaySelect}
+          onEventSelect={handleEventClick}
           getEventsForDate={getEventsForDate}
           currentMonth={currentMonth}
           currentYear={currentYear}
