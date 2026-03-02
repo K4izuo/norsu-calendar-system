@@ -35,8 +35,8 @@ export const RESERVATION_VALIDATION_RULES: ValidationRules = {
     minLength: { value: 10, message: "Description must be at least 10 characters" }
   },
   range: {
-    required: "Range field is required",
-    min: { value: 1, message: "Range must be at least 1 day" }
+    required: "Day(s) field is required",
+    min: { value: 1, message: "Day(s) must be at least 1 day" }
   },
   people_tag: {
     required: "At least one person must be tagged",

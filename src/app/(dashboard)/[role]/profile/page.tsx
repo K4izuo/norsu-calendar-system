@@ -120,7 +120,7 @@ export default function ProfilePage() {
                     className="object-cover opacity-80"
                   />
                 </div>
-                <button className="absolute bottom-0 right-0 w-8 h-8 bg-blue-600 rounded-full border-2 border-white flex items-center justify-center text-white shadow-sm hover:bg-blue-700 transition-colors">
+                <button className="absolute cursor-pointer bottom-0 right-0 w-8 h-8 bg-blue-600 rounded-full border-2 border-white flex items-center justify-center text-white shadow-sm hover:bg-blue-700 transition-colors">
                   <Pencil className="w-4 h-4" />
                 </button>
               </div>

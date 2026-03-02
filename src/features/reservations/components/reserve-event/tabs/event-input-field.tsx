@@ -1,4 +1,10 @@
-import { UseFormRegister, FieldErrors, FieldValues, RegisterOptions, Path } from "react-hook-form";
+import {
+  UseFormRegister,
+  FieldErrors,
+  FieldValues,
+  RegisterOptions,
+  Path,
+} from "react-hook-form";
 import { Input } from "@/shared/components/ui/input";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Label } from "@/shared/components/ui/label";
@@ -13,7 +19,8 @@ type EventFormInputProps<T extends FieldValues = FieldValues> = {
   required?: boolean;
   isTextarea?: boolean;
   clientError?: string;
-} & React.InputHTMLAttributes<HTMLInputElement> & React.TextareaHTMLAttributes<HTMLTextAreaElement>;
+} & React.InputHTMLAttributes<HTMLInputElement> &
+  React.TextareaHTMLAttributes<HTMLTextAreaElement>;
 
 export const EventFormInput = <T extends FieldValues>({
   name,
@@ -29,15 +36,17 @@ export const EventFormInput = <T extends FieldValues>({
   // Server errors take priority over client-side validation
   const displayError = errors[name]?.message || clientError;
 
-  const inputClassName = `h-12 text-base border-2 rounded-lg transition-all duration-150 ${displayError
-    ? "border-red-400 focus:border-red-500 focus:ring-red-200"
-    : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
-    }`;
+  const inputClassName = `h-12 text-base border-2 rounded-lg transition-all duration-150 ${
+    displayError
+      ? "border-red-500 focus-visible:ring-red-100 focus-visible:border-red-500"
+      : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+  }`;
 
-  const textareaClassName = `min-h-[120px] text-base border-2 rounded-lg transition-all duration-150 ${displayError
-    ? "border-red-400 focus:border-red-500 focus:ring-red-200"
-    : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
-    }`;
+  const textareaClassName = `min-h-[120px] text-base border-2 rounded-lg transition-all duration-150 ${
+    displayError
+      ? "border-red-500 focus-visible:ring-red-100 focus-visible:border-red-500"
+      : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+  }`;
 
   return (
     <div className="flex flex-col gap-1.5">

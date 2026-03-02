@@ -1,12 +1,11 @@
 import { Lock, Eye, EyeOff, CircleCheckBig } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "react-hot-toast";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
-import { apiClient } from "@/core/api/api-client";
 import { PasswordChangeFormData } from "@/features/auth/types/auth.types";
+import { useUpdatePassword } from "@/features/user-profile/hooks/use-update-password";
 
 function RequirementItem({
   checked,
@@ -33,6 +32,7 @@ export function PasswordSecurityContent() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { updatePassword, isLoading } = useUpdatePassword();
 
   const {
     register,
@@ -40,7 +40,7 @@ export function PasswordSecurityContent() {
     reset,
     setError,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<PasswordChangeFormData>({
     defaultValues: {
       current_password: "",
@@ -74,29 +74,9 @@ export function PasswordSecurityContent() {
       return;
     }
 
-    try {
-      const response = await apiClient.put<
-        { message: string },
-        PasswordChangeFormData
-      >("users/update-password", data);
-
-      if (response.error) {
-        toast.error(response.error, { position: "top-center" });
-        return;
-      }
-
-      toast.success(
-        response.data?.message || "Password updated successfully!",
-        {
-          position: "top-center",
-        },
-      );
+    const success = await updatePassword(data);
+    if (success) {
       reset();
-    } catch (err) {
-      console.error("Password update error:", err);
-      toast.error("Failed to update password. Please try again.", {
-        position: "top-center",
-      });
     }
   };
 
@@ -240,10 +220,10 @@ export function PasswordSecurityContent() {
         <div className="flex justify-end mt-2">
           <Button
             type="submit"
-            disabled={isSubmitting}
-            className="w-full cursor-pointer sm:w-auto px-8 h-[48px] bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+            disabled={isLoading}
+            className="w-full cursor-pointer sm:w-auto px-8 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? "Updating..." : "Update Password"}
+            {isLoading ? "Updating..." : "Update Password"}
           </Button>
         </div>
       </form>
