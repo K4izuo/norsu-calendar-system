@@ -5,16 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   NotebookPen,
   CalendarClock,
-  // Clock,
   MapPin,
-  // CalendarPlus2,
   Info,
   X,
-  // User,
-  // Edit,
   CircleCheckBig,
   XCircle,
-  NotebookText,
 } from "lucide-react";
 import { Button } from "../../../shared/components/ui/button";
 import { EventDetails } from "@/interface/user-props";
@@ -289,7 +284,6 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                         <div className="flex items-start justify-between">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
-                              <NotebookText className="text-gray-500 shrink-0 h-5 w-5" />
                               <h3 className="text-lg capitalize font-medium">
                                 {event.title_name || "Event Title"}
                               </h3>
