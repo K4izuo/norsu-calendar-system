@@ -51,7 +51,7 @@ export function CalendarDayCell<T>({
       data-idx={idx}
       className={`relative border rounded-md flex flex-col p-1.5 sm:p-2 text-sm xs:text-base sm:text-lg md:text-xl font-medium
           ${day.currentMonth
-          ? `text-gray-900 border-[1.5px] ${day.hasEvent ? roleColors.eventDayBorder : "border-gray-200"} cursor-pointer ${roleColors.hoverBg} hover:shadow-sm`
+          ? `text-gray-900 border-[1.5px] ${day.hasEvent ? roleColors.eventDayBorder : "border-gray-300"} cursor-pointer ${roleColors.hoverBg} hover:shadow-sm`
           : "text-gray-400 border-gray-100 bg-gray-50 bg-opacity-50"
         }
           ${day.isToday ? `border-[1.5px]` : ""}
@@ -115,7 +115,7 @@ export function CalendarDayCell<T>({
                         }
                         : undefined
                     }
-                    className={`w-full flex flex-col px-1.5 py-1.5 ${roleColors.pillBg} border-l-2 ${roleColors.pillBorder} rounded-r-md rounded-l-sm overflow-hidden ${onEventSelect ? "cursor-pointer hover:brightness-95" : ""}`}
+                    className={`w-full flex flex-col px-1.5 py-1.5 ${roleColors.pillBg} border-l ${roleColors.pillBorder} rounded-r-md rounded-l-sm overflow-hidden ${onEventSelect ? "cursor-pointer hover:brightness-95" : ""}`}
                     initial={{ opacity: 0, x: -5 }}
                     animate={{
                       opacity: 1,
