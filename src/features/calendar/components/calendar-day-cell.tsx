@@ -51,7 +51,7 @@ export function CalendarDayCell<T>({
       data-idx={idx}
       className={`relative border rounded-md flex flex-col p-1.5 sm:p-2 text-sm xs:text-base sm:text-lg md:text-xl font-medium
           ${day.currentMonth
-          ? `text-gray-900 border-[1.5px] ${day.hasEvent ? roleColors.eventDayBorder : "border border-input"} cursor-pointer ${roleColors.hoverBg} hover:shadow-sm`
+          ? `text-gray-900 border-[1.5px] ${day.hasEvent ? roleColors.eventDayBorder : "border-gray-200"} cursor-pointer ${roleColors.hoverBg} hover:shadow-sm`
           : "text-gray-400 border-gray-100 bg-gray-50 bg-opacity-50"
         }
           ${day.isToday ? `border-[1.5px]` : ""}
@@ -82,10 +82,10 @@ export function CalendarDayCell<T>({
       <div className="flex justify-end items-start w-full">
         <span
           className={`text-sm md:text-base ${day.isToday
-              ? `${roleColors.todayText} font-extrabold`
-              : day.currentMonth
-                ? ""
-                : "text-gray-400"
+            ? `${roleColors.todayText} font-extrabold`
+            : day.currentMonth
+              ? ""
+              : "text-gray-400"
             }`}
         >
           {day.date}
