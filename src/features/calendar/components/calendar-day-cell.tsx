@@ -50,11 +50,10 @@ export function CalendarDayCell<T>({
       key={day.key}
       data-idx={idx}
       className={`relative border rounded-md flex flex-col p-1.5 sm:p-2 text-sm xs:text-base sm:text-lg md:text-xl font-medium
-          ${
-            day.currentMonth
-              ? `text-gray-900 border-[1.5px] ${day.hasEvent ? roleColors.eventDayBorder : "border-gray-300"} cursor-pointer ${roleColors.hoverBg} hover:shadow-sm`
-              : "text-gray-400 border-gray-100 bg-gray-50 bg-opacity-50"
-          }
+          ${day.currentMonth
+          ? `text-gray-900 border-[1.5px] ${day.hasEvent ? roleColors.eventDayBorder : "border border-input"} cursor-pointer ${roleColors.hoverBg} hover:shadow-sm`
+          : "text-gray-400 border-gray-100 bg-gray-50 bg-opacity-50"
+        }
           ${day.isToday ? `border-[1.5px]` : ""}
           ${day.hasEvent && day.currentMonth}
         `}
@@ -71,10 +70,10 @@ export function CalendarDayCell<T>({
       whileHover={
         day.currentMonth
           ? {
-              scale: 1.02,
-              boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-              transition: { duration: 0.1 },
-            }
+            scale: 1.02,
+            boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+            transition: { duration: 0.1 },
+          }
           : {}
       }
       whileTap={day.currentMonth ? { scale: 0.98 } : {}}
@@ -82,13 +81,12 @@ export function CalendarDayCell<T>({
       {/* Only show date number if it's a real day */}
       <div className="flex justify-end items-start w-full">
         <span
-          className={`text-sm md:text-base ${
-            day.isToday
+          className={`text-sm md:text-base ${day.isToday
               ? `${roleColors.todayText} font-extrabold`
               : day.currentMonth
                 ? ""
                 : "text-gray-400"
-          }`}
+            }`}
         >
           {day.date}
         </span>
@@ -112,9 +110,9 @@ export function CalendarDayCell<T>({
                     onClick={
                       onEventSelect
                         ? (e) => {
-                            e.stopPropagation();
-                            onEventSelect(event as T);
-                          }
+                          e.stopPropagation();
+                          onEventSelect(event as T);
+                        }
                         : undefined
                     }
                     className={`w-full flex flex-col px-1.5 py-1.5 ${roleColors.pillBg} border-l-2 ${roleColors.pillBorder} rounded-r-md rounded-l-sm overflow-hidden ${onEventSelect ? "cursor-pointer hover:brightness-95" : ""}`}
