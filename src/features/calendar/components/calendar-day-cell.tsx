@@ -51,12 +51,12 @@ export function CalendarDayCell<T>({
       data-idx={idx}
       className={`relative border rounded-md flex flex-col p-1.5 sm:p-2 text-sm xs:text-base sm:text-lg md:text-xl font-medium
           ${day.currentMonth
-          ? `text-gray-900 border-[1.5px] ${day.hasEvent ? roleColors.eventDayBorder : "border-gray-300"} cursor-pointer ${roleColors.hoverBg} hover:shadow-sm`
+          ? `text-gray-900 border-[1.5px] border-input cursor-pointer ${roleColors.hoverBg} hover:shadow-sm`
           : "text-gray-400 border-gray-100 bg-gray-50 bg-opacity-50"
         }
-          ${day.isToday ? `border-[1.5px]` : ""}
-          ${day.hasEvent && day.currentMonth}
-        `}
+        ${day.isToday ? `border-[1.5px]` : ""}
+        ${day.hasEvent && day.currentMonth}
+      `}
       onClick={day.currentMonth ? () => onDaySelect(day) : undefined}
       initial={{ scale: 0.97, opacity: 0 }}
       animate={{
