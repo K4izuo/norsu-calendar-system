@@ -51,7 +51,7 @@ export function CalendarDayCell<T>({
       data-idx={idx}
       className={`relative border rounded-md flex flex-col p-1.5 sm:p-2 text-sm xs:text-base sm:text-lg md:text-xl font-medium
           ${day.currentMonth
-          ? `text-gray-900 border-[1.5px] border-gray-200 cursor-pointer ${roleColors.hoverBg} hover:shadow-sm`
+          ? `text-gray-900 border-[1.5px] border-border cursor-pointer ${roleColors.hoverBg} hover:shadow-sm`
           : "text-gray-400 border-gray-100 bg-gray-50 bg-opacity-50"
         }
         ${day.isToday ? `border-[1.5px]` : ""}
