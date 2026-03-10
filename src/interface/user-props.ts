@@ -258,3 +258,11 @@ export interface AssetRegistrationPayload {
   campus_id?: string
   office_id?: string
 }
+
+export interface MoveReservationPayload {
+  new_date: string;
+  new_time_start: string;
+  new_time_end: string;
+  reason: string;
+  moved_by: number;
+}
