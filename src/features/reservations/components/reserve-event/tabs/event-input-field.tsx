@@ -36,17 +36,15 @@ export const EventFormInput = <T extends FieldValues>({
   // Server errors take priority over client-side validation
   const displayError = errors[name]?.message || clientError;
 
-  const inputClassName = `h-12 text-base border-2 rounded-lg transition-all duration-150 ${
-    displayError
-      ? "border-red-500 focus-visible:ring-red-100 focus-visible:border-red-500"
-      : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
-  }`;
+  const inputClassName = `h-12 text-base border rounded-lg transition-all duration-150 ${displayError
+    ? "border-red-500 focus-visible:ring-red-200 focus-visible:border-red-500"
+    : "border-gray-300 focus:border-blue-500 focus:ring-blue-500/20"
+    }`;
 
-  const textareaClassName = `min-h-[120px] text-base border-2 rounded-lg transition-all duration-150 ${
-    displayError
-      ? "border-red-500 focus-visible:ring-red-100 focus-visible:border-red-500"
-      : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
-  }`;
+  const textareaClassName = `min-h-[120px] text-base border rounded-lg transition-all duration-150 ${displayError
+    ? "border-red-500 focus-visible:ring-red-200 focus-visible:border-red-500"
+    : "border-gray-300 focus:border-blue-500 focus:ring-blue-500/20"
+    }`;
 
   return (
     <div className="flex flex-col gap-1.5">

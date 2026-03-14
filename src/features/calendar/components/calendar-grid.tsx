@@ -16,6 +16,11 @@ interface CalendarGridProps<T = unknown> {
   role?: UserRole;
   onDaySelect: (day: CalendarDayType<T>) => void;
   onEventSelect?: (event: T) => void;
+  /** True while a drag is in progress — prevents hover scale animations on all cells */
+  isDragging?: boolean;
+  onPillDragStart?: (event: unknown) => void;
+  onPillDragEnd?: () => void;
+  onNativeDrop?: (dateString: string) => void;
 }
 
 export function CalendarGrid<T>({
@@ -27,10 +32,13 @@ export function CalendarGrid<T>({
   role,
   onDaySelect,
   onEventSelect,
+  isDragging,
+  onPillDragStart,
+  onPillDragEnd,
+  onNativeDrop,
 }: CalendarGridProps<T>) {
   return (
     <div className="flex flex-col w-full flex-1">
-      {/* Calendar table header */}
       <div className="w-full px-0 pb-4">
         <div className="grid grid-cols-7 w-full">
           {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map((day) => (
@@ -44,7 +52,6 @@ export function CalendarGrid<T>({
         </div>
       </div>
 
-      {/* Calendar table days with animation */}
       <div className="flex-1 flex flex-col w-full overflow-visible relative">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
@@ -54,7 +61,6 @@ export function CalendarGrid<T>({
             initial="initial"
             animate="animate"
             exit="exit"
-            // Use only Tailwind responsive gap classes, no JS logic
             className="grid grid-rows-5 grid-cols-7 w-full gap-1 sm:gap-1.5 bg-white h-full"
           >
             {calendarDays.map((day, idx) => (
@@ -66,6 +72,10 @@ export function CalendarGrid<T>({
                 role={role}
                 onDaySelect={onDaySelect}
                 onEventSelect={onEventSelect}
+                isDragging={isDragging}
+                onPillDragStart={onPillDragStart}
+                onPillDragEnd={onPillDragEnd}
+                onNativeDrop={onNativeDrop}
               />
             ))}
           </motion.div>

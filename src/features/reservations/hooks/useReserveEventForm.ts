@@ -301,8 +301,8 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       }
 
       if (freshReservations.length === 0) {
-        toast.error("No reservations found in the system. Please contact support if this seems incorrect.");
         setIsCheckingConflict(false);
+        setActiveTab("additional");
         return;
       }
 

@@ -1,28 +1,167 @@
 "use client";
 
-import React from "react";
+import React, { useMemo, useRef, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import { CalendarClock, Clock } from "lucide-react";
 import { formatEventTimeRange } from "@/features/calendar/utils/timezone-utils";
 import { CalendarDayType } from "@/interface/user-props";
 import { getRoleColors, UserRole } from "@/shared/components/utils/role-colors";
 
+// ─── Draggable pill sub-component ────────────────────────────────────────────
+
+interface DraggableEventPillProps {
+  event: unknown;
+  roleColors: ReturnType<typeof getRoleColors>;
+  role?: UserRole;
+  onEventSelect?: (event: unknown) => void;
+  getTitle: (event: unknown) => string;
+  getTime: (event: unknown) => string;
+  onPillDragStart?: (event: unknown) => void;
+  onPillDragEnd?: () => void;
+}
+
+const DraggableEventPill = React.memo(function DraggableEventPill({
+  event,
+  roleColors,
+  role,
+  onEventSelect,
+  getTitle,
+  getTime,
+  onPillDragStart,
+  onPillDragEnd,
+}: DraggableEventPillProps) {
+  const ev = event as Record<string, unknown>;
+  const eventId = ev.id as number | undefined;
+  const status = (ev.registration_status as string | undefined)?.toUpperCase();
+  const range = ev.range as number | undefined;
+  const isDraggable =
+    role === "admin" && status === "APPROVED" && range === 1 && !!eventId;
+
+  const pillRef = useRef<HTMLDivElement>(null);
+  const title = getTitle(event);
+  const time = getTime(event);
+
+  const clearDragVisualState = useCallback(() => {
+    document.body.classList.remove("dragging-pill");
+
+    const el = pillRef.current;
+    if (el) {
+      el.style.opacity = "1";
+      el.removeAttribute("data-dragging");
+    }
+  }, []);
+
+  useEffect(() => {
+    const cleanup = () => clearDragVisualState();
+
+    window.addEventListener("dragend", cleanup);
+    window.addEventListener("drop", cleanup);
+    window.addEventListener("mouseup", cleanup);
+    window.addEventListener("blur", cleanup);
+
+    return () => {
+      window.removeEventListener("dragend", cleanup);
+      window.removeEventListener("drop", cleanup);
+      window.removeEventListener("mouseup", cleanup);
+      window.removeEventListener("blur", cleanup);
+    };
+  }, [clearDragVisualState]);
+
+  const handleMouseDown = useCallback(() => {
+    if (!isDraggable) return;
+    document.body.classList.add("dragging-pill");
+  }, [isDraggable]);
+
+  const handleMouseUp = useCallback(() => {
+    const el = pillRef.current;
+    const currentlyDragging = el?.getAttribute("data-dragging") === "1";
+    if (!currentlyDragging) {
+      document.body.classList.remove("dragging-pill");
+    }
+  }, []);
+
+  const handleDragStart = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", String(eventId));
+
+      document.body.classList.add("dragging-pill");
+      pillRef.current?.setAttribute("data-dragging", "1");
+
+      requestAnimationFrame(() => {
+        const el = pillRef.current;
+        if (el) el.style.opacity = "0";
+        onPillDragStart?.(event);
+      });
+    },
+    [event, eventId, onPillDragStart],
+  );
+
+  const handleDragEnd = useCallback(() => {
+    clearDragVisualState();
+    onPillDragEnd?.();
+  }, [clearDragVisualState, onPillDragEnd]);
+
+  return (
+    <div
+      ref={pillRef}
+      draggable={isDraggable || undefined}
+      onMouseDown={isDraggable ? handleMouseDown : undefined}
+      onMouseUp={isDraggable ? handleMouseUp : undefined}
+      onMouseLeave={isDraggable ? handleMouseUp : undefined}
+      onDragStart={isDraggable ? handleDragStart : undefined}
+      onDragEnd={isDraggable ? handleDragEnd : undefined}
+      onClick={
+        onEventSelect
+          ? (e) => {
+            e.stopPropagation();
+            onEventSelect(event);
+          }
+          : undefined
+      }
+      className={`w-full flex flex-col px-1.5 py-1.5 ${roleColors.pillBg} border-l ${roleColors.pillBorder} rounded-r-md rounded-l-sm overflow-hidden select-none
+        ${onEventSelect ? "cursor-pointer hover:brightness-95" : ""}
+        ${isDraggable ? "cursor-grab active:cursor-grabbing" : ""}`}
+    >
+      <span className="text-[10px] sm:text-xs font-semibold text-gray-800 truncate leading-tight">
+        {title}
+      </span>
+      {time && (
+        <span className="flex items-center mt-px text-[9px] sm:text-[10px] text-gray-500 font-medium leading-tight">
+          <Clock className="w-[9px] text-gray-500 h-[9px] sm:w-[10px] sm:h-[10px] mr-1 shrink-0" />
+          {time}
+        </span>
+      )}
+    </div>
+  );
+});
+
+// ─── Calendar day cell ────────────────────────────────────────────────────────
+
 interface CalendarDayCellProps<T = unknown> {
   day: CalendarDayType<T>;
   idx: number;
-  roleColors: ReturnType<typeof getRoleColors>;
+  roleColors: ReturnType<typeof getRoleColors> & { dragBgRaw?: string };
   role?: UserRole;
   onDaySelect: (day: CalendarDayType<T>) => void;
   onEventSelect?: (event: T) => void;
+  isDragging?: boolean;
+  onPillDragStart?: (event: unknown) => void;
+  onPillDragEnd?: () => void;
+  onNativeDrop?: (dateString: string) => void;
 }
 
-export function CalendarDayCell<T>({
+export const CalendarDayCell = React.memo(function CalendarDayCell<T>({
   day,
   idx,
   roleColors,
   role,
   onDaySelect,
   onEventSelect,
+  isDragging = false,
+  onPillDragStart,
+  onPillDragEnd,
+  onNativeDrop,
 }: CalendarDayCellProps<T>) {
   const getEventTitle = (event: unknown) => {
     if (typeof event === "object" && event !== null) {
@@ -31,33 +170,95 @@ export function CalendarDayCell<T>({
     }
     return "Event";
   };
+
   const getEventTime = (event: unknown) => {
     if (typeof event === "object" && event !== null) {
       const timeStart =
         "time_start" in event ? String(event.time_start) : undefined;
       const timeEnd = "time_end" in event ? String(event.time_end) : undefined;
-
-      if (timeStart || timeEnd) {
-        return formatEventTimeRange(timeStart, timeEnd);
-      }
-
+      if (timeStart || timeEnd) return formatEventTimeRange(timeStart, timeEnd);
       if ("time" in event) return String(event.time);
     }
     return "";
   };
+
+  const isPastDate = useMemo(() => {
+    if (!day.dateString) return true;
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    return new Date(day.dateString + "T00:00:00") < todayStart;
+  }, [day.dateString]);
+
+  const isActiveDrag = isDragging;
+  const canDrop = !!day.currentMonth && !isPastDate;
+
+  const cellRef = useRef<HTMLDivElement | null>(null);
+  const dragCounterRef = useRef(0);
+  const bgColor = roleColors.dragBgRaw ?? "rgba(107, 114, 128, 0.10)";
+
+  const handleDragOver = useCallback(
+    (e: React.DragEvent) => {
+      if (canDrop) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+      }
+    },
+    [canDrop],
+  );
+
+  const handleDragEnter = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      dragCounterRef.current++;
+      if (dragCounterRef.current === 1 && canDrop && cellRef.current) {
+        cellRef.current.style.backgroundColor = bgColor;
+      }
+    },
+    [canDrop, bgColor],
+  );
+
+  const handleDragLeave = useCallback(() => {
+    dragCounterRef.current--;
+    if (dragCounterRef.current === 0 && cellRef.current) {
+      cellRef.current.style.backgroundColor = "";
+    }
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+
+      document.body.classList.remove("dragging-pill");
+      dragCounterRef.current = 0;
+
+      if (cellRef.current) {
+        cellRef.current.style.backgroundColor = "";
+      }
+
+      if (day.dateString && onNativeDrop) {
+        onNativeDrop(day.dateString);
+      }
+    },
+    [day.dateString, onNativeDrop],
+  );
+
+  const baseClassName = `relative border rounded-md flex flex-col p-1.5 sm:p-2 text-sm xs:text-base sm:text-lg md:text-xl font-medium ${isActiveDrag ? "" : "transition-colors"
+    } ${day.currentMonth
+      ? `text-gray-900 border-[1.5px] border-gray-300/70 cursor-pointer ${roleColors.hoverBg} hover:shadow-sm`
+      : "text-gray-400 border-gray-100 bg-gray-50 bg-opacity-50"
+    } ${day.isToday ? "border-[1.5px]" : ""}`;
+
   return (
     <motion.div
+      ref={cellRef}
       key={day.key}
       data-idx={idx}
-      className={`relative border rounded-md flex flex-col p-1.5 sm:p-2 text-sm xs:text-base sm:text-lg md:text-xl font-medium
-          ${day.currentMonth
-          ? `text-gray-900 border-[1.5px] border-gray-300/70 cursor-pointer ${roleColors.hoverBg} hover:shadow-sm`
-          : "text-gray-400 border-gray-100 bg-gray-50 bg-opacity-50"
-        }
-        ${day.isToday ? `border-[1.5px]` : ""}
-        ${day.hasEvent && day.currentMonth}
-      `}
+      className={baseClassName}
       onClick={day.currentMonth ? () => onDaySelect(day) : undefined}
+      onDragOver={handleDragOver}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
       initial={{ scale: 0.97, opacity: 0 }}
       animate={{
         scale: 1,
@@ -68,81 +269,53 @@ export function CalendarDayCell<T>({
         },
       }}
       whileHover={
-        day.currentMonth
-          ? {
-            scale: 1.02,
-            boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-            transition: { duration: 0.1 },
-          }
-          : {}
+        day.currentMonth && !isActiveDrag
+          ? { scale: 1.02, transition: { duration: 0.1 } }
+          : undefined
       }
-      whileTap={day.currentMonth ? { scale: 0.98 } : {}}
+      whileTap={
+        day.currentMonth && !isActiveDrag ? { scale: 0.98 } : undefined
+      }
     >
-      {/* Only show date number if it's a real day */}
       <div className="flex justify-end items-start w-full">
         <span
           className={`text-sm md:text-base ${day.isToday
-            ? `${roleColors.todayText} font-extrabold`
-            : day.currentMonth
-              ? ""
-              : "text-gray-400"
+              ? `${roleColors.todayText} font-extrabold`
+              : day.currentMonth
+                ? ""
+                : "text-gray-400"
             }`}
         >
           {day.date}
         </span>
       </div>
 
-      {/* Event indicators */}
       {day.currentMonth &&
         day.hasEvent &&
         day.eventCount &&
         day.eventCount > 0 && (
           <div className="flex mt-1 flex-col flex-1 w-full gap-0.5 sm:gap-1 overflow-hidden">
-            {/* Pill Bills rendering */}
             {day.dayEvents &&
-              day.dayEvents.slice(0, 1).map((event, eventIdx) => {
-                const title = getEventTitle(event);
-                const time = getEventTime(event);
+              day.dayEvents.slice(0, 1).map((event, eventIdx) => (
+                <DraggableEventPill
+                  key={`pill-${idx}-${eventIdx}`}
+                  event={event}
+                  roleColors={roleColors}
+                  role={role}
+                  onEventSelect={
+                    onEventSelect ? (e) => onEventSelect(e as T) : undefined
+                  }
+                  getTitle={getEventTitle}
+                  getTime={getEventTime}
+                  onPillDragStart={onPillDragStart}
+                  onPillDragEnd={onPillDragEnd}
+                />
+              ))}
 
-                return (
-                  <motion.div
-                    key={`event-${idx}-${eventIdx}`}
-                    onClick={
-                      onEventSelect
-                        ? (e) => {
-                          e.stopPropagation();
-                          onEventSelect(event as T);
-                        }
-                        : undefined
-                    }
-                    className={`w-full flex flex-col px-1.5 py-1.5 ${roleColors.pillBg} border-l ${roleColors.pillBorder} rounded-r-md rounded-l-sm overflow-hidden ${onEventSelect ? "cursor-pointer hover:brightness-95" : ""}`}
-                    initial={{ opacity: 0, x: -5 }}
-                    animate={{
-                      opacity: 1,
-                      x: 0,
-                      transition: {
-                        delay: Math.min(0.01 * idx + 0.1 * eventIdx + 0.1, 0.4),
-                        duration: 0.2,
-                      },
-                    }}
-                  >
-                    <span className="text-[10px] sm:text-xs font-semibold text-gray-800 truncate leading-tight">
-                      {title}
-                    </span>
-                    {time && (
-                      <span className="flex items-center mt-px text-[9px] sm:text-[10px] text-gray-500 font-medium leading-tight">
-                        <Clock className="w-[9px] text-gray-500 h-[9px] sm:w-[10px] sm:h-[10px] mr-1 shrink-0" />
-                        {time}
-                      </span>
-                    )}
-                  </motion.div>
-                );
-              })}
-
-            {/* Desktop/Tablet: Top-left calendar icon and count */}
             {day.eventCount > 1 && (
               <motion.div
-                className={`hidden sm:inline-flex items-center ${role === "admin" ? "text-gray-700" : roleColors.todayText} px-1 py-1 rounded-xl text-[10px] sm:text-xs md:text-sm font-semibold absolute top-1.5 left-1`}
+                className={`hidden sm:inline-flex items-center ${role === "admin" ? "text-gray-700" : roleColors.todayText
+                  } px-1 py-1 rounded-xl text-[10px] sm:text-xs md:text-sm font-semibold absolute top-1.5 left-1`}
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{
                   scale: 1,
@@ -159,7 +332,6 @@ export function CalendarDayCell<T>({
               </motion.div>
             )}
 
-            {/* Mobile: Top-left calendar icon */}
             {day.eventCount > 1 && (
               <motion.div
                 className="sm:hidden absolute top-1 left-1"
@@ -175,7 +347,8 @@ export function CalendarDayCell<T>({
                 }}
               >
                 <div
-                  className={`inline-flex items-center ${role === "admin" ? "text-gray-700" : roleColors.todayText} px-1 py-0.5 rounded-xl text-xs xs:text-[10px]`}
+                  className={`inline-flex items-center ${role === "admin" ? "text-gray-700" : roleColors.todayText
+                    } px-1 py-0.5 rounded-xl text-xs xs:text-[10px]`}
                 >
                   <CalendarClock size={10} className="mr-0.5 shrink-0" />
                   <span>{day.eventCount}</span>
@@ -186,4 +359,4 @@ export function CalendarDayCell<T>({
         )}
     </motion.div>
   );
-}
+}) as <T>(props: CalendarDayCellProps<T>) => React.ReactElement;

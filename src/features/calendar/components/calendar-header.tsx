@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useCallback, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
@@ -37,33 +37,103 @@ export function CalendarHeader({
   onMonthYearChange,
   setDirection,
 }: CalendarHeaderProps) {
+  // ── Native DnD: drag-to-navigate by hovering arrows during drag ───────────
+  const prevTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const nextTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const onPrevRef = useRef(onPreviousMonth);
+  const onNextRef = useRef(onNextMonth);
+  onPrevRef.current = onPreviousMonth;
+  onNextRef.current = onNextMonth;
+
+  const handlePrevDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    prevTimerRef.current = setTimeout(() => onPrevRef.current(), 700);
+  }, []);
+  const handlePrevDragLeave = useCallback(() => {
+    clearTimeout(prevTimerRef.current);
+  }, []);
+  const handlePrevDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+  }, []);
+
+  const handleNextDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    nextTimerRef.current = setTimeout(() => onNextRef.current(), 700);
+  }, []);
+  const handleNextDragLeave = useCallback(() => {
+    clearTimeout(nextTimerRef.current);
+  }, []);
+  const handleNextDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+  }, []);
+
+  // Track drag-over state for ring highlight (purely visual, no React re-render needed)
+  const prevRef = useRef<HTMLDivElement>(null);
+  const nextRef = useRef<HTMLDivElement>(null);
+
+  const prevEnter = useCallback((e: React.DragEvent) => {
+    handlePrevDragEnter(e);
+    prevRef.current?.classList.add("ring-2", "ring-amber-400");
+  }, [handlePrevDragEnter]);
+  const prevLeave = useCallback(() => {
+    handlePrevDragLeave();
+    prevRef.current?.classList.remove("ring-2", "ring-amber-400");
+  }, [handlePrevDragLeave]);
+
+  const nextEnter = useCallback((e: React.DragEvent) => {
+    handleNextDragEnter(e);
+    nextRef.current?.classList.add("ring-2", "ring-amber-400");
+  }, [handleNextDragEnter]);
+  const nextLeave = useCallback(() => {
+    handleNextDragLeave();
+    nextRef.current?.classList.remove("ring-2", "ring-amber-400");
+  }, [handleNextDragLeave]);
+
   return (
     <div className="w-full grid grid-cols-3 items-center mb-5 sm:mb-7 relative">
       {/* Left: arrow, today, select */}
       <div className="flex items-center gap-1.5 sm:gap-2.5 justify-start relative">
         {/* Arrow buttons group for desktop/tablet */}
         <div className="hidden text-card-foreground border shadow sm:flex items-center bg-white rounded-sm px-2 h-9 w-max">
-          <motion.button
-            className="w-7 cursor-pointer h-7 flex items-center justify-center rounded bg-transparent border-none shadow-none hover:bg-gray-100 transition-colors"
-            aria-label="Previous"
-            type="button"
-            onClick={onPreviousMonth}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
+          {/* Wrap prev button */}
+          <div
+            ref={prevRef}
+            className="rounded"
+            onDragEnter={prevEnter}
+            onDragLeave={prevLeave}
+            onDragOver={handlePrevDragOver}
           >
-            <ChevronLeft className="w-5 h-5 text-gray-600" />
-          </motion.button>
+            <motion.button
+              className="w-7 cursor-pointer h-7 flex items-center justify-center rounded bg-transparent border-none shadow-none hover:bg-gray-100 transition-colors"
+              aria-label="Previous"
+              type="button"
+              onClick={onPreviousMonth}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <ChevronLeft className="w-5 h-5 text-gray-600" />
+            </motion.button>
+          </div>
           <span className="mx-1 h-5 w-px bg-gray-200 rounded"></span>
-          <motion.button
-            className="w-7 cursor-pointer h-7 flex items-center justify-center rounded bg-transparent border-none shadow-none hover:bg-gray-100 transition-colors"
-            aria-label="Next"
-            type="button"
-            onClick={onNextMonth}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
+          {/* Wrap next button */}
+          <div
+            ref={nextRef}
+            className="rounded"
+            onDragEnter={nextEnter}
+            onDragLeave={nextLeave}
+            onDragOver={handleNextDragOver}
           >
-            <ChevronRight className="w-5 h-5 text-gray-600" />
-          </motion.button>
+            <motion.button
+              className="w-7 cursor-pointer h-7 flex items-center justify-center rounded bg-transparent border-none shadow-none hover:bg-gray-100 transition-colors"
+              aria-label="Next"
+              type="button"
+              onClick={onNextMonth}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <ChevronRight className="w-5 h-5 text-gray-600" />
+            </motion.button>
+          </div>
         </div>
 
         {/* Today button */}
@@ -138,6 +208,7 @@ export function CalendarHeader({
           </motion.h2>
         </AnimatePresence>
       </div>
+
       {/* Right: month/week/day */}
       <div className="flex items-center justify-end">
         <div className="flex items-center bg-white border border-gray-300 rounded-sm overflow-hidden">

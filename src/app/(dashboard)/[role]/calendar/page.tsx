@@ -1,14 +1,16 @@
 "use client";
 
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useRef } from "react";
 import { Calendar } from "@/features/calendar/components/norsu-calendar";
 import { EventsListModal } from "@/features/calendar/components/events-list-modal";
 import { EventInfoModal } from "@/features/calendar/components/event-info-modal";
+import { MoveReservationModal } from "@/features/reservations/components/move-reservation-modal";
 import { EventDetails, CalendarDayType } from "@/interface/user-props";
 import {
   useReservations,
   useAssets,
 } from "@/features/calendar/services/reservation-service";
+import { checkReservationConflicts } from "@/features/reservations/utils/reservation-conflict-check";
 import { useQueryClient } from "@tanstack/react-query";
 import { getUserId } from "@/core/auth/auth";
 import {
@@ -17,8 +19,8 @@ import {
 } from "@/features/calendar/utils/timezone-utils";
 import { PageBreadcrumb } from "@/shared/components/ui/page-breadcrumb";
 import { useParams } from "next/navigation";
+import toast from "react-hot-toast";
 
-// Helper function to check if an event has finished
 const isEventFinished = (eventDate: string, timeEnd: string): boolean => {
   try {
     const endTime = timeEnd.trim();
@@ -41,16 +43,25 @@ export default function CalendarPage() {
   );
   const [selectedDay, setSelectedDay] = useState<CalendarDayType | null>(null);
 
-  // FIX: Use Philippine timezone instead of server timezone
   const [currentMonth, setCurrentMonth] = useState(getPhilippineMonth());
   const [currentYear, setCurrentYear] = useState(getPhilippineYear());
 
   const [eventInfoLoading, setEventInfoLoading] = useState(false);
   const [eventsListLoading, setEventsListLoading] = useState(false);
-
   const [showRecent, setShowRecent] = useState(false);
 
-  // Data fetching - TanStack Query handles caching
+  // Native drag-and-drop state
+  const [isDragging, setIsDragging] = useState(false);
+  const activeDragEventRef = useRef<EventDetails | null>(null);
+  const [moveModalOpen, setMoveModalOpen] = useState(false);
+  const [moveEvent, setMoveEvent] = useState<EventDetails | undefined>(
+    undefined,
+  );
+  const [moveTargetDate, setMoveTargetDate] = useState<string | undefined>(
+    undefined,
+  );
+
+  // Data fetching
   const { reservations, error } = useReservations();
 
   const assetIds = useMemo(() => {
@@ -69,7 +80,6 @@ export default function CalendarPage() {
     });
   }, [queryClient, userId]);
 
-  // Convert reservations to events format with isFinished flag
   const allEvents: EventDetails[] = useMemo(() => {
     return reservations
       .filter((reservation) => reservation.status.toUpperCase() === "APPROVED")
@@ -103,24 +113,49 @@ export default function CalendarPage() {
             : "Unknown User",
           approved_by_user_details: reservation.approved_by_user,
           declined_by_user_details: reservation.declined_by_user,
-          // Calculate if event is finished
           isFinished: isEventFinished(reservation.date, reservation.time_end),
         };
       });
   }, [reservations, assets]);
 
-  // Filter ONLY upcoming/current events for calendar display
   const calendarEvents = useMemo(() => {
     return allEvents.filter((event) => !event.isFinished);
   }, [allEvents]);
 
-  // Get events for a particular day - only upcoming
+  const calendarEventsByDate = useMemo(() => {
+    const map = new Map<string, EventDetails[]>();
+
+    for (const event of calendarEvents) {
+      const existing = map.get(event.date);
+      if (existing) {
+        existing.push(event);
+      } else {
+        map.set(event.date, [event]);
+      }
+    }
+
+    return map;
+  }, [calendarEvents]);
+
+  const allEventsByDate = useMemo(() => {
+    const map = new Map<string, EventDetails[]>();
+
+    for (const event of allEvents) {
+      const existing = map.get(event.date);
+      if (existing) {
+        existing.push(event);
+      } else {
+        map.set(event.date, [event]);
+      }
+    }
+
+    return map;
+  }, [allEvents]);
+
   const getEventsForDate = useCallback(
     (year: number, month: number, day: number) => {
       const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-      const dayEvents = calendarEvents.filter(
-        (event) => event.date === dateStr,
-      );
+      const dayEvents = calendarEventsByDate.get(dateStr) ?? [];
 
       return {
         hasEvent: dayEvents.length > 0,
@@ -128,24 +163,19 @@ export default function CalendarPage() {
         eventsList: dayEvents,
       };
     },
-    [calendarEvents],
+    [calendarEventsByDate],
   );
 
-  // Selected day events - includes ALL events (past and upcoming) for modal filtering
   const selectedDayEvents = useMemo(() => {
     if (!selectedDay || !selectedDay.currentMonth) return [];
 
     const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(selectedDay.date).padStart(2, "0")}`;
-
-    const dayEvents = allEvents.filter((event) => event.date === dateStr);
-
-    return dayEvents;
-  }, [allEvents, selectedDay, currentMonth, currentYear]);
+    return allEventsByDate.get(dateStr) ?? [];
+  }, [allEventsByDate, selectedDay, currentMonth, currentYear]);
 
   const handleEventClick = useCallback((event: EventDetails) => {
     setEventInfoLoading(true);
     setEventInfoModalOpen(true);
-
     setTimeout(() => {
       setSelectedEvent(event);
       setEventInfoLoading(false);
@@ -161,7 +191,6 @@ export default function CalendarPage() {
     setSelectedDay(day);
     setEventsListLoading(true);
     setModalOpen(true);
-
     setTimeout(() => {
       setEventsListLoading(false);
     }, 300);
@@ -171,6 +200,53 @@ export default function CalendarPage() {
     setCurrentMonth(month);
     setCurrentYear(year);
   }, []);
+
+  // Native drag-and-drop handlers
+
+  const handlePillDragStart = useCallback((event: unknown) => {
+    activeDragEventRef.current = event as EventDetails;
+    requestAnimationFrame(() => setIsDragging(true));
+  }, []);
+
+  const handlePillDragEnd = useCallback(() => {
+    activeDragEventRef.current = null;
+    setIsDragging(false);
+  }, []);
+
+  const handleNativeDrop = useCallback(
+    (newDate: string) => {
+      const draggedEvent = activeDragEventRef.current;
+      if (!draggedEvent) return;
+
+      if (newDate === draggedEvent.date) return;
+
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      if (new Date(newDate + "T00:00:00") < todayStart) {
+        toast.error("Cannot move a reservation to a past date");
+        return;
+      }
+
+      const conflicts = checkReservationConflicts({
+        assetId: draggedEvent.asset.id,
+        date: newDate,
+        timeStart: draggedEvent.time_start,
+        timeEnd: draggedEvent.time_end,
+        reservations,
+        excludeId: draggedEvent.id,
+      });
+
+      if (conflicts.length > 0) {
+        toast.error(`Conflict with "${conflicts[0].title_name}" on that date`);
+        return;
+      }
+
+      setMoveEvent(draggedEvent);
+      setMoveTargetDate(newDate);
+      setMoveModalOpen(true);
+    },
+    [reservations],
+  );
 
   const monthNames = [
     "January",
@@ -189,7 +265,6 @@ export default function CalendarPage() {
 
   return (
     <div className="h-full flex flex-col max-w-full min-h-125">
-      {/* Breadcrumb */}
       <PageBreadcrumb
         items={[
           { label: "Dashboard", href: `/page/${role}/dashboard` },
@@ -207,13 +282,16 @@ export default function CalendarPage() {
       <div className="bg-white text-card-foreground border rounded-md shadow flex flex-col flex-1 p-3 sm:p-6 md:p-6.5">
         <Calendar
           role="admin"
-          events={calendarEvents}
           onDaySelect={handleDaySelect}
           onEventSelect={handleEventClick}
           getEventsForDate={getEventsForDate}
           currentMonth={currentMonth}
           currentYear={currentYear}
           onMonthYearChange={handleMonthYearChange}
+          isDragging={isDragging}
+          onPillDragStart={handlePillDragStart}
+          onPillDragEnd={handlePillDragEnd}
+          onNativeDrop={handleNativeDrop}
         />
 
         <EventsListModal
@@ -250,6 +328,14 @@ export default function CalendarPage() {
           showBackdropBlur={false}
         />
       </div>
+
+      <MoveReservationModal
+        isOpen={moveModalOpen}
+        onClose={() => setMoveModalOpen(false)}
+        event={moveEvent}
+        prefillDate={moveTargetDate}
+        onMoved={() => setMoveModalOpen(false)}
+      />
     </div>
   );
 }

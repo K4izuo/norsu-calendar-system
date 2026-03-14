@@ -3,6 +3,7 @@
 
 /* ⚡ PERFORMANCE: CSS Performance Optimizations */
 @layer base {
+
   /* Optimize animations with will-change for frequently animated elements */
   [data-animation="slide"],
   [data-animation="fade"],
@@ -25,12 +26,13 @@
   /* ⚡ FIXED: Reduce motion for users who prefer it, but KEEP loading spinners working!
    * Loading indicators are functional UI, not decorative, so they should always work */
   @media (prefers-reduced-motion: reduce) {
+
     *:not(.animate-spin):not([class*="animate-spin"]),
     *:not(.animate-spin):not([class*="animate-spin"])::before,
     *:not(.animate-spin):not([class*="animate-spin"])::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
+      /* transition-duration: 0.01ms !important; */
       scroll-behavior: auto !important;
     }
   }
@@ -51,14 +53,16 @@
 /* For Chrome, Edge, and Safari */
 *::-webkit-scrollbar {
   width: 8px;
-  height: 8px; /* For horizontal scrollbars */
+  height: 8px;
+  /* For horizontal scrollbars */
   background: transparent;
 }
 
 *::-webkit-scrollbar-thumb {
   background: #d1d5db;
   border-radius: 10px;
-  border: 2px solid transparent; /* Creates padding effect */
+  border: 2px solid transparent;
+  /* Creates padding effect */
   background-clip: content-box;
 }
 
@@ -68,12 +72,15 @@
 
 /* Dashboard Tabs / Horizontal Scrollbars (Hidden) */
 .tabs-scrollbar {
-  scrollbar-width: none; /* Hide for Firefox */
-  -ms-overflow-style: none; /* Hide for IE/Edge */
+  scrollbar-width: none;
+  /* Hide for Firefox */
+  -ms-overflow-style: none;
+  /* Hide for IE/Edge */
 }
 
 .tabs-scrollbar::-webkit-scrollbar {
-  display: none; /* Hide for Chrome/Safari */
+  display: none;
+  /* Hide for Chrome/Safari */
 }
 
 @theme inline {
@@ -200,6 +207,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -207,4 +215,9 @@
 
 .animate-spin-loading {
   animation: spin-loading 0.9s linear infinite;
+}
+
+body.dragging-pill,
+body.dragging-pill * {
+  cursor: grabbing !important;
 }

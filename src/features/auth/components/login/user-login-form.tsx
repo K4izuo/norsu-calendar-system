@@ -63,8 +63,8 @@ export const UserLoginForm = memo(function UserLoginForm({
 
   const getInputFieldStyles = (hasError: boolean) =>
     hasError
-      ? "border-red-400 focus:border-red-500 focus:ring-red-200"
-      : "border-gray-200 focus:border-gray-500 focus:ring-gray-500/20";
+      ? "border-red-500 focus-visible:ring-red-200 focus-visible:border-red-500"
+      : "border-gray-300 focus:border-gray-500 focus:ring-gray-500/20";
 
   const isDisabled = isLoading || isSuccess;
 
@@ -93,7 +93,7 @@ export const UserLoginForm = memo(function UserLoginForm({
                 placeholder="Username"
                 autoComplete="username"
                 disabled={isDisabled}
-                className={`h-12 transition-all duration-150 text-base sm:text-lg pl-10.5 pr-4 border-2 rounded-lg ${getInputFieldStyles(!!errors.username)} placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed`}
+                className={`h-12 transition-all duration-150 text-base sm:text-lg pl-10.5 pr-4 border rounded-lg ${getInputFieldStyles(!!errors.username)} placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed`}
               />
               <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
             </div>
@@ -115,7 +115,7 @@ export const UserLoginForm = memo(function UserLoginForm({
                 placeholder="Password"
                 autoComplete="current-password"
                 disabled={isDisabled}
-                className={`h-12 transition-all duration-150 text-base sm:text-lg pl-10.5 pr-12 border-2 rounded-lg ${getInputFieldStyles(!!errors.password)} placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed`}
+                className={`h-12 transition-all duration-150 text-base sm:text-lg pl-10.5 pr-12 border rounded-lg ${getInputFieldStyles(!!errors.password)} placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed`}
               />
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <button
@@ -172,11 +172,10 @@ export const UserLoginForm = memo(function UserLoginForm({
           {/* Login Button */}
           <Button
             type="submit"
-            className={`w-full mb-3 h-12 font-semibold text-sm sm:text-base text-white rounded-lg shadow-lg transition-all duration-300 flex items-center justify-center gap-x-2 ${
-              isLoading
-                ? "bg-gray-400 cursor-not-allowed opacity-70"
-                : "cursor-pointer bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl transform hover:scale-[1.02]"
-            }`}
+            className={`w-full mb-3 h-12 font-semibold text-sm sm:text-base text-white rounded-lg shadow-lg transition-all duration-300 flex items-center justify-center gap-x-2 ${isLoading
+              ? "bg-gray-400 cursor-not-allowed opacity-70"
+              : "cursor-pointer bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl transform hover:scale-[1.02]"
+              }`}
             disabled={isDisabled}
           >
             {isSuccess ? (

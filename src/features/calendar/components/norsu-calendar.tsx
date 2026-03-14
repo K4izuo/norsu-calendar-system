@@ -14,17 +14,7 @@ import { useCalendarNavigation } from "@/features/calendar/hooks/use-calendar-na
 import { CalendarHeader } from "./calendar-header";
 import { CalendarGrid } from "./calendar-grid";
 
-// Updated props interface
-export function Calendar<T>({
-  onDaySelect,
-  onEventSelect,
-  getEventsForDate,
-  role,
-  currentMonth,
-  currentYear,
-  onMonthYearChange,
-}: {
-  events: T[];
+interface CalendarProps<T> {
   onDaySelect: (day: CalendarDayType<T>) => void;
   onEventSelect?: (event: T) => void;
   getEventsForDate: (
@@ -41,11 +31,27 @@ export function Calendar<T>({
   currentMonth: number;
   currentYear: number;
   onMonthYearChange: (month: number, year: number) => void;
-}) {
-  // Get role-specific colors
+  isDragging?: boolean;
+  onPillDragStart?: (event: unknown) => void;
+  onPillDragEnd?: () => void;
+  onNativeDrop?: (dateString: string) => void;
+}
+
+function CalendarComponent<T>({
+  onDaySelect,
+  onEventSelect,
+  getEventsForDate,
+  role,
+  currentMonth,
+  currentYear,
+  onMonthYearChange,
+  isDragging,
+  onPillDragStart,
+  onPillDragEnd,
+  onNativeDrop,
+}: CalendarProps<T>) {
   const roleColors = useMemo(() => getRoleColors(role), [role]);
 
-  // Navigation state and handlers
   const {
     direction,
     setDirection,
@@ -54,12 +60,10 @@ export function Calendar<T>({
     goToToday,
   } = useCalendarNavigation(currentMonth, currentYear, onMonthYearChange);
 
-  // Build calendar days (6 rows x 7 columns = 42 cells)
   const calendarDays = useMemo(() => {
     const days: CalendarDayType<T>[] = [];
 
-    // Get info for previous, current, and next month
-    const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay(); // 0=Sun
+    const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
     const lastDateOfMonth = new Date(
       currentYear,
       currentMonth + 1,
@@ -71,12 +75,10 @@ export function Calendar<T>({
       0,
     ).getDate();
 
-    // FIX: Get Philippine timezone current date components once
     const todayDay = getPhilippineDay();
     const todayMonth = getPhilippineMonth();
     const todayYear = getPhilippineYear();
 
-    // 1. Fill in previous month's days
     for (let i = firstDayOfMonth - 1; i >= 0; i--) {
       const prevDate = lastDateOfPrevMonth - i;
       days.push({
@@ -87,15 +89,12 @@ export function Calendar<T>({
       });
     }
 
-    // 2. Fill in current month's days
     for (let i = 1; i <= lastDateOfMonth; i++) {
-      // FIX: Use Philippine timezone for today comparison
       const isToday =
         i === todayDay &&
         currentMonth === todayMonth &&
         currentYear === todayYear;
 
-      // Get events for this day using the provided function
       const { hasEvent, count, eventsList } = getEventsForDate(
         currentYear,
         currentMonth,
@@ -110,10 +109,10 @@ export function Calendar<T>({
         eventCount: count,
         dayEvents: eventsList,
         isToday,
+        dateString: `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(i).padStart(2, "0")}`,
       });
     }
 
-    // 3. Fill in next month's days to reach 35 cells
     let nextMonthDay = 1;
     while (days.length < 35) {
       days.push({
@@ -130,23 +129,13 @@ export function Calendar<T>({
 
   const monthNames = useMemo(
     () => [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
+      "January", "February", "March", "April",
+      "May", "June", "July", "August",
+      "September", "October", "November", "December",
     ],
     [],
   );
 
-  // Get current month name and year as a formatted string
   const currentMonthYear = useMemo(
     () => `${monthNames[currentMonth]} ${currentYear}`,
     [currentMonth, currentYear, monthNames],
@@ -154,7 +143,6 @@ export function Calendar<T>({
 
   return (
     <div className="flex flex-col w-full flex-1">
-      {/* Calendar header */}
       <CalendarHeader
         currentMonth={currentMonth}
         currentYear={currentYear}
@@ -168,7 +156,6 @@ export function Calendar<T>({
         setDirection={setDirection}
       />
 
-      {/* Calendar grid */}
       <CalendarGrid
         calendarDays={calendarDays}
         currentMonth={currentMonth}
@@ -178,9 +165,12 @@ export function Calendar<T>({
         role={role}
         onDaySelect={onDaySelect}
         onEventSelect={onEventSelect}
+        isDragging={isDragging}
+        onPillDragStart={onPillDragStart}
+        onPillDragEnd={onPillDragEnd}
+        onNativeDrop={onNativeDrop}
       />
 
-      {/* Fixed arrow buttons group for mobile only */}
       <div className="sm:hidden">
         <div className="fixed bottom-3 left-1/2 z-50 -translate-x-1/2 flex items-center bg-white border border-gray-300 rounded-full px-2 h-10 w-max shadow-md">
           <motion.button
@@ -209,3 +199,5 @@ export function Calendar<T>({
     </div>
   );
 }
+
+export const Calendar = React.memo(CalendarComponent) as typeof CalendarComponent;

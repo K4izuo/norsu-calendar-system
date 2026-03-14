@@ -55,9 +55,9 @@ export const EventSelectField = memo(function EventSelectField({
       >
         <SelectTrigger
           id={id}
-          className={`h-12 cursor-pointer text-base border-2 rounded-lg w-full ${hasError || validationError
+          className={`h-12 cursor-pointer text-base border rounded-lg w-full ${hasError || validationError
             ? "border-red-400 focus:border-red-500 focus:ring-red-200"
-            : "border-gray-200 focus:border-gray-500"
+            : "border-gray-300 focus:border-gray-500"
             }`}
         >
           <SelectValue placeholder={placeholder} />

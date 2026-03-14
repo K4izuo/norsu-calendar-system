@@ -1,7 +1,7 @@
 import { apiClient } from "@/core/api/api-client";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/shared/components/context/auth-context";
-import { ReservationWithRelations } from "@/interface/user-props";
+import { ReservationWithRelations, MoveReservationPayload } from "@/interface/user-props";
 import toast from "react-hot-toast";
 
 export type Asset = {
@@ -79,6 +79,18 @@ const declineReservation = async ({ reservationId, userId, reason }: { reservati
   if (response.error) {
     throw new Error(response.error);
   }
+};
+
+// Move reservation API call
+const moveReservation = async ({
+  reservationId,
+  payload,
+}: {
+  reservationId: number;
+  payload: MoveReservationPayload;
+}): Promise<void> => {
+  const response = await apiClient.put(`/reservations/${reservationId}/move`, payload);
+  if (response.error) throw new Error(response.error);
 };
 
 // Hook to fetch all reservations (AUTHENTICATED - for admin/user pages)
@@ -319,6 +331,36 @@ export const useDeclineReservation = () => {
     onError: (err) => {
       console.error('Decline error:', err);
       toast.error("Failed to decline reservation");
+    },
+  });
+};
+
+// Hook to move a reservation
+export const useMoveReservation = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: ({
+      reservationId,
+      payload,
+    }: {
+      reservationId: number;
+      payload: Omit<MoveReservationPayload, "moved_by">;
+    }) => {
+      if (!user?.id) throw new Error("User not authenticated. Please login again.");
+      return moveReservation({
+        reservationId,
+        payload: { ...payload, moved_by: Number(user.id) },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["reservations"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["public-reservations"], refetchType: "all" });
+      toast.success("Reservation moved successfully!");
+    },
+    onError: () => {
+      toast.error("Failed to move reservation");
     },
   });
 };

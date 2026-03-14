@@ -186,6 +186,16 @@ export interface CalendarDayType<T = unknown> {
   eventCount?: number
   isToday?: boolean
   dayEvents?: T[]
+  dateString?: string  // ← ADD THIS
+}
+
+// Add this NEW interface right after CalendarDayType
+export interface MoveReservationPayload {
+  new_date: string
+  new_time_start: string
+  new_time_end: string
+  reason: string
+  moved_by: number
 }
 
 export interface CalendarProps<T> {
@@ -260,9 +270,9 @@ export interface AssetRegistrationPayload {
 }
 
 export interface MoveReservationPayload {
-  new_date: string;
-  new_time_start: string;
-  new_time_end: string;
-  reason: string;
-  moved_by: number;
+  new_date: string
+  new_time_start: string
+  new_time_end: string
+  reason: string
+  moved_by: number
 }

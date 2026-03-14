@@ -10,18 +10,18 @@ import {
   X,
   CircleCheckBig,
   XCircle,
+  MoveRight,
 } from "lucide-react";
 import { Button } from "../../../shared/components/ui/button";
 import { EventDetails } from "@/interface/user-props";
-// import { ReserveEventModal } from "./reserve-event-modal";
 import { getRoleColors, UserRole } from "@/shared/components/utils/role-colors";
-// ✅ CRITICAL FIX: Import the mutation hooks instead of manual handlers
 import {
   useApproveReservation,
   useDeclineReservation,
 } from "@/features/calendar/services/reservation-service";
 import { ConfirmationModal } from "../../reservations/components/confirmation-modal";
 import { formatTime } from "@/core/lib/utils";
+import { MoveReservationModal } from "../../reservations/components/move-reservation-modal";
 
 interface ModalProps {
   isOpen: boolean;
@@ -46,7 +46,7 @@ const getStatus = (
     return status as "PENDING" | "APPROVED" | "DECLINED";
   }
 
-  return "PENDING"; // Default fallback
+  return "PENDING";
 };
 
 const getStatusColor = (status: "PENDING" | "APPROVED" | "DECLINED") => {
@@ -59,7 +59,6 @@ const getStatusColor = (status: "PENDING" | "APPROVED" | "DECLINED") => {
 const getStartedAgo = (eventDate: string, eventTime: string): string | null => {
   if (!eventDate || !eventTime) return null;
   try {
-    // Parse the formatted date back to compare with current time
     const eventStart = new Date(eventDate + " " + eventTime);
     if (isNaN(eventStart.getTime())) return null;
 
@@ -67,7 +66,6 @@ const getStartedAgo = (eventDate: string, eventTime: string): string | null => {
 
     if (eventStart > now) {
       const isToday = eventStart.toDateString() === now.toDateString();
-
       if (isToday) {
         return `Starts at ${eventTime}`;
       } else {
@@ -90,7 +88,6 @@ const getStartedAgo = (eventDate: string, eventTime: string): string | null => {
   }
 };
 
-// Helper to format date "YYYY-MM-DD" to "Month DD, YYYY"
 const formatDate = (dateStr: string | undefined): string => {
   if (!dateStr) return "";
   try {
@@ -117,11 +114,10 @@ export const EventInfoModal = React.memo(function EventInfoModal({
   showBackdropBlur = false,
 }: ModalProps) {
   const contentRef = useRef<HTMLDivElement>(null);
-  // const [showEditModal, setShowEditModal] = useState(false);
   const [showApproveConfirm, setShowApproveConfirm] = useState(false);
   const [showDeclineConfirm, setShowDeclineConfirm] = useState(false);
+  const [showMoveModal, setShowMoveModal] = useState(false);
 
-  // ✅ CRITICAL FIX: Use the mutation hooks
   const { mutate: approveReservation, isPending: isApproving } =
     useApproveReservation();
   const { mutate: declineReservation, isPending: isDeclining } =
@@ -157,14 +153,6 @@ export const EventInfoModal = React.memo(function EventInfoModal({
   const assetCapacity = asset?.capacity || "N/A";
   const assetAminities = asset?.aminities;
 
-  // const handleEdit = () => {
-  //   setShowEditModal(true);
-  // };
-
-  // const handleEditModalClose = () => {
-  //   setShowEditModal(false);
-  // };
-
   const handleApprove = () => {
     if (!event) return;
     setShowApproveConfirm(true);
@@ -174,34 +162,24 @@ export const EventInfoModal = React.memo(function EventInfoModal({
     setShowDeclineConfirm(true);
   };
 
-  // ✅ CRITICAL FIX: Use mutation hook instead of manual API call
   const handleApproveConfirm = () => {
     if (!event) return;
-
     setShowApproveConfirm(false);
-
-    // Call the mutation - this will automatically invalidate cache
     approveReservation(event.id, {
       onSuccess: () => {
-        // Call parent callbacks if provided
         if (onApprove) onApprove();
         onClose();
       },
     });
   };
 
-  // ✅ CRITICAL FIX: Use mutation hook instead of manual API call
   const handleDeclineConfirm = (reason?: string) => {
     if (!event) return;
-
     setShowDeclineConfirm(false);
-
-    // Call the mutation - this will automatically invalidate cache
     declineReservation(
       { reservationId: event.id, reason },
       {
         onSuccess: () => {
-          // Call parent callbacks if provided
           if (onDecline) onDecline();
           onClose();
         },
@@ -238,6 +216,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
               className="relative w-full max-w-4xl max-h-[90vh] bg-white rounded-xl shadow-2xl flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
+              {/* Header */}
               <div className="sticky top-0 bg-white z-10 p-4 sm:p-6 border-b border-gray-200 flex justify-between items-center rounded-t-xl">
                 <div className="flex items-center gap-2">
                   <CalendarClock
@@ -257,10 +236,10 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                 </Button>
               </div>
 
+              {/* Loading spinner */}
               {loading && (
                 <div className="flex justify-center items-center py-20">
                   <div className="relative h-16 w-16 flex items-center justify-center">
-                    {/* Hardware accelerated CSS spinner for smooth performance */}
                     <div
                       className={`absolute inset-0 h-16 w-16 rounded-full border-t-4 border-b-4 animate-spin-loading ${roleLoadingColors.spinner}`}
                       style={{
@@ -275,10 +254,11 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                 </div>
               )}
 
-              {/* event details */}
+              {/* Event details body */}
               {!loading && event && (
                 <div className="flex-1 overflow-y-auto">
                   <div className="p-4 sm:p-6 space-y-6">
+                    {/* Event summary card */}
                     <div className="bg-white text-card-foreground border border-border rounded-lg">
                       <div className="p-6">
                         <div className="flex items-start justify-between">
@@ -300,12 +280,10 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                       <div className="border-t border-gray-200" />
 
                       <div className="p-6">
-                        {/* event details grid */}
                         <div className="flex justify-between items-start gap-4">
                           <div>
                             <p className="text-sm text-gray-500">Date</p>
                             <div className="flex items-center">
-                              {/* <CalendarPlus2 className="h-4 w-4 mr-1.5 text-gray-500" /> */}
                               <p className="font-medium text-base">
                                 {formatDate(event.date)}
                               </p>
@@ -352,7 +330,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                       </div>
                     </div>
 
-                    {/* reservation details */}
+                    {/* Reservation details card */}
                     <div className="bg-white text-card-foreground border border-border rounded-lg">
                       <div className="p-6">
                         <div className="flex items-center">
@@ -368,7 +346,6 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                           <div>
                             <p className="text-sm text-gray-500">Reserved By</p>
                             <span className="inline-flex mt-1 items-center text-sm font-medium">
-                              {/* <User className="w-3 h-3 mr-1.5 text-gray-800" /> */}
                               <p className="font-medium text-base">
                                 {event.reserve_by_user || "Unknown User"}
                               </p>
@@ -416,7 +393,6 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                           <div>
                             <p className="text-sm text-gray-500">Time</p>
                             <div className="flex items-center">
-                              {/* <Clock className="h-4 w-4 mr-1.5 text-gray-500" /> */}
                               <p className="font-medium text-base">{`${formatTime(event.time_start)} - ${formatTime(event.time_end)}`}</p>
                             </div>
                           </div>
@@ -424,7 +400,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                       </div>
                     </div>
 
-                    {/* additional details */}
+                    {/* Additional details card */}
                     <div className="bg-white text-card-foreground border border-border rounded-lg">
                       <div className="p-6">
                         <div className="flex items-center">
@@ -450,20 +426,13 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                 </div>
               )}
 
+              {/* Footer — PENDING: Approve + Decline */}
               {!loading &&
                 event &&
                 getStatus(event) === "PENDING" &&
                 role &&
                 role !== "public" && (
                   <div className="sticky bottom-0 bg-white z-10 p-4 sm:p-6 border-t border-gray-200 flex justify-center gap-3 rounded-b-xl">
-                    {/* <Button
-                    onClick={handleEdit}
-                    className="inline-flex cursor-pointer items-center justify-center flex-1 max-w-xs px-6 py-5 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
-                  >
-                    <Edit className="w-4 h-4" />
-                    EDIT
-                  </Button> */}
-
                     <Button
                       onClick={handleApprove}
                       disabled={isApproving}
@@ -535,18 +504,29 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                     </Button>
                   </div>
                 )}
+
+              {/* Footer — APPROVED: Move */}
+              {!loading &&
+                event &&
+                getStatus(event) === "APPROVED" &&
+                role &&
+                role !== "public" && (
+                  <div className="sticky bottom-0 bg-white z-10 p-4 sm:p-6 border-t border-gray-200 flex justify-center gap-3 rounded-b-xl">
+                    <Button
+                      onClick={() => setShowMoveModal(true)}
+                      className="inline-flex w-full cursor-pointer items-center justify-center gap-2 flex-1 px-6 py-5 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+                    >
+                      <MoveRight className="w-4 h-4" />
+                      MOVE RESERVATION
+                    </Button>
+                  </div>
+                )}
             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
-      {/* <ReserveEventModal
-        isOpen={showEditModal}
-        onClose={handleEditModalClose}
-        editMode={true}
-        eventData={event}
-      /> */}
-
+      {/* Confirmation modals — rendered outside AnimatePresence so they layer correctly */}
       <ConfirmationModal
         isOpen={showApproveConfirm}
         onClose={() => setShowApproveConfirm(false)}
@@ -561,6 +541,14 @@ export const EventInfoModal = React.memo(function EventInfoModal({
         onConfirm={handleDeclineConfirm}
         event={event}
         type="DECLINE"
+      />
+
+      {/* Move modal — rendered outside AnimatePresence, z-[60] layers above this modal */}
+      <MoveReservationModal
+        isOpen={showMoveModal}
+        onClose={() => setShowMoveModal(false)}
+        event={event}
+        onMoved={onClose}
       />
     </>
   );

@@ -86,7 +86,7 @@ export function ReserveEventFormTab({
     ) =>
       fieldError
         ? "border-red-400 focus:border-red-500 focus:ring-red-200"
-        : "border-gray-200 hover:bg-muted bg-transparent";
+        : "border-gray-300 hover:bg-muted bg-transparent";
   }, []);
 
   return (
@@ -124,7 +124,7 @@ export function ReserveEventFormTab({
                   >
                     <SelectTrigger
                       id="asset"
-                      className={`mt-1 cursor-pointer border-2 text-base w-full h-12 transition-all duration-150 ${getBorderClass(errors.asset)}`}
+                      className={`mt-1 cursor-pointer border text-base w-full h-12 transition-all duration-150 ${getBorderClass(errors.asset)}`}
                     >
                       <SelectValue placeholder="Select an asset" />
                     </SelectTrigger>
@@ -230,11 +230,10 @@ export function ReserveEventFormTab({
                         onChange(val);
                       }}
                       min="1"
-                      className={`mt-1 border-2 h-12 text-base w-full transition-all duration-150 ${
-                        displayError
+                      className={`mt-1 border h-12 text-base w-full transition-all duration-150 ${displayError
                           ? "border-red-500 focus-visible:ring-red-100 focus-visible:border-red-500"
-                          : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
-                      }`}
+                          : "border-gray-300 focus:border-blue-500 focus:ring-blue-500/20"
+                        }`}
                     />
                     {displayError && typeof displayError === "string" && (
                       <div className="flex will-change-transform backface-hidden items-start gap-1.5 text-red-500 text-xs sm:text-sm pl-1 animate-in fade-in slide-in-from-top-1 duration-150">

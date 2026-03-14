@@ -110,7 +110,7 @@ const isProtectedEndpoint = (endpoint: string): boolean => {
       return false;
     }
     // Otherwise it's a single reservation by ID, which is protected
-    return /^reservations\/\d+$/.test(endpoint);
+    return /^reservations\/\d+$/.test(endpoint) || /^reservations\/\d+\/move$/.test(endpoint);
   }
 
   return protectedPatterns.some(pattern => endpoint.includes(pattern));
