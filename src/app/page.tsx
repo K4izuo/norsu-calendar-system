@@ -48,7 +48,7 @@ export default function Home() {
   const {
     loading,
     error,
-    calendarEvents,
+    // calendarEvents,
     upcomingEvents,
     getEventsForDate,
     selectedDayEvents,
@@ -130,7 +130,6 @@ export default function Home() {
                 ) : (
                   <Calendar
                     role="public"
-                    events={calendarEvents}
                     onDaySelect={handleDaySelect}
                     onEventSelect={handleEventClick}
                     getEventsForDate={getEventsForDate}
