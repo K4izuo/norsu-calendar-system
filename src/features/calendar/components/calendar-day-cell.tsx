@@ -37,6 +37,7 @@ const DraggableEventPill = React.memo(function DraggableEventPill({
     role === "admin" && status === "APPROVED" && range === 1 && !!eventId;
 
   const pillRef = useRef<HTMLDivElement>(null);
+  const cleanupListenersRef = useRef<(() => void) | null>(null);
   const title = getTitle(event);
   const time = getTime(event);
 
@@ -48,23 +49,17 @@ const DraggableEventPill = React.memo(function DraggableEventPill({
       el.style.opacity = "1";
       el.removeAttribute("data-dragging");
     }
+
+    cleanupListenersRef.current?.();
+    cleanupListenersRef.current = null;
   }, []);
 
   useEffect(() => {
-    const cleanup = () => clearDragVisualState();
-
-    window.addEventListener("dragend", cleanup);
-    window.addEventListener("drop", cleanup);
-    window.addEventListener("mouseup", cleanup);
-    window.addEventListener("blur", cleanup);
-
     return () => {
-      window.removeEventListener("dragend", cleanup);
-      window.removeEventListener("drop", cleanup);
-      window.removeEventListener("mouseup", cleanup);
-      window.removeEventListener("blur", cleanup);
+      cleanupListenersRef.current?.();
+      cleanupListenersRef.current = null;
     };
-  }, [clearDragVisualState]);
+  }, []);
 
   const handleMouseDown = useCallback(() => {
     if (!isDraggable) return;
@@ -87,13 +82,25 @@ const DraggableEventPill = React.memo(function DraggableEventPill({
       document.body.classList.add("dragging-pill");
       pillRef.current?.setAttribute("data-dragging", "1");
 
+      onPillDragStart?.(event);
       requestAnimationFrame(() => {
         const el = pillRef.current;
         if (el) el.style.opacity = "0";
-        onPillDragStart?.(event);
       });
+
+      const globalCleanup = () => clearDragVisualState();
+      window.addEventListener("dragend", globalCleanup);
+      window.addEventListener("drop", globalCleanup);
+      window.addEventListener("mouseup", globalCleanup);
+      window.addEventListener("blur", globalCleanup);
+      cleanupListenersRef.current = () => {
+        window.removeEventListener("dragend", globalCleanup);
+        window.removeEventListener("drop", globalCleanup);
+        window.removeEventListener("mouseup", globalCleanup);
+        window.removeEventListener("blur", globalCleanup);
+      };
     },
-    [event, eventId, onPillDragStart],
+    [event, eventId, onPillDragStart, clearDragVisualState],
   );
 
   const handleDragEnd = useCallback(() => {
@@ -105,6 +112,7 @@ const DraggableEventPill = React.memo(function DraggableEventPill({
     <div
       ref={pillRef}
       draggable={isDraggable || undefined}
+      onPointerDown={isDraggable ? (e) => e.stopPropagation() : undefined}
       onMouseDown={isDraggable ? handleMouseDown : undefined}
       onMouseUp={isDraggable ? handleMouseUp : undefined}
       onMouseLeave={isDraggable ? handleMouseUp : undefined}
