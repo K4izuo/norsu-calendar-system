@@ -1,205 +1,173 @@
 # External Integrations
 
-**Analysis Date:** 2026-02-23
+**Analysis Date:** 2026-03-15
 
 ## APIs & External Services
 
-**Backend Calendar API:**
-- Service: Custom REST API (NORSU calendar backend)
-- Client: Native `fetch` API with custom wrapper
-- Base URL: `process.env.NEXT_PUBLIC_API_URL` (configured in `.env.local`)
-- Default: `http://127.0.0.1:8000/api` (development)
-- SDK/Client: `@/core/api/api-client.ts` - Custom API client with error handling, auth, and caching
-- Authentication: Bearer token via Authorization header
+**Backend API:**
+- REST API backend at configurable endpoint
+  - SDK/Client: Native Fetch API wrapper in `src/core/api/api-client.ts`
+  - Auth: Bearer token via `Authorization` header
+  - Base URL: `process.env.NEXT_PUBLIC_API_URL` (environment variable)
+  - Default/Example: `http://127.0.0.1:8000` (see comment in api-client.ts)
 
-**Image Services:**
-- Vercel Blob Storage - Remote image hosting for public assets
-  - Hostname: `ferf1mheo22r9ira.public.blob.vercel-storage.com`
-  - Used for: Public image serving
-- Unsplash - Free stock photography
-  - Hostname: `images.unsplash.com`
-  - Used for: UI design assets
+**Faculty Events API:**
+- External faculty events endpoint
+  - Location: `src/api/facultyEventsApi.ts`
+  - Method: Fetch API
+  - Purpose: Retrieves faculty event details with optional date filtering
 
 ## Data Storage
 
 **Databases:**
-- Backend storage (not accessible directly from frontend)
-  - Managed by: Custom REST API at `NEXT_PUBLIC_API_URL`
-  - Connection: HTTP/REST endpoints
-  - Type: Unknown to frontend (likely SQL-based, inferred from reservation/asset schema)
+- Not directly integrated - Backend API handles all persistence
+- Storage approach: API-first (data lives on backend server)
+
+**Client-Side Storage:**
+- Local Storage - Stores authentication tokens and user metadata:
+  - `auth-token` - JWT or session token
+  - `user-role` - User role identifier (numeric)
+  - `user-id` - User ID (numeric)
+  - Implementation: `src/core/auth/auth.ts`
+
+- HTTP Cookies - Redundant storage for auth (SameSite=Strict security):
+  - `auth-token` - Same as localStorage
+  - `user-role` - Same as localStorage
+  - `token-expiry` - ISO timestamp for token expiration check
+  - `user-id` - Same as localStorage
+  - Expiration: 15 minutes (or custom via `expires_at` from API)
 
 **File Storage:**
-- Vercel Blob Storage (remote images only)
-- Local filesystem via public directory (static assets)
-- No local file upload handling in frontend
+- Vercel Blob Storage (remote image hosting only)
+  - Hostname: `ferf1mheo22r9ira.public.blob.vercel-storage.com`
+  - Purpose: Serves pre-optimized images
+  - Configured in `next.config.ts` as allowed image remote pattern
+
+- Unsplash (external image source for placeholders/public images)
+  - Hostname: `images.unsplash.com`
+  - Purpose: Public domain images
+  - Configured in `next.config.ts` as allowed image remote pattern
 
 **Caching:**
-- React Query (@tanstack/react-query 5.x) - Client-side data caching
-  - Default staleTime: 2 minutes
-  - Default gcTime: 5 minutes
-  - Query strategies: Structural sharing enabled
-  - Request deduplication: Built-in
-- Browser localStorage - Session persistence
-  - Keys: `auth-token`, `user-role`, `user-id`, `token-expiry`
-- Browser cookies - Token storage
-  - `auth-token`: Bearer token (expires with token)
-  - `user-role`: Numeric user role (expires with token)
-  - `token-expiry`: Token expiration timestamp
-  - `user-id`: Current user ID (expires with token)
-  - Cookie settings: SameSite=Strict, path=/
+- TanStack React Query - Client-side data caching
+  - Stale time: 2 minutes
+  - Cache retention (gcTime): 5 minutes
+  - Configuration: `src/core/lib/query-provider.tsx`
+  - Dev tools: `@tanstack/react-query-devtools` available in development
 
 ## Authentication & Identity
 
 **Auth Provider:**
-- Custom Backend Authentication
-  - Implementation: Token-based (Bearer token in Authorization header)
-  - Endpoints:
-    - POST `/users/login` - Login with credentials
-    - POST `/users/store` - User registration
-    - POST `/logout` - Logout (clears token)
-    - POST `/refresh-token` - Token refresh
-    - POST `/update-token-expiration` - Extend token expiry
-    - GET `/me` - Get current authenticated user
-  - Token storage: localStorage + cookies (SameSite=Strict)
-  - Token expiry monitoring: `@/core/auth/token-expiry-monitor.tsx`
-  - Token refresh management: `@/core/auth/token-refresh.ts`
+- Custom token-based authentication
+  - Implementation: Server-side API issues JWT/bearer tokens on login
+  - Token storage: localStorage + httpOnly cookies
+  - Token expiration: 15 minutes (configurable via API response)
+
+**Login Endpoints:**
+- `users/login` - Primary login endpoint (public)
+  - Request: Credentials
+  - Response: `{ token, role, user: { id }, expires_at }`
+  - Stored: Token, role, user ID, and expiry timestamp
+
+- `users/store` - User registration endpoint (public)
+  - Request: Registration details
+  - Response: User creation response
+
+**Token Management:**
+- Auto-expiry: Checked on token retrieval from localStorage
+- Refresh: `/update-token-expiration` endpoint for token refresh (protected)
+- Logout: `logout` endpoint clears all auth data locally via `src/core/auth/auth.ts`
 
 **User Roles:**
-- Admin
-- Dean
-- Staff
-- Public (unauthenticated)
+- Role-based routing and access control
+  - Roles stored as numeric values in localStorage and cookies
+  - Example roles: admin (1?), dean (2?), staff (3?) - inferred from route structure
+  - App routes: `src/app/(auth)/login/page.tsx`, `src/app/auth/{role}/login/page.tsx`
 
 **Email Verification:**
-- POST `/verify-email` - Verify email with token
-- POST `/resend-verification` - Resend verification email
-
-**Password Reset:**
-- POST `/password/reset-request` - Request password reset
-- POST `/password/reset` - Complete password reset with token
-
-## Authorization & Protected Resources
-
-**Public Endpoints (no authentication required):**
-- GET `/campuses/all` - List all campuses
-- GET `/offices/all` - List all offices
-- GET `/courses/all` - List all courses
-- GET `/reservations/all` - List all reservations
-- GET `/reservations/assets/{id}` - Get asset details (public)
-
-**Protected Endpoints (authentication required):**
-- GET `/assets/all` - List user's assets
-- POST `/assets/store` - Register new asset
-- GET/PUT `/assets/{id}` - Asset details and updates
-- GET/PUT `/reservations/{id}` - Single reservation (not the `/all` endpoint)
-- POST `/event/reservation` - Create reservation
-
-**Account Management:**
-- GET `/users/{userId}` - User profile details
-- PUT `/users/{userId}` - Update user account
-- POST `/users/{userId}/change-password` - Change password
+- Public endpoints for email flow:
+  - `verify-email` - Verify user email (public)
+  - `resend-verification` - Resend verification link (public)
 
 ## Monitoring & Observability
 
 **Error Tracking:**
-- None detected - Errors logged to console in development only
+- Not detected - No error tracking service (Sentry, Rollbar, etc.) configured
 
 **Logs:**
-- Console logging (development environment only)
-- Production logs removed by Next.js compiler (`removeConsole: {exclude: ['error', 'warn']}`)
-- HTTP request logging: None detected
+- Console logging approach:
+  - Production: Console error/warn preserved, info/debug logs removed
+  - Development: All console methods available
+  - Configuration: `next.config.ts` removeConsole compiler option
 
-**Request Monitoring:**
-- React Query DevTools (development only) - Query state inspection
+**React Query DevTools:**
+- Development only visual debugging
+  - Location: `src/core/lib/query-provider.tsx`
+  - Enabled: `process.env.NODE_ENV === 'development'`
+  - Position: Bottom of viewport
 
 ## CI/CD & Deployment
 
 **Hosting:**
-- Vercel-compatible (evidenced by next-themes, image remotePatterns with Vercel Blob)
-- Static export capable
-- Server-side rendering enabled
+- Next.js deployment target (compatible with Vercel, self-hosted, Docker)
+- Vercel services referenced (Blob Storage, implied Vercel deployment)
 
 **CI Pipeline:**
-- Not detected - No GitHub Actions, CircleCI, or similar config
+- Not detected - No GitHub Actions, GitLab CI, or other CI service configured
 
-**Deployment Scripts:**
-- `npm run build` - Production build
-- `npm run start` - Production server start
-- `npm run dev` - Development server (with Turbo mode)
+**Build Process:**
+- Commands available in `package.json`:
+  - `npm run dev` - Development with Turbo
+  - `npm run build` - Production build
+  - `npm run start` - Start production server
+  - `npm run lint` - ESLint
+  - `npm run analyze` - Bundle analysis via `@next/bundle-analyzer`
 
 ## Environment Configuration
 
-**Required Environment Variables:**
+**Required env vars:**
+- `NEXT_PUBLIC_API_URL` - Backend API base URL (critical, used in every API call)
 
-**Development:**
-```
-NEXT_PUBLIC_API_URL=http://127.0.0.1:8000/api
-```
+**Optional env vars:**
+- `NODE_ENV` - Automatically set by Next.js build/dev/start
+- `ANALYZE` - Enable bundle analysis when `true` (used in `npm run analyze`)
 
-**Production:**
-- `NEXT_PUBLIC_API_URL` - Backend API endpoint (must be set)
-- Node environment: `NODE_ENV=production` (automatic with `npm start`)
+**Secrets location:**
+- `.env.local` file (Git-ignored, contains local secrets)
+- Environment variables at deployment (Vercel, Docker, etc.)
 
-**Optional Environment Variables:**
-- None detected beyond API URL
+## API Endpoints Summary
 
-**Secrets Location:**
-- `.env.local` - Not committed to git (in .gitignore)
-- All secrets handled server-side by backend API
-- Frontend has no sensitive credentials
+**Public (No Auth Required):**
+- `users/login` - POST login
+- `users/store` - POST register
+- `verify-email` - GET/POST email verification
+- `resend-verification` - POST resend verification
+- `campuses/all` - GET list of campuses
+- `offices/all` - GET list of offices
+- `degreeCourse/` - GET degree courses
+- `reservations/all` - GET all public reservations
+- `reservations/assets/{id}` - GET assets for reservation
 
-## API Client Implementation
-
-**Location:** `@/core/api/api-client.ts`
-
-**Features:**
-- Request methods: GET, POST, PUT, DELETE, PATCH
-- Authorization: Bearer token (automatic from localStorage)
-- Public/Protected endpoint detection (auto auth bypass for public endpoints)
-- Error handling: 401 triggers auth:unauthorized event
-- Request caching: Memoized header construction
-- Request cancellation: AbortSignal support
-- Automatic auth data storage: Token, role, user ID on successful login
-- HTTP headers:
-  - Accept: application/json
-  - Content-Type: application/json
-  - Cache-Control: public, max-age=120 (2 minutes)
-  - Connection: keep-alive
-  - Authorization: Bearer {token} (when authenticated)
-
-## Data Services
-
-**Authentication Service:** `@/features/auth/services/auth-service.ts`
-- Endpoints: All auth-related endpoints
-- Methods: login, register (Dean/Staff/Admin), logout, getCurrentUser, refreshToken, updateAccount, changePassword, verifyEmail, resendVerification, requestPasswordReset, resetPassword
-
-**Reservation Service:** `@/features/calendar/services/reservation-service.ts`
-- Endpoints: `/reservations/all`, `/reservations/{id}`, `/reservations/assets/{id}`
-- Methods: Fetch reservations, approve reservation, decline reservation
-- Caching strategy: 2-minute staleTime, 5-minute gcTime
-
-**Asset Service:** `@/features/assets/services/asset-service.ts`
-- Endpoints: `/assets/all`, `/assets/store`, `/assets/{id}`
-- Methods: Fetch assets, create asset
-- Caching strategy: 0 staleTime (fresh on mount), 5-minute gcTime
-
-**Campus/Office/Course Services:** Various read-only endpoints
-- GET `/campuses/all`
-- GET `/offices/all`
-- GET `/courses/all`
+**Protected (Auth Required):**
+- `/me` - GET current user profile
+- `logout` - POST logout
+- `assets/all` - GET user assets
+- `assets/store` - POST create asset
+- `assets/{id}` - GET/PUT/DELETE specific asset
+- `event/reservation` - POST create reservation
+- `reservations/{id}` - GET specific reservation
+- `reservations/{id}/move` - PATCH move reservation
+- `/update-token-expiration` - POST refresh token expiry
 
 ## Webhooks & Callbacks
 
 **Incoming:**
-- None detected
+- Not detected - No webhook endpoints configured
 
 **Outgoing:**
-- None detected
-
-**Event System:**
-- Custom browser event: `auth:unauthorized` - Dispatched when 401 response received
-- Purpose: Trigger logout flow across application
+- Not detected - No outbound webhook calls identified
 
 ---
 
-*Integration audit: 2026-02-23*
+*Integration audit: 2026-03-15*

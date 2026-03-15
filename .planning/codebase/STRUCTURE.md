@@ -1,361 +1,293 @@
 # Codebase Structure
 
-**Analysis Date:** 2026-02-23
+**Analysis Date:** 2026-03-15
 
 ## Directory Layout
 
 ```
 norsu-calendar-system/
 ├── src/
-│   ├── app/                        # Next.js 16 app router (pages & layouts)
-│   │   ├── (auth)/                 # Auth route group
+│   ├── app/                           # Next.js App Router pages and layouts
+│   │   ├── (auth)/                    # Public auth routes (login, register)
 │   │   │   ├── login/page.tsx
 │   │   │   └── register/page.tsx
-│   │   ├── (dashboard)/            # Protected dashboard route group
-│   │   │   └── [role]/             # Role-based dynamic routes (dean, staff, admin)
+│   │   ├── (dashboard)/               # Role-based protected dashboard routes
+│   │   │   └── [role]/                # Dynamic role parameter (admin/dean/staff)
+│   │   │       ├── layout.tsx         # Dashboard container with sidebar, header
 │   │   │       ├── dashboard/page.tsx
 │   │   │       ├── calendar/page.tsx
 │   │   │       ├── reservations/page.tsx
-│   │   │       ├── accounts/page.tsx
 │   │   │       ├── asset-management/page.tsx
+│   │   │       ├── accounts/page.tsx
 │   │   │       └── profile/page.tsx
-│   │   ├── about/page.tsx
-│   │   ├── auth/                   # Legacy auth paths (deprecated, kept for backward compat)
-│   │   │   ├── admin/login/page.tsx
+│   │   ├── auth/                      # Legacy auth routes (dean/, staff/, admin/)
 │   │   │   ├── dean/
-│   │   │   └── staff/
-│   │   ├── layout.tsx              # Root layout with providers
-│   │   ├── page.tsx                # Public landing page with calendar
-│   │   ├── globals.css             # Global styles (Tailwind)
+│   │   │   ├── staff/
+│   │   │   └── admin/
+│   │   ├── _components/               # Home page local components
+│   │   ├── _hooks/                    # Home page local hooks
+│   │   ├── about/page.tsx
+│   │   ├── layout.tsx                 # Root layout (providers, toaster)
+│   │   ├── page.tsx                   # Public home page
+│   │   ├── globals.css                # Global Tailwind styles
 │   │   └── favicon.ico
 │   │
-│   ├── core/                       # Infrastructure & cross-cutting concerns
-│   │   ├── api/
-│   │   │   └── api-client.ts       # Centralized HTTP client with auth, caching, error handling
-│   │   ├── auth/
-│   │   │   ├── auth.ts             # Token storage (localStorage/cookies), getters/setters
-│   │   │   ├── token-expiry-monitor.tsx  # Monitors token expiry
-│   │   │   └── token-refresh.ts    # Token refresh logic
-│   │   └── lib/
-│   │       ├── query-provider.tsx  # TanStack React Query provider with config
-│   │       ├── role-utils.ts       # Role number to path mapping (2→dean, 3→staff, 4→admin)
-│   │       └── utils.ts            # General utility functions
-│   │
-│   ├── features/                   # Feature modules (domain-isolated)
-│   │   ├── auth/
+│   ├── features/                      # Feature modules (domain-driven)
+│   │   ├── auth/                      # Authentication feature
 │   │   │   ├── components/
 │   │   │   │   ├── login/
-│   │   │   │   │   ├── user-login-form.tsx
-│   │   │   │   │   └── dean-staff-login-form.tsx
 │   │   │   │   └── register/
-│   │   │   │       ├── dean/
-│   │   │   │       │   ├── dean-input-field.tsx
-│   │   │   │       │   ├── dean-select-field.tsx
-│   │   │   │       │   └── dean-summary.tsx
-│   │   │   │       └── staff/
-│   │   │   │           ├── staff-input-field.tsx
-│   │   │   │           ├── staff-select-field.tsx
-│   │   │   │           └── staff-summary.tsx
 │   │   │   ├── hooks/
-│   │   │   │   ├── useLoginForm.ts
-│   │   │   │   ├── useDeanRegForm.ts
-│   │   │   │   ├── useStaffRegForm.ts
-│   │   │   │   └── useAdminRegForm.ts
 │   │   │   ├── services/
-│   │   │   │   └── auth-service.ts  # Login, register, logout, token refresh
 │   │   │   ├── types/
-│   │   │   │   └── auth.types.ts
 │   │   │   └── utils/
-│   │   │       ├── login/
-│   │   │       ├── dean/
-│   │   │       └── staff/
-│   │   │
-│   │   ├── calendar/
+│   │   ├── calendar/                  # Calendar display and management
 │   │   │   ├── components/
-│   │   │   │   ├── norsu-calendar.tsx      # Main calendar UI
-│   │   │   │   ├── events-list-modal.tsx
-│   │   │   │   ├── event-info-modal.tsx
-│   │   │   │   └── events-list-card.tsx
 │   │   │   ├── hooks/
-│   │   │   │   └── useHandleReservations.ts
 │   │   │   ├── services/
-│   │   │   │   ├── reservation-service.ts  # Fetch/approve/decline reservations
-│   │   │   │   └── academicDataService.ts
 │   │   │   ├── types/
-│   │   │   │   └── calendar.types.ts
-│   │   │   └── utils/
-│   │   │       ├── timezone-utils.ts
-│   │   │       └── calendar-animations.ts
-│   │   │
-│   │   ├── reservations/
+│   │   │   └── utils/                 # timezone-utils.ts, etc.
+│   │   ├── reservations/              # Event reservation feature
 │   │   │   ├── components/
-│   │   │   │   ├── reserve-event-tab/
-│   │   │   │   └── reserve-event-assets/
+│   │   │   │   ├── reserve-event/
+│   │   │   │   │   ├── modal/
+│   │   │   │   │   ├── tabs/
+│   │   │   │   │   └── assets/
 │   │   │   ├── hooks/
 │   │   │   ├── types/
 │   │   │   └── utils/
-│   │   │
-│   │   ├── assets/
+│   │   ├── assets/                    # Asset management feature
 │   │   │   ├── components/
 │   │   │   │   └── asset-register-tab/
 │   │   │   ├── hooks/
 │   │   │   ├── services/
 │   │   │   ├── types/
 │   │   │   └── utils/
-│   │   │
-│   │   ├── accounts/
+│   │   ├── accounts/                  # Account management feature
 │   │   │   ├── components/
 │   │   │   ├── hooks/
 │   │   │   ├── types/
 │   │   │   └── utils/
-│   │   │
-│   │   └── user-profile/
+│   │   └── user-profile/              # User profile feature
 │   │       ├── components/
+│   │       ├── hooks/
 │   │       └── types/
 │   │
-│   ├── shared/                     # Reusable components & utilities
-│   │   └── components/
-│   │       ├── context/
-│   │       │   ├── auth-context.tsx         # Global authentication state
-│   │       │   ├── user-role.tsx            # Global role provider
-│   │       │   └── navigation-context.tsx   # Navigation state
-│   │       ├── ui/
-│   │       │   ├── button.tsx
-│   │       │   ├── dialog.tsx
-│   │       │   ├── input.tsx
-│   │       │   ├── badge.tsx
-│   │       │   ├── page-breadcrumb.tsx
-│   │       │   ├── skeleton.tsx
-│   │       │   └── about-section.tsx
-│   │       ├── layouts/
-│   │       │   ├── dashboard-layout.tsx     # Sidebar + main content
-│   │       │   └── app-layout.tsx
-│   │       ├── hooks/
-│   │       ├── privacy/
-│   │       ├── user-dashboard-ui/           # Pre-built dashboard components
-│   │       │   ├── dashboard/
-│   │       │   │   ├── stat-card.tsx
-│   │       │   │   ├── assets-line-chart.tsx
-│   │       │   │   └── users-bar-chart.tsx
-│   │       │   ├── reservations/
-│   │       │   └── asset-management/
-│   │       └── utils/
+│   ├── core/                          # Core/infrastructure
+│   │   ├── api/
+│   │   │   └── api-client.ts          # Type-safe API client
+│   │   ├── auth/
+│   │   │   ├── auth.ts                # Token storage (localStorage/cookies)
+│   │   │   ├── token-refresh.ts       # Background token refresh
+│   │   │   └── token-expiry-monitor.tsx
+│   │   └── lib/
+│   │       ├── query-provider.tsx     # React Query provider config
+│   │       ├── role-utils.ts          # Role number/path conversions
+│   │       └── utils.ts               # General utilities
+│   │
+│   ├── shared/                        # Shared reusable components and utilities
+│   │   ├── components/
+│   │   │   ├── context/               # Global context providers
+│   │   │   │   ├── auth-context.tsx   # Auth state and user data
+│   │   │   │   ├── user-role.tsx      # Role context
+│   │   │   │   └── navigation-context.tsx
+│   │   │   ├── layouts/               # Reusable layout components
+│   │   │   │   ├── app-sidebar.tsx
+│   │   │   │   ├── nav-main.tsx
+│   │   │   │   ├── nav-user.tsx
+│   │   │   │   └── team-switcher.tsx
+│   │   │   ├── hooks/                 # Shared custom hooks
+│   │   │   ├── ui/                    # Radix UI + Tailwind components
+│   │   │   │   ├── button.tsx
+│   │   │   │   ├── card.tsx
+│   │   │   │   ├── dialog.tsx
+│   │   │   │   ├── input.tsx
+│   │   │   │   ├── skeleton.tsx
+│   │   │   │   ├── about-section.tsx
+│   │   │   │   └── ... (20+ more UI components)
+│   │   │   ├── user-dashboard-ui/     # Dashboard-specific UI
+│   │   │   │   ├── dashboard/
+│   │   │   │   ├── reservations/
+│   │   │   │   └── asset-management/
+│   │   │   ├── privacy/               # Legal components
+│   │   │   │   └── terms-and-condition-modal.tsx
+│   │   │   └── utils/                 # Shared utility functions
 │   │
 │   ├── interface/
-│   │   └── user-props.ts            # Centralized TypeScript type definitions
+│   │   └── user-props.ts              # Centralized TypeScript interfaces
 │   │
 │   ├── api/
-│   │   └── facultyEventsApi.ts      # API wrapper (deprecated, use services instead)
+│   │   └── facultyEventsApi.ts        # External API definitions
 │   │
-│   └── proxy.ts                     # Next.js middleware for routing & auth
+│   └── proxy.ts                       # Middleware proxy (exported as middleware)
 │
 ├── public/
-│   └── images/
-│       └── norsu.png                # NORSU university logo
+│   ├── images/                        # Static images
+│   └── ... (favicon.ico, etc.)
 │
-├── package.json
-├── tsconfig.json
-├── tailwind.config.ts
-├── postcss.config.js
-├── next.config.js
-├── .eslintrc.json
-└── .env                             # Environment configuration (secrets)
+├── .next/                             # Next.js build output (generated)
+├── node_modules/                      # Dependencies (generated)
+├── .planning/                         # GSD planning docs
+├── .github/                           # GitHub workflows
+├── package.json                       # Dependencies and scripts
+├── tsconfig.json                      # TypeScript config
+├── next.config.ts                     # Next.js config
+├── postcss.config.mjs                 # PostCSS config
+├── tailwind.config.mjs                # Tailwind CSS config
+├── components.json                    # Shadcn/ui config
+├── eslint.config.mjs                  # ESLint config
+└── README.md
 ```
 
 ## Directory Purposes
 
 **`src/app/`**
-- Purpose: Next.js app router - defines pages and routes
-- Contains: Route groups `(auth)`, `(dashboard)` with `page.tsx` files, root layout, global styles
-- Key files:
-  - `layout.tsx` - Wraps entire app with providers (QueryProvider, AuthProvider, RoleProvider, Toaster)
-  - `page.tsx` - Public landing page with calendar
-  - `(dashboard)/[role]/` - Protected pages accessed after auth (dashboard, calendar, reservations, etc.)
+- Purpose: Next.js App Router pages, layouts, and route structure
+- Contains: Server and client components, page.tsx files, layout.tsx files, styling
+- Key patterns: Route groups `(auth)` and `(dashboard)` for route organization, dynamic `[role]` parameter
 
-**`src/core/api/`**
-- Purpose: Centralized HTTP communication layer
-- Contains: `api-client.ts` - typed request methods, auth token injection, caching, error handling
-- Usage: All service layers call through apiClient
+**`src/features/`**
+- Purpose: Feature modules organized by domain (auth, calendar, reservations, etc.)
+- Contains: Feature-specific components, hooks, services, types, utilities
+- Key pattern: Each feature is self-contained and can be developed independently
 
-**`src/core/auth/`**
-- Purpose: Authentication state persistence and lifecycle management
-- Contains: Token/role/userId storage (localStorage + cookies), expiry monitoring, token refresh
-- Key exports: `setAuthToken()`, `getAuthToken()`, `removeAuthToken()`, `setUserRole()`, `getUserRole()`
+**`src/core/`**
+- Purpose: Cross-cutting infrastructure and utilities
+- Contains: API client, authentication logic, React Query setup, role utilities
+- Key files: `api-client.ts` (centralized API requests), `auth.ts` (token management), `query-provider.tsx` (React Query setup)
 
-**`src/core/lib/`**
-- Purpose: Shared infrastructure utilities
-- Key files:
-  - `query-provider.tsx` - TanStack React Query initialization and configuration
-  - `role-utils.ts` - Maps role numbers (2/3/4) to paths (dean/staff/admin)
-  - `utils.ts` - General helpers (date formatting, string utilities)
-
-**`src/features/auth/`**
-- Purpose: Authentication domain - login, registration, account management
-- Organization:
-  - `components/` - Login forms (user, dean/staff), registration forms per role
-  - `services/` - authService with login/register/logout methods
-  - `hooks/` - Form state management (useLoginForm, useDeanRegForm, etc.)
-  - `types/` - Shared TypeScript interfaces (LoginFormData, RegisterResponse, etc.)
-
-**`src/features/calendar/`**
-- Purpose: Calendar display and event management
-- Organization:
-  - `components/` - Calendar UI, event modals, events list
-  - `services/` - Fetch/approve/decline reservations, academic data fetching
-  - `hooks/` - Reservation mutations and queries
-  - `utils/` - Timezone helpers (Philippines), calendar animations
-
-**`src/features/reservations/`**
-- Purpose: Event reservation creation and management (user-initiated)
-- Organization:
-  - `components/` - Reservation form tabs, asset selection UI
-  - `hooks/` - Reserve event mutations
-  - `types/` - Reservation form data structures
-
-**`src/features/assets/`**
-- Purpose: Asset/facility management (admin/staff)
-- Organization:
-  - `components/` - Asset registration form tab
-  - `services/` - Asset CRUD operations
-  - `types/` - Asset data structures
-
-**`src/features/accounts/`**
-- Purpose: User account management (admin)
-- Organization:
-  - `components/` - Account list, user management UI
-  - `types/` - Account data structures
-
-**`src/features/user-profile/`**
-- Purpose: User profile viewing and editing
-- Contains: Profile components and types
-
-**`src/shared/components/`**
-- Purpose: Globally reusable components and contexts
-- Key subdirectories:
-  - `context/` - AuthContext (user state), RoleProvider (role sharing), NavigationContext
-  - `ui/` - Radix UI + custom button, input, dialog, badge, breadcrumb components (Shadcn-style)
-  - `layouts/` - DashboardLayout (sidebar + main), AppLayout wrappers
-  - `hooks/` - Custom hooks usable anywhere (useMediaQuery, etc.)
-  - `user-dashboard-ui/` - Pre-built dashboard components (charts, stat cards)
+**`src/shared/`**
+- Purpose: Reusable components, contexts, and utilities shared across the app
+- Contains: UI components, context providers, hooks, layouts
+- Key files: `auth-context.tsx` (global auth state), `app-sidebar.tsx` (main navigation)
 
 **`src/interface/`**
 - Purpose: Centralized TypeScript type definitions
-- Contains: EventDetails, Reservation, ReservationAPIPayload, all form data types
-- Strategy: Single source of truth for data contracts across all features
+- Contains: Interfaces, types, payload schemas
+- Key file: `user-props.ts` (all major domain interfaces)
 
 **`src/api/`**
-- Purpose: API integration (deprecated - use feature services instead)
-- Contains: facultyEventsApi.ts (legacy)
-
-**`src/proxy.ts`**
-- Purpose: Next.js middleware for routing and authentication
-- Responsibilities:
-  - Validates auth token on protected routes
-  - Checks token expiry via `token-expiry` cookie
-  - Redirects based on user role to correct dashboard
-  - Prevents auth users from accessing login/register pages
-  - Returns error query params on unauthorized access
-
-**`public/images/`**
-- Purpose: Static assets
-- Contains: NORSU university logo for navbar
+- Purpose: External API definitions and configuration
+- Contains: API routes and endpoints
+- Key file: `facultyEventsApi.ts`
 
 ## Key File Locations
 
 **Entry Points:**
-- `src/app/layout.tsx` - Root layout with all global providers
-- `src/app/page.tsx` - Public landing page (calendar + events)
-- `src/app/(auth)/login/page.tsx` - User login
-- `src/app/(auth)/register/page.tsx` - User registration
-- `src/app/(dashboard)/[role]/dashboard/page.tsx` - Role-based dashboard
+- `src/app/layout.tsx`: Root layout that wraps entire app with providers (QueryProvider, AuthProvider, RoleProvider, Toaster)
+- `src/app/page.tsx`: Public home page with public calendar display
+- `src/app/(dashboard)/[role]/layout.tsx`: Protected dashboard layout with sidebar and header
+- `src/app/(dashboard)/[role]/dashboard/page.tsx`: Role-specific dashboard
+- `src/proxy.ts`: Middleware for authentication and route protection
 
 **Configuration:**
-- `src/core/lib/query-provider.tsx` - TanStack React Query settings (staleTime, gcTime, retry logic)
-- `src/core/api/api-client.ts` - HTTP request configuration, auth header building, public/protected endpoint detection
-- `src/proxy.ts` - Middleware routing rules, role validation, token expiry checks
-- `package.json` - Dependencies (React 19, Next 16, Radix UI, TanStack Query)
+- `tsconfig.json`: TypeScript configuration with `@/*` path alias pointing to `src/`
+- `next.config.ts`: Next.js configuration
+- `postcss.config.mjs`: PostCSS configuration for Tailwind
+- `components.json`: Shadcn/ui component library config
+- `eslint.config.mjs`: ESLint rules
 
 **Core Logic:**
-- `src/features/[feature]/services/` - Domain API integration (auth-service.ts, reservation-service.ts, etc.)
-- `src/features/[feature]/hooks/` - Custom hooks wrapping services with React Query
-- `src/shared/components/context/` - Global state providers (auth, role)
-- `src/core/auth/auth.ts` - Authentication state persistence
+- `src/core/api/api-client.ts`: Central API client with type-safe endpoints and auth token handling
+- `src/core/auth/auth.ts`: Token storage in localStorage and cookies with expiry management
+- `src/core/auth/token-refresh.ts`: Background token refresh mechanism
+- `src/core/lib/query-provider.tsx`: React Query configuration (2-min stale time, 5-min GC)
+- `src/interface/user-props.ts`: All domain interfaces (EventDetails, Reservation, etc.)
 
-**Testing:**
-- Not found - no test files in codebase
+**Global State:**
+- `src/shared/components/context/auth-context.tsx`: Provides user, isAuthenticated, login/logout functions
+- `src/shared/components/context/user-role.tsx`: Provides current user role to component tree
+- `src/shared/components/layouts/app-sidebar.tsx`: Navigation sidebar component
+
+**Features:**
+- `src/features/auth/`: Login, registration, form handling
+- `src/features/calendar/`: Calendar display, event listing, timezone utilities
+- `src/features/reservations/`: Reservation creation, management, event booking
+- `src/features/assets/`: Asset registration and management
+- `src/features/accounts/`: Account creation and management
+- `src/features/user-profile/`: User profile display and editing
 
 ## Naming Conventions
 
 **Files:**
-- **Pages:** `page.tsx` (Next.js convention, lowercase)
-- **Components:** `PascalCase.tsx` (e.g., `norsu-calendar.tsx`, `event-info-modal.tsx`)
-- **Hooks:** `use[Feature].ts` (e.g., `useLoginForm.ts`, `useReservations.ts`)
-- **Services:** `[domain]-service.ts` (e.g., `auth-service.ts`, `reservation-service.ts`)
-- **Types:** `[domain].types.ts` (e.g., `auth.types.ts`, `calendar.types.ts`)
-- **Utils:** descriptive names with hyphens (e.g., `timezone-utils.ts`, `calendar-animations.ts`)
+
+- **React Components:** PascalCase ending in `.tsx` (e.g., `EventCard.tsx`, `UserProfile.tsx`)
+- **TypeScript Files:** camelCase or PascalCase in `.ts` (e.g., `auth.ts`, `RoleUtils.ts`)
+- **Hooks:** Prefix with `use` in camelCase (e.g., `usePublicCalendarData.ts`, `useAssetRegistrationForm.ts`)
+- **Context Files:** Suffix with `context.tsx` (e.g., `auth-context.tsx`, `user-role.tsx`)
+- **Services:** Suffix with `service.ts` in camelCase (e.g., `asset-service.ts`)
+- **Utilities:** Suffix with `utils.ts` or standalone names (e.g., `timezone-utils.ts`, `role-utils.ts`)
+- **Types/Interfaces:** Separate file with `.ts` extension in `types/` directory (e.g., `account.types.ts`)
 
 **Directories:**
-- **Feature folders:** lowercase, singular or plural based on content (e.g., `auth`, `calendar`, `reservations`, `assets`)
-- **Sub-folders:** lowercase with hyphens (e.g., `user-profile`, `asset-management`, `reserve-event-tab`)
-- **Route groups:** parentheses notation `(auth)`, `(dashboard)` following Next.js convention
 
-**Functions & Variables:**
-- **camelCase** for functions, variables, hooks
-- **PascalCase** for components and classes
-- **SCREAMING_SNAKE_CASE** for constants (e.g., `PUBLIC_ROUTES`, `ROLE_CONFIG`)
+- **Features:** Lowercase, kebab-case for multi-word (e.g., `user-profile/`, `asset-management/`)
+- **Components:** Lowercase or PascalCase depending on content structure
+- **Utilities:** Lowercase, kebab-case (e.g., `timezone-utils/`, `validation-rules/`)
 
 ## Where to Add New Code
 
 **New Feature:**
-- Create `src/features/[feature-name]/` directory
-- Add subdirectories: `components/`, `hooks/`, `services/`, `types/`, `utils/`
-- Define types in `types/[feature].types.ts`
-- Create service in `services/[feature]-service.ts` calling `apiClient`
-- Create custom hooks in `hooks/use[Feature].ts` wrapping service with TanStack Query
-- Export reusable components from `components/`
-- Link feature to pages in `src/app/(dashboard)/[role]/[feature]/page.tsx`
+- Create directory: `src/features/[feature-name]/`
+- Add structure: `components/`, `hooks/`, `services/`, `types/`, `utils/`
+- Primary code: `src/features/[feature-name]/components/`, `src/features/[feature-name]/services/`
+- Tests: Co-located with source files (not yet in codebase)
+- Example: For a new "notifications" feature, create `src/features/notifications/` with subdirectories
 
-**New Component (Feature):**
-- Implementation: `src/features/[feature]/components/[component-name].tsx`
-- Export from feature barrel if reused
-- Use shared components from `src/shared/components/ui/` for styling
+**New Component:**
+- Shared across features: `src/shared/components/ui/` or `src/shared/components/layouts/`
+- Feature-specific: `src/features/[feature-name]/components/`
+- Named: PascalCase.tsx with component logic and related utilities
 
-**New Component (Shared):**
-- Implementation: `src/shared/components/ui/[component-name].tsx` or appropriate subdirectory
-- Use Radix UI primitives + Tailwind CSS for styling
-- Export from `src/shared/components/` if globally reusable
+**New Page:**
+- Public routes: `src/app/[page-name]/page.tsx`
+- Auth routes: `src/app/(auth)/[page-name]/page.tsx`
+- Protected routes: `src/app/(dashboard)/[role]/[page-name]/page.tsx`
+
+**New Service/API Logic:**
+- Location: `src/features/[feature-name]/services/[service-name].ts`
+- Use `apiClient` from `src/core/api/api-client.ts`
+- Return type-safe responses using interfaces from `src/interface/user-props.ts`
+- Example: `src/features/reservations/services/reservation-service.ts`
+
+**New Hook:**
+- Location: `src/features/[feature-name]/hooks/use[HookName].ts`
+- Use React Query for data fetching: `useQuery()`, `useMutation()`
+- Expose simplified API to components
+- Example: `src/features/calendar/hooks/useCalendarEvents.ts`
 
 **Utilities:**
-- Shared helpers: `src/shared/components/utils/[utility-name].ts`
-- Feature-specific: `src/features/[feature]/utils/[utility-name].ts`
-- Infrastructure: `src/core/lib/[utility-name].ts`
-
-**Types:**
-- Global/cross-feature types: `src/interface/user-props.ts`
-- Feature-specific: `src/features/[feature]/types/[feature].types.ts`
+- Shared utilities: `src/shared/components/utils/` or `src/core/lib/`
+- Feature utilities: `src/features/[feature-name]/utils/`
+- Separate files for different concerns: `validation.ts`, `transformers.ts`, `formatters.ts`
 
 ## Special Directories
 
-**`src/app/(auth)/` and `src/app/(auth)/`**
-- Purpose: Route grouping to organize auth and dashboard routes
-- Generated: No - manually created
-- Committed: Yes
-
-**`.next/`**
-- Purpose: Next.js build output and dev server artifacts
-- Generated: Yes (during `npm run dev` or `npm run build`)
+**`src/.next/`**
+- Purpose: Next.js build output
+- Generated: Yes (do not modify)
 - Committed: No (in .gitignore)
 
-**`node_modules/`**
+**`src/node_modules/`**
 - Purpose: npm dependencies
-- Generated: Yes (via npm install)
+- Generated: Yes (from package-lock.json)
 - Committed: No (in .gitignore)
 
 **`public/`**
-- Purpose: Static assets served directly by Next.js (images, favicons, etc.)
+- Purpose: Static assets (images, fonts, etc.)
 - Generated: No
 - Committed: Yes
+- Accessed: Root-relative paths (e.g., `/images/avatar.jpg`)
+
+**`src/app/_components/` and `src/app/_hooks/`**
+- Purpose: Local components and hooks for home page only
+- Pattern: Prefix with `_` to exclude from Next.js routing
+
+**`src/features/[feature]/types/`**
+- Purpose: Feature-specific type definitions
+- Pattern: Supplement centralized types in `src/interface/user-props.ts`
+- Example: `src/features/assets/types/asset.ts`
 
 ---
 
-*Structure analysis: 2026-02-23*
+*Structure analysis: 2026-03-15*

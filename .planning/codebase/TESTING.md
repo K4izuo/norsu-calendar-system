@@ -1,409 +1,324 @@
 # Testing Patterns
 
-**Analysis Date:** 2026-02-23
+**Analysis Date:** 2026-03-15
 
 ## Test Framework
 
-**Status:** No testing framework currently configured
+**Current Status:** No testing framework configured
 
-**Framework:**
-- Jest, Vitest, or similar: NOT installed
-- React Testing Library: NOT installed
-- Cypress/E2E testing: NOT installed
+**Not Detected:**
+- Jest config file (`jest.config.*`)
+- Vitest config file (`vitest.config.*`)
+- No `*.test.*` or `*.spec.*` files in `src/` directory
+- No test dependencies in `package.json` (no jest, vitest, testing-library, etc.)
 
-**Run Commands:**
-- No test commands defined in `package.json`
-- `npm run lint` - ESLint linting only (not testing)
-- Testing infrastructure needs to be established
+**Implications:**
+- Unit tests not currently in place
+- Integration tests not automated
+- E2E tests not configured
+- All quality assurance relies on manual testing or external tools
 
-## Test File Organization
+## Recommended Testing Setup
 
-**Current State:** No test files found in source directory (`src/`)
+**Framework:** Vitest or Jest with React Testing Library
 
-**Note:** While `node_modules/` contains many `.test.tsx` and `.spec.js` files (from dependencies like `@radix-ui/*`, `goober`, `next`), the codebase itself has zero test files.
+**Rationale:**
+- Project uses Next.js 16+ (supports modern tooling)
+- TypeScript strict mode enabled (good for test type safety)
+- React 19 with hooks-heavy architecture benefits from component testing
+- TanStack React Query extensively used (requires query client mocking)
 
-**Expected Pattern (when testing is added):**
-- Test file location: Co-located with source in same directory
-- Naming convention: `[module].test.ts` or `[module].test.tsx`
-- Example structure:
-```
-src/features/accounts/
-  ├── hooks/
-  │   ├── useAccountFormReg.ts
-  │   └── useAccountFormReg.test.ts
-  ├── utils/
-  │   ├── account-validation-rules.ts
-  │   └── account-validation-rules.test.ts
-  └── components/
-      ├── account-page-form.tsx
-      └── account-page-form.test.tsx
-```
+## Testing Strategy (Prescriptive)
 
-## Test Structure
+**When setting up testing, follow these patterns based on codebase structure:**
 
-**Current Implementation:** NOT APPLICABLE - No tests present
+### Unit Tests Location
 
-**When Testing is Added, Use Pattern:**
+- Place test files co-located with source:
+  - `src/core/api/api-client.ts` → `src/core/api/api-client.test.ts`
+  - `src/core/lib/utils.ts` → `src/core/lib/utils.test.ts`
+  - `src/features/accounts/utils/account-validation-rules.ts` → `src/features/accounts/utils/account-validation-rules.test.ts`
+
+- Or in dedicated `__tests__` directory:
+  - `src/core/api/__tests__/api-client.test.ts`
+  - `src/features/accounts/utils/__tests__/account-validation-rules.test.ts`
+
+**Naming Convention:**
+- Test files: `*.test.ts` or `*.test.tsx`
+- Snapshot files: `__snapshots__/ComponentName.test.tsx.snap`
+
+### Test Suite Structure
+
+**Pattern observed in dependency code (`@radix-ui`, `goober` tests):**
+
 ```typescript
-describe('ComponentName or FunctionName', () => {
-  // Setup
-  beforeEach(() => {
-    // Initialize test state, mocks
-  });
-
-  // Teardown
-  afterEach(() => {
-    // Clean up mocks, state
-  });
-
-  describe('specific behavior', () => {
-    it('should perform expected action', () => {
+// Basic test suite structure
+describe("ComponentName or FunctionName", () => {
+  describe("when condition", () => {
+    it("should do something specific", () => {
       // Arrange
-      const input = { /* setup */ };
+      const input = setupData();
 
       // Act
       const result = functionUnderTest(input);
 
       // Assert
-      expect(result).toBe(expectedValue);
+      expect(result).toEqual(expectedValue);
     });
   });
 });
 ```
 
-**Setup Pattern:**
-- Initialize mocks before each test with `beforeEach`
-- Reset module mocks between tests to prevent state leakage
-- Set up providers (QueryClient, Context) for component tests
+## What to Test (Based on Codebase Patterns)
 
-**Teardown Pattern:**
-- Clear all mocks with `jest.clearAllMocks()` or `vi.clearAllMocks()`
-- Reset component state
-- Cleanup React Query cache
+### Core API Client (`src/core/api/api-client.ts`)
 
-**Assertion Pattern:**
-- Use framework-specific assertions (Jest matchers or Vitest)
-- Test behavior, not implementation
-- Include both positive and negative test cases
+**Test these functions:**
+- `buildUrl()` - endpoint formatting
+- `buildHeaders()` - header construction with caching
+- `isPublicEndpoint()` - endpoint classification
+- `isProtectedEndpoint()` - endpoint classification with regex patterns
+- `apiClient.request()` - main request handler with error cases
+- `apiClient.get()`, `post()`, `put()`, `delete()`, `patch()` - HTTP methods
+- Authentication header injection
+- 401 response handling (unauthorized flow)
+- Error response parsing
+- AbortSignal cancellation handling
 
-## Mocking
-
-**Framework:** NOT CONFIGURED (when implemented, recommend Jest or Vitest)
-
-**Patterns to Implement:**
-
-**API Mocking:**
+**Example:**
 ```typescript
-// Mock apiClient for service tests
-jest.mock('@/core/api/api-client', () => ({
-  apiClient: {
-    get: jest.fn(),
-    post: jest.fn(),
-    put: jest.fn(),
-    delete: jest.fn(),
-  }
-}));
+describe("apiClient", () => {
+  describe("isPublicEndpoint", () => {
+    it("should return true for login endpoint", () => {
+      expect(isPublicEndpoint("users/login")).toBe(true);
+    });
 
-// In test:
-(apiClient.get as jest.Mock).mockResolvedValue({
-  data: expectedData,
-  error: null,
-  status: 200
-});
-```
-
-**React Query Mocking:**
-```typescript
-// Wrap component with QueryClient for tests
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: { retry: false }
-  }
-});
-
-// Render component with provider
-render(
-  <QueryClientProvider client={queryClient}>
-    <ComponentUnderTest />
-  </QueryClientProvider>
-);
-```
-
-**Context Mocking:**
-```typescript
-// Mock auth context for components needing authentication
-jest.mock('@/shared/components/context/auth-context', () => ({
-  useAuth: jest.fn(() => ({
-    user: { id: 1, role: 1 },
-    isAuthenticated: true,
-    isLoading: false,
-    logout: jest.fn(),
-  }))
-}));
-```
-
-**React Hook Form Mocking:**
-```typescript
-// Mock form functions in tests
-const mockRegister = jest.fn((name) => ({
-  name,
-  ref: jest.fn(),
-}));
-
-const mockHandleSubmit = jest.fn((onValid) => (e) => {
-  e.preventDefault();
-  onValid({});
-});
-```
-
-**What to Mock:**
-- External API calls (all `apiClient` calls)
-- React Query hooks and cache
-- Authentication context and auth state
-- Third-party services (toast notifications in some cases)
-- Custom hooks that depend on above
-
-**What NOT to Mock:**
-- Utility functions (formatTime, cn, etc.) - test them directly
-- Validation rules - test the actual validation logic
-- Component rendering libraries (React, React DOM)
-- Standard library functions
-
-## Fixtures and Factories
-
-**Status:** No fixture/factory patterns currently used
-
-**Recommended Pattern (when implementing):**
-
-**Test Data Factory:**
-```typescript
-// src/features/accounts/__tests__/fixtures/account.fixtures.ts
-export const createMockAccountFormData = (overrides?: Partial<AccountFormData>): AccountFormData => ({
-  username: 'testuser',
-  password: 'TestPassword123',
-  confirmPassword: 'TestPassword123',
-  ...overrides
-});
-
-export const createMockUserAccount = (overrides?: Partial<UserAccount>): UserAccount => ({
-  id: 1,
-  username: 'testuser',
-  email: 'test@example.com',
-  first_name: 'Test',
-  last_name: 'User',
-  role: 2,
-  ...overrides
-});
-```
-
-**API Response Fixtures:**
-```typescript
-// src/core/api/__tests__/fixtures/api-response.fixtures.ts
-export const createMockApiResponse = <T>(data: T, error: string | null = null) => ({
-  data,
-  error,
-  status: error ? 400 : 200
-});
-
-export const mockAssetResponse = {
-  data: {
-    id: 1,
-    asset_name: 'Lab Computer',
-    asset_type: 'Equipment',
-    location: 'Room 101',
-    capacity: 1,
-  },
-  error: null,
-  status: 200
-};
-```
-
-**Test Data Location:**
-- Place fixture files in `__tests__/fixtures/` directory adjacent to source
-- One fixture file per domain/feature
-- Keep fixtures simple and reusable across test files
-
-## Coverage
-
-**Requirements:** Not enforced
-
-**Current State:**
-- No test coverage enforcement
-- No `.nycrc` or coverage configuration
-- No CI pipeline running coverage checks
-
-**Recommended Setup (when implementing):**
-```bash
-# Run coverage report
-npm run test:coverage
-
-# Configuration in jest.config.js or package.json:
-"jest": {
-  "collectCoverageFrom": [
-    "src/**/*.{ts,tsx}",
-    "!src/**/*.types.ts",
-    "!src/**/*.d.ts",
-    "!src/**/index.ts"
-  ],
-  "coverageThreshold": {
-    "global": {
-      "branches": 70,
-      "functions": 70,
-      "lines": 70,
-      "statements": 70
-    }
-  }
-}
-```
-
-## Test Types
-
-**Unit Tests (when implemented):**
-- Scope: Individual functions, utilities, validation rules
-- Approach: Test in isolation with mocked dependencies
-- Location: `src/features/[feature]/utils/__tests__/`
-- Examples to test:
-  - Validation rules in `account-validation-rules.ts`
-  - Utility transformers in `asset-transformers.ts`
-  - Helper functions like `formatTime()`, `cn()`
-  - Constants and constants-based logic
-
-**Integration Tests (when implemented):**
-- Scope: Multiple components working together, API client with mock server
-- Approach: Test realistic user flows with minimal mocks
-- Location: `src/features/[feature]/__tests__/`
-- Examples to test:
-  - Forms with validation and submission
-  - Hooks with React Query
-  - Context providers with multiple consumers
-  - Multi-step workflows (e.g., account creation form with tabs)
-
-**E2E Tests:**
-- Framework: NOT IMPLEMENTED (recommend Playwright or Cypress)
-- Scope: Full user workflows through the UI
-- Examples: Login flow, create asset flow, calendar navigation
-
-## Common Patterns
-
-**Async Testing:**
-```typescript
-it('should fetch assets successfully', async () => {
-  // Mock the API
-  (apiClient.get as jest.Mock).mockResolvedValue({
-    data: [{ id: 1, asset_name: 'Test Asset' }],
-    error: null,
-    status: 200
+    it("should return false for protected endpoints", () => {
+      expect(isPublicEndpoint("/me")).toBe(false);
+    });
   });
 
-  // Render hook
-  const { result } = renderHook(() => useAssets());
-
-  // Wait for loading to complete
-  await waitFor(() => {
-    expect(result.current.loading).toBe(false);
-  });
-
-  // Assert
-  expect(result.current.assets).toHaveLength(1);
-});
-```
-
-**Error Testing:**
-```typescript
-it('should handle API errors gracefully', async () => {
-  (apiClient.get as jest.Mock).mockRejectedValue(
-    new Error('Network error')
-  );
-
-  const { result } = renderHook(() => useAssets());
-
-  await waitFor(() => {
-    expect(result.current.error).toBe('Network error');
-  });
-
-  expect(result.current.assets).toEqual([]);
-});
-```
-
-**Form Testing Pattern:**
-```typescript
-it('should validate form fields', async () => {
-  const { getByRole, getByText } = render(
-    <AccountPageLayout
-      type="dean"
-      formData={{ username: '', password: '', confirmPassword: '' }}
-      activeTab="details"
-      errors={{}}
-      register={mockRegister}
-      validationRules={ACCOUNT_VALIDATION_RULES}
-      onNextClick={jest.fn()}
-      // ... other props
-    />
-  );
-
-  const submitButton = getByRole('button', { name: /next/i });
-  fireEvent.click(submitButton);
-
-  // Should show validation error
-  await waitFor(() => {
-    expect(getByText(/username is required/i)).toBeInTheDocument();
+  describe("request", () => {
+    it("should return 401 error without token for protected endpoints", async () => {
+      const result = await apiClient.request("assets/all", "GET");
+      expect(result.status).toBe(401);
+      expect(result.error).toBeDefined();
+    });
   });
 });
 ```
 
-**Hook Testing (with React Query):**
+### Authentication Module (`src/core/auth/auth.ts`)
+
+**Test these functions:**
+- `setAuthToken()` - localStorage and cookie storage
+- `getAuthToken()` - retrieval with expiry validation
+- `setUserRole()`, `getUserRole()`
+- `setUserId()`, `getUserId()`
+- `removeAuthToken()` - cleanup
+- Token expiry checking logic
+- Cookie parsing
+
+**Key patterns:**
+- Mock `window`, `localStorage`, `document.cookie`
+- Test token expiry edge cases (expired vs. valid)
+- Verify both localStorage AND cookie are set/cleared
+
+### Utility Functions (`src/core/lib/utils.ts`)
+
+**Test `formatTime()` function:**
 ```typescript
-it('should create asset and refetch on success', async () => {
-  const queryClient = new QueryClient();
-  const { result } = renderHook(
-    () => useCreateAsset(),
-    { wrapper: ({ children }) => (
-      <QueryClientProvider client={queryClient}>
+describe("formatTime", () => {
+  it("should format 24-hour time to 12-hour format", () => {
+    expect(formatTime("14:30:00")).toBe("2:30 PM");
+  });
+
+  it("should handle midnight (00:00:00)", () => {
+    expect(formatTime("00:00:00")).toBe("12:00 AM");
+  });
+
+  it("should return empty string for undefined", () => {
+    expect(formatTime(undefined)).toBe("");
+  });
+
+  it("should return original string on parse error", () => {
+    expect(formatTime("invalid")).toBe("invalid");
+  });
+});
+```
+
+### Form Validation (`src/features/accounts/utils/account-validation-rules.ts`)
+
+**Test validation rules:**
+```typescript
+describe("ACCOUNT_VALIDATION_RULES", () => {
+  describe("username", () => {
+    it("should require username", () => {
+      const rule = ACCOUNT_VALIDATION_RULES.username;
+      expect(rule.required).toBeDefined();
+    });
+
+    it("should enforce minimum length of 3", () => {
+      expect(ACCOUNT_VALIDATION_RULES.username.minLength.value).toBe(3);
+    });
+
+    it("should only allow alphanumeric and underscore", () => {
+      const pattern = ACCOUNT_VALIDATION_RULES.username.pattern.value;
+      expect(pattern.test("valid_name")).toBe(true);
+      expect(pattern.test("invalid-name")).toBe(false);
+    });
+  });
+
+  describe("password", () => {
+    it("should require lowercase, uppercase, and number", () => {
+      const pattern = ACCOUNT_VALIDATION_RULES.password.pattern.value;
+      expect(pattern.test("ValidPass1")).toBe(true);
+      expect(pattern.test("validpass1")).toBe(false); // missing uppercase
+    });
+  });
+});
+```
+
+### Custom Hooks (React Testing Library)
+
+**For `useCurrentUser()` hook (`src/shared/components/hooks/useCurrentUser.ts`):**
+
+```typescript
+describe("useCurrentUser", () => {
+  it("should fetch user profile when userId exists", async () => {
+    const wrapper = ({ children }) => (
+      <QueryClientProvider client={testQueryClient}>
         {children}
       </QueryClientProvider>
-    )}
-  );
+    );
 
-  act(() => {
-    result.current.mutate({ /* asset data */ });
+    const { result } = renderHook(() => useCurrentUser(), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.user).toBeDefined();
+    });
   });
 
-  await waitFor(() => {
-    expect(result.current.isSuccess).toBe(true);
+  it("should return null when no userId", () => {
+    const { result } = renderHook(() => useCurrentUser(), { wrapper });
+    expect(result.current.user).toBeNull();
   });
 });
 ```
 
-## Testing Infrastructure TODO
+### React Components
 
-The codebase currently lacks testing infrastructure. To implement comprehensive testing:
+**For simple presentational components like `HomeNavbar` (`src/app/_components/home-navbar.tsx`):**
 
-1. **Install testing dependencies:**
-   - Choose framework: Jest or Vitest
-   - Install testing library for React
-   - Mock library (usually included with Jest/Vitest)
+```typescript
+describe("HomeNavbar", () => {
+  it("should render navigation bar", () => {
+    const { getByText } = render(
+      <HomeNavbar onScrollToAbout={() => {}} />
+    );
+    expect(getByText("NORSU Calendar System")).toBeInTheDocument();
+  });
 
-2. **Create configuration:**
-   - `jest.config.js` or `vitest.config.ts`
-   - Configure coverage thresholds
-   - Set up module mocking
+  it("should call onScrollToAbout when ABOUT is clicked", () => {
+    const mockScroll = vi.fn();
+    const { getByText } = render(
+      <HomeNavbar onScrollToAbout={mockScroll} />
+    );
 
-3. **Create fixture/factory patterns:**
-   - Establish test data fixtures
-   - Create mock builders for complex objects
+    fireEvent.click(getByText("ABOUT"));
+    expect(mockScroll).toHaveBeenCalled();
+  });
+});
+```
 
-4. **Establish CI/CD integration:**
-   - Run tests on pull requests
-   - Enforce minimum coverage
-   - Fail builds on test failures
+## Mocking Strategy
 
-5. **Write baseline tests:**
-   - Start with utility function tests
-   - Progress to service/hook tests
-   - Add component tests last (typically most brittle)
+**API Mocking:**
+- Mock `apiClient` in most component tests
+- Use React Query's `QueryClient` with `MemoryStorage`
+- Never make real HTTP requests in tests
+
+**Example mocking pattern:**
+```typescript
+vi.mock("@/core/api/api-client", () => ({
+  apiClient: {
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    delete: vi.fn(),
+  }
+}));
+
+// Usage in test:
+import { apiClient } from "@/core/api/api-client";
+vi.mocked(apiClient.get).mockResolvedValue({
+  data: mockAsset,
+  error: null,
+  status: 200
+});
+```
+
+**Browser APIs Mocking:**
+```typescript
+beforeEach(() => {
+  // Mock localStorage
+  Storage.prototype.getItem = vi.fn((key) => {
+    if (key === "auth-token") return "test-token";
+    return null;
+  });
+
+  // Mock document.cookie
+  Object.defineProperty(document, "cookie", {
+    writable: true,
+    value: "auth-token=test; user-role=1"
+  });
+});
+```
+
+**React Query Setup:**
+```typescript
+const testQueryClient = new QueryClient({
+  defaultOptions: {
+    queries: { retry: false },
+    mutations: { retry: false }
+  }
+});
+
+const wrapper = ({ children }) => (
+  <QueryClientProvider client={testQueryClient}>
+    {children}
+  </QueryClientProvider>
+);
+
+const { result } = renderHook(() => useAssets(), { wrapper });
+```
+
+## What NOT to Mock
+
+**Keep these real in tests:**
+- Validation logic (e.g., regex patterns in `account-validation-rules.ts`)
+- Utility functions (e.g., `formatTime()`, `cn()`)
+- React hooks behavior (useEffect, useState - use Testing Library)
+- React component rendering
+
+## Test Coverage Goals
+
+**No explicit coverage target enforced**, but recommend:
+- **Core API client:** 80%+ (critical for data flow)
+- **Authentication module:** 90%+ (security-sensitive)
+- **Utility functions:** 100% (small surface area)
+- **Validation rules:** 100% (deterministic)
+- **Custom hooks:** 70%+ (integration testing can cover some)
+- **Components:** 50%+ (focus on critical user flows)
+
+## Running Tests (When Configured)
+
+```bash
+npm run test              # Run all tests
+npm run test:watch       # Watch mode
+npm run test:coverage    # Generate coverage report
+```
 
 ---
 
-*Testing analysis: 2026-02-23*
+*Testing analysis: 2026-03-15*

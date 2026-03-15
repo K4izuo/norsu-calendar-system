@@ -1,154 +1,129 @@
 # Technology Stack
 
-**Analysis Date:** 2026-02-23
+**Analysis Date:** 2026-03-15
 
 ## Languages
 
 **Primary:**
-- TypeScript 5.x - Full type-safe codebase
-- TSX/JSX - React component syntax with TypeScript
-- JavaScript - Configuration files (ESM modules)
+- TypeScript 5 - All source code in `src/` directory
+- JSX/TSX - React component syntax for UI components
 
 **Secondary:**
-- CSS - Styling with Tailwind CSS
+- JavaScript (ES2017 target) - Configuration files and build tooling
+- CSS - Styling via Tailwind CSS PostCSS plugin
 
 ## Runtime
 
 **Environment:**
-- Node.js (version not specified in package.json, inferred from Next.js 16.1.4 compatibility)
+- Node.js - No specific version pinned (check package.json for runtime compatibility)
 
 **Package Manager:**
-- npm (lockfile: `package-lock.json` present)
+- npm (v10+ implied by package-lock.json)
+- Lockfile: `package-lock.json` present
 
 ## Frameworks
 
 **Core:**
-- Next.js 16.1.4 - Full-stack React framework with Turbopack
-- React 19.2.3 - UI framework
-- React DOM 19.2.3 - DOM rendering
+- Next.js 16.1.4 - Full-stack React framework with Server Components, routing, and API middleware
+- React 19.2.3 - UI library for component-based architecture
+- React DOM 19.2.3 - React rendering to DOM
 
-**Build/Dev:**
-- Turbopack - Default build system for Next.js 16 (no custom webpack config needed)
-- TypeScript 5.x - Compiler and type checking
+**UI & Styling:**
+- Tailwind CSS 4 - Utility-first CSS framework via `@tailwindcss/postcss` (PostCSS plugin)
+- Radix UI 1.4.3 - Unstyled, accessible component primitives
+  - Individual Radix components: `@radix-ui/react-avatar` 1.1.11, `@radix-ui/react-dialog` 1.1.15, `@radix-ui/react-dropdown-menu` 2.1.16, `@radix-ui/react-select` 2.2.6, `@radix-ui/react-tabs` 1.1.13, `@radix-ui/react-checkbox` 1.3.3, and others
+- class-variance-authority 0.7.1 - CSS-in-JS utility for managing component variants
+- tailwind-merge 3.3.1 - Merge Tailwind CSS classes intelligently
 
-**Styling:**
-- Tailwind CSS 4.x - Utility-first CSS framework
-- PostCSS 4.x (@tailwindcss/postcss) - CSS processing
-- class-variance-authority 0.7.1 - Component variant management
-- clsx 2.1.1 - Conditional className utility
-- tailwind-merge 3.3.1 - Merge Tailwind classes intelligently
-
-**Component UI:**
-- Radix UI 1.4.3 - Headless component library
-  - @radix-ui/react-avatar 1.1.11
-  - @radix-ui/react-checkbox 1.3.3
-  - @radix-ui/react-collapsible 1.1.12
-  - @radix-ui/react-dialog 1.1.15
-  - @radix-ui/react-dropdown-menu 2.1.16
-  - @radix-ui/react-label 2.1.7
-  - @radix-ui/react-select 2.2.6
-  - @radix-ui/react-separator 1.1.8
-  - @radix-ui/react-slot 1.2.4
-  - @radix-ui/react-tabs 1.1.13
-  - @radix-ui/react-tooltip 1.2.8
-- shadcn/ui - Component library built on Radix UI
-
-**Forms & Validation:**
-- react-hook-form 7.65.0 - Form state and validation management
-
-**Animations & Motion:**
-- framer-motion 12.23.12 - Advanced animations library
-- motion 12.26.2 - Motion component library
-- tw-animate-css 1.3.7 - Tailwind animation utilities
-
-**Notifications/Feedback:**
-- react-hot-toast 2.6.0 - Toast notifications
-- sonner 2.0.7 - Alternative toast library
+**Animation:**
+- Framer Motion 12.23.12 - Production-ready animation library
+- Motion 12.26.2 - Motion specification library (companion to Framer Motion)
 
 **Icons:**
-- lucide-react 0.541.0 - Icon library
+- lucide-react 0.541.0 - Minimal icon library with React components
 
-**Theme Management:**
-- next-themes 0.4.6 - Dark mode and theme switching
+**Data & State:**
+- TanStack React Query 5.91.2 - Server state management and data fetching
+- react-hook-form 7.65.0 - Performant, flexible form state management
+- next-themes 0.4.6 - Theme management (dark/light mode) for Next.js
 
-**Data Fetching & State Management:**
-- @tanstack/react-query 5.x - Server state management (from package-lock analysis)
-- @tanstack/react-query-devtools 5.91.2 - Development tools for React Query
+**Notifications & Feedback:**
+- react-hot-toast 2.6.0 - Toast notifications (configured in `src/app/layout.tsx`)
+- sonner 2.0.7 - Toast/notification library (alternative toast solution)
 
-## Development Dependencies
+**Utilities:**
+- clsx 2.1.1 - Utility for constructing className strings
 
-**Linting & Code Quality:**
-- ESLint 9.x - JavaScript/TypeScript linter
-- @eslint/eslintrc 3.x - ESLint configuration compatibility layer
-- eslint-config-next 15.5.0 - Next.js ESLint configuration
+**Testing & Development:**
+- ESLint 9 - JavaScript/TypeScript linting
+- @eslint/eslintrc 3 - ESLint configuration utilities (flat config compatibility)
+- eslint-config-next 15.5.0 - Next.js recommended ESLint rules and config
+- TypeScript 5 - Static type checking and compilation
+- @types/react 19 - TypeScript definitions for React 19
+- @types/react-dom 19 - TypeScript definitions for React DOM 19
+- @types/node 20 - TypeScript definitions for Node.js APIs
+- @next/bundle-analyzer 15.1.4 - Webpack bundle analysis for production builds
 
-**Type Checking:**
-- @types/node 20.x - Node.js type definitions
-- @types/react 19.x - React type definitions
-- @types/react-dom 19.x - React DOM type definitions
-- @types/css-modules 1.0.5 - CSS modules type definitions
+**Build & Performance:**
+- Turbopack - Next.js 16 default bundler (faster than Webpack, configured in `next.config.ts`)
+- Next.js Compiler - Built-in optimizer with console log removal for production
 
-**Build Analysis:**
-- @next/bundle-analyzer 15.1.4 - Bundle size analysis
+## Key Dependencies
 
-**Browser Support:**
-- baseline-browser-mapping 2.8.32 - Browser compatibility mapping
+**Critical:**
+- @tanstack/react-query - Powers all server state management and API data caching (see `src/core/lib/query-provider.tsx`)
+- next - Core framework enabling file-based routing, SSR, and production-ready deployment
+- typescript - Ensures type safety across entire codebase
+
+**Infrastructure:**
+- react, react-dom - Required for all UI rendering and interactivity
+- @radix-ui packages - Provide accessible component foundations for all UI components
 
 ## Configuration
 
 **Environment:**
-- Environment variables stored in `.env.local` (not committed)
-- Primary environment variable: `NEXT_PUBLIC_API_URL` - Backend API endpoint
+- API Base URL: `process.env.NEXT_PUBLIC_API_URL` - Backend API endpoint (required for all API calls in `src/core/api/api-client.ts`)
+- Development: `.env.local` file present (contains environment configuration)
 
-**Build Configuration:**
+**Build:**
 - `next.config.ts` - Next.js configuration with:
-  - Remote image optimization from Vercel Blob and Unsplash
-  - Image formats: avif, webp
-  - Strict React mode enabled
-  - Security headers (HSTS, XSS protection, CSP)
+  - Security headers (HSTS, X-Frame-Options, CSP, etc.)
+  - Image optimization (AVIF, WebP formats)
+  - React Strict Mode enabled
+  - Console log removal in production
   - Compression enabled
-  - Production console.log removal
-  - Optimistic client cache
-  - Package import optimization for bundle splitting
-  - Webpack build worker enabled
-  - Turbopack default build system
+  - Turbopack configuration
+  - Package import optimization for code splitting
 
-**Styling Configuration:**
-- `postcss.config.mjs` - PostCSS configuration with Tailwind plugin
-- `tailwind.config.ts` - Tailwind CSS configuration (handled by shadcn/ui setup)
-- `components.json` - shadcn/ui configuration:
-  - Style: New York
-  - Tailwind CSS with CSS variables (baseColor: neutral)
-  - Icon library: Lucide
-  - Component aliases configured
-
-**Type Configuration:**
-- `tsconfig.json`:
+- `tsconfig.json` - TypeScript compiler options:
   - Target: ES2017
-  - Module: ESNext
-  - JSX: react-jsx
+  - Module: ES modules (esnext)
   - Strict mode enabled
-  - Path aliases: `@/*` → `./src/*`
+  - JSX: react-jsx
+  - Path alias: `@/*` maps to `./src/*`
 
-**Linting Configuration:**
-- `eslint.config.mjs`:
-  - Uses ESLint flat config (ESLint 9.x)
-  - Extends: next/core-web-vitals, next/typescript
-  - Ignores: node_modules, .next, out, build, next-env.d.ts
+- `postcss.config.mjs` - PostCSS configuration using Tailwind CSS PostCSS plugin
+
+- `components.json` - Shadcn/ui configuration:
+  - Style: new-york
+  - Icons: lucide-react
+  - Component aliases configured in `src/components`, `src/ui`, `src/hooks`, `src/lib`
+
+- `eslint.config.mjs` - ESLint flat config:
+  - Extends: `next/core-web-vitals`, `next/typescript`
+  - Ignores: `node_modules`, `.next`, `out`, `build`, `next-env.d.ts`
 
 ## Platform Requirements
 
 **Development:**
-- Node.js (compatible with Next.js 16.1.4, recommend Node 18+)
-- npm package manager
-- Modern web browser (Chrome, Firefox, Safari, Edge)
+- Node.js (tested with npm v10+)
+- npm or compatible package manager
+- Modern browser with ES2017+ support
 
 **Production:**
-- Node.js runtime
-- Deployment target: Vercel-compatible (evident from image remotePatterns and Vercel Blob Storage references)
-- Static file serving for public assets
-- Environment: `NEXT_PUBLIC_API_URL` must be configured
+- Node.js runtime (Vercel, self-hosted, or container-based deployment)
+- NEXT_PUBLIC_API_URL environment variable pointing to backend API (default: http://127.0.0.1:8000 based on comments)
 
 ---
 
-*Stack analysis: 2026-02-23*
+*Stack analysis: 2026-03-15*

@@ -1,211 +1,209 @@
 # Coding Conventions
 
-**Analysis Date:** 2026-02-23
+**Analysis Date:** 2026-03-15
 
 ## Naming Patterns
 
 **Files:**
-- React components: PascalCase with `.tsx` extension (e.g., `AccountPageLayout.tsx`, `UserLoginForm.tsx`)
-- Services and utilities: kebab-case with `.ts` extension (e.g., `asset-service.ts`, `account-validation-rules.ts`)
-- Type/interface files: kebab-case with `.types.ts` suffix (e.g., `account.types.ts`, `asset.ts`, `auth.types.ts`)
-- Hooks: camelCase starting with `use` prefix (e.g., `useAccountForm.ts`, `useAssets.ts`)
-- Utility functions: kebab-case for the file but functions inside exported as is (e.g., `account-field-error-toast.ts` exports `showAccountErrorToast`)
-- Context components: kebab-case with context suffix (e.g., `auth-context.tsx`)
-- Pages (Next.js): kebab-case or lowercase directory names with `page.tsx` inside (e.g., `/dashboard/[role]/calendar/page.tsx`)
+- Components: PascalCase (e.g., `HomeNavbar.tsx`, `AccountPageForm.tsx`)
+- Utilities: camelCase (e.g., `account-validation-rules.ts`, `use-error-toast.ts`)
+- Hooks: camelCase prefixed with `use` (e.g., `useAccountForm.ts`, `useCurrentUser.ts`)
+- Types/Interfaces: PascalCase (e.g., `account.types.ts`, `user-props.ts`)
+- Services: camelCase with `-service` suffix (e.g., `asset-service.ts`)
+- API modules: camelCase (e.g., `api-client.ts`, `facultyEventsApi.ts`)
 
 **Functions:**
-- Component functions: PascalCase (e.g., `AccountPageLayout`, `UserLoginForm`)
-- Regular functions: camelCase (e.g., `fetchAssets`, `buildHeaders`, `validateAndProceed`)
-- Custom hooks: camelCase starting with `use` (e.g., `useAccountForm`, `useAssets`, `useCreateAsset`)
-- Utility/helper functions: camelCase (e.g., `showAccountErrorToast`, `formatTime`, `storeAuthData`)
-- Private helper functions: camelCase with underscore prefix sometimes used (e.g., standard pattern not strictly enforced)
+- React components: PascalCase (e.g., `export default function HomeNavbar() {}`)
+- Custom hooks: camelCase with `use` prefix (e.g., `export function useAccountForm()`)
+- Utility functions: camelCase (e.g., `buildUrl()`, `buildHeaders()`, `formatTime()`)
+- Service functions: camelCase (e.g., `fetchAssets()`, `createAsset()`, `storeAuthData()`)
+- Handler functions: `handle` prefix (e.g., `handleUnauthorized()`, `handleNext()`, `handleBack()`)
+- Validation functions: `validate` or `is` prefix (e.g., `isPublicEndpoint()`, `isProtectedEndpoint()`)
 
 **Variables:**
-- Constants: UPPER_SNAKE_CASE when truly constant exports (e.g., `ACCOUNT_VALIDATION_RULES`, `REQUIRED_ACCOUNT_FIELDS`, `ACCOUNT_FIELD_LABELS`)
-- Local variables and state: camelCase (e.g., `formData`, `activeTab`, `isSubmitting`)
-- React state setters: camelCase with standard `useState` naming (e.g., `const [activeTab, setActiveTab] = useState()`)
-- Type instances: camelCase (e.g., `formData`, `errors`, `headers`)
+- React state: camelCase (e.g., `activeTab`, `isSubmitting`, `formData`)
+- Constants: UPPER_SNAKE_CASE (e.g., `API_BASE_URL`, `MOBILE_BREAKPOINT`, `ACCOUNT_VALIDATION_RULES`)
+- Loop variables: camelCase (e.g., `item`, `user`, `asset`)
+- Boolean flags: `is`, `has`, `can` prefix (e.g., `isMobile`, `isAuthenticated`, `hasShown`)
 
 **Types:**
-- Interfaces: PascalCase with optional suffix context (e.g., `AccountFormData`, `UserLoginFormProps`, `AccountPageProps`, `ApiResponse<T>`)
-- Type aliases: PascalCase (e.g., `RequestMethod`, `Asset`)
-- Generic parameters: Single uppercase letter or PascalCase (e.g., `<T>`, `<D>`)
-- Enums: Not observed in codebase; use union types instead
+- Interfaces: PascalCase (e.g., `HomeNavbarProps`, `UserAccount`, `EventDetails`)
+- Type aliases: PascalCase (e.g., `RequestMethod`, `ApiResponse`)
+- Enums: PascalCase (not used in codebase - prefer literal unions)
+- Discriminated unions: PascalCase (e.g., `EventStatus = "pending" | "approved" | "decline"`)
+
+**Props interfaces:**
+- Named as `[ComponentName]Props` (e.g., `HomeNavbarProps`, `AccountPageFormProps`)
+- Exported from same file as component or in types directory
 
 ## Code Style
 
 **Formatting:**
-- ESLint 9 with flat config (`eslint.config.mjs`)
-- Uses Next.js core-web-vitals and TypeScript recommended presets
-- No explicit Prettier configuration found; uses ESLint defaults
-- Indentation: 2 spaces (inferred from codebase)
-- Line length: No strict limit enforced, some lines exceed 80 characters
+- No explicit prettier config file detected; using Next.js defaults
+- Inferred settings based on code:
+  - 2-space indentation (consistent throughout)
+  - Semicolons at end of statements
+  - Double quotes for strings (except JSX attributes where single is used)
+  - Trailing commas in objects/arrays
 
 **Linting:**
-- Framework: ESLint 9 (flat config format in `eslint.config.mjs`)
-- Configuration: `eslint.config.mjs` extends:
-  - `next/core-web-vitals`
-  - `next/typescript`
-- Ignores: `node_modules/**`, `.next/**`, `out/**`, `build/**`, `next-env.d.ts`
+- ESLint enabled with Next.js configuration (`eslint.config.mjs`)
+- Extends: `next/core-web-vitals` and `next/typescript`
+- Run: `npm run lint`
+- Ignores: `node_modules`, `.next`, `out`, `build`, `next-env.d.ts`
+
+**Strict TypeScript:**
+- `strict: true` in `tsconfig.json`
+- `noEmit: true` - type checking only, no emit
+- Path alias configured: `@/*` → `./src/*`
+- Type safety enforced across all `.ts` and `.tsx` files
 
 ## Import Organization
 
 **Order:**
-1. React imports: `import React, { ... } from "react"`
-2. Third-party library imports: `import { ... } from "lucide-react"`, `import { motion } from "framer-motion"`
-3. React Hook Form and form libraries
-4. UI component imports: `import { Button } from "@/shared/components/ui/button"`
-5. Context/provider imports: `import { useAuth } from "@/shared/components/context/auth-context"`
-6. Feature-level imports: `import { useAccountForm } from "@/features/accounts/hooks/useAccountForm"`
-7. Type imports: `import type { AccountFormData } from "@/features/accounts/types/account.types"`
-8. Utility imports: `import { formatTime } from "@/core/lib/utils"`
-9. Service imports: `import { apiClient } from "@/core/api/api-client"`
+1. External dependencies (React, Next.js, third-party packages)
+   - Example: `import React from "react"`
+   - Example: `import { useForm } from "react-hook-form"`
+   - Example: `import { useQuery } from "@tanstack/react-query"`
+
+2. Internal absolute imports using `@/` alias
+   - Example: `import { apiClient } from "@/core/api/api-client"`
+   - Example: `import { useAuth } from "@/shared/components/context/auth-context"`
+   - Example: `import { ACCOUNT_VALIDATION_RULES } from "@/features/accounts/utils/account-validation-rules"`
+
+3. Relative imports (rarely used due to `@/` alias preference)
 
 **Path Aliases:**
-- `@/*`: Maps to `./src/*` (configured in `tsconfig.json`)
-- Use this alias for all imports to enable consistent module resolution
-- Recommended pattern: absolute imports using `@/` prefix rather than relative paths
+- `@/*` → `./src/*` (configured in `tsconfig.json`)
+- All internal imports use absolute `@/` paths, avoiding relative paths like `../`
 
-**Import Style:**
-- Use named imports for specific exports: `import { Button } from "@/shared/components/ui/button"`
-- Use type imports for TypeScript-only imports: `import type { LoginFormData } from "@/features/auth/utils/login/login-validation-rules"`
-- Avoid barrel file exports in most cases (except for component collections)
+**Type imports:**
+- Imported alongside values: `import { type ClassValue } from "clsx"`
+- Or inline: `interface HomeNavbarProps { ... }`
 
 ## Error Handling
 
 **Patterns:**
-- API responses use consistent structure: `{ data: T | null, error: string | null, status: number }`
-- Always check `response.error` before accessing `response.data`
-- Throw Error with meaningful message in service functions when data is missing
-- Use toast notifications for user-facing errors via `react-hot-toast`
-- Console logging for development debugging: `console.error()`, `console.log()`, `console.warn()`
-- React Query handles retry logic with configurable retry counts
-- Form errors: Use React Hook Form's `FieldErrors` pattern with display via toast
-
-**Error Handling Example:**
-```typescript
-// API service pattern
-const response = await apiClient.get<Asset[]>('/assets/all');
-if (response.error) {
-  throw new Error(response.error);
-}
-if (!response.data || response.data.length === 0) {
-  return [];
-}
-return response.data;
-
-// Form error handling
-try {
-  await submitForm(data);
-  toast.success("Success message");
-} catch (error) {
-  console.error("Error context:", error);
-  toast.error(error instanceof Error ? error.message : "Unknown error");
-}
-```
+- Try-catch blocks used for async operations: `await apiClient.get()`, `response.json()`
+- Error responses modeled as return values, not exceptions: `{ data: T | null, error: string | null, status: number }`
+- API client returns discriminated error objects:
+  ```typescript
+  return {
+    data: null,
+    error: 'Authentication required. Please log in.',
+    status: 401
+  };
+  ```
+- Hooks throw errors to be caught by React Query's error handling: `throw new Error(response.error)`
+- Toast notifications used for user-facing errors: `toast.error(message)`
+- Silent failures in catch blocks: `await response.json().catch(() => null)`
+- User-friendly error messages mapped for display:
+  ```typescript
+  const messages: Record<string, string> = {
+    session_expired: "Session expired. Please log in again.",
+    unauthorized: "Access denied. Please log in to view this page.",
+  };
+  ```
 
 ## Logging
 
-**Framework:** `console` methods (built-in) and `react-hot-toast` for UI notifications
+**Framework:** `console` (no external logging library) + Toast notifications (`react-hot-toast`)
 
 **Patterns:**
-- Development: Use `console.log()` for informational logging
-- Warnings: Use `console.warn()` for non-critical issues (e.g., `console.warn('Token refresh failed (non-critical):', error)`)
-- Errors: Use `console.error()` for critical failures (e.g., `console.error("Error loading user data:", error)`)
-- Production: Console logs are removed except `error` and `warn` (configured in `next.config.ts`)
-- UI notifications: Use `toast.success()`, `toast.error()` from `react-hot-toast` with position and duration options
-- Example: `toast.success('Asset registered successfully!', { position: 'top-right', duration: 4000 })`
+- Inline comments with emoji markers for special cases:
+  - `// ⚡ PERFORMANCE:` - Performance optimization notes
+  - `// ✅ CRITICAL FIX:` - Critical fixes and important changes
+  - `// Note:` - General notes about logic
+- Console logging not visible in production (relies on error boundary + toast)
+- User-facing feedback via toast notifications:
+  ```typescript
+  toast.success("Account created successfully!", { position: "top-center" })
+  toast.error("Failed to create account!", { position: "top-center" })
+  ```
 
 ## Comments
 
 **When to Comment:**
-- Complex logic or algorithms: Document intent, not what the code does
-- Non-obvious workarounds or fixes: Include context markers like `⚡ PERFORMANCE:` or `✅ CRITICAL FIX:`
-- Form validation rules: Document requirements above the rules definition
-- Component prop interfaces: Always document via JSDoc
-- Performance optimizations: Mark with emoji prefix (⚡) for visibility
+- Complex logic requiring explanation (e.g., authentication flow, caching strategy)
+- Performance optimizations with reasoning
+- Critical fixes that address subtle bugs
+- External API endpoint patterns
+- Special cases in conditionals
+- Inline comments for non-obvious code
 
 **JSDoc/TSDoc:**
-- Used extensively for interface documentation (see `account.types.ts`)
-- Format: Multi-line comment above declaration with description
-- Example:
-```typescript
-/**
- * Form data for account creation/management
- * Used in account registration and profile update forms
- */
-export interface AccountFormData {
-  username: string
-  password: string
-  confirmPassword: string
-}
-```
-
-**Comment Markers:**
-- `⚡ PERFORMANCE:` - Performance optimizations or improvements
-- `✅ CRITICAL FIX:` - Important fixes or critical behavior
-- `🔒 SECURITY:` - Security-related code in `next.config.ts`
-- Standard comments for logic explanation
+- Used in types file: `src/features/accounts/types/account.types.ts`
+- Block-level JSDoc for interfaces and types:
+  ```typescript
+  /**
+   * Form data for account creation/management
+   * Used in account registration and profile update forms
+   */
+  export interface AccountFormData { ... }
+  ```
+- Section headers in type files:
+  ```typescript
+  // ============================================================================
+  // Account Form Data
+  // ============================================================================
+  ```
+- Minimal JSDoc on functions; prefer self-documenting code
 
 ## Function Design
 
-**Size:** Keep functions focused and under 50 lines when possible. Longer functions are acceptable for complex layout components (e.g., `AccountPageLayout` is 256 lines as it combines multiple sub-components).
+**Size:**
+- Most functions 20-50 lines
+- Larger functions (100+ lines) found in page components (`src/app/page.tsx`: 171 lines)
+- Utility functions kept under 30 lines
+- API handlers in `api-client.ts` break logic into named helper functions
 
 **Parameters:**
-- Use destructuring for object parameters: `({ type, formData, activeTab }: AccountPageProps)`
-- Generic type parameters for flexibility: `request<T, D = unknown>(...)`
-- Optional trailing parameters with defaults
-- Callback functions as props: `onSubmit: () => void`, `onNextClick: () => void`
+- Generics used for type safety: `async request<T, D = unknown>(...)`
+- Callback parameters explicitly typed: `(errors) => showAccountErrorToast(errors, formData, null)`
+- Destructured from objects when multiple: `{ handleSubmit, watch, formState: { errors } }`
+- Options objects for configuration: `RequestOptions<D>`, `customOptions: Omit<RequestOptions, 'body'>`
 
 **Return Values:**
 - Explicit return types on all functions
-- Services return wrapped responses: `Promise<ApiResponse<T>>`
-- Hooks return object with multiple values: `{ form, formData, errors, isSubmitting, ... }`
-- React components return `JSX.Element`
-- Nullable returns documented in response interface
+- Service functions return typed promises: `Promise<Asset>`, `Promise<Asset[]>`
+- Hooks return object with named properties: `{ data, isLoading, error, refetch }`
+- Never implicit `any` returns
+- Nullable returns explicitly typed: `string | null`, `T | null`
 
 ## Module Design
 
 **Exports:**
-- Named exports preferred for functions and components
-- Default exports for page components (Next.js pages)
-- Type exports using `export type` syntax
-- Constant exports for shared configuration (e.g., `ACCOUNT_VALIDATION_RULES`)
+- Default export for React components: `export default function ComponentName() {}`
+- Named exports for utilities, hooks, types: `export const functionName = () => {}`
+- Named exports for types: `export interface InterfaceName { ... }`
+- Constants exported with `export const`: `export const API_BASE_URL = ...`
 
 **Barrel Files:**
-- Minimal use observed; mostly avoided
-- Used in `@/shared/components/ui/` for component collections
-- Example: Components imported directly like `import { Button } from "@/shared/components/ui/button"`
+- Not extensively used; imports are typically specific file imports
+- Example structure: `src/features/accounts/` has no index.ts barrel file
+- Prefer explicit imports from specific files over barrel files
 
-**Feature Structure:**
-Each feature module follows consistent pattern:
-```
-features/[feature-name]/
-  ├── components/      # React components specific to feature
-  ├── hooks/           # Custom hooks for feature logic
-  ├── services/        # API calls and data services
-  ├── types/           # TypeScript interfaces and types
-  └── utils/           # Utility functions and helpers
-```
+**Service Pattern:**
+- Service files export pure functions (no hooks):
+  ```typescript
+  const fetchAssets = async (): Promise<Asset[]> => { ... }
+  const createAsset = async (data: AssetRegistrationPayload): Promise<Asset> => { ... }
+  ```
+- Custom hooks wrap service functions and handle React Query:
+  ```typescript
+  export const useAssets = () => {
+    return useQuery({ queryKey: ['assets'], queryFn: fetchAssets, ... });
+  };
+  ```
 
-**Code Organization:**
-- Section headers with `===` borders for large files (e.g., account.types.ts)
-- Logical grouping of related functionality
-- Utilities organized by domain/feature rather than by type
-- Services and hooks grouped with their domain features
-
-## Memo and Performance
-
-**React Memo:**
-- Used on functional components to prevent unnecessary re-renders: `export const UserLoginForm = memo(function UserLoginForm({ ... })`
-- Applied to components with stable props to optimize performance
-- Function names preserved after memo wrapping for better debugging
-
-**Re-render Optimization:**
-- `useCallback` used to memoize callbacks: `const handleNext = useCallback(() => { ... }, [handleSubmit, validateAndProceed, formData])`
-- Dependency arrays specified explicitly
-- Form state managed locally in hooks to reduce component re-renders
+**Hook Pattern:**
+- Hooks combine multiple concerns (data fetching, form handling, state management)
+- Example `useAccountForm()`:
+  - Uses `useForm()` from react-hook-form
+  - Manages form state and validation
+  - Returns form object, handlers, and validation rules
+  - Calls utility functions for errors: `showAccountErrorToast()`
 
 ---
 
-*Convention analysis: 2026-02-23*
+*Convention analysis: 2026-03-15*
