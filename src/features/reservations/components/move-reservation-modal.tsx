@@ -8,7 +8,10 @@ import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { EventDetails, ReservationWithRelations } from "@/interface/user-props";
 import { formatTime } from "@/core/lib/utils";
-import { useMoveReservation } from "@/features/calendar/services/reservation-service";
+import {
+  normalizeReservation,
+  useMoveReservation,
+} from "@/features/calendar/services/reservation-service";
 import { apiClient } from "@/core/api/api-client";
 import { checkReservationConflicts } from "@/features/reservations/utils/reservation-conflict-check";
 
@@ -78,7 +81,7 @@ export const MoveReservationModal: React.FC<MoveReservationModalProps> = ({
       setIsCheckingConflict(true);
       try {
         const response = await apiClient.get<ReservationWithRelations[]>("/reservations/all");
-        const all = response.data ?? [];
+        const all = (response.data ?? []).map(normalizeReservation);
         const conflicts = checkReservationConflicts({
           assetId: event.asset.id,
           date: newDate,

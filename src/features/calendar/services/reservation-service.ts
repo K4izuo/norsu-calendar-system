@@ -10,6 +10,30 @@ export type Asset = {
   capacity: number;
 };
 
+const toNumber = (value: unknown): number => {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+
+  return 0;
+};
+
+export const normalizeReservation = (
+  reservation: ReservationWithRelations,
+): ReservationWithRelations => ({
+  ...reservation,
+  id: toNumber(reservation.id),
+  asset_id: toNumber(reservation.asset_id),
+  range: toNumber(reservation.range),
+});
+
 // Fetch all reservations with relations (PUBLIC endpoint)
 export const fetchReservations = async (): Promise<ReservationWithRelations[]> => {
   const response = await apiClient.get<ReservationWithRelations[]>("/reservations/all");
@@ -22,7 +46,7 @@ export const fetchReservations = async (): Promise<ReservationWithRelations[]> =
     return [];
   }
 
-  return response.data;
+  return response.data.map(normalizeReservation);
 };
 
 // Fetch a single reservation by ID (PROTECTED endpoint)

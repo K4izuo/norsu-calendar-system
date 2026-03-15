@@ -30,9 +30,9 @@ const DraggableEventPill = React.memo(function DraggableEventPill({
   onPillDragStart,
   onPillDragEnd,
 }: DraggableEventPillProps) {
-  const eventId = event.id;
+  const eventId = Number(event.id);
   const status = event.registration_status.toUpperCase();
-  const range = event.range;
+  const range = Number(event.range);
   const isDraggable =
     role === "admin" && status === "APPROVED" && range === 1 && !!eventId;
 

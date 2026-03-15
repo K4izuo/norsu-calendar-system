@@ -9,6 +9,7 @@ import { Textarea } from "@/shared/components/ui/textarea";
 import { Label } from "@/shared/components/ui/label";
 import { apiClient } from "@/core/api/api-client";
 import { formatTime } from "@/core/lib/utils";
+import { normalizeReservation } from "@/features/calendar/services/reservation-service";
 
 type ConfirmationModalProps = {
   isOpen: boolean;
@@ -65,6 +66,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
 
           if (response.data && Array.isArray(response.data)) {
             const conflicts = response.data
+              .map(normalizeReservation)
               .filter(r =>
                 r.id !== event.id &&
                 r.asset_id === event.asset?.id &&

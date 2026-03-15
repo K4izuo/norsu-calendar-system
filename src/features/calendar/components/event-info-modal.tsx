@@ -147,6 +147,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
   const startedAgoText = event
     ? getStartedAgo(event.date, event.time_start)
     : null;
+  const eventRange = Number(event?.range ?? 0);
 
   const asset = event?.asset;
   const assetName = asset?.asset_name || "Not specified";
@@ -382,7 +383,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                           </div>
                           <div>
                             <p className="text-sm text-gray-500">Day(s)</p>
-                            <p className="font-medium text-base">{`${event.range} ${event.range === 1 ? "day" : "days"}`}</p>
+                            <p className="font-medium text-base">{`${eventRange} ${eventRange === 1 ? "day" : "days"}`}</p>
                           </div>
                           <div>
                             <p className="text-sm text-gray-500">Deadline</p>

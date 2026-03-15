@@ -55,9 +55,12 @@ export const checkReservationConflicts = ({
   const newStart = normalizeTime(timeStart);
   const newEnd = normalizeTime(timeEnd);
   const normalizedDate = normalizeDate(date);
+  const normalizedExcludeId = excludeId ? Number(excludeId) : undefined;
 
   const relevantReservations = reservations.filter(r => {
-    if (excludeId && r.id === excludeId) return false;
+    if (normalizedExcludeId !== undefined && Number(r.id) === normalizedExcludeId) {
+      return false;
+    }
 
     const reservationDate = normalizeDate(r.date);
 
@@ -95,7 +98,7 @@ export const checkReservationConflicts = ({
       }
 
       conflicts.push({
-        id: reservation.id,
+        id: Number(reservation.id),
         title_name: reservation.title_name,
         time_start: reservation.time_start,
         time_end: reservation.time_end,
