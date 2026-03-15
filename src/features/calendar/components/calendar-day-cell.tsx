@@ -257,14 +257,6 @@ export const CalendarDayCell = React.memo(function CalendarDayCell<T>({
           duration: 0.12,
         },
       }}
-      whileHover={
-        day.currentMonth && !isActiveDrag
-          ? { scale: 1.02, transition: { duration: 0.1 } }
-          : undefined
-      }
-      whileTap={
-        day.currentMonth && !isActiveDrag ? { scale: 0.98 } : undefined
-      }
     >
       <div className="flex justify-end items-start w-full">
         <span
