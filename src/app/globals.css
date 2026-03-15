@@ -16,13 +16,6 @@
     will-change: auto;
   }
 
-  /* ⚡ Use GPU acceleration for transforms and opacity */
-  .transform,
-  [style*="transform"] {
-    transform: translateZ(0);
-    backface-visibility: hidden;
-  }
-
   /* ⚡ FIXED: Reduce motion for users who prefer it, but KEEP loading spinners working!
    * Loading indicators are functional UI, not decorative, so they should always work */
   @media (prefers-reduced-motion: reduce) {
@@ -36,27 +29,6 @@
       scroll-behavior: auto !important;
     }
   }
-}
-
-/* Calendar cell & badge entrance animations — CSS-only, no Framer Motion.
-   Using CSS keyframes avoids inline style="transform:..." which would trigger
-   the [style*="transform"] GPU-promote rule above and break HTML5 drag on Vercel. */
-@keyframes calendar-cell-enter {
-  from { opacity: 0; transform: scale(0.97); }
-  to   { opacity: 1; transform: scale(1); }
-}
-
-.calendar-cell-enter {
-  animation: calendar-cell-enter 0.12s ease-out both;
-}
-
-@keyframes calendar-badge-enter {
-  from { opacity: 0; transform: scale(0); }
-  to   { opacity: 1; transform: scale(1); }
-}
-
-.calendar-badge-enter {
-  animation: calendar-badge-enter 0.2s ease-out both;
 }
 
 @custom-variant dark (&:is(.dark *));
