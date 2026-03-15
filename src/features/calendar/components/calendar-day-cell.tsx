@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useMemo, useRef, useCallback, useEffect } from "react";
-import { motion } from "framer-motion";
 import { CalendarClock, Clock } from "lucide-react";
 import { formatEventTimeRange } from "@/features/calendar/utils/timezone-utils";
 import { CalendarDayType, EventDetails } from "@/interface/user-props";
@@ -238,25 +237,17 @@ export const CalendarDayCell = React.memo(function CalendarDayCell<T>({
     } ${day.isToday ? "border-[1.5px]" : ""}`;
 
   return (
-    <motion.div
+    <div
       ref={cellRef}
       key={day.key}
       data-idx={idx}
-      className={baseClassName}
+      className={`${baseClassName} calendar-cell-enter`}
+      style={{ animationDelay: `${Math.min(0.01 * idx, 0.3)}s` }}
       onClick={day.currentMonth ? () => onDaySelect(day) : undefined}
       onDragOver={handleDragOver}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      initial={{ scale: 0.97, opacity: 0 }}
-      animate={{
-        scale: 1,
-        opacity: 1,
-        transition: {
-          delay: Math.min(0.01 * idx, 0.3),
-          duration: 0.12,
-        },
-      }}
     >
       <div className="flex justify-end items-start w-full">
         <span
@@ -294,38 +285,20 @@ export const CalendarDayCell = React.memo(function CalendarDayCell<T>({
               ))}
 
             {day.eventCount > 1 && (
-              <motion.div
+              <div
                 className={`hidden sm:inline-flex items-center ${role === "admin" ? "text-gray-700" : roleColors.todayText
-                  } px-1 py-1 rounded-xl text-[10px] sm:text-xs md:text-sm font-semibold absolute top-1.5 left-1`}
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{
-                  scale: 1,
-                  opacity: 1,
-                  transition: {
-                    delay: Math.min(0.01 * idx + 0.3, 0.4),
-                    duration: 0.2,
-                    ease: "easeOut",
-                  },
-                }}
+                  } px-1 py-1 rounded-xl text-[10px] sm:text-xs md:text-sm font-semibold absolute top-1.5 left-1 calendar-badge-enter`}
+                style={{ animationDelay: `${Math.min(0.01 * idx + 0.3, 0.4)}s` }}
               >
                 <CalendarClock size={12} className="mr-0.5 sm:mr-1 shrink-0" />
                 <span>{day.eventCount}</span>
-              </motion.div>
+              </div>
             )}
 
             {day.eventCount > 1 && (
-              <motion.div
-                className="sm:hidden absolute top-1 left-1"
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{
-                  scale: 1,
-                  opacity: 1,
-                  transition: {
-                    delay: Math.min(0.01 * idx + 0.3, 0.4),
-                    duration: 0.2,
-                    ease: "easeOut",
-                  },
-                }}
+              <div
+                className="sm:hidden absolute top-1 left-1 calendar-badge-enter"
+                style={{ animationDelay: `${Math.min(0.01 * idx + 0.3, 0.4)}s` }}
               >
                 <div
                   className={`inline-flex items-center ${role === "admin" ? "text-gray-700" : roleColors.todayText
@@ -334,10 +307,10 @@ export const CalendarDayCell = React.memo(function CalendarDayCell<T>({
                   <CalendarClock size={10} className="mr-0.5 shrink-0" />
                   <span>{day.eventCount}</span>
                 </div>
-              </motion.div>
+              </div>
             )}
           </div>
         )}
-    </motion.div>
+    </div>
   );
 }) as <T>(props: CalendarDayCellProps<T>) => React.ReactElement;
