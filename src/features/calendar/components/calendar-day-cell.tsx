@@ -185,12 +185,12 @@ export const CalendarDayCell = React.memo(function CalendarDayCell<T>({
 
   const handleDragOver = useCallback(
     (e: React.DragEvent) => {
-      if (canDrop) {
+      if (day.currentMonth && day.dateString) {
         e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
+        e.dataTransfer.dropEffect = canDrop ? "move" : "none";
       }
     },
-    [canDrop],
+    [canDrop, day.currentMonth, day.dateString],
   );
 
   const handleDragEnter = useCallback(

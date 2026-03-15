@@ -223,7 +223,7 @@ export default function CalendarPage() {
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
       if (new Date(newDate + "T00:00:00") < todayStart) {
-        toast.error("Cannot move a reservation to a past date");
+        toast.error("Error: This date are already past");
         return;
       }
 
