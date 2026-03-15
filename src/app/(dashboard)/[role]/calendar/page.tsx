@@ -203,8 +203,8 @@ export default function CalendarPage() {
 
   // Native drag-and-drop handlers
 
-  const handlePillDragStart = useCallback((event: unknown) => {
-    activeDragEventRef.current = event as EventDetails;
+  const handlePillDragStart = useCallback((event: EventDetails) => {
+    activeDragEventRef.current = event;
     requestAnimationFrame(() => setIsDragging(true));
   }, []);
 

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { CalendarDayType } from "@/interface/user-props";
+import { CalendarDayType, EventDetails } from "@/interface/user-props";
 import { getRoleColors, UserRole } from "@/shared/components/utils/role-colors";
 import { calendarVariants } from "@/features/calendar/utils/calendar-animations";
 import { CalendarDayCell } from "./calendar-day-cell";
@@ -18,7 +18,7 @@ interface CalendarGridProps<T = unknown> {
   onEventSelect?: (event: T) => void;
   /** True while a drag is in progress — prevents hover scale animations on all cells */
   isDragging?: boolean;
-  onPillDragStart?: (event: unknown) => void;
+  onPillDragStart?: (event: EventDetails) => void;
   onPillDragEnd?: () => void;
   onNativeDrop?: (dateString: string) => void;
 }

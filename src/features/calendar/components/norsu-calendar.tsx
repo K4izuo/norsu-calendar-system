@@ -3,7 +3,7 @@
 import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { CalendarDayType } from "@/interface/user-props";
+import { CalendarDayType, EventDetails } from "@/interface/user-props";
 import { getRoleColors, UserRole } from "@/shared/components/utils/role-colors";
 import {
   getPhilippineDay,
@@ -32,7 +32,7 @@ interface CalendarProps<T> {
   currentYear: number;
   onMonthYearChange: (month: number, year: number) => void;
   isDragging?: boolean;
-  onPillDragStart?: (event: unknown) => void;
+  onPillDragStart?: (event: EventDetails) => void;
   onPillDragEnd?: () => void;
   onNativeDrop?: (dateString: string) => void;
 }
