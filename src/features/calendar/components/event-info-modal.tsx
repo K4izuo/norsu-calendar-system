@@ -11,6 +11,7 @@ import {
   CircleCheckBig,
   XCircle,
   MoveRight,
+  GripVertical,
 } from "lucide-react";
 import { Button } from "../../../shared/components/ui/button";
 import { EventDetails } from "@/interface/user-props";
@@ -117,6 +118,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
   const [showApproveConfirm, setShowApproveConfirm] = useState(false);
   const [showDeclineConfirm, setShowDeclineConfirm] = useState(false);
   const [showMoveModal, setShowMoveModal] = useState(false);
+  const [showDotsMenu, setShowDotsMenu] = useState(false);
 
   const { mutate: approveReservation, isPending: isApproving } =
     useApproveReservation();
@@ -275,6 +277,38 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                               {startedAgoText && ` - ${startedAgoText}`}
                             </p>
                           </div>
+                          {/* 3-dots action menu */}
+                          {role && role !== "public" && getStatus(event) === "APPROVED" && (
+                            <div className="relative ml-2">
+                              <button
+                                onClick={() => setShowDotsMenu((prev) => !prev)}
+                                className="p-1.5 cursor-pointer rounded-lg hover:bg-gray-100 transition-colors focus:outline-none"
+                                aria-label="More options"
+                              >
+                                <GripVertical className="h-5 w-5 text-gray-500" />
+                              </button>
+                              {showDotsMenu && (
+                                <>
+                                  <div
+                                    className="fixed inset-0 z-10"
+                                    onClick={() => setShowDotsMenu(false)}
+                                  />
+                                  <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
+                                    <button
+                                      onClick={() => {
+                                        setShowDotsMenu(false);
+                                        setShowMoveModal(true);
+                                      }}
+                                      className="flex cursor-pointer items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
+                                    >
+                                      <MoveRight className="h-4 w-4" />
+                                      Move Reservation
+                                    </button>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -507,7 +541,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                 )}
 
               {/* Footer — APPROVED: Move */}
-              {!loading &&
+              {/* {!loading &&
                 event &&
                 getStatus(event) === "APPROVED" &&
                 role &&
@@ -521,7 +555,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                       MOVE RESERVATION
                     </Button>
                   </div>
-                )}
+                )} */}
             </motion.div>
           </div>
         )}
