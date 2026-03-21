@@ -91,7 +91,7 @@ export function ReserveEventFormTab({
 
   return (
     <div className="space-y-4 sm:space-y-6 pb-6">
-      <div className="space-y-4 sm:space-y-5">
+      <div className="space-y-4 sm:space-y-4">
         <EventFormInput
           name="title_name"
           id="title_name"
@@ -231,8 +231,8 @@ export function ReserveEventFormTab({
                       }}
                       min="1"
                       className={`mt-1 border h-12 text-base w-full transition-all duration-150 ${displayError
-                          ? "border-red-500 focus-visible:ring-red-100 focus-visible:border-red-500"
-                          : "border-gray-300 focus:border-blue-500 focus:ring-blue-500/20"
+                        ? "border-red-500 focus-visible:ring-red-100 focus-visible:border-red-500"
+                        : "border-gray-300 focus:border-blue-500 focus:ring-blue-500/20"
                         }`}
                     />
                     {displayError && typeof displayError === "string" && (

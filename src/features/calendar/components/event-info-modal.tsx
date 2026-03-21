@@ -515,7 +515,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                   <div className="sticky bottom-0 bg-white z-10 p-4 sm:p-6 border-t border-gray-200 flex justify-center gap-3 rounded-b-xl">
                     <Button
                       onClick={() => setShowMoveModal(true)}
-                      className="inline-flex w-full cursor-pointer items-center justify-center gap-2 flex-1 px-6 py-5 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+                      className="inline-flex w-full cursor-pointer items-center justify-center gap-2 flex-1 px-6 py-5 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg"
                     >
                       <MoveRight className="w-4 h-4" />
                       MOVE RESERVATION

@@ -11,8 +11,8 @@ import {
   getPhilippineYear,
 } from "@/features/calendar/utils/timezone-utils";
 import { useCalendarNavigation } from "@/features/calendar/hooks/use-calendar-navigation";
-import { CalendarHeader } from "./calendar-header";
-import { CalendarGrid } from "./calendar-grid";
+import { CalendarHeader } from "./norsu-calendar-card/calendar-header";
+import { CalendarGrid } from "./norsu-calendar-card/calendar-grid";
 
 interface CalendarProps<T> {
   onDaySelect: (day: CalendarDayType<T>) => void;
