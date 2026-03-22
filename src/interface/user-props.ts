@@ -43,6 +43,8 @@ export interface EventDetails {
   }
   finished_on?: string
   isFinished?: boolean;
+  is_moved?: boolean;
+  original_date?: string;
 }
 
 // Add this new interface for API payload
@@ -75,6 +77,8 @@ export interface Reservation {
   created_at: string
   updated_at: string
   reserve_by_user: number
+  is_moved?: boolean
+  original_date?: string
 }
 
 // Extended interface for API responses that include relationships
@@ -103,7 +107,7 @@ export interface EventsListModalProps {
   onReserve?: (formData: ReservationAPIPayload) => void
   title: string
   events?: EventDetails[]
-  onEventClick?: (event: EventDetails) => void
+  onEventClick?: (event: EventDetails, fromMovedEvents?: boolean) => void
   isLoading?: boolean
   eventDate?: string | undefined
   allReservations?: Reservation[]

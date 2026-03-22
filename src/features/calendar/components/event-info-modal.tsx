@@ -33,6 +33,7 @@ interface ModalProps {
   onApprove?: () => void;
   onDecline?: () => void;
   showBackdropBlur?: boolean;
+  fromMovedEvents?: boolean;
 }
 
 const getStatus = (
@@ -113,6 +114,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
   onApprove,
   onDecline,
   showBackdropBlur = false,
+  fromMovedEvents = false,
 }: ModalProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [showApproveConfirm, setShowApproveConfirm] = useState(false);
@@ -261,6 +263,18 @@ export const EventInfoModal = React.memo(function EventInfoModal({
               {!loading && event && (
                 <div className="flex-1 overflow-y-auto">
                   <div className="p-4 sm:p-6 space-y-6">
+                    {/* Moved event notice */}
+                    {fromMovedEvents && event.is_moved && (
+                      <div className="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+                        <MoveRight className="h-4 w-4 shrink-0 text-amber-600" />
+                        <div>
+                          <p className="text-sm font-medium text-amber-800">This event has been moved</p>
+                          <p className="text-xs text-amber-700">
+                            Originally scheduled for {formatDate(event.original_date)}, now on {formatDate(event.date)}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                     {/* Event summary card */}
                     <div className="bg-white text-card-foreground border border-border rounded-lg">
                       <div className="p-6">

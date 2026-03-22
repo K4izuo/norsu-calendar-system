@@ -83,6 +83,8 @@ export default function usePublicCalendarData({
           declined_by_user_details: reservation.declined_by_user,
           // Calculate if event is finished
           isFinished: isEventFinished(reservation.date, reservation.time_end),
+          is_moved: Boolean(reservation.is_moved),
+          original_date: reservation.original_date,
         };
       });
   }, [reservations, assets]);
@@ -133,11 +135,22 @@ export default function usePublicCalendarData({
   }, [calendarEvents]);
 
   // Selected day events - includes ALL events (past and upcoming) for modal filtering
+  // Also includes moved events indexed by their original_date
   const selectedDayEvents = useMemo(() => {
     if (!selectedDay || !selectedDay.currentMonth) return [];
 
     const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(selectedDay.date).padStart(2, "0")}`;
-    const dayEvents = allEvents.filter((event) => event.date === dateStr);
+    const seen = new Set<number>();
+    const dayEvents: typeof allEvents = [];
+
+    for (const event of allEvents) {
+      if (event.date === dateStr || (event.is_moved && event.original_date === dateStr)) {
+        if (!seen.has(event.id)) {
+          seen.add(event.id);
+          dayEvents.push(event);
+        }
+      }
+    }
 
     return dayEvents;
   }, [allEvents, selectedDay, currentMonth, currentYear]);

@@ -26,6 +26,8 @@ export interface Reservation {
   created_at: string
   updated_at: string
   reserve_by_user: number
+  is_moved?: boolean
+  original_date?: string
 }
 
 /**

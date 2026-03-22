@@ -48,7 +48,8 @@ export default function CalendarPage() {
 
   const [eventInfoLoading, setEventInfoLoading] = useState(false);
   const [eventsListLoading, setEventsListLoading] = useState(false);
-  const [showRecent, setShowRecent] = useState(false);
+  const [showRecent, setShowRecent] = useState<"upcoming" | "past" | "moved">("upcoming");
+  const [fromMovedEventsContext, setFromMovedEventsContext] = useState(false);
 
   // Native drag-and-drop state
   const [isDragging, setIsDragging] = useState(false);
@@ -114,6 +115,8 @@ export default function CalendarPage() {
           approved_by_user_details: reservation.approved_by_user,
           declined_by_user_details: reservation.declined_by_user,
           isFinished: isEventFinished(reservation.date, reservation.time_end),
+          is_moved: Boolean(reservation.is_moved),
+          original_date: reservation.original_date,
         };
       });
   }, [reservations, assets]);
@@ -141,11 +144,22 @@ export default function CalendarPage() {
     const map = new Map<string, EventDetails[]>();
 
     for (const event of allEvents) {
+      // Index by current date
       const existing = map.get(event.date);
       if (existing) {
         existing.push(event);
       } else {
         map.set(event.date, [event]);
+      }
+
+      // Also index moved events under their original_date so they appear on the original date's "Moved Events" tab
+      if (event.is_moved && event.original_date && event.original_date !== event.date) {
+        const existingOriginal = map.get(event.original_date);
+        if (existingOriginal) {
+          existingOriginal.push(event);
+        } else {
+          map.set(event.original_date, [event]);
+        }
       }
     }
 
@@ -173,7 +187,8 @@ export default function CalendarPage() {
     return allEventsByDate.get(dateStr) ?? [];
   }, [allEventsByDate, selectedDay, currentMonth, currentYear]);
 
-  const handleEventClick = useCallback((event: EventDetails) => {
+  const handleEventClick = useCallback((event: EventDetails, fromMovedEvents?: boolean) => {
+    setFromMovedEventsContext(fromMovedEvents ?? false);
     setEventInfoLoading(true);
     setEventInfoModalOpen(true);
     setTimeout(() => {
@@ -187,7 +202,7 @@ export default function CalendarPage() {
   }, []);
 
   const handleDaySelect = useCallback((day: CalendarDayType) => {
-    setShowRecent(false);
+    setShowRecent("upcoming");
     setSelectedDay(day);
     setEventsListLoading(true);
     setModalOpen(true);
@@ -322,10 +337,11 @@ export default function CalendarPage() {
         <EventInfoModal
           role="admin"
           isOpen={eventInfoModalOpen}
-          onClose={() => setEventInfoModalOpen(false)}
+          onClose={() => { setEventInfoModalOpen(false); setFromMovedEventsContext(false); }}
           event={selectedEvent}
           loading={eventInfoLoading}
           showBackdropBlur={false}
+          fromMovedEvents={fromMovedEventsContext}
         />
       </div>
 

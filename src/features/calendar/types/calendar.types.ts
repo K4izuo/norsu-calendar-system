@@ -55,6 +55,7 @@ export interface EventDetails {
   }
   finished_on?: string
   isFinished?: boolean
+  is_moved?: boolean
 }
 
 /**

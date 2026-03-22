@@ -73,8 +73,8 @@ export function EventsListModal({
   role,
   onNewReservation,
 }: EventsListModalProps & {
-  showRecent: boolean;
-  setShowRecent: React.Dispatch<React.SetStateAction<boolean>>;
+  showRecent: "upcoming" | "past" | "moved";
+  setShowRecent: React.Dispatch<React.SetStateAction<"upcoming" | "past" | "moved">>;
   role?: Role;
   allReservations?: Reservation[];
   onNewReservation?: (reservation: Reservation) => void;
@@ -89,23 +89,23 @@ export function EventsListModal({
   // Filter events by search term and mode (past vs upcoming)
   const filteredEvents = useMemo(() => {
     const searchLower = searchTerm.toLowerCase();
-    
+
     // Filter by search term first
     const searchFiltered = events.filter(event =>
       event.title_name?.toLowerCase().includes(searchLower) ||
       event.people_tag?.some(tag => tag.toLowerCase().includes(searchLower))
     );
 
-    if (showRecent) {
-      // Show ONLY past events (events that have finished)
-      return searchFiltered.filter(event => 
-        event.date === eventDate && event.isFinished
+    if (showRecent === "past") {
+      return searchFiltered.filter(event => event.date === eventDate && event.isFinished);
+    } else if (showRecent === "moved") {
+      // Show on the original date (where it was moved FROM)
+      return searchFiltered.filter(event =>
+        event.is_moved && (event.original_date ? event.original_date === eventDate : event.date === eventDate)
       );
     } else {
-      // Show ONLY upcoming/current events (events that haven't finished yet)
-      return searchFiltered.filter(event => 
-        event.date === eventDate && !event.isFinished
-      );
+      // Show events currently scheduled for this date that are not finished
+      return searchFiltered.filter(event => event.date === eventDate && !event.isFinished);
     }
   }, [events, searchTerm, showRecent, eventDate])
 
@@ -117,11 +117,11 @@ export function EventsListModal({
 
     const checkDate = new Date(eventDate);
     if (isNaN(checkDate.getTime())) return false;
-    
+
     // For +08:00 timezone, standard parsing of YYYY-MM-DD (UTC) gives 08:00 local.
     // Resetting to 00:00 local aligns it with "today".
     checkDate.setHours(0, 0, 0, 0);
-    
+
     return checkDate < today;
   }, [eventDate]);
 
@@ -151,12 +151,12 @@ export function EventsListModal({
   }, [onReserve])
 
   const handleEventClick = useCallback((event: EventDetails) => {
-    onEventClick?.(event)
-  }, [onEventClick])
+    onEventClick?.(event, showRecent === "moved")
+  }, [onEventClick, showRecent])
 
   const handleSelectChange = useCallback((value: string) => {
     setRecentLoading(true)
-    setShowRecent(value === "past")
+    setShowRecent(value as "upcoming" | "past" | "moved")
   }, [setShowRecent])
 
   useEffect(() => {
@@ -165,7 +165,7 @@ export function EventsListModal({
 
   useEffect(() => {
     if (isOpen) {
-      setShowRecent(isPastDate)
+      setShowRecent(isPastDate ? "past" : "upcoming")
       document.body.style.overflow = "hidden"
     } else {
       document.body.style.overflow = ""
@@ -239,7 +239,7 @@ export function EventsListModal({
                       </Button>
                     )}
                     <Select
-                      value={showRecent ? "past" : "upcoming"}
+                      value={showRecent}
                       onValueChange={handleSelectChange}
                       disabled={recentLoading}
                     >
@@ -247,13 +247,14 @@ export function EventsListModal({
                         <div className="flex text-sm font-medium items-center gap-2">
                           <Clock className="w-4 h-4" />
                           <SelectValue>
-                            {showRecent ? "Past Events" : "Upcoming Events"}
+                            {showRecent === "past" ? "Past Events" : showRecent === "moved" ? "Moved Events" : "Upcoming Events"}
                           </SelectValue>
                         </div>
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem className="cursor-pointer" value="current">Upcoming Events</SelectItem>
+                        <SelectItem className="cursor-pointer" value="upcoming">Upcoming Events</SelectItem>
                         <SelectItem className="cursor-pointer" value="past">Past Events</SelectItem>
+                        <SelectItem className="cursor-pointer" value="moved">Moved Events</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -288,16 +289,20 @@ export function EventsListModal({
                   <div className="flex flex-col items-center justify-center py-24 text-center">
                     <CalendarClock className="h-16 w-16 text-muted-foreground/50 mb-4" />
                     <h3 className="text-lg font-semibold text-foreground mb-2">
-                      {showRecent
+                      {showRecent === "past"
                         ? "No past events on this day"
-                        : "No upcoming events found"}
+                        : showRecent === "moved"
+                          ? "No moved events on this day"
+                          : "No upcoming events found"}
                     </h3>
                     <p className="text-muted-foreground max-w-md">
-                      {showRecent
+                      {showRecent === "past"
                         ? "No events have finished on this date yet."
-                        : searchTerm
-                          ? "Try adjusting your search terms or browse all events."
-                          : "No upcoming events scheduled for this date."}
+                        : showRecent === "moved"
+                          ? "No reservations have been moved to this date."
+                          : searchTerm
+                            ? "Try adjusting your search terms or browse all events."
+                            : "No upcoming events scheduled for this date."}
                     </p>
                   </div>
                 )}

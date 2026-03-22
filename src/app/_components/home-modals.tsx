@@ -17,10 +17,11 @@ interface HomeModalsProps {
   selectedDayEvents: EventDetails[];
   onEventClick: (event: EventDetails) => void;
   eventsListLoading: boolean;
-  showRecent: boolean;
-  setShowRecent: Dispatch<SetStateAction<boolean>>;
+  showRecent: "upcoming" | "past" | "moved";
+  setShowRecent: Dispatch<SetStateAction<"upcoming" | "past" | "moved">>;
   selectedEvent: EventDetails | undefined;
   eventInfoLoading: boolean;
+  fromMovedEventsContext: boolean;
 }
 
 export default function HomeModals(props: HomeModalsProps) {
@@ -40,6 +41,7 @@ export default function HomeModals(props: HomeModalsProps) {
     setShowRecent,
     selectedEvent,
     eventInfoLoading,
+    fromMovedEventsContext,
   } = props;
 
   return (
@@ -73,6 +75,7 @@ export default function HomeModals(props: HomeModalsProps) {
         onClose={onEventInfoModalClose}
         event={selectedEvent}
         loading={eventInfoLoading}
+        fromMovedEvents={fromMovedEventsContext}
       />
     </>
   );

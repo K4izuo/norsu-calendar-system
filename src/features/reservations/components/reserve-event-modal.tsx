@@ -21,10 +21,10 @@ import {
   peopleSuggestions,
   formattedAssets,
   formatDisplayDate,
-} from "./reserve-event/modal/modal-constants";
-import { ModalHeader } from "./reserve-event/modal/modal-header";
-import { ModalTabBar } from "./reserve-event/modal/modal-tab-bar";
-import { ModalFooter } from "./reserve-event/modal/modal-footer";
+} from "./reserve-event/reserve-modal/modal-constants";
+import { ModalHeader } from "./reserve-event/reserve-modal/modal-header";
+import { ModalTabBar } from "./reserve-event/reserve-modal/modal-tab-bar";
+import { ModalFooter } from "./reserve-event/reserve-modal/modal-footer";
 import { useModalBehavior } from "@/features/reservations/hooks/useModalBehavior";
 import { useModalAssetLoader } from "@/features/reservations/hooks/useModalAssetLoader";
 import { useEditModePopulate } from "@/features/reservations/hooks/useEditModePopulate";

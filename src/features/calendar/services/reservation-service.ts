@@ -381,10 +381,10 @@ export const useMoveReservation = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["reservations"], refetchType: "all" });
       queryClient.invalidateQueries({ queryKey: ["public-reservations"], refetchType: "all" });
-      toast.success("Reservation moved successfully!");
     },
-    onError: () => {
-      toast.error("Failed to move reservation");
+    onError: (err) => {
+      console.error("Move reservation error:", err);
+      toast.error(err instanceof Error ? err.message : "Failed to move reservation");
     },
   });
 };

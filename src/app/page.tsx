@@ -40,8 +40,9 @@ export default function Home() {
   );
   const [selectedDay, setSelectedDay] = useState<CalendarDayType | null>(null);
   const [eventInfoLoading, setEventInfoLoading] = useState(false);
-  const [showRecent, setShowRecent] = useState(false);
+  const [showRecent, setShowRecent] = useState<"upcoming" | "past" | "moved">("upcoming");
   const [eventsListLoading, setEventsListLoading] = useState(false);
+  const [fromMovedEventsContext, setFromMovedEventsContext] = useState(false);
 
   useErrorToast();
 
@@ -72,7 +73,8 @@ export default function Home() {
     [],
   );
 
-  const handleEventClick = useCallback((event: EventDetails) => {
+  const handleEventClick = useCallback((event: EventDetails, fromMovedEvents?: boolean) => {
+    setFromMovedEventsContext(fromMovedEvents ?? false);
     setSelectedEvent(event);
     setEventInfoLoading(true);
     setEventInfoModalOpen(true);
@@ -80,7 +82,7 @@ export default function Home() {
   }, []);
 
   const handleDaySelect = useCallback((day: CalendarDayType) => {
-    setShowRecent(false);
+    setShowRecent("upcoming");
     setSelectedDay(day);
     setEventsListLoading(true);
     setModalOpen(true);
@@ -153,7 +155,7 @@ export default function Home() {
         modalOpen={modalOpen}
         onModalClose={() => setModalOpen(false)}
         eventInfoModalOpen={eventInfoModalOpen}
-        onEventInfoModalClose={() => setEventInfoModalOpen(false)}
+        onEventInfoModalClose={() => { setEventInfoModalOpen(false); setFromMovedEventsContext(false); }}
         selectedDay={selectedDay}
         currentMonth={currentMonth}
         currentYear={currentYear}
@@ -165,6 +167,7 @@ export default function Home() {
         setShowRecent={setShowRecent}
         selectedEvent={selectedEvent}
         eventInfoLoading={eventInfoLoading}
+        fromMovedEventsContext={fromMovedEventsContext}
       />
     </div>
   );
