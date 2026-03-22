@@ -1,21 +1,15 @@
-import { RegisterOptions } from "react-hook-form"
+import { z } from "zod"
 
-export interface LoginFormData {
-  username: string
-  password: string
-}
+export const loginSchema = z.object({
+  username: z
+    .string()
+    .min(1, "Username field is required")
+    .min(3, "Username must be at least 3 characters long")
+    .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
+  password: z
+    .string()
+    .min(1, "Password field is required")
+    .min(8, "Password must be at least 8 characters long"),
+})
 
-export const LOGIN_VALIDATION_RULES: Record<keyof LoginFormData, RegisterOptions<LoginFormData>> = {
-  username: {
-    required: "Username field is required",
-    minLength: { value: 3, message: "Username must be at least 3 characters long" },
-    pattern: { 
-      value: /^[a-zA-Z0-9_]+$/, 
-      message: "Username can only contain letters, numbers, and underscores" 
-    }
-  },
-  password: {
-    required: "Password field is required",
-    minLength: { value: 8, message: "Password must be at least 8 characters long" }
-  }
-} as const
+export type LoginFormData = z.infer<typeof loginSchema>

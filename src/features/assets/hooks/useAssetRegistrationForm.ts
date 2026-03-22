@@ -1,6 +1,8 @@
 // hooks/useAssetRegistrationForm.ts
 import { useState, useEffect, useCallback } from "react"
 import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { assetSchema } from "@/features/assets/utils/asset-validation-rules"
 import { toast } from "react-hot-toast"
 import { AssetRegistrationData, AssetRegistrationPayload } from "@/interface/user-props"
 import { apiClient } from "@/core/api/api-client"
@@ -50,6 +52,7 @@ export function useAssetRegistrationForm({
     trigger,
     watch,
   } = useForm<AssetFormData>({
+    resolver: zodResolver(assetSchema),
     mode: "onTouched",
     defaultValues: {
       asset_name: "",

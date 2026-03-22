@@ -1,14 +1,16 @@
 import { useState, useCallback } from "react"
 import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { accountSchema } from "@/features/accounts/utils/account-validation-rules"
 import toast from "react-hot-toast"
 import { AccountFormData } from "@/features/accounts/types/account.types"
-import { ACCOUNT_VALIDATION_RULES } from "@/features/accounts/utils/account-validation-rules"
 import { showAccountErrorToast } from "@/features/accounts/utils/account-field-error-toast"
 
 export function useAccountForm() {
   const [activeTab, setActiveTab] = useState("details")
 
   const form = useForm<AccountFormData>({
+    resolver: zodResolver(accountSchema),
     mode: "onTouched",
     defaultValues: {
       username: "",
@@ -69,6 +71,5 @@ export function useAccountForm() {
     handleNext,
     handleBack,
     onSubmit,
-    validationRules: ACCOUNT_VALIDATION_RULES
   }
 }

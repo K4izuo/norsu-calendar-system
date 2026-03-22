@@ -5,18 +5,10 @@ import {
   Control,
   FieldErrors,
   Controller,
-  UseFormRegister,
-  RegisterOptions,
 } from "react-hook-form";
 import { ReservationFormData } from "@/interface/user-props";
 import { User, X, AlertCircle } from "lucide-react";
 import { EventSelectField } from "@/features/reservations/components/reserve-event/tabs/event-select-field";
-
-interface ValidationRules {
-  people_tag: RegisterOptions<ReservationFormData, "people_tag">;
-  info_type: RegisterOptions<ReservationFormData, "info_type">;
-  category: RegisterOptions<ReservationFormData, "category">;
-}
 
 interface Props {
   control: Control<ReservationFormData>;
@@ -31,8 +23,6 @@ interface Props {
   handleTagSelect: (person: { id: string; name: string }) => void;
   handleRemoveTag: (id: string) => void;
   setShowDropdown: (show: boolean) => void;
-  validationRules: ValidationRules;
-  register: UseFormRegister<ReservationFormData>;
   peopleFieldRef: React.RefObject<HTMLInputElement | null>;
 }
 
@@ -49,7 +39,6 @@ export function ReserveEventAdditionalTab({
   handleTagSelect,
   handleRemoveTag,
   setShowDropdown,
-  validationRules,
   peopleFieldRef,
 }: Props) {
   const filteredSuggestions = peopleSuggestions.filter(
@@ -69,12 +58,12 @@ export function ReserveEventAdditionalTab({
   const inputError = getInputError();
 
   return (
-    <div className="space-y-4 sm:space-y-6 min-h-100">
-      <div className="space-y-4 sm:space-y-5">
+    <div className="space-y-5 min-h-100">
+      <div className="space-y-5">
         <div className="flex flex-col gap-1.5">
           <Label
             htmlFor="people"
-            className="text-base inline-flex pointer-events-none"
+            className="text-sm inline-flex pointer-events-none"
           >
             <span className="pointer-events-auto">
               People Tag<span className="text-red-500"> *</span>
@@ -83,7 +72,6 @@ export function ReserveEventAdditionalTab({
           <Controller
             name="people_tag"
             control={control}
-            rules={validationRules.people_tag}
             render={({ field }) => {
               // Priority: input error (typing) > form validation error (no tags)
               const displayError =
@@ -94,7 +82,7 @@ export function ReserveEventAdditionalTab({
               const hasError = !!inputError || !!errors.people_tag;
 
               return (
-                <div className="relative mt-1">
+                <div className="relative">
                   <Input
                     name="people_tag"
                     id="people_tag"
@@ -186,50 +174,44 @@ export function ReserveEventAdditionalTab({
             }}
           />
         </div>
-        <div>
-          <Controller
-            name="info_type"
-            control={control}
-            rules={validationRules.info_type}
-            render={({ field }) => (
-              <EventSelectField
-                id="infoType"
-                name="info_type"
-                label="Information Type"
-                placeholder="Select information type"
-                value={field.value || ""}
-                onChange={field.onChange}
-                options={infoTypes}
-                required
-                hasError={!!errors.info_type}
-                validationError={errors.info_type?.message as string}
-                groupLabel="Types"
-              />
-            )}
-          />
-        </div>
-        <div>
-          <Controller
-            name="category"
-            control={control}
-            rules={validationRules.category}
-            render={({ field }) => (
-              <EventSelectField
-                id="category"
-                name="category"
-                label="Category"
-                placeholder="Select category"
-                value={field.value || ""}
-                onChange={field.onChange}
-                options={categories}
-                required
-                hasError={!!errors.category}
-                validationError={errors.category?.message as string}
-                groupLabel="Categories"
-              />
-            )}
-          />
-        </div>
+        <Controller
+          name="info_type"
+          control={control}
+          render={({ field }) => (
+            <EventSelectField
+              id="infoType"
+              name="info_type"
+              label="Information Type"
+              placeholder="Select information type"
+              value={field.value || ""}
+              onChange={field.onChange}
+              options={infoTypes}
+              required
+              hasError={!!errors.info_type}
+              validationError={errors.info_type?.message as string}
+              groupLabel="Types"
+            />
+          )}
+        />
+        <Controller
+          name="category"
+          control={control}
+          render={({ field }) => (
+            <EventSelectField
+              id="category"
+              name="category"
+              label="Category"
+              placeholder="Select category"
+              value={field.value || ""}
+              onChange={field.onChange}
+              options={categories}
+              required
+              hasError={!!errors.category}
+              validationError={errors.category?.message as string}
+              groupLabel="Categories"
+            />
+          )}
+        />
       </div>
     </div>
   );

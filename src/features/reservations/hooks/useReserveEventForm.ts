@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
+import type { Resolver } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 import toast from "react-hot-toast"
 import { ReservationFormData, ReservationAPIPayload, Reservation, EventDetails, ReservationWithRelations } from "@/interface/user-props"
-import { RESERVATION_VALIDATION_RULES } from "@/features/reservations/utils/reservation-validation-rules"
+import { reservationSchema } from "@/features/reservations/utils/reservation-schema"
 import { apiClient } from "@/core/api/api-client"
 import { useAuth } from "@/shared/components/context/auth-context"
 import { checkReservationConflicts } from "@/features/reservations/utils/reservation-conflict-check"
@@ -70,6 +72,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
 
   const form = useForm<ReservationFormData>({
     mode: "onTouched",
+    resolver: zodResolver(reservationSchema) as Resolver<ReservationFormData>,
     defaultValues: {
       title_name: "",
       asset: undefined,
@@ -425,7 +428,6 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
     handleAdditionalTabNext,
     handleFormSubmit,
     resetForm,
-    validationRules: RESERVATION_VALIDATION_RULES,
     isCheckingConflict,
   };
 };

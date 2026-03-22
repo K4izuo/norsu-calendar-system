@@ -30,7 +30,7 @@ import { ReservationFormData } from "@/interface/user-props";
 import { EventFormInput } from "./event-input-field";
 import { AlertCircle } from "lucide-react";
 import { useReservationFieldValidation } from "@/features/reservations/utils/reservation-field-validation";
-import { RESERVATION_VALIDATION_RULES } from "@/features/reservations/utils/reservation-validation-rules";
+import { reservationFieldSchemas } from "@/features/reservations/utils/reservation-schema";
 
 interface Asset {
   id: number;
@@ -44,7 +44,6 @@ interface Props {
   assets: Asset[];
   handleAssetChange: (value: string) => void;
   selectedAsset?: Asset | null;
-  validationRules: Record<string, Record<string, unknown>>;
   register: UseFormRegister<ReservationFormData>;
   watch: UseFormWatch<ReservationFormData>;
 }
@@ -55,7 +54,6 @@ export function ReserveEventFormTab({
   assets,
   handleAssetChange,
   selectedAsset,
-  validationRules,
   register,
   watch,
 }: Props) {
@@ -65,15 +63,15 @@ export function ReserveEventFormTab({
   // Real-time validation with debounce (only client-side)
   const titleNameError = useReservationFieldValidation(
     formData.title_name || "",
-    RESERVATION_VALIDATION_RULES.title_name,
+    reservationFieldSchemas.title_name,
   );
   const rangeError = useReservationFieldValidation(
     formData.range || "",
-    RESERVATION_VALIDATION_RULES.range,
+    reservationFieldSchemas.range,
   );
   const descriptionError = useReservationFieldValidation(
     formData.description || "",
-    RESERVATION_VALIDATION_RULES.description,
+    reservationFieldSchemas.description,
   );
 
   // Memoize border classes to prevent recalculation
@@ -90,23 +88,22 @@ export function ReserveEventFormTab({
   }, []);
 
   return (
-    <div className="space-y-4 sm:space-y-6 pb-6">
-      <div className="space-y-4 sm:space-y-4">
+    <div className="space-y-5 pb-6">
+      <div className="space-y-5">
         <EventFormInput
           name="title_name"
           id="title_name"
           label="Event Title"
           register={register}
-          rules={validationRules.title_name}
           errors={errors}
           clientError={titleNameError}
           placeholder="Enter event title"
         />
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div className="flex-1 min-w-0 flex flex-col gap-1.5">
             <Label
               htmlFor="asset"
-              className="text-base inline-flex pointer-events-none"
+              className="inline-flex text-sm pointer-events-none"
             >
               <span className="pointer-events-auto">
                 Assets<span className="text-red-500"> *</span>
@@ -115,7 +112,6 @@ export function ReserveEventFormTab({
             <Controller
               name="asset"
               control={control}
-              rules={validationRules.asset}
               render={() => (
                 <>
                   <Select
@@ -124,7 +120,7 @@ export function ReserveEventFormTab({
                   >
                     <SelectTrigger
                       id="asset"
-                      className={`mt-1 cursor-pointer border text-base w-full h-12 transition-all duration-150 ${getBorderClass(errors.asset)}`}
+                      className={`cursor-pointer border text-base w-full h-12 transition-all duration-150 ${getBorderClass(errors.asset)}`}
                     >
                       <SelectValue placeholder="Select an asset" />
                     </SelectTrigger>
@@ -168,7 +164,7 @@ export function ReserveEventFormTab({
             <div className="flex items-center gap-2">
               <Label
                 htmlFor="range"
-                className="text-base inline-flex pointer-events-none"
+                className="text-sm inline-flex pointer-events-none"
               >
                 <span className="pointer-events-auto">Day(s)</span>
               </Label>
@@ -211,7 +207,6 @@ export function ReserveEventFormTab({
             <Controller
               name="range"
               control={control}
-              rules={validationRules.range}
               render={({ field: { onChange, value, ...field } }) => {
                 // Server errors take priority over client-side validation
                 const displayError = errors.range?.message || rangeError;
@@ -230,7 +225,7 @@ export function ReserveEventFormTab({
                         onChange(val);
                       }}
                       min="1"
-                      className={`mt-1 border h-12 text-base w-full transition-all duration-150 ${displayError
+                      className={`border h-12 text-base w-full transition-all duration-150 ${displayError
                         ? "border-red-500 focus-visible:ring-red-100 focus-visible:border-red-500"
                         : "border-gray-300 focus:border-blue-500 focus:ring-blue-500/20"
                         }`}
@@ -251,7 +246,6 @@ export function ReserveEventFormTab({
             id="time_start"
             label="Start Time"
             register={register}
-            rules={validationRules.time_start}
             errors={errors}
             type="time"
           />
@@ -260,7 +254,6 @@ export function ReserveEventFormTab({
             id="time_end"
             label="End Time"
             register={register}
-            rules={validationRules.time_end}
             errors={errors}
             type="time"
             placeholder="Select end time"
@@ -271,7 +264,6 @@ export function ReserveEventFormTab({
           id="description"
           label="Description"
           register={register}
-          rules={validationRules.description}
           errors={errors}
           clientError={descriptionError}
           placeholder="Enter event description"

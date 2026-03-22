@@ -80,7 +80,6 @@ export function ReserveEventModal({
     handleFormTabNext,
     handleAdditionalTabNext,
     handleFormSubmit,
-    validationRules,
     setValue,
     setTaggedPeople,
     isCheckingConflict, // ✅ NEW: Destructure loading state
@@ -179,7 +178,6 @@ export function ReserveEventModal({
                     assets={formattedAssets}
                     handleAssetChange={handleAssetChange}
                     selectedAsset={watchedAsset}
-                    validationRules={validationRules}
                     register={register}
                     watch={watch}
                   />
@@ -202,8 +200,6 @@ export function ReserveEventModal({
                     handleTagSelect={handleTagSelect}
                     handleRemoveTag={handleRemoveTag}
                     setShowDropdown={setShowDropdown}
-                    validationRules={validationRules}
-                    register={register}
                     peopleFieldRef={peopleFieldRef}
                   />
                 </TabsContent>

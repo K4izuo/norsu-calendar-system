@@ -18,7 +18,6 @@ export default function DeanLoginPage() {
     handlePasswordToggle,
     handleRememberMeChange,
     handleSubmit,
-    validationRules
   } = useLoginForm()
 
   return (
@@ -90,7 +89,6 @@ export default function DeanLoginPage() {
           onRememberMeChange={handleRememberMeChange}
           onSubmit={handleSubmit}
           register={form.register}
-          validationRules={validationRules}
         />
       </motion.div>
     </div>

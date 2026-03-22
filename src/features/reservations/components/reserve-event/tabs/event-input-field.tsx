@@ -3,7 +3,6 @@ import {
   UseFormRegister,
   FieldErrors,
   FieldValues,
-  RegisterOptions,
   Path,
 } from "react-hook-form";
 import { Input } from "@/shared/components/ui/input";
@@ -15,7 +14,6 @@ type EventFormInputProps<T extends FieldValues = FieldValues> = {
   name: Path<T>;
   label: string;
   register: UseFormRegister<T>;
-  rules?: RegisterOptions<T, Path<T>>;
   errors: FieldErrors<T>;
   required?: boolean;
   isTextarea?: boolean;
@@ -27,7 +25,6 @@ export const EventFormInput = <T extends FieldValues>({
   name,
   label,
   register,
-  rules,
   errors,
   required = true,
   isTextarea = false,
@@ -35,7 +32,7 @@ export const EventFormInput = <T extends FieldValues>({
   ...inputProps
 }: EventFormInputProps<T>) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const registerProps = register(name, rules);
+  const registerProps = register(name);
   const isTimeInput = !isTextarea && inputProps.type === "time";
 
   // Server errors take priority over client-side validation
@@ -49,7 +46,7 @@ export const EventFormInput = <T extends FieldValues>({
   const textareaClassName = `min-h-[120px] text-base border rounded-lg transition-all duration-150 ${displayError
     ? "border-red-500 focus-visible:ring-red-200 focus-visible:border-red-500"
     : "border-gray-300 focus:border-blue-500 focus:ring-blue-500/20"
-    }`;
+    } resize-none`;
 
   const handlePickerOpen = () => {
     const input = inputRef.current;
@@ -64,7 +61,7 @@ export const EventFormInput = <T extends FieldValues>({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <Label htmlFor={name} className="inline-flex pointer-events-none">
+      <Label htmlFor={name} className="inline-flex text-sm pointer-events-none">
         <span className="pointer-events-auto">
           {label}
           {required && <span className="text-red-500"> *</span>}
@@ -74,7 +71,7 @@ export const EventFormInput = <T extends FieldValues>({
         <Textarea
           {...registerProps}
           id={name}
-          className={`mt-1 ${textareaClassName}`}
+          className={textareaClassName}
           {...inputProps}
         />
       ) : (
@@ -86,7 +83,7 @@ export const EventFormInput = <T extends FieldValues>({
               inputRef.current = node;
             }}
             id={name}
-            className={`mt-1 ${inputClassName}`}
+            className={inputClassName}
             {...inputProps}
           />
           {isTimeInput && (

@@ -13,7 +13,8 @@ import { useRole } from "@/shared/components/context/user-role";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { apiClient } from "@/core/api/api-client";
-import { STAFF_VALIDATION_RULES } from "@/features/auth/utils/staff/staff-register-validation-rules";
+import { staffSchema } from "@/features/auth/utils/staff/staff-register-validation-rules";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { StaffFormInput } from "@/features/auth/components/register/staff/staff-input-field";
 import { useFieldValidation } from "@/features/auth/utils/staff/staff-register-field-validation";
 
@@ -39,6 +40,7 @@ export default function StaffRegisterPage() {
   const { offices, loading: loadingOffices, error: officeError } = useOffices();
 
   const form = useForm<StaffRegisterFormData>({
+    resolver: zodResolver(staffSchema),
     mode: "onTouched",
     defaultValues: {
       first_name: "",
@@ -58,11 +60,11 @@ export default function StaffRegisterPage() {
   const formData = watch();
 
   // Real-time validation with debounce
-  const firstNameError = useFieldValidation(formData.first_name, STAFF_VALIDATION_RULES.first_name);
-  const middleNameError = useFieldValidation(formData.middle_name, STAFF_VALIDATION_RULES.middle_name);
-  const lastNameError = useFieldValidation(formData.last_name, STAFF_VALIDATION_RULES.last_name);
-  const emailError = useFieldValidation(formData.email, STAFF_VALIDATION_RULES.email);
-  const staffIDError = useFieldValidation(formData.assignment_id, STAFF_VALIDATION_RULES.staffID);
+  const firstNameError = useFieldValidation(formData.first_name, staffSchema.shape.first_name);
+  const middleNameError = useFieldValidation(formData.middle_name, staffSchema.shape.middle_name);
+  const lastNameError = useFieldValidation(formData.last_name, staffSchema.shape.last_name);
+  const emailError = useFieldValidation(formData.email, staffSchema.shape.email);
+  const staffIDError = useFieldValidation(formData.assignment_id, staffSchema.shape.assignment_id);
 
   useEffect(() => {
     if (role === "staff") {
@@ -153,7 +155,6 @@ export default function StaffRegisterPage() {
                     name="first_name"
                     label="First Name"
                     register={register}
-                    rules={STAFF_VALIDATION_RULES.first_name}
                     errors={errors}
                     clientError={firstNameError}
                     autoComplete="given-name"
@@ -163,7 +164,6 @@ export default function StaffRegisterPage() {
                     name="middle_name"
                     label="Middle Name"
                     register={register}
-                    rules={STAFF_VALIDATION_RULES.middle_name}
                     errors={errors}
                     clientError={middleNameError}
                     autoComplete="additional-name"
@@ -173,7 +173,6 @@ export default function StaffRegisterPage() {
                     name="last_name"
                     label="Last Name"
                     register={register}
-                    rules={STAFF_VALIDATION_RULES.last_name}
                     errors={errors}
                     clientError={lastNameError}
                     autoComplete="family-name"
@@ -186,7 +185,6 @@ export default function StaffRegisterPage() {
                     name="email"
                     label="Email"
                     register={register}
-                    rules={STAFF_VALIDATION_RULES.email}
                     errors={errors}
                     clientError={emailError}
                     type="email"
@@ -197,7 +195,6 @@ export default function StaffRegisterPage() {
                     name="assignment_id"
                     label="Staff ID"
                     register={register}
-                    rules={STAFF_VALIDATION_RULES.staffID}
                     errors={errors}
                     clientError={staffIDError}
                     autoComplete="off"
@@ -211,7 +208,6 @@ export default function StaffRegisterPage() {
                     <Controller
                       name="campus_id"
                       control={control}
-                      rules={STAFF_VALIDATION_RULES.campus}
                       render={({ field }) => (
                         <StaffFormSelectField
                           id="campus_id"
@@ -234,7 +230,6 @@ export default function StaffRegisterPage() {
                     <Controller
                       name="office_id"
                       control={control}
-                      rules={STAFF_VALIDATION_RULES.office}
                       render={({ field }) => (
                         <StaffFormSelectField
                           id="office_id"

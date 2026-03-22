@@ -19,7 +19,6 @@ export default function UserLoginPage() {
     handlePasswordToggle,
     handleRememberMeChange,
     handleSubmit,
-    validationRules
   } = useLoginForm()
 
   return (
@@ -93,7 +92,6 @@ export default function UserLoginPage() {
           onRememberMeChange={handleRememberMeChange}
           onSubmit={handleSubmit}
           register={form.register}
-          validationRules={validationRules}
         />
       </motion.div>
     </div>

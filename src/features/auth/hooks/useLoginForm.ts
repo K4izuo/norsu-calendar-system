@@ -1,7 +1,8 @@
 import React from "react"
 import { useForm, UseFormSetError } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 import toast from "react-hot-toast"
-import { LoginFormData, LOGIN_VALIDATION_RULES } from "@/features/auth/utils/login/login-validation-rules"
+import { LoginFormData, loginSchema } from "@/features/auth/utils/login/login-validation-rules"
 import { apiClient } from "@/core/api/api-client"
 import { useRouter } from "next/navigation"
 import { setAuthToken, setUserRole, setUserId } from "@/core/auth/auth"
@@ -75,6 +76,7 @@ export const useLoginForm = () => {
   const queryClient = useQueryClient();
 
   const form = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
     mode: "onTouched",
     defaultValues: { username: "", password: "" },
   });
@@ -170,6 +172,5 @@ export const useLoginForm = () => {
     handlePasswordToggle: () => setShowPassword(v => !v),
     handleRememberMeChange: (checked: boolean) => setRememberMe(checked),
     handleSubmit: handleFormSubmit,
-    validationRules: LOGIN_VALIDATION_RULES
   };
 };

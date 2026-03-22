@@ -3,7 +3,7 @@ import { Button } from "@/shared/components/ui/button"
 import { Checkbox } from "@/shared/components/ui/checkbox"
 import { Input } from "@/shared/components/ui/input"
 import { Eye, User, Lock, EyeOff, Loader2 } from "lucide-react"
-import { UseFormRegister, FieldErrors, RegisterOptions } from "react-hook-form"
+import { UseFormRegister, FieldErrors } from "react-hook-form"
 import { LoginFormData } from "@/features/auth/utils/login/login-validation-rules"
 
 interface LoginFormLayoutProps {
@@ -18,7 +18,6 @@ interface LoginFormLayoutProps {
   onRememberMeChange: (checked: boolean) => void
   onSubmit: (e: React.FormEvent) => void
   register: UseFormRegister<LoginFormData>
-  validationRules: Record<keyof LoginFormData, RegisterOptions<LoginFormData>>
 }
 
 export const LoginFormLayout = memo(function LoginFormLayout({
@@ -32,7 +31,6 @@ export const LoginFormLayout = memo(function LoginFormLayout({
   onRememberMeChange,
   onSubmit,
   register,
-  validationRules
 }: LoginFormLayoutProps) {
   // Theme configuration based on user type
   const themeConfig = {
@@ -72,7 +70,7 @@ export const LoginFormLayout = memo(function LoginFormLayout({
           <div className="space-y-2">
             <div className="relative">
               <Input
-                {...register("username", validationRules.username)}
+                {...register("username")}
                 id="username"
                 type="text"
                 placeholder="Username"
@@ -88,7 +86,7 @@ export const LoginFormLayout = memo(function LoginFormLayout({
           <div className="space-y-2">
             <div className="relative">
               <Input
-                {...register("password", validationRules.password)}
+                {...register("password")}
                 id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"

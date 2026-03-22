@@ -4,7 +4,7 @@
 import { Controller, Control, FieldErrors, UseFormRegister, UseFormWatch } from "react-hook-form"
 import { AssetFormInput } from "./asset-input-field"
 import { AssetSelectField } from "./asset-select-field"
-import { ASSET_VALIDATION_RULES } from "@/features/assets/utils/asset-validation-rules"
+import { assetSchema } from "@/features/assets/utils/asset-validation-rules"
 import { useAssetFieldValidation } from "@/features/assets/utils/asset-field-validation"
 
 interface AssetFormData {
@@ -56,10 +56,10 @@ export function AssetDetailsTab({
   const acquisitionDate = watch("acquisition_date")
 
   // ✅ Only run validation when values actually change
-  const assetNameError = useAssetFieldValidation(assetName || "", ASSET_VALIDATION_RULES.asset_name)
-  const capacityError = useAssetFieldValidation(capacity || "", ASSET_VALIDATION_RULES.capacity)
-  const locationError = useAssetFieldValidation(location || "", ASSET_VALIDATION_RULES.location)
-  const acquisitionDateError = useAssetFieldValidation(acquisitionDate || "", ASSET_VALIDATION_RULES.acquisition_date)
+  const assetNameError = useAssetFieldValidation(assetName || "", assetSchema.shape.asset_name)
+  const capacityError = useAssetFieldValidation(capacity || "", assetSchema.shape.capacity)
+  const locationError = useAssetFieldValidation(location || "", assetSchema.shape.location)
+  const acquisitionDateError = useAssetFieldValidation(acquisitionDate || "", assetSchema.shape.acquisition_date)
 
   return (
     <div className="space-y-4 sm:space-y-5">
@@ -67,7 +67,6 @@ export function AssetDetailsTab({
         name="asset_name"
         label="Asset Name"
         register={register}
-        rules={ASSET_VALIDATION_RULES.asset_name}
         errors={errors}
         clientError={assetNameError}
         placeholder="Enter asset name"
@@ -78,7 +77,6 @@ export function AssetDetailsTab({
         <Controller
           name="asset_type"
           control={control}
-          rules={ASSET_VALIDATION_RULES.asset_type}
           render={({ field }) => (
             <AssetSelectField
               id="asset_type"
@@ -100,7 +98,6 @@ export function AssetDetailsTab({
           name="capacity"
           label="Capacity"
           register={register}
-          rules={ASSET_VALIDATION_RULES.capacity}
           errors={errors}
           clientError={capacityError}
           type="number"
@@ -112,7 +109,6 @@ export function AssetDetailsTab({
           <Controller
             name="campus_id"
             control={control}
-            rules={{ required: "Campus is required" }}
             render={({ field }) => (
               <AssetSelectField
                 id="campus_id"
@@ -137,7 +133,6 @@ export function AssetDetailsTab({
           <Controller
             name="office_id"
             control={control}
-            rules={{ required: "Office is required" }}
             render={({ field }) => (
               <AssetSelectField
                 id="office_id"
@@ -163,7 +158,6 @@ export function AssetDetailsTab({
             name="location"
             label="Location"
             register={register}
-            rules={ASSET_VALIDATION_RULES.location}
             errors={errors}
             clientError={locationError}
             placeholder="Enter location"
@@ -175,7 +169,6 @@ export function AssetDetailsTab({
           name="acquisition_date"
           label="Acquisition Date"
           register={register}
-          rules={ASSET_VALIDATION_RULES.acquisition_date}
           errors={errors}
           clientError={acquisitionDateError}
           type="date"
@@ -185,7 +178,6 @@ export function AssetDetailsTab({
         <Controller
           name="condition"
           control={control}
-          rules={ASSET_VALIDATION_RULES.condition}
           render={({ field }) => (
             <AssetSelectField
               id="condition"

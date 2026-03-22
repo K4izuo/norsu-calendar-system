@@ -13,7 +13,8 @@ import { useRole } from "@/shared/components/context/user-role";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { apiClient } from "@/core/api/api-client";
-import { DEAN_VALIDATION_RULES } from "@/features/auth/utils/dean/dean-register-validation-rules";
+import { deanSchema } from "@/features/auth/utils/dean/dean-register-validation-rules";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { DeanFormInput } from "@/features/auth/components/register/dean/dean-input-field";
 import { useFieldValidation } from "@/features/auth/utils/dean/dean-register-field-validation";
 
@@ -39,6 +40,7 @@ export default function DeanRegisterPage() {
   const { offices, loading: loadingOffices, error: officeError } = useOffices();
 
   const form = useForm<DeanRegisterFormData>({
+    resolver: zodResolver(deanSchema),
     mode: "onTouched",
     defaultValues: {
       first_name: "",
@@ -58,11 +60,11 @@ export default function DeanRegisterPage() {
   const formData = watch();
 
   // Real-time validation with debounce
-  const firstNameError = useFieldValidation(formData.first_name, DEAN_VALIDATION_RULES.first_name);
-  const middleNameError = useFieldValidation(formData.middle_name, DEAN_VALIDATION_RULES.middle_name);
-  const lastNameError = useFieldValidation(formData.last_name, DEAN_VALIDATION_RULES.last_name);
-  const emailError = useFieldValidation(formData.email, DEAN_VALIDATION_RULES.email);
-  const deanIDError = useFieldValidation(formData.assignment_id, DEAN_VALIDATION_RULES.deanID);
+  const firstNameError = useFieldValidation(formData.first_name, deanSchema.shape.first_name);
+  const middleNameError = useFieldValidation(formData.middle_name, deanSchema.shape.middle_name);
+  const lastNameError = useFieldValidation(formData.last_name, deanSchema.shape.last_name);
+  const emailError = useFieldValidation(formData.email, deanSchema.shape.email);
+  const deanIDError = useFieldValidation(formData.assignment_id, deanSchema.shape.assignment_id);
 
   useEffect(() => {
     if (role === "dean") {
@@ -152,7 +154,6 @@ export default function DeanRegisterPage() {
                     name="first_name"
                     label="First Name"
                     register={register}
-                    rules={DEAN_VALIDATION_RULES.first_name}
                     errors={errors}
                     clientError={firstNameError}
                     autoComplete="given-name"
@@ -162,7 +163,6 @@ export default function DeanRegisterPage() {
                     name="middle_name"
                     label="Middle Name"
                     register={register}
-                    rules={DEAN_VALIDATION_RULES.middle_name}
                     errors={errors}
                     clientError={middleNameError}
                     autoComplete="additional-name"
@@ -172,7 +172,6 @@ export default function DeanRegisterPage() {
                     name="last_name"
                     label="Last Name"
                     register={register}
-                    rules={DEAN_VALIDATION_RULES.last_name}
                     errors={errors}
                     clientError={lastNameError}
                     autoComplete="family-name"
@@ -185,7 +184,6 @@ export default function DeanRegisterPage() {
                     name="email"
                     label="Email"
                     register={register}
-                    rules={DEAN_VALIDATION_RULES.email}
                     errors={errors}
                     clientError={emailError}
                     type="email"
@@ -196,7 +194,6 @@ export default function DeanRegisterPage() {
                     name="assignment_id"
                     label="Dean ID"
                     register={register}
-                    rules={DEAN_VALIDATION_RULES.deanID}
                     errors={errors}
                     clientError={deanIDError}
                     autoComplete="off"
@@ -210,7 +207,6 @@ export default function DeanRegisterPage() {
                     <Controller
                       name="campus_id"
                       control={control}
-                      rules={DEAN_VALIDATION_RULES.campus}
                       render={({ field }) => (
                         <DeanFormSelectField
                           id="campus_id"
@@ -233,7 +229,6 @@ export default function DeanRegisterPage() {
                     <Controller
                       name="office_id"
                       control={control}
-                      rules={DEAN_VALIDATION_RULES.office}
                       render={({ field }) => (
                         <DeanFormSelectField
                           id="office_id"

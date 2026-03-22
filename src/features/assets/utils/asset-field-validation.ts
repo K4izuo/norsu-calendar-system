@@ -1,28 +1,7 @@
 import { useState, useEffect } from "react"
-import type { RegisterOptions } from "react-hook-form"
+import type { ZodType } from "zod"
 
-interface AssetFormData {
-  asset_name: string
-  asset_type: string
-  capacity: string
-  location: string
-  acquisition_date: string
-  condition: string
-}
-
-interface ValidationRule {
-  minLength?: { value: number; message: string }
-  maxLength?: { value: number; message: string }
-  min?: { value: number; message: string }
-  pattern?: { value: RegExp; message: string }
-  required?: string
-  validate?: (value: string) => boolean | string
-}
-
-export function useAssetFieldValidation(
-  value: string,
-  rules: RegisterOptions<AssetFormData>
-): string {
+export function useAssetFieldValidation(value: string, schema: ZodType): string {
   const [error, setError] = useState<string>("")
 
   useEffect(() => {
@@ -31,36 +10,25 @@ export function useAssetFieldValidation(
       return
     }
 
-    const validationRule = rules as ValidationRule
-    let errorMessage = ""
-
-    // Check validations immediately
-    if (validationRule.minLength && value.length < validationRule.minLength.value) {
-      errorMessage = validationRule.minLength.message
-    } else if (validationRule.maxLength && value.length > validationRule.maxLength.value) {
-      errorMessage = validationRule.maxLength.message
-    } else if (validationRule.pattern && !validationRule.pattern.value.test(value)) {
-      errorMessage = validationRule.pattern.message
-    } else if (validationRule.validate) {
-      const result = validationRule.validate(value)
-      if (typeof result === "string") {
-        errorMessage = result
-      }
+    const result = schema.safeParse(value)
+    if (result.success) {
+      setError("")
+      return
     }
 
-    // If valid, clear error immediately
+    const errorMessage = result.error.issues[0]?.message || ""
+
     if (!errorMessage) {
       setError("")
       return
     }
 
-    // If invalid, debounce showing the error
     const timeoutId = setTimeout(() => {
       setError(errorMessage)
     }, 400)
 
     return () => clearTimeout(timeoutId)
-  }, [value, rules])
+  }, [value, schema])
 
   return error
 }

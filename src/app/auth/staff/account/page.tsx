@@ -10,11 +10,10 @@ export default function StaffAccountPage() {
     formData, 
     activeTab, 
     isSubmitting, 
-    isFormValid, 
-    handleNext, 
-    handleBack, 
+    isFormValid,
+    handleNext,
+    handleBack,
     onSubmit,
-    validationRules
   } = useAccountForm()
 
   return (
@@ -30,7 +29,6 @@ export default function StaffAccountPage() {
       onSubmit={onSubmit}
       register={form.register}
       errors={form.formState.errors}
-      validationRules={validationRules}
     />
   )
 }

@@ -1,63 +1,33 @@
-export const ASSET_VALIDATION_RULES = {
-  asset_name: {
-    required: "Asset name is required",
-    minLength: { value: 3, message: "Minimum 3 characters" },
-    maxLength: { value: 100, message: "Maximum 100 characters" },
-    validate: (value: string) => {
-      const trimmed = value.trim();
-      if (trimmed.length === 0) {
-        return "Asset name cannot be empty or just whitespace";
-      }
-      return true;
-    },
-  },
-  asset_type: {
-    required: "Asset type is required",
-  },
-  capacity: {
-    required: "Capacity is required",
-    validate: (value: string) => {
-      const num = parseInt(value);
-      if (isNaN(num)) {
-        return "Capacity must be a valid number";
-      }
-      if (num < 1) {
-        return "Capacity must be at least 1";
-      }
-      if (num > 10000) {
-        return "Capacity cannot exceed 10,000";
-      }
-      return true;
-    },
-  },
-  location: {
-    required: "Location is required",
-    minLength: { value: 3, message: "Minimum 3 characters" },
-    maxLength: { value: 200, message: "Maximum 200 characters" },
-    validate: (value: string) => {
-      const trimmed = value.trim();
-      if (trimmed.length === 0) {
-        return "Location cannot be empty or just whitespace";
-      }
-      return true;
-    },
-  },
-  acquisition_date: {
-    required: "Acquisition date is required",
-    validate: (value: string) => {
-      if (!value) {
-        return "Acquisition date is required";
-      }
-      const selectedDate = new Date(value);
-      const today = new Date();
+import { z } from "zod"
 
-      if (selectedDate > today) {
-        return "Acquisition date cannot be in the future " + today;
-      }
-      return true;
-    },
-  },
-  condition: {
-    required: "Condition is required",
-  },
-} as const;
+export const assetSchema = z.object({
+  asset_name: z
+    .string()
+    .min(1, "Asset name is required")
+    .min(3, "Minimum 3 characters")
+    .max(100, "Maximum 100 characters")
+    .refine(val => val.trim().length > 0, "Asset name cannot be empty or just whitespace"),
+  asset_type: z.string().min(1, "Asset type is required"),
+  capacity: z
+    .string()
+    .min(1, "Capacity is required")
+    .refine(val => !isNaN(parseInt(val)), "Capacity must be a valid number")
+    .refine(val => parseInt(val) >= 1, "Capacity must be at least 1")
+    .refine(val => parseInt(val) <= 10000, "Capacity cannot exceed 10,000"),
+  location: z
+    .string()
+    .min(1, "Location is required")
+    .min(3, "Minimum 3 characters")
+    .max(200, "Maximum 200 characters")
+    .refine(val => val.trim().length > 0, "Location cannot be empty or just whitespace"),
+  acquisition_date: z
+    .string()
+    .min(1, "Acquisition date is required")
+    .refine(
+      val => !val || new Date(val) <= new Date(),
+      { message: `Acquisition date cannot be in the future ${new Date()}` }
+    ),
+  condition: z.string().min(1, "Condition is required"),
+  campus_id: z.string().optional(),
+  office_id: z.string().optional(),
+})

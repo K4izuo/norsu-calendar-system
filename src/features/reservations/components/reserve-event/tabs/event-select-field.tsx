@@ -42,7 +42,7 @@ export const EventSelectField = memo(function EventSelectField({
 }: EventSelectFieldProps) {
   return (
     <div className="flex flex-col gap-1.5">
-      <Label htmlFor={id} className="inline-flex pointer-events-none">
+      <Label htmlFor={id} className="inline-flex text-sm pointer-events-none">
         <span className="pointer-events-auto">
           {label} {required && <span className="text-red-500"> *</span>}
         </span>

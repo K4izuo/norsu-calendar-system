@@ -5,7 +5,7 @@ import { Tabs, TabsContent } from "@/shared/components/ui/tabs"
 import { Button } from "@/shared/components/ui/button"
 import { Label } from "@/shared/components/ui/label"
 import { Input } from "@/shared/components/ui/input"
-import { UseFormRegister, FieldErrors, RegisterOptions } from "react-hook-form"
+import { UseFormRegister, FieldErrors } from "react-hook-form"
 import { AccountFormData } from "@/features/accounts/types/account.types"
 
 // --- Shared Background Blobs Component ---
@@ -44,7 +44,6 @@ export interface AccountPageProps {
   onSubmit: () => void
   register: UseFormRegister<AccountFormData>
   errors: FieldErrors<AccountFormData>
-  validationRules: Record<keyof AccountFormData, RegisterOptions<AccountFormData>>
 }
 
 export const AccountPageLayout = React.memo(({
@@ -59,7 +58,6 @@ export const AccountPageLayout = React.memo(({
   onSubmit,
   register,
   errors,
-  validationRules
 }: AccountPageProps) => {
   
   // Theme configuration
@@ -111,7 +109,7 @@ export const AccountPageLayout = React.memo(({
         {label} <span className="text-red-500">*</span>
       </Label>
       <Input
-        {...register(name, validationRules[name])}
+        {...register(name)}
         id={name}
         type={type}
         autoComplete={name === "username" ? "username" : "new-password"}

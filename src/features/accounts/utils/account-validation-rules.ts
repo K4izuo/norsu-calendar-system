@@ -1,26 +1,28 @@
-import { RegisterOptions } from "react-hook-form"
-import { AccountFormData } from "@/features/accounts/types/account.types"
+import { z } from "zod"
 
-export const ACCOUNT_VALIDATION_RULES: Record<keyof AccountFormData, RegisterOptions<AccountFormData>> = {
-  username: {
-    required: "Username field is required",
-    minLength: { value: 3, message: "Username must be at least 3 characters long" },
-    pattern: { 
-      value: /^[a-zA-Z0-9_]+$/, 
-      message: "Username can only contain letters, numbers, and underscores" 
+export const accountSchema = z
+  .object({
+    username: z
+      .string()
+      .min(1, "Username field is required")
+      .min(3, "Username must be at least 3 characters long")
+      .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
+    password: z
+      .string()
+      .min(1, "Password field is required")
+      .min(8, "Password must be at least 8 characters long")
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+        "Password must contain at least one uppercase letter, one lowercase letter, and one number"
+      ),
+    confirmPassword: z.string().min(1, "Please confirm your password field"),
+  })
+  .superRefine((data, ctx) => {
+    if (data.confirmPassword && data.password !== data.confirmPassword) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Passwords do not match",
+        path: ["confirmPassword"],
+      })
     }
-  },
-  password: {
-    required: "Password field is required",
-    minLength: { value: 8, message: "Password must be at least 8 characters long" },
-    pattern: {
-      value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-      message: "Password must contain at least one uppercase letter, one lowercase letter, and one number"
-    }
-  },
-  confirmPassword: {
-    required: "Please confirm your password field",
-    validate: (value, formValues) => 
-      value === formValues.password || "Passwords do not match"
-  }
-} as const
+  })

@@ -10,12 +10,9 @@ import {
   AlertCircle,
   CheckCircle2,
 } from "lucide-react";
-import type {
-  UseFormRegister,
-  FieldErrors,
-  RegisterOptions,
-} from "react-hook-form";
+import type { UseFormRegister, FieldErrors } from "react-hook-form";
 import type { LoginFormData } from "@/features/auth/utils/login/login-validation-rules";
+import { loginSchema } from "@/features/auth/utils/login/login-validation-rules";
 import { useFieldValidation } from "@/features/auth/utils/login/login-field-validation";
 
 interface UserLoginFormProps {
@@ -29,7 +26,6 @@ interface UserLoginFormProps {
   onRememberMeChange: (checked: boolean) => void;
   onSubmit: (e: React.FormEvent) => void;
   register: UseFormRegister<LoginFormData>;
-  validationRules: Record<keyof LoginFormData, RegisterOptions<LoginFormData>>;
 }
 
 export const UserLoginForm = memo(function UserLoginForm({
@@ -43,17 +39,10 @@ export const UserLoginForm = memo(function UserLoginForm({
   onRememberMeChange,
   onSubmit,
   register,
-  validationRules,
 }: UserLoginFormProps) {
   // Real-time validation with debounce
-  const usernameError = useFieldValidation(
-    formData.username,
-    validationRules.username,
-  );
-  const passwordError = useFieldValidation(
-    formData.password,
-    validationRules.password,
-  );
+  const usernameError = useFieldValidation(formData.username, loginSchema.shape.username);
+  const passwordError = useFieldValidation(formData.password, loginSchema.shape.password);
 
   // Server errors take priority over client-side validation
   const displayErrors = {
@@ -87,7 +76,7 @@ export const UserLoginForm = memo(function UserLoginForm({
           <div className="space-y-1.5">
             <div className="relative">
               <Input
-                {...register("username", validationRules.username)}
+                {...register("username")}
                 id="username"
                 type="text"
                 placeholder="Username"
@@ -109,7 +98,7 @@ export const UserLoginForm = memo(function UserLoginForm({
           <div className="space-y-1.5">
             <div className="relative">
               <Input
-                {...register("password", validationRules.password)}
+                {...register("password")}
                 id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
