@@ -31,3 +31,5 @@ export const assetSchema = z.object({
   campus_id: z.string().optional(),
   office_id: z.string().optional(),
 })
+
+export type AssetFormData = z.infer<typeof assetSchema>

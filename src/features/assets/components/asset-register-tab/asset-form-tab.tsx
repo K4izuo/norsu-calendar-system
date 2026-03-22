@@ -4,19 +4,9 @@
 import { Controller, Control, FieldErrors, UseFormRegister, UseFormWatch } from "react-hook-form"
 import { AssetFormInput } from "./asset-input-field"
 import { AssetSelectField } from "./asset-select-field"
-import { assetSchema } from "@/features/assets/utils/asset-validation-rules"
+import { assetSchema, AssetFormData } from "@/features/assets/utils/asset-validation-rules"
 import { useAssetFieldValidation } from "@/features/assets/utils/asset-field-validation"
 
-interface AssetFormData {
-  asset_name: string
-  asset_type: string
-  capacity: string
-  location: string
-  acquisition_date: string
-  condition: string
-  campus_id: string
-  office_id: string
-}
 
 interface AssetDetailsTabProps {
   control: Control<AssetFormData>

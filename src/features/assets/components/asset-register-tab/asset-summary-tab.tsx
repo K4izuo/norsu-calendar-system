@@ -2,17 +2,7 @@
 
 import React from "react"
 import { Package, MapPin, Calendar, Wrench, CheckCircle2, AlertCircle, Building2 } from "lucide-react"
-
-interface AssetFormData {
-  asset_name: string
-  asset_type: string
-  capacity: string
-  location: string
-  acquisition_date: string
-  condition: string
-  campus_id: string
-  office_id: string
-}
+import { AssetFormData } from "@/features/assets/utils/asset-validation-rules"
 
 interface AssetSummaryTabProps {
   formData: AssetFormData

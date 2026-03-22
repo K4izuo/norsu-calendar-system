@@ -2,21 +2,11 @@
 import { useState, useEffect, useCallback } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { assetSchema } from "@/features/assets/utils/asset-validation-rules"
+import { assetSchema, AssetFormData } from "@/features/assets/utils/asset-validation-rules"
 import { toast } from "react-hot-toast"
 import { AssetRegistrationData, AssetRegistrationPayload } from "@/interface/user-props"
 import { apiClient } from "@/core/api/api-client"
 
-interface AssetFormData {
-  asset_name: string
-  asset_type: string
-  capacity: string
-  location: string
-  acquisition_date: string
-  condition: string
-  campus_id: string
-  office_id: string
-}
 
 interface UseAssetRegistrationFormProps {
   onSubmit?: (data: AssetRegistrationPayload) => Promise<void> | void
