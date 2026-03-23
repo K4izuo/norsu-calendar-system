@@ -28,6 +28,7 @@ export interface Reservation {
   reserve_by_user: number
   is_moved?: boolean
   original_date?: string
+  reason?: string
 }
 
 /**
