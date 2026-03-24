@@ -125,7 +125,7 @@ export default function Home() {
 
             {/* Calendar - Takes remaining space */}
             <div className="flex-1 flex flex-col items-start min-h-0 lg:h-full">
-              <div className="w-full text-card-foreground border bg-white rounded-md shadow flex flex-col items-start self-stretch p-4 sm:p-6 gap-6 relative flex-1 min-h-0 lg:h-full">
+              <div className="w-full text-card-foreground border bg-white rounded-md shadow-xs flex flex-col items-start self-stretch p-4 sm:p-6 gap-6 relative flex-1 min-h-0 lg:h-full">
                 {!mounted ? (
                   // CalendarSkeleton - prevents hydration mismatch
                   <CalendarSkeleton />
