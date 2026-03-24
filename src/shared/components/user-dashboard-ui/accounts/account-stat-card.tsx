@@ -3,7 +3,7 @@
 import React from "react";
 import { TrendingUp, TrendingDown } from "lucide-react";
 
-interface DashboardStatCardProps {
+interface AccountStatCardProps {
   title: string;
   value: string | number;
   badge: string;
@@ -12,7 +12,7 @@ interface DashboardStatCardProps {
   subLabel: string;
 }
 
-const DashboardStatCard: React.FC<DashboardStatCardProps> = ({
+const AccountStatCard: React.FC<AccountStatCardProps> = ({
   title,
   value,
   badge,
@@ -54,4 +54,4 @@ const DashboardStatCard: React.FC<DashboardStatCardProps> = ({
   );
 };
 
-export default DashboardStatCard;
+export default AccountStatCard;

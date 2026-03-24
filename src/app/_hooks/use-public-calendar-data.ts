@@ -85,7 +85,7 @@ export default function usePublicCalendarData({
           isFinished: isEventFinished(reservation.date, reservation.time_end),
           is_moved: Boolean(reservation.is_moved),
           original_date: reservation.original_date,
-          reason: reservation.reason,
+          move_reason: reservation.move_reason,
         };
       });
   }, [reservations, assets]);

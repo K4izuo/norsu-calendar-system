@@ -117,7 +117,7 @@ export default function CalendarPage() {
           isFinished: isEventFinished(reservation.date, reservation.time_end),
           is_moved: Boolean(reservation.is_moved),
           original_date: reservation.original_date,
-          reason: reservation.reason,
+          move_reason: reservation.move_reason,
         };
       });
   }, [reservations, assets]);
@@ -295,7 +295,7 @@ export default function CalendarPage() {
         </div>
       )}
 
-      <div className="bg-white text-card-foreground border rounded-md shadow flex flex-col flex-1 p-3 sm:p-6 md:p-6.5">
+      <div className="bg-white text-card-foreground border rounded-md shadow-xs flex flex-col flex-1 p-3 sm:p-6 md:p-6.5">
         <Calendar
           role="admin"
           onDaySelect={handleDaySelect}

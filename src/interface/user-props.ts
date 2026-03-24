@@ -45,7 +45,7 @@ export interface EventDetails {
   isFinished?: boolean;
   is_moved?: boolean;
   original_date?: string;
-  reason?: string;
+  move_reason?: string;
 }
 
 // Add this new interface for API payload
@@ -80,7 +80,7 @@ export interface Reservation {
   reserve_by_user: number
   is_moved?: boolean
   original_date?: string
-  reason?: string
+  move_reason?: string
 }
 
 // Extended interface for API responses that include relationships
@@ -200,7 +200,7 @@ export interface MoveReservationPayload {
   new_date: string
   new_time_start: string
   new_time_end: string
-  reason: string
+  move_reason: string
   moved_by: number
 }
 
@@ -279,6 +279,6 @@ export interface MoveReservationPayload {
   new_date: string
   new_time_start: string
   new_time_end: string
-  reason: string
+  move_reason: string
   moved_by: number
 }

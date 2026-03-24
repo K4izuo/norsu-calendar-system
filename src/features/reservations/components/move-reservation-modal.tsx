@@ -41,7 +41,7 @@ export const MoveReservationModal: React.FC<MoveReservationModalProps> = ({
   const [newDate, setNewDate] = useState("");
   const [newTimeStart, setNewTimeStart] = useState("");
   const [newTimeEnd, setNewTimeEnd] = useState("");
-  const [reason, setReason] = useState("");
+  const [moveReason, setMoveReason] = useState("");
   const [countdown, setCountdown] = useState(5);
   const [hasConflict, setHasConflict] = useState(false);
   const [isCheckingConflict, setIsCheckingConflict] = useState(false);
@@ -56,7 +56,7 @@ export const MoveReservationModal: React.FC<MoveReservationModalProps> = ({
       setNewDate(prefillDate ?? event.date);
       setNewTimeStart(event.time_start.slice(0, 5));
       setNewTimeEnd(event.time_end.slice(0, 5));
-      setReason("");
+      setMoveReason("");
       setCountdown(5);
       setHasConflict(false);
       setConflictMessage("");
@@ -122,7 +122,7 @@ export const MoveReservationModal: React.FC<MoveReservationModalProps> = ({
     countdown === 0 &&
     !hasConflict &&
     !isCheckingConflict &&
-    reason.trim().length > 0 &&
+    moveReason.trim().length > 0 &&
     newDate.length > 0 &&
     newTimeStart.length > 0 &&
     newTimeEnd.length > 0 &&
@@ -140,12 +140,14 @@ export const MoveReservationModal: React.FC<MoveReservationModalProps> = ({
           new_date: newDate,
           new_time_start: newTimeStart,
           new_time_end: newTimeEnd,
-          reason: reason.trim(),
+          move_reason: moveReason.trim(),
         },
       },
       {
         onSuccess: () => {
-          toast.success("Reservation moved successfully!");
+          toast.success(
+            `"${event.title_name}" moved to ${new Date(newDate + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })} successfully!`
+          );
           setIsMoving(false);
           onMoved?.();
           onClose();
@@ -352,8 +354,8 @@ export const MoveReservationModal: React.FC<MoveReservationModalProps> = ({
                 <Textarea
                   id="move_reason"
                   placeholder="e.g. Storm / Typhoon Signal No. 2 / Venue conflict..."
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
+                  value={moveReason}
+                  onChange={(e) => setMoveReason(e.target.value)}
                   rows={3}
                   className="resize-none text-sm"
                 />

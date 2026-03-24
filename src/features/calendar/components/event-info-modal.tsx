@@ -272,9 +272,9 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                           <p className="text-xs text-amber-700">
                             Originally scheduled for {formatDate(event.original_date)}, now on {formatDate(event.date)}
                           </p>
-                          {event.reason && (
+                          {event.move_reason && (
                             <p className="text-xs text-amber-700 mt-0.5">
-                              Reason: {event.reason}
+                              Reason: {event.move_reason}
                             </p>
                           )}
                         </div>
