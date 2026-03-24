@@ -8,7 +8,7 @@ interface UpcomingEventsSidebarProps {
 
 export default function UpcomingEventsSidebar({ loading, error, upcomingEvents }: UpcomingEventsSidebarProps) {
   return (
-    <div className="w-full text-card-foreground border lg:w-[320px] bg-white rounded-md shadow relative lg:h-full">
+    <div className="w-full text-card-foreground border lg:w-[320px] bg-white rounded-md shadow-xs relative lg:h-full">
       <div className="flex flex-col p-4 sm:p-6 w-full lg:absolute lg:inset-0">
         <h2 className="text-2xl font-semibold mb-4 text-gray-700 text-center shrink-0">
           Upcoming Events
