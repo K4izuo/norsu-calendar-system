@@ -50,7 +50,7 @@ export default function RoleLayout({
 
   // ✅ CRITICAL FIX: Simplified loading state management
   const [showLoading, setShowLoading] = useState(false);
-  const isInitialMount = useRef(true);
+  const prevPathname = useRef<string | null>(null);
 
   const [userData, setUserData] = useState<UserData>({
     name: "User",
@@ -102,13 +102,12 @@ export default function RoleLayout({
     }
   }, [user]);
 
-  // Show loading on pathname change, but skip the very first mount (initial login)
+  // Show loading only on actual navigation (not on initial mount or Strict Mode re-invoke)
   useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
+    if (prevPathname.current !== null && prevPathname.current !== pathname) {
+      setShowLoading(true);
     }
-    setShowLoading(true);
+    prevPathname.current = pathname;
   }, [pathname]);
 
   // ✅ CRITICAL FIX: Hide loading only when ALL queries AND mutations are done
