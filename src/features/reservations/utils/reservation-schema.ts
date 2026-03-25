@@ -10,9 +10,9 @@ const reservationBaseSchema = z.object({
   // .optional() so Zod accepts undefined; presence is enforced in superRefine.
   asset: z
     .object({
-      id: z.number(),
+      id: z.coerce.number(),
       asset_name: z.string(),
-      capacity: z.number(),
+      capacity: z.coerce.number(),
       facilities: z.array(z.string()).optional(),
       asset_type: z.string().optional(),
     })

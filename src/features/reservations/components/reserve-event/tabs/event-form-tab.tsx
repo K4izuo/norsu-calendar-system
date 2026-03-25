@@ -153,7 +153,7 @@ export function ReserveEventFormTab({
                   {errors.asset && (
                     <div className="flex will-change-transform backface-hidden items-start gap-1.5 text-red-500 text-xs sm:text-sm pl-1 animate-in fade-in slide-in-from-top-1 duration-150">
                       <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
-                      <p>{errors.asset.message as string}</p>
+                      <p>{(errors.asset as FieldError).message || (errors.asset as { capacity?: FieldError; id?: FieldError }).capacity?.message || (errors.asset as { id?: FieldError }).id?.message || "Please select a valid asset"}</p>
                     </div>
                   )}
                 </>

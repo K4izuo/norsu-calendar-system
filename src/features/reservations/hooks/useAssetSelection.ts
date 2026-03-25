@@ -20,7 +20,12 @@ export const useAssetSelection = (setValue: UseFormSetValue<ReservationFormData>
   };
 
   const handleAssetItemSelect = (asset: { id: number; asset_name: string; asset_type: string; capacity: number }) => {
-    setValue("asset", asset, { shouldValidate: true, shouldTouch: true });
+    setValue("asset", {
+      id: Number(asset.id),
+      asset_name: asset.asset_name,
+      capacity: Number(asset.capacity) || 0,
+      asset_type: asset.asset_type,
+    }, { shouldValidate: true, shouldTouch: true });
     setShowVenueModal(false);
     setShowVehicleModal(false);
   };
