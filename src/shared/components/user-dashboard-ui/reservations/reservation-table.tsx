@@ -70,11 +70,10 @@ export function ReservationsTable({ events, statusFilter, onStatusFilterChange }
   const handleRowClick = (event: EventDetails) => {
     setEventInfoLoading(true)
     setEventInfoModalOpen(true)
-
     setTimeout(() => {
       setSelectedEvent(event)
       setEventInfoLoading(false)
-    }, 300)
+    }, 150)
   }
 
   return (
@@ -111,7 +110,7 @@ export function ReservationsTable({ events, statusFilter, onStatusFilterChange }
         </div>
 
         <div className="w-full rounded-md">
-          <div className="rounded-md text-card-foreground border shadow overflow-hidden overflow-x-auto">
+          <div className="rounded-md text-card-foreground border shadow-xs overflow-hidden overflow-x-auto">
             {filteredEvents.length === 0 ? (
               <div className="flex items-center justify-center py-20 bg-white">
                 <div className="text-center">
@@ -143,9 +142,9 @@ export function ReservationsTable({ events, statusFilter, onStatusFilterChange }
                     <TableHead className="h-12 px-6 py-3 text-sm font-medium text-muted-foreground text-left">
                       Asset name
                     </TableHead>
-                    <TableHead className="h-12 px-6 py-3 text-sm font-medium text-muted-foreground text-left">
+                    {/* <TableHead className="h-12 px-6 py-3 text-sm font-medium text-muted-foreground text-left">
                       People tag
-                    </TableHead>
+                    </TableHead> */}
                   </TableRow>
                 </TableHeader>
                 <TableBody className="bg-white">
@@ -186,9 +185,9 @@ export function ReservationsTable({ events, statusFilter, onStatusFilterChange }
                             : event.asset.asset_name
                           : "Not specified"}
                       </TableCell>
-                      <TableCell className="px-6 py-4 text-center text-sm text-foreground">
+                      {/* <TableCell className="px-6 py-4 text-center text-sm text-foreground">
                         {event.people_tag.length}
-                      </TableCell>
+                      </TableCell> */}
                     </TableRow>
                   ))}
                 </TableBody>

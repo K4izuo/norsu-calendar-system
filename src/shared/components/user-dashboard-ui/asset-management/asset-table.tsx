@@ -41,8 +41,8 @@ export const AssetsTable = memo(function AssetsTable({ assets, onAssetClick }: A
   };
 
   return (
-    <div className="w-full rounded-md">
-      <div className="rounded-md text-card-foreground border shadow overflow-hidden overflow-x-auto">
+    <div className="w-full">
+      <div className="rounded-md text-card-foreground border shadow-xs overflow-x-auto overflow-y-auto max-h-[calc(100dvh-260px)]">
         {assets.length === 0 ? (
           <div className="flex items-center justify-center py-20 bg-white">
             <div className="text-center">
@@ -52,7 +52,7 @@ export const AssetsTable = memo(function AssetsTable({ assets, onAssetClick }: A
           </div>
         ) : (
           <Table>
-            <TableHeader>
+            <TableHeader className="sticky top-0 z-10">
               <TableRow className="bg-[#f1f2f4] hover:bg-gray-100">
                 <TableHead className="h-12 px-6 py-3 text-sm font-medium text-muted-foreground text-left">
                   Asset Name

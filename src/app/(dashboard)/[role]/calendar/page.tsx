@@ -195,7 +195,7 @@ export default function CalendarPage() {
     setTimeout(() => {
       setSelectedEvent(event);
       setEventInfoLoading(false);
-    }, 600);
+    }, 150);
   }, []);
 
   const handleCloseModal = useCallback(() => {
@@ -209,7 +209,7 @@ export default function CalendarPage() {
     setModalOpen(true);
     setTimeout(() => {
       setEventsListLoading(false);
-    }, 300);
+    }, 150);
   }, []);
 
   const handleMonthYearChange = useCallback((month: number, year: number) => {

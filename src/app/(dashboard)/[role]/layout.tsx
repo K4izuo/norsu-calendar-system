@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useRef } from "react";
 import {
   setupActivityTracking,
   startTokenRefresh,
@@ -50,6 +50,7 @@ export default function RoleLayout({
 
   // ✅ CRITICAL FIX: Simplified loading state management
   const [showLoading, setShowLoading] = useState(false);
+  const isInitialMount = useRef(true);
 
   const [userData, setUserData] = useState<UserData>({
     name: "User",
@@ -101,8 +102,12 @@ export default function RoleLayout({
     }
   }, [user]);
 
-  // ✅ CRITICAL FIX: Show loading INSTANTLY on pathname change
+  // Show loading on pathname change, but skip the very first mount (initial login)
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
     setShowLoading(true);
   }, [pathname]);
 
