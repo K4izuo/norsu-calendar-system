@@ -2,6 +2,7 @@
 
 import { PageBreadcrumb } from "@/shared/components/ui/page-breadcrumb";
 import AccountStatCard from "@/shared/components/user-dashboard-ui/accounts/account-stat-card";
+import { AccountsTabSection } from "@/shared/components/user-dashboard-ui/accounts/accounts-tab-section";
 import { useParams } from "next/navigation";
 
 export default function AccountsPage() {
@@ -9,7 +10,7 @@ export default function AccountsPage() {
   const role = params.role as string;
 
   return (
-    <div className="flex flex-col items-start self-stretch">
+    <div className="flex flex-col items-start self-stretch h-full">
       {/* Breadcrumb */}
       <PageBreadcrumb
         items={[
@@ -18,7 +19,7 @@ export default function AccountsPage() {
         ]}
       />
 
-      <div className="flex flex-col items-start gap-9 flex-1 self-stretch">
+      <div className="flex flex-col items-start gap-6 flex-1 self-stretch min-h-0">
         {/* Stat cards */}
         <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <AccountStatCard
@@ -53,6 +54,11 @@ export default function AccountsPage() {
             trendLabel="Recently registered"
             subLabel="Accounts added this month"
           />
+        </div>
+
+        {/* Tab section */}
+        <div className="flex-1 min-h-0 w-full">
+          <AccountsTabSection />
         </div>
       </div>
     </div>
