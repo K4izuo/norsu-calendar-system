@@ -6,7 +6,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { AssetRegistrationModal } from "@/features/assets/components/asset-register-modal";
 import { AssetRegistrationPayload } from "@/interface/user-props";
-import { AssetsTable } from "@/shared/components/user-dashboard-ui/asset-management/asset-table";
+import { AssetsTable } from "@/features/assets/components/asset-table";
 import {
   campusesQueryOptions,
   officesQueryOptions

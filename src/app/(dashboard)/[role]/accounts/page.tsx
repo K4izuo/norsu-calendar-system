@@ -1,8 +1,8 @@
 "use client";
 
 import { PageBreadcrumb } from "@/shared/components/ui/page-breadcrumb";
-import AccountStatCard from "@/shared/components/user-dashboard-ui/accounts/account-stat-card";
-import { AccountsTabSection } from "@/shared/components/user-dashboard-ui/accounts/accounts-tab-section";
+import AccountStatCard from "@/features/accounts/components/account-stat-card";
+import { AccountsTabSection } from "@/features/accounts/components/accounts-tab-section";
 import { useParams } from "next/navigation";
 
 export default function AccountsPage() {

@@ -223,8 +223,8 @@ export const ROLE_PATH_MAP: Record<UserRole, RolePath> = {
  * Role display names
  */
 export const ROLE_DISPLAY_NAMES: Record<UserRole, string> = {
-  1: 'Administrator',
+  1: 'Student',
   2: 'Dean',
   3: 'Staff',
-  4: 'User',
+  4: 'Admin',
 } as const;
