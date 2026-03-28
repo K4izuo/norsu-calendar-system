@@ -1,22 +1,22 @@
 export const ROLE_CONFIG = {
-  2: {
+  1: {
     name: 'dean',
     label: 'Faculty',
     path: 'dean',
   },
-  3: {
+  2: {
     name: 'staff',
     label: 'Staff',
     path: 'staff',
   },
-  4: {
+  3: {
     name: 'admin',
     label: 'Admin',
     path: 'admin',
   },
 } as const;
 
-export type RoleNumber = 2 | 3 | 4;
+export type RoleNumber = 1 | 2 | 3;
 export type RolePath = 'dean' | 'staff' | 'admin';
 
 export function getRolePathFromNumber(roleNum: number): RolePath {

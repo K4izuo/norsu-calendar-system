@@ -135,7 +135,7 @@ export const useLoginForm = () => {
       showToast("Login successful!", 'success');
 
       // Get dynamic role path based on user's role number
-      const role = response.data?.role || 4;
+      const role = response.data?.role || 3;
       const rolePath = getRolePathFromNumber(role);
       const redirectPath = `/${rolePath}/dashboard`;
 

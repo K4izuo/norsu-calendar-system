@@ -9,9 +9,9 @@
 
 /**
  * User role enumeration
- * 1 = Student, 2 = Dean, 3 = Staff, 4 = Admin (default)
+ * 1 = Dean, 2 = Staff, 3 = Admin (default)
  */
-export type UserRole = 1 | 2 | 3 | 4;
+export type UserRole = 1 | 2 | 3;
 
 /**
  * Base user information returned from API
@@ -207,24 +207,22 @@ export interface PasswordChangeFormData {
 /**
  * Role path mapping (for routing)
  */
-export type RolePath = 'admin' | 'dean' | 'staff' | 'user';
+export type RolePath = 'admin' | 'dean' | 'staff';
 
 /**
  * Role path map
  */
 export const ROLE_PATH_MAP: Record<UserRole, RolePath> = {
-  1: 'admin',
-  2: 'dean',
-  3: 'staff',
-  4: 'user',
+  1: 'dean',
+  2: 'staff',
+  3: 'admin',
 } as const;
 
 /**
  * Role display names
  */
 export const ROLE_DISPLAY_NAMES: Record<UserRole, string> = {
-  1: 'Student',
-  2: 'Dean',
-  3: 'Staff',
-  4: 'Admin',
+  1: 'Dean',
+  2: 'Staff',
+  3: 'Admin',
 } as const;

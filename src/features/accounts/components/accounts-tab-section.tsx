@@ -3,12 +3,23 @@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/shared/components/ui/tabs";
 import { Button } from "@/shared/components/ui/button";
 import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/shared/components/ui/dropdown-menu";
+import {
   SlidersHorizontal,
   UserPlus,
   Users,
   GraduationCap,
   Briefcase,
   Clock,
+  MoreHorizontal,
+  Eye,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { useUsers } from "../services/account-service";
 import { ROLE_DISPLAY_NAMES } from "@/features/auth/types/auth.types";
@@ -89,9 +100,8 @@ function formatDate(dateString?: string): string {
 }
 
 function getRoleBadgeClass(role: number): string {
-  if (role === 2) return "bg-blue-100 text-blue-700";
-  if (role === 3) return "bg-green-100 text-green-700";
-  if (role === 1) return "bg-purple-100 text-purple-700";
+  if (role === 1) return "bg-blue-100 text-blue-700";
+  if (role === 2) return "bg-green-100 text-green-700";
   return "bg-gray-100 text-gray-600";
 }
 
@@ -102,8 +112,8 @@ const triggerClass =
 export function AccountsTabSection() {
   const { users, loading } = useUsers();
 
-  const deans = users.filter((u) => u.role === 2);
-  const staff = users.filter((u) => u.role === 3);
+  const deans = users.filter((u) => u.role === 1);
+  const staff = users.filter((u) => u.role === 2);
 
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -147,7 +157,7 @@ export function AccountsTabSection() {
 
         {/* All Accounts */}
         <TabsContent value="all" className="mt-0 flex flex-col flex-1 min-h-0 overflow-y-auto">
-          <TableHeader columns={["Full Name", "Role", "Username", "Date Added", "Actions"]} />
+          <TableHeader columns={["Name", "Role", "Username", "Date Added", "Actions"]} />
           {loading ? (
             <SkeletonRows columns={5} />
           ) : users.length === 0 ? (
@@ -172,7 +182,25 @@ export function AccountsTabSection() {
                 <span className="text-sm text-gray-500">@{user.username}</span>
                 <span className="text-sm text-gray-500">{formatDate(user.created_at)}</span>
                 <span>
-                  <button className="text-xs text-gray-400 hover:text-gray-600">•••</button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="rounded p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem className="cursor-pointer gap-2">
+                        <Eye className="h-4 w-4" /> View
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="cursor-pointer gap-2">
+                        <Pencil className="h-4 w-4" /> Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="cursor-pointer gap-2 text-red-600 focus:text-red-600">
+                        <Trash2 className="h-4 w-4" /> Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </span>
               </div>
             ))

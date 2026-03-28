@@ -54,7 +54,7 @@ export default function RoleLayout({
 
   const [userData, setUserData] = useState<UserData>({
     name: "User",
-    role: 4,
+    role: 3,
   });
 
   useEffect(() => {
@@ -70,7 +70,7 @@ export default function RoleLayout({
             `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim() ||
             user.username ||
             "User",
-          role: roleValue || 4,
+          role: roleValue || 3,
         });
         return;
       }
@@ -82,14 +82,14 @@ export default function RoleLayout({
 
       if (storedUser) {
         const parsedUser = JSON.parse(storedUser);
-        const parsedRole = storedRole ? Number(storedRole) : 4;
+        const parsedRole = storedRole ? Number(storedRole) : 3;
 
         setUserData({
           name:
             `${parsedUser.first_name ?? ""} ${parsedUser.last_name ?? ""}`.trim() ||
             parsedUser.username ||
             "User",
-          role: parsedRole || 4,
+          role: parsedRole || 3,
         });
         return;
       }

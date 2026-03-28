@@ -24,9 +24,8 @@ const TABS = [
 ] as const;
 
 const ROLE_SUCCESS_MESSAGES: Record<number, string> = {
-  1: "Student registration successful!",
-  2: "Dean registration successful!",
-  3: "Staff registration successful!"
+  1: "Dean registration successful!",
+  2: "Staff registration successful!"
 };
 
 export default function DeanRegisterPage() {

@@ -53,9 +53,9 @@ export function AssetRegistrationModal({
   const userRoleNum = userRoleStr ? parseInt(userRoleStr, 10) : user?.role || 0
 
   // Determine roles - ADJUST THESE NUMBERS BASED ON YOUR SYSTEM
-  // Example: 1=student, 2=dean, 3=staff, 4=admin (check your backend/database)
-  const isAdmin = userRoleNum === 4
-  const isDeanOrStaff = userRoleNum === 2 || userRoleNum === 3
+  // Example: 1=dean, 2=staff, 3=admin (check your backend/database)
+  const isAdmin = userRoleNum === 3
+  const isDeanOrStaff = userRoleNum === 1 || userRoleNum === 2
 
   // These hooks will return cached data instantly if prefetched
   const { campuses, loading: loadingCampuses, error: campusError } = useCampuses()

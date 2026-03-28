@@ -131,9 +131,8 @@ export function DeanRegistrationSubmission() {
       let successMsg = "Registration successful!";
 
       switch (response.data?.role) {
-        case 1: successMsg = "Student registration successful!"; break;
-        case 2: successMsg = "Faculty registration successful!"; break;
-        case 3: successMsg = "Staff registration successful!"; break;
+        case 1: successMsg = "Faculty registration successful!"; break;
+        case 2: successMsg = "Staff registration successful!"; break;
       }
 
       toast.success(successMsg, { duration: 5000 });
