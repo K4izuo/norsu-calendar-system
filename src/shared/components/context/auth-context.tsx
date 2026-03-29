@@ -12,8 +12,9 @@ import React, {
 import { useRouter, usePathname } from "next/navigation";
 import { apiClient } from "@/core/api/api-client";
 import { getAuthToken, removeAuthToken } from "@/core/auth/auth";
+import { getRolePathFromNumber } from "@/core/lib/role-utils";
 
-type Role = "dean" | "staff";
+type Role = "dean" | "staff" | "admin";
 
 export interface User {
   id: string;
@@ -58,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     localStorage.removeItem("user");
     removeAuthToken();
-    router.replace("/auth/login");
+    router.replace("/login");
   }, [router]);
 
   // Fetch user data from backend if token exists
@@ -126,14 +127,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         "/auth/dean/register",
         "/auth/staff/register",
       ];
-      // const protectedRoutes = ['/pages/dean', '/pages/staff', '/pages/admin', '/dashboard', '/calendar', '/profile'];
+      const protectedRoutes = ["/admin", "/dean", "/staff"];
 
       if (user && authRoutes.some((route) => pathname?.startsWith(route))) {
-        router.replace("/pages/admin/dashboard");
+        const storedRole = Number(localStorage.getItem("user-role") || "3");
+        const rolePath = getRolePathFromNumber(storedRole);
+        router.replace(`/${rolePath}/dashboard`);
+      } else if (!user && protectedRoutes.some((route) => pathname?.startsWith(route))) {
+        router.replace("/login");
       }
-      // else if (!user && protectedRoutes.some(route => pathname?.startsWith(route))) {
-      //   router.replace('/auth/login');
-      // }
     }
   }, [user, isLoading, pathname, router]);
 

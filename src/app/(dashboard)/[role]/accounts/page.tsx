@@ -4,10 +4,28 @@ import { PageBreadcrumb } from "@/shared/components/ui/page-breadcrumb";
 import AccountStatCard from "@/features/accounts/components/account-stat-card";
 import { AccountsTabSection } from "@/features/accounts/components/accounts-tab-section";
 import { useParams } from "next/navigation";
+import { useUsers } from "@/features/accounts/services/account-service";
 
 export default function AccountsPage() {
   const params = useParams();
   const role = params.role as string;
+
+  // React Query deduplicates this — no extra network request vs AccountsTabSection
+  const { users } = useUsers();
+
+  const total = users.length;
+  const deans = users.filter((u) => u.role === 1);
+  const staff = users.filter((u) => u.role === 2);
+
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
+  const newThisMonth = users.filter(
+    (u) => u.created_at && new Date(u.created_at) >= startOfMonth
+  );
+
+  const pct = (count: number) =>
+    total > 0 ? `${Math.round((count / total) * 100)}% of total` : "0% of total";
 
   return (
     <div className="flex flex-col items-start self-stretch h-full">
@@ -24,33 +42,33 @@ export default function AccountsPage() {
         <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <AccountStatCard
             title="Total Accounts"
-            value="0"
-            badge="+0%"
-            badgePositive={true}
+            value={total}
+            badge={newThisMonth.length > 0 ? `+${newThisMonth.length} new` : "0 new"}
+            badgePositive={newThisMonth.length > 0}
             trendLabel="All registered users"
             subLabel="System-wide account count"
           />
           <AccountStatCard
             title="Dean Accounts"
-            value="0"
-            badge="+0%"
-            badgePositive={true}
+            value={deans.length}
+            badge={pct(deans.length)}
+            badgePositive={deans.length > 0}
             trendLabel="Dean users"
             subLabel="Role-based dean accounts"
           />
           <AccountStatCard
             title="Staff Accounts"
-            value="0"
-            badge="+0%"
-            badgePositive={true}
+            value={staff.length}
+            badge={pct(staff.length)}
+            badgePositive={staff.length > 0}
             trendLabel="Administrative staff"
             subLabel="Role-based staff members"
           />
           <AccountStatCard
             title="New This Month"
-            value="0"
-            badge="+0%"
-            badgePositive={true}
+            value={newThisMonth.length}
+            badge={newThisMonth.length > 0 ? `+${newThisMonth.length} this month` : "0 this month"}
+            badgePositive={newThisMonth.length > 0}
             trendLabel="Recently registered"
             subLabel="Accounts added this month"
           />

@@ -27,42 +27,43 @@ export const DeanSummary = memo(function DeanSummary({
 
   return (
     <>
-      <div className="bg-gray-50 shadow-sm rounded-lg p-4">
-        <div className="flex items-center mb-3">
+      <div className="bg-white text-card-foreground border shadow-xs rounded-lg">
+        <div className="flex items-center p-6">
           <User className="w-6 h-6 text-indigo-500 mr-2" />
           <h3 className="text-lg font-medium text-gray-700">Dean Information</h3>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="border-t border-gray-200" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6">
           <div>
-            <p className="text-base text-gray-500">Full Name</p>
+            <p className="text-sm text-gray-500">Full Name</p>
             <p className="font-medium text-base">
               {`${formData.first_name} ${formData.middle_name} ${formData.last_name}`.trim() ||
                 "Not provided"}
             </p>
           </div>
           <div>
-            <p className="text-base text-gray-500">Email</p>
+            <p className="text-sm text-gray-500">Email</p>
             <p className="font-medium text-base">{formData.email || "Not provided"}</p>
           </div>
           <div>
-            <p className="text-base text-gray-500">Dean ID</p>
+            <p className="text-sm text-gray-500">Dean ID</p>
             <p className="font-medium text-base">{formData.assignment_id || "Not provided"}</p>
           </div>
           <div>
-            <p className="text-base text-gray-500">Campus</p>
+            <p className="text-sm text-gray-500">Campus</p>
             <p className="font-medium text-base">
               {campuses.find((c) => c.value === formData.campus_id)?.label || "Not selected"}
             </p>
           </div>
           <div>
-            <p className="text-base text-gray-500">Office</p>
+            <p className="text-sm text-gray-500">Office</p>
             <p className="font-medium text-base">
               {offices.find((o) => o.value === formData.office_id)?.label || "Not selected"}
             </p>
           </div>
         </div>
         {/* Terms and Condition Checkbox */}
-        <div className="mt-6 flex items-center">
+        <div className="flex items-center px-6 pb-6">
           <Checkbox
             id="terms"
             checked={agreed}
@@ -93,8 +94,8 @@ export const DeanSummary = memo(function DeanSummary({
       </div>
       <div
         className={`mt-6 p-3 rounded-md flex items-center justify-center ${isFormValid
-            ? "bg-indigo-50 text-indigo-800"
-            : "bg-indigo-100 text-indigo-900"
+          ? "bg-indigo-50 text-indigo-800"
+          : "bg-indigo-100 text-indigo-900"
           }`}
       >
         {isFormValid ? (

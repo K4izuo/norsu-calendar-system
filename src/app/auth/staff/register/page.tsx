@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { motion } from "framer-motion";
 import { Button } from "@/shared/components/ui/button";
@@ -69,7 +69,7 @@ export default function StaffRegisterPage() {
     if (role === "staff") {
       setShouldRender(true);
     } else {
-      router.replace("/auth/register");
+      router.replace("/register");
     }
   }, [role, router]);
 

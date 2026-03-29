@@ -28,16 +28,15 @@ export function ReserveEventSummaryTab({
   const asset = formData.asset;
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="bg-white text-card-foreground border border-border rounded-lg p-6">
-        <div className="flex items-center mb-3">
+      <div className="bg-white text-card-foreground border border-border rounded-lg">
+        <div className="flex items-center px-6 pt-6 pb-4">
           <CalendarPlus2 className="text-gray-500 mr-2 h-6 w-6" />
           <h3 className="text-lg font-medium text-gray-700">
             Basic Information
           </h3>
         </div>
-        <div className="border-b border-gray-300 mb-4" />{" "}
-        {/* line below label */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="border-t border-gray-200" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-6 py-4">
           <div>
             <p className="text-sm text-gray-500">Event Title</p>
             <p className="font-medium text-base">
@@ -78,16 +77,15 @@ export function ReserveEventSummaryTab({
           </div>
         </div>
       </div>
-      <div className="bg-white text-card-foreground border border-border rounded-lg p-6">
-        <div className="flex items-center mb-3">
+      <div className="bg-white text-card-foreground border border-border rounded-lg">
+        <div className="flex items-center px-6 pt-6 pb-4">
           <MapPin className="text-gray-500 mr-2 h-6 w-6" />
           <h3 className="text-lg font-medium text-gray-700">
             Asset Information
           </h3>
         </div>
-        <div className="border-b border-gray-300 mb-4" />{" "}
-        {/* line below label */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="border-t border-gray-200" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-6 py-4">
           {/* <div>
             <p className="text-base text-gray-500">Asset Type</p>
             <p className="font-medium text-base">{asset?.asset_type || "Not selected"}</p>
@@ -127,16 +125,15 @@ export function ReserveEventSummaryTab({
           )}
         </div>
       </div>
-      <div className="bg-white text-card-foreground border border-border rounded-lg p-6">
-        <div className="flex items-center mb-3">
+      <div className="bg-white text-card-foreground border border-border rounded-lg">
+        <div className="flex items-center px-6 pt-6 pb-4">
           <NotebookPen className="text-gray-500 mr-2 h-6 w-6" />
           <h3 className="text-lg font-medium text-gray-700">
             Reservation Details
           </h3>
         </div>
-        <div className="border-b border-gray-300 mb-4" />{" "}
-        {/* line below label */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="border-t border-gray-200" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-6 py-4">
           <div>
             <p className="text-sm text-gray-500">Start Time</p>
             <div className="flex items-center">
@@ -164,15 +161,15 @@ export function ReserveEventSummaryTab({
         </div>
       </div>
       {formData.description && (
-        <div className="bg-white text-card-foreground border border-border rounded-lg p-6">
-          <div className="flex items-center mb-3">
+        <div className="bg-white text-card-foreground border border-border rounded-lg">
+          <div className="flex items-center px-6 pt-6 pb-4">
             <FileText className="text-gray-500 mr-2 h-6 w-6" />
             <h3 className="text-lg font-medium text-gray-700">
               Additional Details
             </h3>
           </div>
-          <div className="border-b border-gray-300 mb-4" />
-          <div>
+          <div className="border-t border-gray-200" />
+          <div className="px-6 py-4">
             <p className="text-sm text-gray-500">Description</p>
             <p className="mt-1 text-base">{formData.description}</p>
           </div>

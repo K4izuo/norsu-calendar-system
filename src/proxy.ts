@@ -13,6 +13,11 @@ const PUBLIC_ROUTES = [
   '/staff/login',
   '/staff/register',
   '/admin/login',
+  '/auth/dean/register',
+  '/auth/staff/register',
+  '/auth/dean/login',
+  '/auth/staff/login',
+  '/auth/admin/login',
 ];
 
 // ⚡ PERFORMANCE: Cache role path lookups to avoid repeated parsing
