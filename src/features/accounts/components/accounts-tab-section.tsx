@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter, useParams } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/shared/components/ui/tabs";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -216,6 +217,13 @@ const triggerClass =
 
 export function AccountsTabSection() {
   const { users, loading } = useUsers();
+  const router = useRouter();
+  const params = useParams();
+  const role = params.role as string;
+
+  const navigateToAccount = (userId: number) => {
+    router.push(`/${role}/accounts/${userId}`);
+  };
 
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [showDeanModal, setShowDeanModal] = useState(false);
@@ -315,6 +323,7 @@ export function AccountsTabSection() {
               pagedUsers.map((user) => (
                 <div
                   key={user.id}
+                  onClick={() => navigateToAccount(user.id)}
                   className="grid cursor-pointer border-b px-6 py-3.5 hover:bg-gray-50 transition-colors"
                   style={{ gridTemplateColumns: "repeat(5, 1fr)" }}
                 >
@@ -326,7 +335,7 @@ export function AccountsTabSection() {
                   </span>
                   <span className="text-sm text-gray-500">@{user.username}</span>
                   <span className="text-sm text-gray-500">{formatDate(user.created_at)}</span>
-                  <span>
+                  <span onClick={(e) => e.stopPropagation()}>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button className="rounded p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100">
@@ -334,10 +343,10 @@ export function AccountsTabSection() {
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem className="cursor-pointer gap-2">
+                        <DropdownMenuItem className="cursor-pointer gap-2" onSelect={() => navigateToAccount(user.id)}>
                           <Eye className="h-4 w-4" /> View
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="cursor-pointer gap-2">
+                        <DropdownMenuItem className="cursor-pointer gap-2" onSelect={() => navigateToAccount(user.id)}>
                           <Pencil className="h-4 w-4" /> Edit
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
@@ -367,7 +376,8 @@ export function AccountsTabSection() {
               pagedDeans.map((user) => (
                 <div
                   key={user.id}
-                  className="grid border-b px-6 py-3.5 hover:bg-gray-50 transition-colors"
+                  onClick={() => navigateToAccount(user.id)}
+                  className="grid cursor-pointer border-b px-6 py-3.5 hover:bg-gray-50 transition-colors"
                   style={{ gridTemplateColumns: "repeat(4, 1fr)" }}
                 >
                   <span className="text-sm font-medium text-gray-800">{getFullName(user)}</span>
@@ -394,7 +404,8 @@ export function AccountsTabSection() {
               pagedStaff.map((user) => (
                 <div
                   key={user.id}
-                  className="grid border-b px-6 py-3.5 hover:bg-gray-50 transition-colors"
+                  onClick={() => navigateToAccount(user.id)}
+                  className="grid cursor-pointer border-b px-6 py-3.5 hover:bg-gray-50 transition-colors"
                   style={{ gridTemplateColumns: "repeat(4, 1fr)" }}
                 >
                   <span className="text-sm font-medium text-gray-800">{getFullName(user)}</span>
@@ -421,7 +432,8 @@ export function AccountsTabSection() {
               pagedRecent.map((user) => (
                 <div
                   key={user.id}
-                  className="grid border-b px-6 py-3.5 hover:bg-gray-50 transition-colors"
+                  onClick={() => navigateToAccount(user.id)}
+                  className="grid cursor-pointer border-b px-6 py-3.5 hover:bg-gray-50 transition-colors"
                   style={{ gridTemplateColumns: "repeat(4, 1fr)" }}
                 >
                   <span className="text-sm font-medium text-gray-800">{getFullName(user)}</span>

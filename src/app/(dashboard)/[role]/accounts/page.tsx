@@ -2,6 +2,7 @@
 
 import { PageBreadcrumb } from "@/shared/components/ui/page-breadcrumb";
 import AccountStatCard from "@/features/accounts/components/account-stat-card";
+import { Users, GraduationCap, Briefcase, UserPlus } from "lucide-react";
 import { AccountsTabSection } from "@/features/accounts/components/accounts-tab-section";
 import { useParams } from "next/navigation";
 import { useUsers } from "@/features/accounts/services/account-service";
@@ -45,32 +46,36 @@ export default function AccountsPage() {
             value={total}
             badge={newThisMonth.length > 0 ? `+${newThisMonth.length} new` : "0 new"}
             badgePositive={newThisMonth.length > 0}
-            trendLabel="All registered users"
-            subLabel="System-wide account count"
+            subLabel="From this month"
+            icon={Users}
+            accentColor="indigo"
           />
           <AccountStatCard
             title="Dean Accounts"
             value={deans.length}
             badge={pct(deans.length)}
             badgePositive={deans.length > 0}
-            trendLabel="Dean users"
-            subLabel="Role-based dean accounts"
+            subLabel="Of total accounts"
+            icon={GraduationCap}
+            accentColor="orange"
           />
           <AccountStatCard
             title="Staff Accounts"
             value={staff.length}
             badge={pct(staff.length)}
             badgePositive={staff.length > 0}
-            trendLabel="Administrative staff"
-            subLabel="Role-based staff members"
+            subLabel="Of total accounts"
+            icon={Briefcase}
+            accentColor="rose"
           />
           <AccountStatCard
             title="New This Month"
             value={newThisMonth.length}
             badge={newThisMonth.length > 0 ? `+${newThisMonth.length} this month` : "0 this month"}
             badgePositive={newThisMonth.length > 0}
-            trendLabel="Recently registered"
-            subLabel="Accounts added this month"
+            subLabel="Recently registered"
+            icon={UserPlus}
+            accentColor="teal"
           />
         </div>
 

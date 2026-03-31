@@ -10,6 +10,7 @@ interface UserProfile {
   role: number;
   campus_id?: string;
   office_id?: string;
+  created_at?: string;
 }
 
 const fetchUserProfile = async (userId: number): Promise<UserProfile | null> => {
