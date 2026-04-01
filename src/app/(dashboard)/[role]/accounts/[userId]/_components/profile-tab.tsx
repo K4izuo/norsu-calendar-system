@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
-import { User, Pencil } from "lucide-react";
+import { User, Pencil, AlertCircle } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
@@ -17,7 +16,59 @@ import {
 } from "@/shared/components/ui/select";
 import { authService } from "@/features/auth/services/auth-service";
 import { AccountUpdateFormData } from "@/features/auth/types/auth.types";
+import { accountUpdateSchema } from "@/features/accounts/utils/account-validation-rules";
 import { AccountUser } from "./types";
+
+type FormData = {
+  first_name: string;
+  last_name: string;
+  email: string;
+  campus_id: string;
+};
+
+type FormErrors = Partial<Record<keyof FormData, string>>;
+type Touched = Partial<Record<keyof FormData, boolean>>;
+
+function getInitialData(accountUser: AccountUser): FormData {
+  return {
+    first_name: accountUser.first_name ?? "",
+    last_name: accountUser.last_name ?? "",
+    email: accountUser.email ?? "",
+    campus_id: accountUser.campus_id ?? "",
+  };
+}
+
+function validateFields(data: FormData, touched: Touched, requireCampus: boolean): FormErrors {
+  const result = accountUpdateSchema.safeParse(data);
+  const errs: FormErrors = {};
+  if (!result.success) {
+    for (const issue of result.error.issues) {
+      const field = issue.path[0] as keyof FormData;
+      if (touched[field] && !errs[field]) {
+        errs[field] = issue.message;
+      }
+    }
+  }
+  if (requireCampus && touched.campus_id && !data.campus_id) {
+    errs.campus_id = "Campus is required";
+  }
+  return errs;
+}
+
+function validateAll(data: FormData, requireCampus: boolean): FormErrors {
+  const result = accountUpdateSchema.safeParse(data);
+  const errs: FormErrors = {};
+  if (!result.success) {
+    for (const issue of result.error.issues) {
+      const field = issue.path[0] as keyof FormData;
+      if (!errs[field]) errs[field] = issue.message;
+    }
+  }
+  if (requireCampus && !data.campus_id) {
+    errs.campus_id = "Campus is required";
+  }
+  return errs;
+}
 
 export function ProfileTab({
   accountUser,
@@ -36,36 +87,51 @@ export function ProfileTab({
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [formData, setFormData] = useState<FormData>(() => getInitialData(accountUser));
+  const [touched, setTouched] = useState<Touched>({});
+  const [errors, setErrors] = useState<FormErrors>({});
   const queryClient = useQueryClient();
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    control,
-    formState: { errors },
-  } = useForm<AccountUpdateFormData>({
-    defaultValues: {
-      first_name: accountUser.first_name ?? "",
-      last_name: accountUser.last_name ?? "",
-      email: accountUser.email ?? "",
-      campus_id: accountUser.campus_id ?? "",
-    },
-  });
+  const showCampusSelect = role === "admin" && accountUser.role !== 0;
 
   useEffect(() => {
-    reset({
-      first_name: accountUser.first_name ?? "",
-      last_name: accountUser.last_name ?? "",
-      email: accountUser.email ?? "",
-      campus_id: accountUser.campus_id ?? "",
-    });
-  }, [accountUser, reset]);
+    setFormData(getInitialData(accountUser));
+    setTouched({});
+    setErrors({});
+  }, [accountUser]);
 
-  const onSubmit = async (data: AccountUpdateFormData) => {
+  const handleChange = (field: keyof FormData, value: string) => {
+    const newData = { ...formData, [field]: value };
+    setFormData(newData);
+    if (touched[field]) {
+      setErrors(validateFields(newData, touched, showCampusSelect));
+    }
+  };
+
+  const handleBlur = (field: keyof FormData) => {
+    const newTouched = { ...touched, [field]: true };
+    setTouched(newTouched);
+    setErrors(validateFields(formData, newTouched, showCampusSelect));
+  };
+
+  const handleCancel = () => {
+    setFormData(getInitialData(accountUser));
+    setTouched({});
+    setErrors({});
+    setIsEditing(false);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const allErrors = validateAll(formData, showCampusSelect);
+    if (Object.keys(allErrors).length > 0) {
+      setTouched({ first_name: true, last_name: true, email: true, campus_id: true });
+      setErrors(allErrors);
+      return;
+    }
     setIsSaving(true);
     try {
-      const response = await authService.updateAccount(userId, data);
+      const response = await authService.updateAccount(userId, formData as AccountUpdateFormData);
       if (response.error) {
         toast.error(response.error, { position: "top-right" });
         return;
@@ -80,6 +146,13 @@ export function ProfileTab({
     }
   };
 
+  const errorDiv = (msg: string) => (
+    <div className="flex will-change-transform backface-hidden items-start gap-1.5 text-red-500 text-xs sm:text-sm pl-1 animate-in fade-in slide-in-from-top-1 duration-150">
+      <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+      <p>{msg}</p>
+    </div>
+  );
+
   return (
     <div className="flex border rounded-lg flex-col items-start self-stretch">
       <div className="flex border-b p-6 justify-between items-center self-stretch">
@@ -92,12 +165,9 @@ export function ProfileTab({
             variant="outline"
             size="sm"
             onClick={() => {
-              reset({
-                first_name: accountUser.first_name ?? "",
-                last_name: accountUser.last_name ?? "",
-                email: accountUser.email ?? "",
-                campus_id: "",
-              });
+              setFormData({ ...getInitialData(accountUser), campus_id: "" });
+              setTouched({});
+              setErrors({});
               setIsEditing(true);
             }}
             className="flex cursor-pointer items-center gap-1.5 text-blue-600 border-blue-200 hover:bg-blue-50 hover:text-blue-700"
@@ -110,7 +180,7 @@ export function ProfileTab({
 
       <div className="p-6 w-full">
         {isEditing ? (
-          <form onSubmit={handleSubmit(onSubmit)} className="w-full">
+          <form onSubmit={handleSubmit} className="w-full">
             <div className="grid grid-cols-2 gap-x-8 gap-y-6 w-full">
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="first_name" className="text-sm font-normal inline-block leading-none">
@@ -118,12 +188,12 @@ export function ProfileTab({
                 </Label>
                 <Input
                   id="first_name"
-                  {...register("first_name", { required: "First name is required" })}
-                  className={errors.first_name ? "border-red-400 h-12" : "h-12"}
+                  value={formData.first_name}
+                  onChange={(e) => handleChange("first_name", e.target.value)}
+                  onBlur={() => handleBlur("first_name")}
+                  className={errors.first_name ? "border-red-500 focus-visible:ring-red-200 focus-visible:border-red-500 h-12" : "h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-150"}
                 />
-                {errors.first_name && (
-                  <p className="text-xs text-red-500">{errors.first_name.message}</p>
-                )}
+                {errors.first_name && errorDiv(errors.first_name)}
               </div>
 
               <div className="flex flex-col gap-1.5">
@@ -132,12 +202,12 @@ export function ProfileTab({
                 </Label>
                 <Input
                   id="last_name"
-                  {...register("last_name", { required: "Last name is required" })}
-                  className={errors.last_name ? "border-red-400 h-12" : "h-12"}
+                  value={formData.last_name}
+                  onChange={(e) => handleChange("last_name", e.target.value)}
+                  onBlur={() => handleBlur("last_name")}
+                  className={errors.last_name ? "border-red-500 focus-visible:ring-red-200 focus-visible:border-red-500 h-12" : "h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-150"}
                 />
-                {errors.last_name && (
-                  <p className="text-xs text-red-500">{errors.last_name.message}</p>
-                )}
+                {errors.last_name && errorDiv(errors.last_name)}
               </div>
 
               <div className="flex flex-col gap-1.5">
@@ -147,14 +217,12 @@ export function ProfileTab({
                 <Input
                   id="email"
                   type="email"
-                  {...register("email", {
-                    pattern: { value: /^\S+@\S+\.\S+$/, message: "Invalid email" },
-                  })}
-                  className={errors.email ? "border-red-400 h-12" : "h-12"}
+                  value={formData.email}
+                  onChange={(e) => handleChange("email", e.target.value)}
+                  onBlur={() => handleBlur("email")}
+                  className={errors.email ? "border-red-500 focus-visible:ring-red-200 focus-visible:border-red-500 h-12" : "h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-150"}
                 />
-                {errors.email && (
-                  <p className="text-xs text-red-500">{errors.email.message}</p>
-                )}
+                {errors.email && errorDiv(errors.email)}
               </div>
 
               <div className="flex flex-col gap-1.5">
@@ -162,24 +230,30 @@ export function ProfileTab({
                   Campus
                 </Label>
                 {role === "admin" && accountUser.role !== 0 ? (
-                  <Controller
-                    name="campus_id"
-                    control={control}
-                    render={({ field }) => (
-                      <Select value={field.value ?? ""} onValueChange={field.onChange}>
-                        <SelectTrigger className="h-12">
-                          <SelectValue placeholder="Select campus" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {campuses.map((c) => (
-                            <SelectItem key={c.value} value={c.value}>
-                              {c.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
+                  <>
+                    <Select
+                      value={formData.campus_id}
+                      onValueChange={(val) => {
+                        handleChange("campus_id", val);
+                        handleBlur("campus_id");
+                      }}
+                      onOpenChange={(open) => {
+                        if (!open) handleBlur("campus_id");
+                      }}
+                    >
+                      <SelectTrigger className={`h-12 ${errors.campus_id ? "border-red-500 focus-visible:ring-red-200 focus-visible:border-red-500 h-12" : "h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-150"}`}>
+                        <SelectValue placeholder="Select campus" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {campuses.map((c) => (
+                          <SelectItem key={c.value} value={c.value}>
+                            {c.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.campus_id && errorDiv(errors.campus_id)}
+                  </>
                 ) : (
                   <Input
                     value={isCampusLoading ? "Loading…" : (campusName || "All Campuses")}
@@ -201,7 +275,7 @@ export function ProfileTab({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => { reset(); setIsEditing(false); }}
+                onClick={handleCancel}
                 disabled={isSaving}
               >
                 Cancel

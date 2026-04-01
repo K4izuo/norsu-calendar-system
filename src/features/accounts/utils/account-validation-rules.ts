@@ -1,6 +1,15 @@
 import { z } from "zod"
 
-export const accountSchema = z
+const emailPattern = /^[A-Za-z0-9._%+-]+@(gmail\.com|yahoo\.com|outlook\.com|[a-z]+\.edu\.ph)$/
+
+export const accountUpdateSchema = z.object({
+  first_name: z.string().min(1, "First name is required").min(2, "First name must be at least 2 characters long"),
+  last_name: z.string().min(1, "Last name is required").min(2, "Last name must be at least 2 characters long"),
+  email: z.string().min(1, "Email field is required").regex(emailPattern, "Please enter a valid email address"),
+  campus_id: z.string().optional(),
+})
+
+export const accountLoginSchema = z
   .object({
     username: z
       .string()

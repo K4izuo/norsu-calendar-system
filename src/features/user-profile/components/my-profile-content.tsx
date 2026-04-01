@@ -128,7 +128,7 @@ export function MyProfileContent({
                 <Input
                   id="first_name"
                   {...register("first_name", { required: "First name is required" })}
-                  className={errors.first_name ? "border-red-400 h-12" : "h-12"}
+                  className={errors.first_name ? "border-red-500 focus-visible:ring-red-200 focus-visible:border-red-500 h-12" : "h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-150"}
                 />
                 {errors.first_name && (
                   <p className="text-xs text-red-500">{errors.first_name.message}</p>
@@ -142,7 +142,7 @@ export function MyProfileContent({
                 <Input
                   id="last_name"
                   {...register("last_name", { required: "Last name is required" })}
-                  className={errors.last_name ? "border-red-400 h-12" : "h-12"}
+                  className={errors.last_name ? "border-red-500 focus-visible:ring-red-200 focus-visible:border-red-500 h-12" : "h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-150"}
                 />
                 {errors.last_name && (
                   <p className="text-xs text-red-500">{errors.last_name.message}</p>
@@ -161,7 +161,7 @@ export function MyProfileContent({
                       required: "Email is required",
                       pattern: { value: /^\S+@\S+\.\S+$/, message: "Invalid email" },
                     })}
-                    className={errors.email ? "border-red-400 pr-20 h-12" : "pr-20 h-12"}
+                    className={errors.email ? "border-red-500 focus-visible:ring-red-200 focus-visible:border-red-500 h-12 pr-20" : "pr-20 h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-150"}
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded-full bg-green-100 text-[10px] font-bold text-green-600 uppercase tracking-tight pointer-events-none">
                     Verified

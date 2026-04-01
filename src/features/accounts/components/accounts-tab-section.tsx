@@ -28,6 +28,8 @@ import {
   ChevronsRight,
   ChevronDown,
 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { apiClient } from "@/core/api/api-client";
 import { useUsers } from "../services/account-service";
 import { ROLE_DISPLAY_NAMES } from "@/features/auth/types/auth.types";
 import type { UserAccount } from "../types/account.types";
@@ -220,8 +222,18 @@ export function AccountsTabSection() {
   const router = useRouter();
   const params = useParams();
   const role = params.role as string;
+  const queryClient = useQueryClient();
 
   const navigateToAccount = (userId: number) => {
+    queryClient.prefetchQuery({
+      queryKey: ["accountUser", userId],
+      queryFn: async () => {
+        const response = await apiClient.get(`users/${userId}`);
+        if (response.error) throw new Error(response.error as string);
+        return response.data;
+      },
+      staleTime: 2 * 60 * 1000,
+    });
     router.push(`/${role}/accounts/${userId}`);
   };
 
