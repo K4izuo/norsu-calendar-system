@@ -84,14 +84,15 @@ export function PasswordSecurityContent() {
     "flex w-full h-[52px] items-center gap-3 self-stretch px-4 py-3 rounded-lg bg-white text-base text-gray-900 font-medium border-gray-200";
 
   return (
-    <div className="flex border p-6 rounded-lg flex-col items-start gap-8 self-stretch">
-      <div className="flex border-b pb-3 justify-between items-center self-stretch">
+    <div className="flex border rounded-lg flex-col items-start self-stretch">
+      <div className="flex border-b p-6 justify-between items-center self-stretch">
         <h3 className="text-lg flex items-center gap-1 font-semibold text-gray-900">
           <Lock className="w-4 h-4" strokeWidth={2.5} />
           Password & Security
         </h3>
       </div>
 
+      <div className="p-6 w-full">
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="w-full max-w-xl flex flex-col gap-6"
@@ -227,6 +228,7 @@ export function PasswordSecurityContent() {
           </Button>
         </div>
       </form>
+      </div>
     </div>
   );
 }

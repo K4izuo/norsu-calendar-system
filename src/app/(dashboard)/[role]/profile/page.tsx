@@ -220,14 +220,14 @@ export default function ProfilePage() {
               <TabsList className="mb-6 bg-gray-100 p-1 rounded-lg h-10">
                 <TabsTrigger
                   value="profile"
-                  className="flex items-center gap-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                  className="flex cursor-pointer items-center gap-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
                 >
                   <User className="w-4 h-4" />
                   My Profile
                 </TabsTrigger>
                 <TabsTrigger
                   value="password"
-                  className="flex items-center gap-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                  className="flex cursor-pointer items-center gap-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
                 >
                   <Lock className="w-4 h-4" />
                   Password & Security

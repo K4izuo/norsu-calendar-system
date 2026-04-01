@@ -1,9 +1,10 @@
 "use client";
 
-import { BookUser, Pencil } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { User } from "@/shared/components/context/auth-context";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-hot-toast";
+import { User, Pencil } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
@@ -14,31 +15,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
+import { authService } from "@/features/auth/services/auth-service";
 import { AccountUpdateFormData } from "@/features/auth/types/auth.types";
-import { useUpdateProfile } from "@/features/user-profile/hooks/use-update-profile";
-import { OptionType } from "@/features/calendar/services/academicDataService";
+import { AccountUser } from "./types";
 
-interface MyProfileContentProps {
-  user: User | null;
-  role: string;
-  isLoading: boolean;
-  campusName: string | null;
-  isCampusLoading: boolean;
-  campuses: OptionType[];
-  campusId?: string;
-}
-
-export function MyProfileContent({
-  user,
+export function ProfileTab({
+  accountUser,
   role,
-  isLoading,
   campusName,
   isCampusLoading,
   campuses,
-  campusId,
-}: MyProfileContentProps) {
+  userId,
+}: {
+  accountUser: AccountUser;
+  role: string;
+  campusName: string;
+  isCampusLoading: boolean;
+  campuses: { value: string; label: string }[];
+  userId: number;
+}) {
   const [isEditing, setIsEditing] = useState(false);
-  const { updateProfile, isLoading: isSaving } = useUpdateProfile();
+  const [isSaving, setIsSaving] = useState(false);
+  const queryClient = useQueryClient();
 
   const {
     register,
@@ -48,67 +46,60 @@ export function MyProfileContent({
     formState: { errors },
   } = useForm<AccountUpdateFormData>({
     defaultValues: {
-      first_name: user?.first_name ?? "",
-      last_name: user?.last_name ?? "",
-      email: user?.email ?? "",
-      campus_id: campusId ?? "",
+      first_name: accountUser.first_name ?? "",
+      last_name: accountUser.last_name ?? "",
+      email: accountUser.email ?? "",
+      campus_id: accountUser.campus_id ?? "",
     },
   });
 
-  // Populate form once user data is available
   useEffect(() => {
-    if (user) {
-      reset({
-        first_name: user.first_name ?? "",
-        last_name: user.last_name ?? "",
-        email: user.email ?? "",
-        campus_id: campusId ?? "",
-      });
-    }
-  }, [user, campusId, reset]);
+    reset({
+      first_name: accountUser.first_name ?? "",
+      last_name: accountUser.last_name ?? "",
+      email: accountUser.email ?? "",
+      campus_id: accountUser.campus_id ?? "",
+    });
+  }, [accountUser, reset]);
 
   const onSubmit = async (data: AccountUpdateFormData) => {
-    const success = await updateProfile(data);
-    if (success) setIsEditing(false);
+    setIsSaving(true);
+    try {
+      const response = await authService.updateAccount(userId, data);
+      if (response.error) {
+        toast.error(response.error, { position: "top-right" });
+        return;
+      }
+      toast.success("Profile updated successfully!", { position: "top-right" });
+      queryClient.invalidateQueries({ queryKey: ["accountUser", userId] });
+      setIsEditing(false);
+    } catch {
+      toast.error("Failed to update profile.", { position: "top-right" });
+    } finally {
+      setIsSaving(false);
+    }
   };
-
-  const handleCancel = () => {
-    reset();
-    setIsEditing(false);
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex border rounded-lg flex-col items-start self-stretch">
-        <div className="flex border-b p-6 justify-between items-center self-stretch">
-          <div className="h-5 w-44 bg-gray-200 rounded animate-pulse" />
-        </div>
-        <div className="p-6 w-full">
-          <div className="grid grid-cols-2 gap-x-12 gap-y-8 w-full">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="flex flex-col gap-2">
-                <div className="h-3 w-20 bg-gray-200 rounded animate-pulse" />
-                <div className="h-5 w-32 bg-gray-100 rounded animate-pulse" />
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex border rounded-lg flex-col items-start self-stretch">
       <div className="flex border-b p-6 justify-between items-center self-stretch">
         <h3 className="text-lg flex items-center gap-1 font-semibold text-gray-900">
-          <BookUser className="w-4 h-4" strokeWidth={2.5} />
+          <User className="w-4 h-4" strokeWidth={2.5} />
           Personal Information
         </h3>
         {!isEditing && (
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setIsEditing(true)}
+            onClick={() => {
+              reset({
+                first_name: accountUser.first_name ?? "",
+                last_name: accountUser.last_name ?? "",
+                email: accountUser.email ?? "",
+                campus_id: "",
+              });
+              setIsEditing(true);
+            }}
             className="flex cursor-pointer items-center gap-1.5 text-blue-600 border-blue-200 hover:bg-blue-50 hover:text-blue-700"
           >
             <Pencil className="w-3.5 h-3.5" />
@@ -153,30 +144,24 @@ export function MyProfileContent({
                 <Label htmlFor="email" className="text-sm font-normal inline-block leading-none">
                   Email Address
                 </Label>
-                <div className="relative">
-                  <Input
-                    id="email"
-                    type="email"
-                    {...register("email", {
-                      required: "Email is required",
-                      pattern: { value: /^\S+@\S+\.\S+$/, message: "Invalid email" },
-                    })}
-                    className={errors.email ? "border-red-400 pr-20 h-12" : "pr-20 h-12"}
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded-full bg-green-100 text-[10px] font-bold text-green-600 uppercase tracking-tight pointer-events-none">
-                    Verified
-                  </span>
-                </div>
+                <Input
+                  id="email"
+                  type="email"
+                  {...register("email", {
+                    pattern: { value: /^\S+@\S+\.\S+$/, message: "Invalid email" },
+                  })}
+                  className={errors.email ? "border-red-400 h-12" : "h-12"}
+                />
                 {errors.email && (
                   <p className="text-xs text-red-500">{errors.email.message}</p>
                 )}
               </div>
 
-              {role !== "admin" && (
-                <div className="flex flex-col gap-1.5">
-                  <Label className="text-sm font-normal inline-block leading-none">
-                    Campus
-                  </Label>
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-sm font-normal inline-block leading-none">
+                  Campus
+                </Label>
+                {role === "admin" && accountUser.role !== 0 ? (
                   <Controller
                     name="campus_id"
                     control={control}
@@ -195,17 +180,14 @@ export function MyProfileContent({
                       </Select>
                     )}
                   />
-                </div>
-              )}
-
-              {role === "admin" && (
-                <div className="flex flex-col gap-1.5">
-                  <Label className="text-sm font-normal inline-block leading-none">
-                    Campus
-                  </Label>
-                  <Input value="All Campuses" disabled className="bg-gray-50 text-gray-400 h-12" />
-                </div>
-              )}
+                ) : (
+                  <Input
+                    value={isCampusLoading ? "Loading…" : (campusName || "All Campuses")}
+                    disabled
+                    className="bg-gray-50 text-gray-400 h-12"
+                  />
+                )}
+              </div>
             </div>
 
             <div className="flex items-center gap-3 mt-8">
@@ -219,7 +201,7 @@ export function MyProfileContent({
               <Button
                 type="button"
                 variant="outline"
-                onClick={handleCancel}
+                onClick={() => { reset(); setIsEditing(false); }}
                 disabled={isSaving}
               >
                 Cancel
@@ -228,40 +210,21 @@ export function MyProfileContent({
           </form>
         ) : (
           <div className="grid grid-cols-2 gap-x-12 gap-y-8 w-full">
-            <div className="flex flex-col gap-2 min-w-0">
-              <label className="text-sm text-gray-400 font-normal inline-block leading-none">
-                First Name
-              </label>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm text-gray-400 font-normal inline-block leading-none">First Name</label>
+              <div className="text-base font-medium text-gray-900">{accountUser.first_name || "—"}</div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm text-gray-400 font-normal inline-block leading-none">Last Name</label>
+              <div className="text-base font-medium text-gray-900">{accountUser.last_name || "—"}</div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm text-gray-400 font-normal inline-block leading-none">Email Address</label>
+              <div className="text-base font-medium text-gray-900">{accountUser.email || "—"}</div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm text-gray-400 font-normal inline-block leading-none">Campus</label>
               <div className="text-base font-medium text-gray-900">
-                {user?.first_name || "—"}
-              </div>
-            </div>
-            <div className="flex flex-col gap-2 min-w-0">
-              <label className="text-sm text-gray-400 font-normal inline-block leading-none">
-                Last Name
-              </label>
-              <div className="text-base font-medium text-gray-900">
-                {user?.last_name || "—"}
-              </div>
-            </div>
-            <div className="flex flex-col gap-2 min-w-0">
-              <label className="text-sm text-gray-400 font-normal inline-block leading-none">
-                Email Address
-              </label>
-              <div className="flex items-center gap-3">
-                <span className="text-base font-medium text-gray-900">
-                  {user?.email || "—"}
-                </span>
-                <span className="px-2 py-0.5 rounded-full bg-green-100 text-[10px] font-bold text-green-600 uppercase tracking-tight">
-                  Verified
-                </span>
-              </div>
-            </div>
-            <div className="flex flex-col gap-2 min-w-0">
-              <label className="text-sm text-gray-400 font-normal inline-block leading-none">
-                Campus
-              </label>
-              <div className="text-base font-medium capitalize text-gray-900">
                 {isCampusLoading ? (
                   <div className="h-5 w-32 bg-gray-200 rounded animate-pulse" />
                 ) : (
