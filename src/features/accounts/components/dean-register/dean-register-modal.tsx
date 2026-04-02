@@ -6,12 +6,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Tabs, TabsContent } from "@/shared/components/ui/tabs";
 import { Button } from "@/shared/components/ui/button";
 import { GraduationCap, X, ArrowLeft, ArrowRight, SendHorizontal } from "lucide-react";
-import { DeanRegisterFormData } from "@/interface/user-props";
 import { useCampuses, useOffices } from "@/features/calendar/services/academicDataService";
 import { DeanFormInput } from "@/features/auth/components/register/dean/dean-input-field";
 import { DeanFormSelectField } from "@/features/auth/components/register/dean/dean-select-field";
 import { DeanSummary } from "@/features/auth/components/register/dean/dean-summary";
-import { deanSchema } from "@/features/auth/utils/dean/dean-register-validation-rules";
+import { deanSchema, deanWithCredentialsSchema, DeanWithCredentialsFormData } from "@/features/auth/utils/dean/dean-register-validation-rules";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldValidation } from "@/features/auth/utils/dean/dean-register-field-validation";
 import { apiClient } from "@/core/api/api-client";
@@ -24,20 +23,21 @@ interface DeanRegisterModalProps {
 }
 
 const TABS = [
-  { value: "details", label: "Dean Details" },
-  { value: "summary", label: "Summary" },
+  { value: "details",     label: "Dean Details" },
+  { value: "credentials", label: "Credentials"  },
+  { value: "summary",     label: "Summary"      },
 ] as const;
 
 export function DeanRegisterModal({ isOpen, onClose }: DeanRegisterModalProps) {
-  const [activeTab, setActiveTab] = useState<"details" | "summary">("details");
+  const [activeTab, setActiveTab] = useState<"details" | "credentials" | "summary">("details");
   const [agreed, setAgreed] = useState(false);
 
   const { campuses, loading: loadingCampuses, error: campusError } = useCampuses();
   const { offices, loading: loadingOffices, error: officeError } = useOffices();
 
-  const { control, handleSubmit, watch, register, reset, formState: { errors, isSubmitting, isValid } } =
-    useForm<DeanRegisterFormData>({
-      resolver: zodResolver(deanSchema),
+  const { control, handleSubmit, watch, register, reset, trigger, setValue, getValues, formState: { errors, isSubmitting, isValid } } =
+    useForm<DeanWithCredentialsFormData>({
+      resolver: zodResolver(deanWithCredentialsSchema),
       mode: "onTouched",
       defaultValues: {
         first_name: "",
@@ -48,6 +48,9 @@ export function DeanRegisterModal({ isOpen, onClose }: DeanRegisterModalProps) {
         campus_id: "",
         office_id: "",
         role: "",
+        username: "",
+        password: "",
+        confirmPassword: "",
       },
     });
 
@@ -62,11 +65,22 @@ export function DeanRegisterModal({ isOpen, onClose }: DeanRegisterModalProps) {
   useModalBehavior({ isOpen, onClose });
 
   const onSubmit = useCallback(
-    async (data: DeanRegisterFormData) => {
+    async (data: DeanWithCredentialsFormData) => {
       try {
-        const response = await apiClient.post<{ role?: number }, DeanRegisterFormData>(
+        const response = await apiClient.post<{ role?: number }, object>(
           "users/store",
-          { ...data, role: "dean" }
+          {
+            first_name: data.first_name,
+            middle_name: data.middle_name,
+            last_name: data.last_name,
+            email: data.email,
+            assignment_id: data.assignment_id,
+            campus_id: data.campus_id,
+            office_id: data.office_id,
+            username: data.username,
+            password: data.password,
+            role: "dean",
+          }
         );
         if (response.error) {
           const errorMessage =
@@ -89,12 +103,25 @@ export function DeanRegisterModal({ isOpen, onClose }: DeanRegisterModalProps) {
     [reset, onClose]
   );
 
-  const handleNext = useCallback(() => {
-    handleSubmit(
-      () => setActiveTab("summary"),
-      () => { }
-    )();
-  }, [handleSubmit]);
+  const handleNext = useCallback(async () => {
+    const fields = ["first_name", "middle_name", "last_name", "email", "assignment_id", "campus_id", "office_id"] as const;
+    const valid = await trigger([...fields]);
+    if (!valid) {
+      fields.forEach((field) => setValue(field, getValues(field), { shouldTouch: true, shouldValidate: false }));
+      return;
+    }
+    setActiveTab("credentials");
+  }, [trigger, setValue, getValues]);
+
+  const handleCredentialsNext = useCallback(async () => {
+    const fields = ["username", "password", "confirmPassword"] as const;
+    const valid = await trigger([...fields]);
+    if (!valid) {
+      fields.forEach((field) => setValue(field, getValues(field), { shouldTouch: true, shouldValidate: false }));
+      return;
+    }
+    setActiveTab("summary");
+  }, [trigger, setValue, getValues]);
 
   const handleClose = useCallback(() => {
     reset();
@@ -159,7 +186,7 @@ export function DeanRegisterModal({ isOpen, onClose }: DeanRegisterModalProps) {
             <div className="overflow-y-auto p-4 sm:p-6 pt-2 sm:pt-4 flex-1 max-h-[calc(91vh-155px)]">
               <Tabs value={activeTab} className="w-full">
                 {/* Tab bar */}
-                <div className="grid grid-cols-2 mb-4 sm:mb-4 bg-muted rounded-lg p-1 overflow-x-auto">
+                <div className="grid grid-cols-3 mb-4 sm:mb-4 bg-muted rounded-lg p-1 overflow-x-auto">
                   {TABS.map((tab) => (
                     <div
                       key={tab.value}
@@ -275,6 +302,38 @@ export function DeanRegisterModal({ isOpen, onClose }: DeanRegisterModalProps) {
                   </div>
                 </TabsContent>
 
+                {/* Credentials tab */}
+                <TabsContent value="credentials" className="space-y-4 sm:space-y-6">
+                  <div className="flex flex-col gap-3">
+                    <DeanFormInput
+                      name="username"
+                      label="Username"
+                      register={register}
+                      errors={errors}
+                      autoComplete="username"
+                      placeholder="Enter username"
+                    />
+                    <DeanFormInput
+                      name="password"
+                      label="Password"
+                      register={register}
+                      errors={errors}
+                      type="password"
+                      autoComplete="new-password"
+                      placeholder="Enter password"
+                    />
+                    <DeanFormInput
+                      name="confirmPassword"
+                      label="Confirm Password"
+                      register={register}
+                      errors={errors}
+                      type="password"
+                      autoComplete="new-password"
+                      placeholder="Re-enter password"
+                    />
+                  </div>
+                </TabsContent>
+
                 {/* Summary tab */}
                 <TabsContent value="summary" className="space-y-4 sm:space-y-6">
                   <DeanSummary
@@ -305,11 +364,35 @@ export function DeanRegisterModal({ isOpen, onClose }: DeanRegisterModalProps) {
                   </div>
                 </Button>
               )}
-              {activeTab === "summary" && (
+              {activeTab === "credentials" && (
                 <div className="flex gap-3">
                   <Button
                     type="button"
                     onClick={() => setActiveTab("details")}
+                    variant="outline"
+                    className="text-base cursor-pointer py-2.5"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Back
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleCredentialsNext}
+                    variant="default"
+                    className="text-base cursor-pointer py-2.5"
+                  >
+                    <div className="flex items-center">
+                      Next
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </div>
+                  </Button>
+                </div>
+              )}
+              {activeTab === "summary" && (
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    onClick={() => setActiveTab("credentials")}
                     variant="outline"
                     className="text-base cursor-pointer py-2.5"
                     disabled={isSubmitting}

@@ -388,7 +388,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                     <div className="bg-white text-card-foreground border border-border rounded-lg">
                       <div className="p-6">
                         <div className="flex items-center">
-                          <NotebookPen className="text-gray-500 mr-2 h-5 w-5" />
+                          <NotebookPen className="text-gray-700 mr-2 h-5 w-5" />
                           <h3 className="text-lg font-medium text-gray-700">
                             Reservation Details
                           </h3>
@@ -458,7 +458,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                     <div className="bg-white text-card-foreground border border-border rounded-lg">
                       <div className="p-6">
                         <div className="flex items-center">
-                          <Info className="text-gray-500 mr-2 h-5 w-5" />
+                          <Info className="text-gray-700 mr-2 h-5 w-5" />
                           <h3 className="text-lg font-medium text-gray-700">
                             Additional Details
                           </h3>

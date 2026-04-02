@@ -9,9 +9,10 @@ interface RoleChooseModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectDean: () => void;
+  onSelectStaff: () => void;
 }
 
-export function RoleChooseModal({ isOpen, onClose, onSelectDean }: RoleChooseModalProps) {
+export function RoleChooseModal({ isOpen, onClose, onSelectDean, onSelectStaff }: RoleChooseModalProps) {
   useModalBehavior({ isOpen, onClose });
 
   if (!isOpen) return null;
@@ -89,23 +90,25 @@ export function RoleChooseModal({ isOpen, onClose, onSelectDean }: RoleChooseMod
               </div>
             </button>
 
-            {/* Staff card — disabled/coming soon */}
-            <div className="flex-1 flex flex-col items-center gap-3 rounded-xl border-2 border-gray-200 bg-gray-50 p-6 opacity-50 cursor-not-allowed relative">
-              <div className="flex items-center justify-center w-14 h-14 rounded-full bg-purple-100">
-                <Briefcase className="w-7 h-7 text-purple-500" strokeWidth={2} />
+            {/* Staff card */}
+            <button
+              type="button"
+              onClick={onSelectStaff}
+              className="flex-1 flex flex-col items-center gap-3 rounded-xl border-2 border-purple-200 bg-purple-50 p-6 cursor-pointer hover:border-purple-400 hover:bg-purple-100 transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+            >
+              <div className="flex items-center justify-center w-14 h-14 rounded-full bg-purple-100 group-hover:bg-purple-200 transition-colors">
+                <Briefcase className="w-7 h-7 text-purple-600" strokeWidth={2} />
               </div>
               <div className="flex flex-col items-center gap-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-base font-semibold text-gray-700">Staff</span>
-                  <span className="inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-semibold text-gray-500 leading-none">
-                    Coming Soon
-                  </span>
-                </div>
-                <span className="text-xs text-gray-500 text-center">
+                <span className="text-base font-semibold text-purple-800">Staff</span>
+                <span className="text-xs text-purple-600 text-center">
                   Administrative or support staff
                 </span>
               </div>
-            </div>
+              <div className="flex items-center gap-1 text-xs font-medium text-purple-600 group-hover:text-purple-700 mt-1">
+                Select <ArrowRight className="w-3.5 h-3.5" />
+              </div>
+            </button>
           </div>
         </motion.div>
       </div>

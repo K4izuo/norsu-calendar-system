@@ -34,7 +34,8 @@ import { useUsers } from "../services/account-service";
 import { ROLE_DISPLAY_NAMES } from "@/features/auth/types/auth.types";
 import type { UserAccount } from "../types/account.types";
 import { RoleChooseModal } from "./role-choose-modal";
-import { DeanRegisterModal } from "./dean-register-modal";
+import { DeanRegisterModal } from "./dean-register/dean-register-modal";
+import { StaffRegisterModal } from "./staff-register/staff-register-modal";
 
 function EmptyState({
   icon: Icon,
@@ -239,6 +240,7 @@ export function AccountsTabSection() {
 
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [showDeanModal, setShowDeanModal] = useState(false);
+  const [showStaffModal, setShowStaffModal] = useState(false);
 
   const deans = users.filter((u) => u.role === 1);
   const staff = users.filter((u) => u.role === 2);
@@ -482,10 +484,18 @@ export function AccountsTabSection() {
           setShowRoleModal(false);
           setShowDeanModal(true);
         }}
+        onSelectStaff={() => {
+          setShowRoleModal(false);
+          setShowStaffModal(true);
+        }}
       />
       <DeanRegisterModal
         isOpen={showDeanModal}
         onClose={() => setShowDeanModal(false)}
+      />
+      <StaffRegisterModal
+        isOpen={showStaffModal}
+        onClose={() => setShowStaffModal(false)}
       />
     </div>
   );

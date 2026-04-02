@@ -58,7 +58,7 @@ export default function AccountProfilePage() {
       : "—";
 
   return (
-    <div className="flex flex-col gap-6 pb-10">
+    <div className="flex flex-col gap-6">
       {/* Breadcrumb */}
       <PageBreadcrumb
         items={[
@@ -92,7 +92,7 @@ export default function AccountProfilePage() {
         <div className="w-72 shrink-0 bg-white text-card-foreground border shadow-xs rounded-xl overflow-hidden">
 
           {/* Avatar section */}
-          <div className="flex flex-col items-center px-6 pt-8 pb-6 border-b">
+          <div className="flex flex-col items-center p-6 border-b">
             <div className="relative mb-4">
               <div className="w-24 h-24 rounded-full overflow-hidden bg-blue-100 ring-2 ring-blue-200 shadow-sm">
                 <Image

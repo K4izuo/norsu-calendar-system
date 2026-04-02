@@ -36,7 +36,7 @@ export const DeanFormInput = <T extends FieldValues>({
       <Input
         {...register(name, rules)}
         id={name}
-        className={`h-11 text-base border-2 rounded-lg transition-all duration-150 ${displayError ? "border-red-400 focus:border-red-500 focus:ring-red-200" : "border-gray-200 focus:border-indigo-500 focus:ring-indigo-500/20"
+        className={`h-12 text-base border rounded-lg transition-all duration-150 ${displayError ? "border-red-400 focus:border-red-500 focus:ring-red-200" : "border-gray-200 focus:border-indigo-500 focus:ring-indigo-500/20"
           }`}
         {...inputProps}
       />

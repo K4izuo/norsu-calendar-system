@@ -95,7 +95,7 @@ export default function ProfilePage() {
   const isCampusLoading = userLoading || campusesLoading;
 
   return (
-    <div className="flex flex-col gap-6 pb-10">
+    <div className="flex flex-col gap-6">
       {/* Breadcrumb */}
       <PageBreadcrumb
         items={[
