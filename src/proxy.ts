@@ -4,6 +4,7 @@ import { getRolePathFromNumber } from '@/core/lib/role-utils';
 
 const PUBLIC_ROUTES = [
   '/',
+  '/info',
   '/dashboard',
   '/about',
   '/login',
