@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { useAuth } from "@/shared/components/context/auth-context";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/shared/components/ui/tabs";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -9,8 +10,12 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
 } from "@/shared/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/shared/components/ui/tooltip";
 import {
   SlidersHorizontal,
   UserPlus,
@@ -18,7 +23,6 @@ import {
   GraduationCap,
   Briefcase,
   Clock,
-  MoreHorizontal,
   Eye,
   Pencil,
   Trash2,
@@ -61,9 +65,9 @@ function EmptyState({
 
 function TableHeader({ columns }: { columns: string[] }) {
   return (
-    <div className="grid border-b px-6 py-2.5 shrink-0" style={{ gridTemplateColumns: `repeat(${columns.length}, 1fr)` }}>
+    <div className="grid border-b px-6 py-2.5 shrink-0 bg-[#f1f2f4]" style={{ gridTemplateColumns: `repeat(${columns.length}, 1fr)` }}>
       {columns.map((col) => (
-        <span key={col} className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+        <span key={col} className="text-sm font-medium text-muted-foreground">
           {col}
         </span>
       ))}
@@ -220,6 +224,7 @@ const triggerClass =
 
 export function AccountsTabSection() {
   const { users, loading } = useUsers();
+  const { user: currentUser } = useAuth();
   const router = useRouter();
   const params = useParams();
   const role = params.role as string;
@@ -242,12 +247,13 @@ export function AccountsTabSection() {
   const [showDeanModal, setShowDeanModal] = useState(false);
   const [showStaffModal, setShowStaffModal] = useState(false);
 
-  const deans = users.filter((u) => u.role === 1);
-  const staff = users.filter((u) => u.role === 2);
+  const visibleUsers = users.filter((u) => String(u.id) !== String(currentUser?.id));
+  const deans = visibleUsers.filter((u) => u.role === 1);
+  const staff = visibleUsers.filter((u) => u.role === 2);
 
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  const recentUsers = [...users]
+  const recentUsers = [...visibleUsers]
     .filter((u) => u.created_at && new Date(u.created_at) >= thirtyDaysAgo)
     .sort((a, b) => new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime());
 
@@ -268,14 +274,14 @@ export function AccountsTabSection() {
   const [recentRows, setRecentRows] = useState(10);
 
   // Sliced data for current page
-  const pagedUsers = users.slice((allPage - 1) * allRows, allPage * allRows);
+  const pagedUsers = visibleUsers.slice((allPage - 1) * allRows, allPage * allRows);
   const pagedDeans = deans.slice((deansPage - 1) * deansRows, deansPage * deansRows);
   const pagedStaff = staff.slice((staffPage - 1) * staffRows, staffPage * staffRows);
   const pagedRecent = recentUsers.slice((recentPage - 1) * recentRows, recentPage * recentRows);
 
   // Which pagination props to pass based on the active tab
   const paginationByTab = {
-    all: { total: users.length, page: allPage, rowsPerPage: allRows, onPageChange: setAllPage, onRowsPerPageChange: setAllRows },
+    all: { total: visibleUsers.length, page: allPage, rowsPerPage: allRows, onPageChange: setAllPage, onRowsPerPageChange: setAllRows },
     deans: { total: deans.length, page: deansPage, rowsPerPage: deansRows, onPageChange: setDeansPage, onRowsPerPageChange: setDeansRows },
     staff: { total: staff.length, page: staffPage, rowsPerPage: staffRows, onPageChange: setStaffPage, onRowsPerPageChange: setStaffRows },
     recent: { total: recentUsers.length, page: recentPage, rowsPerPage: recentRows, onPageChange: setRecentPage, onRowsPerPageChange: setRecentRows },
@@ -327,7 +333,7 @@ export function AccountsTabSection() {
             <TableHeader columns={["Name", "Role", "Username", "Date Added", "Actions"]} />
             {loading ? (
               <SkeletonRows columns={5} />
-            ) : users.length === 0 ? (
+            ) : visibleUsers.length === 0 ? (
               <EmptyState
                 icon={Users}
                 title="No accounts found"
@@ -341,7 +347,12 @@ export function AccountsTabSection() {
                   className="grid cursor-pointer border-b px-6 py-3.5 hover:bg-gray-50 transition-colors"
                   style={{ gridTemplateColumns: "repeat(5, 1fr)" }}
                 >
-                  <span className="text-sm font-medium text-gray-800">{getFullName(user)}</span>
+                  <span className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center shrink-0 text-xs font-semibold text-gray-600">
+                      {(user.first_name?.[0] ?? "").toUpperCase()}{(user.last_name?.[0] ?? "").toUpperCase()}
+                    </div>
+                    <span className="text-sm font-medium text-gray-800">{getFullName(user)}</span>
+                  </span>
                   <span>
                     <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getRoleBadgeClass(user.role)}`}>
                       {ROLE_DISPLAY_NAMES[user.role as keyof typeof ROLE_DISPLAY_NAMES] ?? "Unknown"}
@@ -349,26 +360,44 @@ export function AccountsTabSection() {
                   </span>
                   <span className="text-sm text-gray-500">@{user.username}</span>
                   <span className="text-sm text-gray-500">{formatDate(user.created_at)}</span>
-                  <span onClick={(e) => e.stopPropagation()}>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="rounded p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100">
-                          <MoreHorizontal className="h-4 w-4" />
+                  <span onClick={(e) => e.stopPropagation()} className="flex items-center gap-1">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => navigateToAccount(user.id)}
+                          className="p-1.5 rounded text-gray-500 hover:text-blue-500 hover:bg-blue-50 transition-colors cursor-pointer"
+                          aria-label="View"
+                        >
+                          <Eye className="h-4 w-4" />
                         </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem className="cursor-pointer gap-2" onSelect={() => navigateToAccount(user.id)}>
-                          <Eye className="h-4 w-4" /> View
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="cursor-pointer gap-2" onSelect={() => navigateToAccount(user.id)}>
-                          <Pencil className="h-4 w-4" /> Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="cursor-pointer gap-2 text-red-600 focus:text-red-600">
-                          <Trash2 className="h-4 w-4" /> Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                      </TooltipTrigger>
+                      <TooltipContent>View</TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => navigateToAccount(user.id)}
+                          className="p-1.5 rounded text-gray-500 hover:text-yellow-500 hover:bg-yellow-50 transition-colors cursor-pointer"
+                          aria-label="Edit"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>Edit</TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          className="p-1.5 rounded text-gray-500 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+                          aria-label="Delete"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>Delete</TooltipContent>
+                    </Tooltip>
                   </span>
                 </div>
               ))
@@ -394,7 +423,12 @@ export function AccountsTabSection() {
                   className="grid cursor-pointer border-b px-6 py-3.5 hover:bg-gray-50 transition-colors"
                   style={{ gridTemplateColumns: "repeat(4, 1fr)" }}
                 >
-                  <span className="text-sm font-medium text-gray-800">{getFullName(user)}</span>
+                  <span className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center shrink-0 text-xs font-semibold text-gray-600">
+                      {(user.first_name?.[0] ?? "").toUpperCase()}{(user.last_name?.[0] ?? "").toUpperCase()}
+                    </div>
+                    <span className="text-sm font-medium text-gray-800">{getFullName(user)}</span>
+                  </span>
                   <span className="text-sm text-gray-400">—</span>
                   <span className="text-sm text-gray-500">@{user.username}</span>
                   <span className="text-sm text-gray-500">{formatDate(user.created_at)}</span>
@@ -422,7 +456,12 @@ export function AccountsTabSection() {
                   className="grid cursor-pointer border-b px-6 py-3.5 hover:bg-gray-50 transition-colors"
                   style={{ gridTemplateColumns: "repeat(4, 1fr)" }}
                 >
-                  <span className="text-sm font-medium text-gray-800">{getFullName(user)}</span>
+                  <span className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center shrink-0 text-xs font-semibold text-gray-600">
+                      {(user.first_name?.[0] ?? "").toUpperCase()}{(user.last_name?.[0] ?? "").toUpperCase()}
+                    </div>
+                    <span className="text-sm font-medium text-gray-800">{getFullName(user)}</span>
+                  </span>
                   <span className="text-sm text-gray-400">—</span>
                   <span className="text-sm text-gray-500">@{user.username}</span>
                   <span className="text-sm text-gray-500">{formatDate(user.created_at)}</span>
@@ -450,7 +489,12 @@ export function AccountsTabSection() {
                   className="grid cursor-pointer border-b px-6 py-3.5 hover:bg-gray-50 transition-colors"
                   style={{ gridTemplateColumns: "repeat(4, 1fr)" }}
                 >
-                  <span className="text-sm font-medium text-gray-800">{getFullName(user)}</span>
+                  <span className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center shrink-0 text-xs font-semibold text-gray-600">
+                      {(user.first_name?.[0] ?? "").toUpperCase()}{(user.last_name?.[0] ?? "").toUpperCase()}
+                    </div>
+                    <span className="text-sm font-medium text-gray-800">{getFullName(user)}</span>
+                  </span>
                   <span className="text-sm text-gray-500">Registered</span>
                   <span>
                     <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getRoleBadgeClass(user.role)}`}>
@@ -480,14 +524,8 @@ export function AccountsTabSection() {
       <RoleChooseModal
         isOpen={showRoleModal}
         onClose={() => setShowRoleModal(false)}
-        onSelectDean={() => {
-          setShowRoleModal(false);
-          setShowDeanModal(true);
-        }}
-        onSelectStaff={() => {
-          setShowRoleModal(false);
-          setShowStaffModal(true);
-        }}
+        onSelectDean={() => setShowDeanModal(true)}
+        onSelectStaff={() => setShowStaffModal(true)}
       />
       <DeanRegisterModal
         isOpen={showDeanModal}

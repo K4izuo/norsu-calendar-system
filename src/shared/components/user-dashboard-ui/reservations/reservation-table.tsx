@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select"
+import { TableSkeleton } from "@/shared/components/ui/skeleton"
 
 interface ReservationsTableProps {
   events: EventDetails[];
@@ -22,7 +23,7 @@ interface ReservationsTableProps {
   onStatusFilterChange: (value: string) => void;
 }
 
-export function ReservationsTable({ events, statusFilter, onStatusFilterChange }: ReservationsTableProps) {
+export function ReservationsTable({ events, isLoading, statusFilter, onStatusFilterChange }: ReservationsTableProps) {
   const [searchQuery, setSearchQuery] = useState("")
 
   const [eventInfoModalOpen, setEventInfoModalOpen] = useState(false)
@@ -74,6 +75,10 @@ export function ReservationsTable({ events, statusFilter, onStatusFilterChange }
       setSelectedEvent(event)
       setEventInfoLoading(false)
     }, 150)
+  }
+
+  if (isLoading && events.length === 0) {
+    return <TableSkeleton rows={5} />;
   }
 
   return (

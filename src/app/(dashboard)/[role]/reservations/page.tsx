@@ -5,6 +5,9 @@ import { ReservationsTable } from "@/shared/components/user-dashboard-ui/reserva
 import { EventDetails } from "@/interface/user-props";
 import { useReservations, useAssets } from "@/features/calendar/services/reservation-service";
 import { PageBreadcrumb } from "@/shared/components/ui/page-breadcrumb";
+import { PageStatCard } from "@/shared/components/ui/page-stat-card";
+import { Skeleton } from "@/shared/components/ui/skeleton";
+import { CalendarDays, Clock, CircleCheck, XCircle } from "lucide-react";
 import { useParams } from "next/navigation";
 
 export default function ReservationsPage() {
@@ -12,8 +15,12 @@ export default function ReservationsPage() {
   const role = params.role as string;
   const [statusFilter, setStatusFilter] = useState("pending");
 
-  // Data fetching - TanStack Query handles caching
   const { reservations, error, loading } = useReservations();
+
+  const total = reservations.length;
+  const pending = reservations.filter((r) => r.status.toUpperCase() === "PENDING").length;
+  const approved = reservations.filter((r) => r.status.toUpperCase() === "APPROVED").length;
+  const declined = reservations.filter((r) => r.status.toUpperCase() === "DECLINED").length;
 
   // Get unique asset IDs from reservations
   const assetIds = useMemo(() => {
@@ -57,30 +64,48 @@ export default function ReservationsPage() {
   }, [reservations, assets]);
 
   return (
-    <div className="flex flex-col max-w-full">
-      {/* Breadcrumb */}
+    <div className="flex flex-col items-start self-stretch h-full">
       <PageBreadcrumb
         items={[
-          { label: "Dashboard", href: `/page/${role}/dashboard` },
-          { label: "Reservations" }
+          { label: "Dashboard", href: `/${role}/dashboard` },
+          { label: "Reservations" },
         ]}
       />
 
-      {/* Error Message */}
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 w-full">
           <strong className="font-bold">Error: </strong>
           <span className="block sm:inline">{error}</span>
         </div>
       )}
 
-      {/* Pass events instead of reservations */}
-      <ReservationsTable
-        events={events}
-        isLoading={loading}
-        statusFilter={statusFilter}
-        onStatusFilterChange={setStatusFilter}
-      />
+      <div className="flex flex-col items-start gap-6 flex-1 self-stretch min-h-0">
+        {loading && reservations.length === 0 ? (
+          <>
+            <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, i) => (
+                <Skeleton key={i} className="h-27.5 w-full" />
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <PageStatCard title="Total Reservations" value={total} subLabel="All submitted reservations" icon={CalendarDays} color="gray" />
+            <PageStatCard title="Pending" value={pending} subLabel="Awaiting approval" icon={Clock} color="amber" />
+            <PageStatCard title="Approved" value={approved} subLabel="Confirmed reservations" icon={CircleCheck} color="green" />
+            <PageStatCard title="Declined" value={declined} subLabel="Rejected reservations" icon={XCircle} color="red" />
+          </div>
+        )}
+
+        <div className="flex-1 min-h-0 w-full">
+          <ReservationsTable
+            events={events}
+            isLoading={loading}
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
+          />
+        </div>
+      </div>
     </div>
   );
 }

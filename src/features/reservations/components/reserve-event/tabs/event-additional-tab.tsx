@@ -16,12 +16,12 @@ interface Props {
   infoTypes: { value: string; label: string }[];
   categories: { value: string; label: string }[];
   tagInput: string;
-  taggedPeople: { id: string; name: string }[];
-  peopleSuggestions: { id: string; name: string }[];
+  taggedPeople: { id: number; name: string }[];
+  peopleSuggestions: { id: number; name: string }[];
   showDropdown: boolean;
   handleTagInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  handleTagSelect: (person: { id: string; name: string }) => void;
-  handleRemoveTag: (id: string) => void;
+  handleTagSelect: (person: { id: number; name: string }) => void;
+  handleRemoveTag: (id: number) => void;
   setShowDropdown: (show: boolean) => void;
   peopleFieldRef: React.RefObject<HTMLInputElement | null>;
 }

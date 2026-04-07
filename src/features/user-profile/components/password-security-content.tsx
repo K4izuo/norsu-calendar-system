@@ -1,11 +1,13 @@
 import { Lock, Eye, EyeOff, CircleCheckBig, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { PasswordChangeFormData } from "@/features/auth/types/auth.types";
 import { useUpdatePassword } from "@/features/user-profile/hooks/use-update-password";
+import { passwordChangeSchema } from "@/features/user-profile/utils/password-validation-rules";
 
 function RequirementItem({
   checked,
@@ -38,10 +40,10 @@ export function PasswordSecurityContent() {
     register,
     handleSubmit,
     reset,
-    setError,
     watch,
     formState: { errors },
   } = useForm<PasswordChangeFormData>({
+    resolver: zodResolver(passwordChangeSchema),
     defaultValues: {
       current_password: "",
       new_password: "",
@@ -53,27 +55,9 @@ export function PasswordSecurityContent() {
   const newPassword = watch("new_password") || "";
   const [isNewPasswordFocused, setIsNewPasswordFocused] = useState(false);
 
-  const newPasswordReg = register("new_password", {
-    required: "New password is required",
-    validate: {
-      length: (v) => v.length >= 8 || "Password must be at least 8 characters",
-      upper: (v) => /[A-Z]/.test(v) || "Password must contain uppercase letter",
-      lower: (v) => /[a-z]/.test(v) || "Password must contain lowercase letter",
-      number: (v) => /[0-9]/.test(v) || "Password must contain number",
-      punctuation: (v) =>
-        /[^A-Za-z0-9]/.test(v) || "Password must contain punctuation",
-    },
-  });
+  const newPasswordReg = register("new_password");
 
   const onSubmit = async (data: PasswordChangeFormData) => {
-    if (data.new_password !== data.new_password_confirmation) {
-      setError("new_password_confirmation", {
-        type: "manual",
-        message: "Passwords do not match",
-      });
-      return;
-    }
-
     const success = await updatePassword(data);
     if (success) {
       reset();
@@ -104,9 +88,7 @@ export function PasswordSecurityContent() {
                 type={showCurrentPassword ? "text" : "password"}
                 className={`${inputClasses} border ${errors.current_password ? "border-red-500 focus-visible:ring-red-100 focus-visible:border-red-500" : "border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-150"}`}
                 placeholder="Enter current password"
-                {...register("current_password", {
-                  required: "Current password is required",
-                })}
+                {...register("current_password")}
               />
               <button
                 type="button"
@@ -197,9 +179,7 @@ export function PasswordSecurityContent() {
                 type={showConfirmPassword ? "text" : "password"}
                 className={`${inputClasses} border ${errors.new_password_confirmation ? "border-red-500 focus-visible:ring-red-100 focus-visible:border-red-500" : "border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-150"}`}
                 placeholder="Confirm new password"
-                {...register("new_password_confirmation", {
-                  required: "Please confirm your new password",
-                })}
+                {...register("new_password_confirmation")}
               />
               <button
                 type="button"

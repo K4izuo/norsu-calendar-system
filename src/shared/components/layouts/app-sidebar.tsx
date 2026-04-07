@@ -8,7 +8,8 @@ import {
   Calendar,
   Command,
   GalleryVerticalEnd,
-  Users,
+  UserCog,
+  BookUser,
   House,
   Archive,
 } from "lucide-react"
@@ -80,7 +81,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     {
       title: "Accounts",
       url: `/${role}/accounts`,
-      icon: Users,
+      icon: UserCog,
+    },
+    {
+      title: "People",
+      url: `/${role}/people`,
+      icon: BookUser,
     },
     {
       title: "Assets",

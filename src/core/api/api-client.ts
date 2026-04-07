@@ -101,6 +101,8 @@ const isProtectedEndpoint = (endpoint: string): boolean => {
     'assets/',
     'event/reservation',
     'users/all',
+    'people',
+    'notifications',
     // Note: 'reservations/{id}' (single ID) is protected, but 'reservations/all' is public
   ];
 

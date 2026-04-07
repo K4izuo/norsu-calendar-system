@@ -13,6 +13,7 @@ import { fetchReservations } from "@/features/calendar/services/reservation-serv
 import { normalizeTime, normalizeDate } from "./useFormNormalizers"
 import { usePeopleTagging } from "./usePeopleTagging"
 import { useAssetSelection } from "./useAssetSelection"
+import { usePeople } from "@/features/people/services/people-service"
 
 interface ReservationResponse {
   reservation: {
@@ -54,6 +55,9 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
   const [activeTab, setActiveTab] = useState<string>("form");
   const [isCheckingConflict, setIsCheckingConflict] = useState(false);
   const { user } = useAuth();
+
+  const { people } = usePeople();
+  const peopleSuggestions = people.map(p => ({ id: p.id, name: p.personName }));
 
   const queryClient = useQueryClient();
 
@@ -180,6 +184,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
           date: normalizedDate,
           asset_id: asset?.id ?? 0,
           people_tag: taggedPeople.map(p => p.name).join(", "),
+          tagged_people_ids: taggedPeople.filter(p => p.id > 0).map(p => p.id),
           reserved_by_user: parseInt(user?.id || "0"),
         };
 
@@ -229,6 +234,9 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         await queryClient.invalidateQueries({
           queryKey: ['public-reservations']
         });
+
+        queryClient.invalidateQueries({ queryKey: ['notifications-unread', user?.id] });
+        queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] });
 
         const currentTime = getCurrentTime();
 
@@ -429,5 +437,6 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
     handleFormSubmit,
     resetForm,
     isCheckingConflict,
+    peopleSuggestions,
   };
 };

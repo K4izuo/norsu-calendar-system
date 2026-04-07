@@ -57,6 +57,7 @@ export interface ReservationAPIPayload {
   description: string
   range: number
   people_tag: string
+  tagged_people_ids?: number[]
   info_type: string
   category: string
   date: string

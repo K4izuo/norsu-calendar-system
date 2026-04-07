@@ -55,11 +55,7 @@ export const useAssets = () => {
   const { data, isFetching, error, refetch } = useQuery({
     queryKey: ['assets', user?.id],
     queryFn: fetchAssets,
-    // ✅ CRITICAL FIX: Set to 0 to force fresh fetch on every mount
-    staleTime: 0, // Was 1 minute
-    gcTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: false,
-    refetchOnMount: true, // ✅ Always refetch when component mounts
+    gcTime: 5 * 60 * 1000,
     enabled: !isAuthLoading && isAuthenticated,
     retry: (failureCount, error) => {
       if (error instanceof Error && error.message.includes('401')) {

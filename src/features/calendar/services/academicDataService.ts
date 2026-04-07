@@ -191,9 +191,7 @@ export const useAssets = () => {
   const query = useQuery({
     queryKey: queryKeys.assets(user?.id),
     queryFn: fetchAssets,
-    // ✅ CRITICAL FIX: Set to 0 to force fresh fetch on every mount
-    staleTime: 0, // Was 1 minute
-    gcTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 5 * 60 * 1000,
     enabled: !isAuthLoading && isAuthenticated,
     retry: (failureCount, error) => {
       if (error instanceof Error && error.message.includes('401')) {

@@ -23,10 +23,7 @@ export const useUsers = () => {
   const { data, isFetching, error, refetch } = useQuery({
     queryKey: ['users', user?.id],
     queryFn: fetchUsers,
-    staleTime: 0,
     gcTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: true,
     enabled: !isAuthLoading && isAuthenticated,
     retry: (failureCount, error) => {
       if (error instanceof Error && error.message.includes('401')) {

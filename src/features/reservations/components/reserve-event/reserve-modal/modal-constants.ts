@@ -11,14 +11,6 @@ export const categories = [
   { value: "other", label: "Other" },
 ];
 
-export const peopleSuggestions = [
-  { id: "1", name: "John Doe" },
-  { id: "2", name: "Jane Smith" },
-  { id: "3", name: "Alice Johnson" },
-  { id: "4", name: "Bob Lee" },
-  { id: "5", name: "Maria Garcia" },
-];
-
 export const formattedAssets = [{ id: 1, asset_name: "Venue", capacity: 0 }];
 
 export const formatDisplayDate = (dateStr: string | undefined): string => {

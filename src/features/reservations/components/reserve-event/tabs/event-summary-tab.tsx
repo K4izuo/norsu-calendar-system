@@ -14,7 +14,7 @@ interface Props {
   formData: ReservationFormData;
   categories: { value: string; label: string }[];
   infoTypes: { value: string; label: string }[];
-  taggedPeople: { id: string; name: string }[];
+  taggedPeople: { id: number; name: string }[];
   isFormValid: () => boolean;
 }
 

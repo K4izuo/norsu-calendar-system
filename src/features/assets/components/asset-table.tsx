@@ -16,6 +16,7 @@ import {
   ChevronsRight,
   ChevronDown,
 } from "lucide-react"
+import { TableSkeleton } from "@/shared/components/ui/skeleton"
 
 interface AssetsTableProps {
   assets: Asset[];
@@ -97,7 +98,7 @@ function PaginationBar({
   );
 }
 
-export const AssetsTable = memo(function AssetsTable({ assets, onAssetClick }: AssetsTableProps) {
+export const AssetsTable = memo(function AssetsTable({ assets, isLoading, onAssetClick }: AssetsTableProps) {
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -131,6 +132,10 @@ export const AssetsTable = memo(function AssetsTable({ assets, onAssetClick }: A
       day: 'numeric'
     });
   };
+
+  if (isLoading && assets.length === 0) {
+    return <TableSkeleton rows={5} />;
+  }
 
   return (
     <div className="w-full flex flex-col gap-2">

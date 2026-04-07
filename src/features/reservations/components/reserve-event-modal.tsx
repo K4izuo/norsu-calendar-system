@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Tabs, TabsContent } from "@/shared/components/ui/tabs";
 import { ReserveEventFormTab } from "@/features/reservations/components/reserve-event/tabs/event-form-tab";
 import { ReserveEventAdditionalTab } from "@/features/reservations/components/reserve-event/tabs/event-additional-tab";
@@ -18,7 +18,6 @@ import { EventDetails } from "@/features/calendar/types/calendar.types";
 import {
   infoTypes,
   categories,
-  peopleSuggestions,
   formattedAssets,
   formatDisplayDate,
 } from "./reserve-event/reserve-modal/modal-constants";
@@ -83,6 +82,7 @@ export function ReserveEventModal({
     setValue,
     setTaggedPeople,
     isCheckingConflict, // ✅ NEW: Destructure loading state
+    peopleSuggestions,
   } = useReserveEventForm({
     eventDate,
     onSubmit,
@@ -121,131 +121,122 @@ export function ReserveEventModal({
     summary: "Summary",
   };
 
-  if (!isOpen) return null;
-
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overscroll-none">
-        <motion.div
-          className="absolute inset-0"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{
-            duration: 0.25,
-            ease: [0.22, 1, 0.36, 1],
-          }}
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 overscroll-none"
+      style={{ pointerEvents: isOpen ? "auto" : "none" }}
+    >
+      <motion.div
+        className="absolute inset-0 bg-black/40"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: isOpen ? 1 : 0 }}
+        transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+      />
+
+      <motion.div
+        ref={contentRef}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: isOpen ? 1 : 0, y: isOpen ? 0 : 8 }}
+        transition={{ type: "tween", duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+        className="relative w-full max-w-216 sm:mx-4 mx-px max-h-[92vh] bg-white rounded-xl shadow-xl overflow-hidden flex flex-col"
+        style={{
+          transform: "translateZ(0)",
+          backfaceVisibility: "hidden",
+          transformOrigin: "center",
+          willChange: isOpen ? "transform, opacity" : "auto",
+          pointerEvents: isOpen ? "auto" : "none",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <ModalHeader
+          editMode={editMode}
+          displayDate={displayDate}
+          onClose={onClose}
         />
 
-        <motion.div
-          ref={contentRef}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 4 }}
-          transition={{
-            type: "tween",
-            duration: 0.25,
-            ease: [0.22, 1, 0.36, 1],
-          }}
-          className="relative w-full max-w-216 sm:mx-4 mx-px max-h-[92vh] bg-white rounded-xl shadow-xl overflow-hidden flex flex-col"
-          style={{
-            transform: "translateZ(0)",
-            backfaceVisibility: "hidden",
-            transformOrigin: "center",
-            willChange: "transform, opacity",
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <ModalHeader
-            editMode={editMode}
-            displayDate={displayDate}
-            onClose={onClose}
-          />
+        <form className="flex flex-col flex-1" onSubmit={handleFormSubmit}>
+          <div className="overflow-y-auto p-4 sm:p-6 pt-2 sm:pt-4 flex-1 max-h-[calc(91vh-155px)]">
+            <Tabs value={activeTab} className="w-full">
+              <ModalTabBar
+                tabOrder={tabOrder}
+                tabLabels={tabLabels}
+                activeTab={activeTab}
+              />
 
-          <form className="flex flex-col flex-1" onSubmit={handleFormSubmit}>
-            <div className="overflow-y-auto p-4 sm:p-6 pt-2 sm:pt-4 flex-1 max-h-[calc(91vh-155px)]">
-              <Tabs value={activeTab} className="w-full">
-                <ModalTabBar
-                  tabOrder={tabOrder}
-                  tabLabels={tabLabels}
-                  activeTab={activeTab}
+              <TabsContent value="form" className="space-y-4 sm:space-y-6">
+                <ReserveEventFormTab
+                  control={control}
+                  errors={errors}
+                  assets={formattedAssets}
+                  handleAssetChange={handleAssetChange}
+                  selectedAsset={watchedAsset}
+                  register={register}
+                  watch={watch}
                 />
+              </TabsContent>
 
-                <TabsContent value="form" className="space-y-4 sm:space-y-6">
-                  <ReserveEventFormTab
-                    control={control}
-                    errors={errors}
-                    assets={formattedAssets}
-                    handleAssetChange={handleAssetChange}
-                    selectedAsset={watchedAsset}
-                    register={register}
-                    watch={watch}
-                  />
-                </TabsContent>
+              <TabsContent
+                value="additional"
+                className="space-y-4 sm:space-y-6"
+              >
+                <ReserveEventAdditionalTab
+                  control={control}
+                  errors={errors}
+                  infoTypes={infoTypes}
+                  categories={categories}
+                  tagInput={tagInput}
+                  taggedPeople={taggedPeople}
+                  peopleSuggestions={peopleSuggestions}
+                  showDropdown={showDropdown}
+                  handleTagInputChange={handleTagInputChange}
+                  handleTagSelect={handleTagSelect}
+                  handleRemoveTag={handleRemoveTag}
+                  setShowDropdown={setShowDropdown}
+                  peopleFieldRef={peopleFieldRef}
+                />
+              </TabsContent>
 
-                <TabsContent
-                  value="additional"
-                  className="space-y-4 sm:space-y-6"
-                >
-                  <ReserveEventAdditionalTab
-                    control={control}
-                    errors={errors}
-                    infoTypes={infoTypes}
-                    categories={categories}
-                    tagInput={tagInput}
-                    taggedPeople={taggedPeople}
-                    peopleSuggestions={peopleSuggestions}
-                    showDropdown={showDropdown}
-                    handleTagInputChange={handleTagInputChange}
-                    handleTagSelect={handleTagSelect}
-                    handleRemoveTag={handleRemoveTag}
-                    setShowDropdown={setShowDropdown}
-                    peopleFieldRef={peopleFieldRef}
-                  />
-                </TabsContent>
+              <TabsContent value="summary" className="space-y-4 sm:space-y-6">
+                <ReserveEventSummaryTab
+                  formData={getValues()}
+                  categories={categories}
+                  infoTypes={infoTypes}
+                  taggedPeople={taggedPeople}
+                  isFormValid={isFormValid}
+                />
+              </TabsContent>
+            </Tabs>
+          </div>
 
-                <TabsContent value="summary" className="space-y-4 sm:space-y-6">
-                  <ReserveEventSummaryTab
-                    formData={getValues()}
-                    categories={categories}
-                    infoTypes={infoTypes}
-                    taggedPeople={taggedPeople}
-                    isFormValid={isFormValid}
-                  />
-                </TabsContent>
-              </Tabs>
-            </div>
+          <ModalFooter
+            activeTab={activeTab}
+            isSubmitting={isSubmitting}
+            isCheckingConflict={isCheckingConflict}
+            editMode={editMode}
+            setActiveTab={setActiveTab}
+            handleFormTabNext={handleFormTabNext}
+            handleAdditionalTabNext={handleAdditionalTabNext}
+          />
+        </form>
+      </motion.div>
 
-            <ModalFooter
-              activeTab={activeTab}
-              isSubmitting={isSubmitting}
-              isCheckingConflict={isCheckingConflict}
-              editMode={editMode}
-              setActiveTab={setActiveTab}
-              handleFormTabNext={handleFormTabNext}
-              handleAdditionalTabNext={handleAdditionalTabNext}
-            />
-          </form>
-        </motion.div>
+      <AssetsVenueModal
+        isOpen={showVenueModal}
+        onClose={() => setShowVenueModal(false)}
+        assets={venueAssets}
+        onAssetSelect={handleAssetItemSelect}
+        loading={loadingVenueAssets}
+        role="admin"
+      />
 
-        <AssetsVenueModal
-          isOpen={showVenueModal}
-          onClose={() => setShowVenueModal(false)}
-          assets={venueAssets}
-          onAssetSelect={handleAssetItemSelect}
-          loading={loadingVenueAssets}
-          role="admin"
-        />
-
-        <AssetsVehicleModal
-          isOpen={showVehicleModal}
-          onClose={() => setShowVehicleModal(false)}
-          assets={vehicleAssets}
-          onAssetSelect={handleAssetItemSelect}
-          loading={loadingVehicleAssets}
-          role="admin"
-        />
-      </div>
-    </AnimatePresence>
+      <AssetsVehicleModal
+        isOpen={showVehicleModal}
+        onClose={() => setShowVehicleModal(false)}
+        assets={vehicleAssets}
+        onAssetSelect={handleAssetItemSelect}
+        loading={loadingVehicleAssets}
+        role="admin"
+      />
+    </div>
   );
 }

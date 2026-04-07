@@ -14,7 +14,7 @@ export function useEditModePopulate({
   eventData: EventDetails | undefined;
   isOpen: boolean;
   setValue: UseFormSetValue<ReservationFormData>;
-  setTaggedPeople: (people: { id: string; name: string }[]) => void;
+  setTaggedPeople: (people: { id: number; name: string }[]) => void;
 }): void {
   useEffect(() => {
     if (editMode && eventData && isOpen) {
@@ -32,7 +32,7 @@ export function useEditModePopulate({
 
       if (eventData.people_tag && eventData.people_tag.length > 0) {
         const people = eventData.people_tag.map((name, index) => ({
-          id: `edit-${index}`,
+          id: -(index + 1), // negative = legacy tag with no People table ID
           name: name,
         }));
         setTaggedPeople(people);

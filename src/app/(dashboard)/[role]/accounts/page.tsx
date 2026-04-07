@@ -6,13 +6,14 @@ import { Users, GraduationCap, Briefcase, UserPlus } from "lucide-react";
 import { AccountsTabSection } from "@/features/accounts/components/accounts-tab-section";
 import { useParams } from "next/navigation";
 import { useUsers } from "@/features/accounts/services/account-service";
+import { Skeleton, TableSkeleton } from "@/shared/components/ui/skeleton";
 
 export default function AccountsPage() {
   const params = useParams();
   const role = params.role as string;
 
   // React Query deduplicates this — no extra network request vs AccountsTabSection
-  const { users } = useUsers();
+  const { users, loading } = useUsers();
 
   const total = users.length;
   const deans = users.filter((u) => u.role === 1);
@@ -39,50 +40,63 @@ export default function AccountsPage() {
       />
 
       <div className="flex flex-col items-start gap-6 flex-1 self-stretch min-h-0">
-        {/* Stat cards */}
-        <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <AccountStatCard
-            title="Total Accounts"
-            value={total}
-            badge={newThisMonth.length > 0 ? `+${newThisMonth.length} new` : "0 new"}
-            badgePositive={newThisMonth.length > 0}
-            subLabel="From this month"
-            icon={Users}
-            accentColor="indigo"
-          />
-          <AccountStatCard
-            title="Dean Accounts"
-            value={deans.length}
-            badge={pct(deans.length)}
-            badgePositive={deans.length > 0}
-            subLabel="Of total accounts"
-            icon={GraduationCap}
-            accentColor="orange"
-          />
-          <AccountStatCard
-            title="Staff Accounts"
-            value={staff.length}
-            badge={pct(staff.length)}
-            badgePositive={staff.length > 0}
-            subLabel="Of total accounts"
-            icon={Briefcase}
-            accentColor="rose"
-          />
-          <AccountStatCard
-            title="New This Month"
-            value={newThisMonth.length}
-            badge={newThisMonth.length > 0 ? `+${newThisMonth.length} this month` : "0 this month"}
-            badgePositive={newThisMonth.length > 0}
-            subLabel="Recently registered"
-            icon={UserPlus}
-            accentColor="teal"
-          />
-        </div>
+        {loading && users.length === 0 ? (
+          <>
+            <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, i) => (
+                <Skeleton key={i} className="h-27.5 w-full" />
+              ))}
+            </div>
+            <TableSkeleton rows={5} />
+          </>
+        ) : (
+          <>
+            {/* Stat cards */}
+            <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <AccountStatCard
+                title="Total Accounts"
+                value={total}
+                badge={newThisMonth.length > 0 ? `+${newThisMonth.length} new` : "0 new"}
+                badgePositive={newThisMonth.length > 0}
+                subLabel="From this month"
+                icon={Users}
+                accentColor="indigo"
+              />
+              <AccountStatCard
+                title="Dean Accounts"
+                value={deans.length}
+                badge={pct(deans.length)}
+                badgePositive={deans.length > 0}
+                subLabel="Of total accounts"
+                icon={GraduationCap}
+                accentColor="orange"
+              />
+              <AccountStatCard
+                title="Staff Accounts"
+                value={staff.length}
+                badge={pct(staff.length)}
+                badgePositive={staff.length > 0}
+                subLabel="Of total accounts"
+                icon={Briefcase}
+                accentColor="rose"
+              />
+              <AccountStatCard
+                title="New This Month"
+                value={newThisMonth.length}
+                badge={newThisMonth.length > 0 ? `+${newThisMonth.length} this month` : "0 this month"}
+                badgePositive={newThisMonth.length > 0}
+                subLabel="Recently registered"
+                icon={UserPlus}
+                accentColor="teal"
+              />
+            </div>
 
-        {/* Tab section */}
-        <div className="flex-1 min-h-0 w-full">
-          <AccountsTabSection />
-        </div>
+            {/* Tab section */}
+            <div className="flex-1 min-h-0 w-full">
+              <AccountsTabSection />
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

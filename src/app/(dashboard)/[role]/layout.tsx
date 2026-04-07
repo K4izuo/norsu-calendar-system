@@ -6,7 +6,7 @@ import {
   startTokenRefresh,
   stopTokenRefresh,
 } from "@/core/auth/token-refresh";
-import { Search, Bell, Mail } from "lucide-react";
+import { Search, Mail } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { AuthContext } from "@/shared/components/context/auth-context";
@@ -16,10 +16,10 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
 import UserProfile from "@/features/user-profile/components/user-profile";
+import { NotificationBell } from "@/features/notifications/components/notification-bell";
 import toast from "react-hot-toast";
 import { getRoleLabelFromNumber } from "@/core/lib/role-utils";
 import { Separator } from "@/shared/components/ui/separator";
-import { useIsFetching, useIsMutating } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 import Loading from "@/app/(dashboard)/[role]/loading";
 import Image from "next/image";
@@ -44,12 +44,8 @@ export default function RoleLayout({
   const user = auth?.user;
   const pathname = usePathname();
 
-  // ✅ Track both queries AND mutations
-  const isFetching = useIsFetching();
-  const isMutating = useIsMutating();
-
-  // ✅ CRITICAL FIX: Simplified loading state management
   const [showLoading, setShowLoading] = useState(false);
+  const [fadeOut, setFadeOut] = useState(false);
   const prevPathname = useRef<string | null>(null);
 
   const [userData, setUserData] = useState<UserData>({
@@ -102,27 +98,30 @@ export default function RoleLayout({
     }
   }, [user]);
 
-  // Show loading only on actual navigation (not on initial mount or Strict Mode re-invoke)
+  // Show loading on actual navigation, hide after fixed duration with fade
   useEffect(() => {
     if (prevPathname.current !== null && prevPathname.current !== pathname) {
       setShowLoading(true);
+      setFadeOut(false);
     }
     prevPathname.current = pathname;
   }, [pathname]);
 
-  // ✅ CRITICAL FIX: Hide loading only when ALL queries AND mutations are done
   useEffect(() => {
-    const isLoading = isFetching > 0 || isMutating > 0;
+    if (!showLoading) return;
 
-    if (!isLoading && showLoading) {
-      // ✅ Small delay to ensure React has finished mounting the new page
-      // This prevents infinite loop on pages with no queries (Dashboard, Accounts)
-      const timer = setTimeout(() => {
-        setShowLoading(false);
-      }, 150);
-      return () => clearTimeout(timer);
-    }
-  }, [isFetching, isMutating, showLoading]);
+    // Show spinner for 300ms, then fade out over 150ms
+    const showTimer = setTimeout(() => setFadeOut(true), 150);
+    const hideTimer = setTimeout(() => {
+      setShowLoading(false);
+      setFadeOut(false);
+    }, 300);
+
+    return () => {
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+    };
+  }, [showLoading]);
 
   // Setup token refresh and activity tracking
   useEffect(() => {
@@ -170,14 +169,7 @@ export default function RoleLayout({
                 <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-green-500 rounded-full"></span>
               </Button>
 
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative cursor-pointer bg-white h-12 w-12 rounded-full border border-transparent hover:border-gray-300 hover:bg-white"
-              >
-                <Bell className="size-6 text-gray-600" />
-                <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-red-500 rounded-full"></span>
-              </Button>
+              <NotificationBell />
             </div>
 
             <DropdownMenu>
@@ -209,7 +201,6 @@ export default function RoleLayout({
         </header>
 
         <div className="flex-1 bg-muted/50 flex flex-col gap-4 p-3 lg:p-6 overflow-y-auto overflow-x-hidden relative">
-          {/* ✅ CRITICAL FIX: Loading overlay that COMPLETELY covers content when active */}
           {showLoading && (
             <div
               style={{
@@ -217,6 +208,8 @@ export default function RoleLayout({
                 inset: 0,
                 zIndex: 9999,
                 backgroundColor: "white",
+                opacity: fadeOut ? 0 : 1,
+                transition: "opacity 150ms ease-out",
               }}
             >
               <Loading />

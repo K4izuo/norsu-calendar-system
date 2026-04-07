@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, ArrowLeft, ArrowRight, SendHorizontal } from "lucide-react";
+import { Loader2, ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 
 interface ModalFooterProps {
@@ -71,7 +71,7 @@ export function ModalFooter({ activeTab, isSubmitting, isCheckingConflict, editM
             className="text-base cursor-pointer py-2.5"
             disabled={isSubmitting}
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className="w-4 h-4" />
             Back
           </Button>
           <Button
@@ -104,8 +104,8 @@ export function ModalFooter({ activeTab, isSubmitting, isCheckingConflict, editM
               </div>
             ) : (
               <div className="flex items-center">
-                {editMode ? "Update Reservation" : "Submit Reservation"}
-                <SendHorizontal className="w-4 h-4 ml-2" />
+                <Check className="w-4 h-4 mr-2" />
+                {editMode ? "Update" : "Submit"}
               </div>
             )}
           </Button>

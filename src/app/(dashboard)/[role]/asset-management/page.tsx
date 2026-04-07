@@ -21,6 +21,9 @@ import {
   SelectValue,
 } from "@/shared/components/ui/select";
 import { PageBreadcrumb } from "@/shared/components/ui/page-breadcrumb";
+import { PageStatCard } from "@/shared/components/ui/page-stat-card";
+import { Skeleton } from "@/shared/components/ui/skeleton";
+import { Package, CircleCheck, Activity, Wrench } from "lucide-react";
 import { useParams } from "next/navigation";
 
 export default function AssetsPage() {
@@ -44,8 +47,13 @@ export default function AssetsPage() {
   }, [queryClient]);
 
   // Data fetching - TanStack Query handles caching
-  const { assets, error, loading } = useAssets(); // add the refetch function from the useAssets hook
+  const { assets, error, loading } = useAssets();
   const { mutateAsync: createAsset } = useCreateAsset();
+
+  const totalAssets = assets.length;
+  const available = assets.filter((a) => a.availability_status?.toUpperCase() === "AVAILABLE").length;
+  const inUse = assets.filter((a) => a.availability_status?.toUpperCase() === "IN_USE").length;
+  const maintenance = assets.filter((a) => a.availability_status?.toUpperCase() === "MAINTENANCE").length;
 
   const filteredAssets = useMemo(() => {
     return assets.filter((asset) => {
@@ -71,77 +79,76 @@ export default function AssetsPage() {
   };
 
   return (
-    <div className="flex flex-col w-full min-w-0">
-      {/* Breadcrumb */}
+    <div className="flex flex-col items-start self-stretch h-full">
       <PageBreadcrumb
         items={[
-          { label: "Dashboard", href: `/page/${role}/dashboard` },
-          { label: "Assets" }
+          { label: "Dashboard", href: `/${role}/dashboard` },
+          { label: "Assets" },
         ]}
       />
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 w-full">
           <strong className="font-bold">Error: </strong>
           <span className="block sm:inline">{error}</span>
         </div>
       )}
 
-      <div className="flex flex-wrap items-center justify-between mb-6 gap-y-4">
-        <div className="flex items-center gap-3">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-32.5 shadow-xs h-11 cursor-pointer bg-white">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem className="cursor-pointer" value="all">All Status</SelectItem>
-              <SelectItem className="cursor-pointer" value="available">Available</SelectItem>
-              <SelectItem className="cursor-pointer" value="in_use">In Use</SelectItem>
-              <SelectItem className="cursor-pointer" value="maintenance">Maintenance</SelectItem>
-              <SelectItem className="cursor-pointer" value="unavailable">Unavailable</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-32.5 shadow-xs h-11 cursor-pointer bg-white">
-              <SelectValue placeholder="Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem className="cursor-pointer" value="all">All Types</SelectItem>
-              <SelectItem className="cursor-pointer" value="venue">Venue</SelectItem>
-              <SelectItem className="cursor-pointer" value="vehicle">Vehicle</SelectItem>
-              <SelectItem className="cursor-pointer" value="equipment">Equipment</SelectItem>
-              <SelectItem className="cursor-pointer" value="facility">Facility</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search assets..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-white h-11 pr-4 py-2 w-64 border border-border rounded-md text-sm"
-            />
+      <div className="flex flex-col items-start gap-6 flex-1 self-stretch min-h-0">
+        {loading && assets.length === 0 ? (
+          <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-27.5 w-full" />
+            ))}
           </div>
-        </div>
+        ) : (
+          <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <PageStatCard title="Total Assets" value={totalAssets} subLabel="All registered assets" icon={Package} color="gray" />
+            <PageStatCard title="Available" value={available} subLabel="Ready for reservation" icon={CircleCheck} color="green" />
+            <PageStatCard title="In Use" value={inUse} subLabel="Currently occupied" icon={Activity} color="blue" />
+            <PageStatCard title="Maintenance" value={maintenance} subLabel="Under maintenance" icon={Wrench} color="amber" />
+          </div>
+        )}
 
-        <div className="flex items-center gap-3">
-          {/* <Button
-            variant="outline"
-            className="flex items-center gap-2 h-11 px-4 bg-white cursor-pointer"
-          >
-            <Calendar className="w-4 h-4" />
-            Date Range
-          </Button>
-          <Button
-            variant="outline"
-            className="flex items-center gap-2 h-11 px-4 bg-white cursor-pointer"
-            onClick={() => refetch()}
-          >
-            <Filter className="w-4 h-4" />
-            Filter
-          </Button> */}
+        <div className="flex flex-wrap items-center justify-between gap-y-4 w-full">
+          <div className="flex items-center gap-3">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-32.5 shadow-xs h-11 cursor-pointer bg-white">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem className="cursor-pointer" value="all">All Status</SelectItem>
+                <SelectItem className="cursor-pointer" value="available">Available</SelectItem>
+                <SelectItem className="cursor-pointer" value="in_use">In Use</SelectItem>
+                <SelectItem className="cursor-pointer" value="maintenance">Maintenance</SelectItem>
+                <SelectItem className="cursor-pointer" value="unavailable">Unavailable</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="w-32.5 shadow-xs h-11 cursor-pointer bg-white">
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem className="cursor-pointer" value="all">All Types</SelectItem>
+                <SelectItem className="cursor-pointer" value="venue">Venue</SelectItem>
+                <SelectItem className="cursor-pointer" value="vehicle">Vehicle</SelectItem>
+                <SelectItem className="cursor-pointer" value="equipment">Equipment</SelectItem>
+                <SelectItem className="cursor-pointer" value="facility">Facility</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search assets..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-white h-11 pr-4 py-2 w-64 border border-border rounded-md text-sm"
+              />
+            </div>
+          </div>
+
           <Button
             onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-2 h-11 px-4 cursor-pointer"
@@ -150,14 +157,15 @@ export default function AssetsPage() {
             Add new asset
           </Button>
         </div>
-      </div>
 
-      <AssetsTable
-        assets={filteredAssets}
-        // role="admin"
-        isLoading={loading || isPending}
-        onAssetClick={handleAssetClick}
-      />
+        <div className="flex-1 min-h-0 w-full">
+          <AssetsTable
+            assets={filteredAssets}
+            isLoading={loading || isPending}
+            onAssetClick={handleAssetClick}
+          />
+        </div>
+      </div>
 
       <AssetRegistrationModal
         isOpen={isModalOpen}

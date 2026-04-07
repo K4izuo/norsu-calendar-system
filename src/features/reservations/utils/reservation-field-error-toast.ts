@@ -57,7 +57,7 @@ export function showFormTabErrorToast(
 export function showAdditionalTabErrorToast(
   errors: FieldErrors<ReservationFormData>,
   values: ReservationFormData,
-  taggedPeople: { id: string; name: string }[]
+  taggedPeople: { id: number; name: string }[]
 ) {
   const missingPeople = taggedPeople.length === 0;
   
