@@ -66,50 +66,52 @@ export function NorsuOfficialCalendar() {
   }, []);
 
   return (
-    <div className="w-full flex flex-col lg:flex-row gap-4 lg:gap-6 flex-1 lg:items-stretch">
-      <UpcomingEventsSidebar
-        loading={loading}
-        error={error}
-        upcomingEvents={upcomingEvents}
-      />
+    <div className="flex-1 flex justify-center p-3.5 sm:p-6 min-h-[calc(100vh-80px)]">
+      <div className="w-full flex flex-col lg:flex-row gap-4 lg:gap-6 flex-1 lg:items-stretch">
+        <UpcomingEventsSidebar
+          loading={loading}
+          error={error}
+          upcomingEvents={upcomingEvents}
+        />
 
-      <div className="flex-1 flex flex-col items-start min-h-0 lg:h-full">
-        <div className="w-full text-card-foreground border bg-white rounded-md shadow-xs flex flex-col items-start self-stretch p-4 sm:p-6 gap-6 relative flex-1 min-h-0 lg:h-full">
-          {!mounted ? (
-            <CalendarSkeleton />
-          ) : (
-            <Calendar
-              role="public"
-              onDaySelect={handleDaySelect}
-              onEventSelect={handleEventClick}
-              getEventsForDate={getEventsForDate}
-              initialDate={today}
-              currentMonth={currentMonth}
-              currentYear={currentYear}
-              onMonthYearChange={handleMonthYearChange}
-            />
-          )}
+        <div className="flex-1 flex flex-col items-start min-h-0 lg:h-full">
+          <div className="w-full text-card-foreground border bg-white rounded-md shadow-xs flex flex-col items-start self-stretch p-4 sm:p-6 gap-6 relative flex-1 min-h-0 lg:h-full">
+            {!mounted ? (
+              <CalendarSkeleton />
+            ) : (
+              <Calendar
+                role="public"
+                onDaySelect={handleDaySelect}
+                onEventSelect={handleEventClick}
+                getEventsForDate={getEventsForDate}
+                initialDate={today}
+                currentMonth={currentMonth}
+                currentYear={currentYear}
+                onMonthYearChange={handleMonthYearChange}
+              />
+            )}
+          </div>
         </div>
-      </div>
 
-      <HomeModals
-        modalOpen={modalOpen}
-        onModalClose={() => setModalOpen(false)}
-        eventInfoModalOpen={eventInfoModalOpen}
-        onEventInfoModalClose={() => { setEventInfoModalOpen(false); setFromMovedEventsContext(false); }}
-        selectedDay={selectedDay}
-        currentMonth={currentMonth}
-        currentYear={currentYear}
-        monthNames={monthNames}
-        selectedDayEvents={selectedDayEvents}
-        onEventClick={handleEventClick}
-        eventsListLoading={eventsListLoading}
-        showRecent={showRecent}
-        setShowRecent={setShowRecent}
-        selectedEvent={selectedEvent}
-        eventInfoLoading={eventInfoLoading}
-        fromMovedEventsContext={fromMovedEventsContext}
-      />
+        <HomeModals
+          modalOpen={modalOpen}
+          onModalClose={() => setModalOpen(false)}
+          eventInfoModalOpen={eventInfoModalOpen}
+          onEventInfoModalClose={() => { setEventInfoModalOpen(false); setFromMovedEventsContext(false); }}
+          selectedDay={selectedDay}
+          currentMonth={currentMonth}
+          currentYear={currentYear}
+          monthNames={monthNames}
+          selectedDayEvents={selectedDayEvents}
+          onEventClick={handleEventClick}
+          eventsListLoading={eventsListLoading}
+          showRecent={showRecent}
+          setShowRecent={setShowRecent}
+          selectedEvent={selectedEvent}
+          eventInfoLoading={eventInfoLoading}
+          fromMovedEventsContext={fromMovedEventsContext}
+        />
+      </div>
     </div>
   );
 }
