@@ -3,7 +3,7 @@
 import React, { memo, useState } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/components/ui/table"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/shared/components/ui/dropdown-menu"
-import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight, ChevronDown, Link, Pencil, Trash2 } from "lucide-react"
+import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight, ChevronDown, Link, Pencil } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/components/ui/tooltip"
 import type { Person } from "@/features/people/types/people.types"
 import { TableSkeleton } from "@/shared/components/ui/skeleton"
@@ -88,7 +88,6 @@ export const PeopleTable = memo(function PeopleTable({
   isLoading,
   onLinkClick,
   onEditClick,
-  onDeleteClick,
 }: PeopleTableProps) {
   const [page, setPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
@@ -183,7 +182,7 @@ export const PeopleTable = memo(function PeopleTable({
                         <TooltipContent>Edit Name</TooltipContent>
                       </Tooltip>
 
-                      <Tooltip>
+                      {/* <Tooltip>
                         <TooltipTrigger asChild>
                           <button
                             onClick={() => onDeleteClick?.(person)}
@@ -194,7 +193,7 @@ export const PeopleTable = memo(function PeopleTable({
                           </button>
                         </TooltipTrigger>
                         <TooltipContent>Delete</TooltipContent>
-                      </Tooltip>
+                      </Tooltip> */}
                     </div>
                   </TableCell>
                 </TableRow>

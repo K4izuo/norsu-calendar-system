@@ -25,7 +25,6 @@ import {
   Clock,
   Eye,
   Pencil,
-  Trash2,
   ChevronsLeft,
   ChevronLeft,
   ChevronRight,
@@ -387,7 +386,7 @@ export function AccountsTabSection() {
                       <TooltipContent>Edit</TooltipContent>
                     </Tooltip>
 
-                    <Tooltip>
+                    {/* <Tooltip>
                       <TooltipTrigger asChild>
                         <button
                           className="p-1.5 rounded text-gray-500 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
@@ -397,7 +396,7 @@ export function AccountsTabSection() {
                         </button>
                       </TooltipTrigger>
                       <TooltipContent>Delete</TooltipContent>
-                    </Tooltip>
+                    </Tooltip> */}
                   </span>
                 </div>
               ))
