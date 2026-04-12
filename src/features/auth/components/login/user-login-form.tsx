@@ -71,7 +71,7 @@ export const UserLoginForm = memo(function UserLoginForm({
         onSubmit={onSubmit}
         className="flex flex-col gap-y-6 max-w-md mx-auto w-full"
       >
-        <div className="flex flex-col gap-y-2 w-full sm:w-[98%] md:w-[94%] mx-auto">
+        <div className="flex flex-col gap-y-2 w-full sm:w-[98%] md:w-[83%] mx-auto">
           {/* Username Field */}
           <div className="space-y-1.5">
             <div className="relative">
@@ -161,9 +161,9 @@ export const UserLoginForm = memo(function UserLoginForm({
           {/* Login Button */}
           <Button
             type="submit"
-            className={`w-full mb-3 h-12 font-semibold text-sm sm:text-base text-white rounded-lg shadow-lg transition-all duration-300 flex items-center justify-center gap-x-2 ${isLoading
+            className={`w-full mb-3 h-12 font-semibold text-sm sm:text-base text-white rounded-lg transition-all duration-300 flex items-center justify-center gap-x-2 ${isLoading
               ? "bg-gray-400 cursor-not-allowed opacity-70"
-              : "cursor-pointer bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl transform hover:scale-[1.02]"
+              : "cursor-pointer bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:shadow-md transform hover:scale-[1.02]"
               }`}
             disabled={isDisabled}
           >
