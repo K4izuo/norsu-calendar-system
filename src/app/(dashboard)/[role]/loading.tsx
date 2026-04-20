@@ -2,21 +2,11 @@
 
 
 import { CalendarClock } from "lucide-react";
-import { getRoleColors, UserRole } from "@/shared/components/utils/role-colors";
-import { useParams } from "next/navigation";
+import { getRoleColors } from "@/shared/components/utils/role-colors";
 import { useMemo } from "react";
 
 export default function Loading({ className = "" }: { className?: string }) {
-  const params = useParams();
-  
-  // Ensure role is a valid UserRole type
-  const role = useMemo(() => {
-    const paramRole = params?.role as string;
-    const validRoles: UserRole[] = ["dean", "staff", "admin", "public"];
-    return (validRoles.includes(paramRole as UserRole) ? paramRole : "public") as UserRole;
-  }, [params?.role]);
-  
-  const roleColors = useMemo(() => getRoleColors(role), [role]);
+  const roleColors = useMemo(() => getRoleColors(), []);
 
   return (
     <div

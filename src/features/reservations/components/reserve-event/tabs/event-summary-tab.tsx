@@ -1,12 +1,10 @@
-import React from "react";
 import {
   CalendarPlus2,
   MapPin,
   NotebookPen,
-  Clock,
   FileText,
-  CheckCircle2,
-  // User,
+  Package,
+  User,
 } from "lucide-react";
 import { ReservationFormData } from "@/interface/user-props";
 
@@ -15,7 +13,6 @@ interface Props {
   categories: { value: string; label: string }[];
   infoTypes: { value: string; label: string }[];
   taggedPeople: { id: number; name: string }[];
-  isFormValid: () => boolean;
 }
 
 export function ReserveEventSummaryTab({
@@ -23,11 +20,19 @@ export function ReserveEventSummaryTab({
   categories,
   infoTypes,
   taggedPeople,
-  isFormValid,
 }: Props) {
   const asset = formData.asset;
+
+  const formatTime = (time: string) => {
+    if (!time) return "Not specified";
+    const [h, m] = time.split(":");
+    const hour = parseInt(h, 10);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const hour12 = hour % 12 || 12;
+    return `${hour12}:${m} ${ampm}`;
+  };
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-6 pb-4 sm:pb-8">
       <div className="bg-white text-card-foreground border border-border rounded-lg">
         <div className="flex items-center px-6 pt-6 pb-4">
           <CalendarPlus2 className="text-gray-500 mr-2 h-6 w-6" />
@@ -71,8 +76,9 @@ export function ReserveEventSummaryTab({
           <div>
             <p className="text-sm text-gray-500">Category</p>
             <p className="font-medium text-base">
-              {categories.find((cat) => cat.value === formData.category)
-                ?.label || "Not provided"}
+              {formData.category === "other" && formData.other_category
+                ? formData.other_category
+                : categories.find((cat) => cat.value === formData.category)?.label || "Not provided"}
             </p>
           </div>
         </div>
@@ -127,6 +133,29 @@ export function ReserveEventSummaryTab({
       </div>
       <div className="bg-white text-card-foreground border border-border rounded-lg">
         <div className="flex items-center px-6 pt-6 pb-4">
+          <Package className="text-gray-500 mr-2 h-6 w-6" />
+          <h3 className="text-lg font-medium text-gray-700">Equipment</h3>
+        </div>
+        <div className="border-t border-gray-200" />
+        <div className="px-6 py-4">
+          {formData.equipment && formData.equipment.filter(e => e?.name).length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {formData.equipment.filter(e => e?.name).map((item, idx) => (
+                <span
+                  key={idx}
+                  className="inline-flex items-center px-2.5 py-1.5 rounded-full text-sm font-medium bg-gray-100"
+                >
+                  {item.name} × {item.quantity}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-400 text-sm">No equipment selected</p>
+          )}
+        </div>
+      </div>
+      <div className="bg-white text-card-foreground border border-border rounded-lg">
+        <div className="flex items-center px-6 pt-6 pb-4">
           <NotebookPen className="text-gray-500 mr-2 h-6 w-6" />
           <h3 className="text-lg font-medium text-gray-700">
             Reservation Details
@@ -139,7 +168,7 @@ export function ReserveEventSummaryTab({
             <div className="flex items-center">
               {/* <Clock className="h-4 w-4 mr-1.5 text-gray-500" /> */}
               <p className="font-medium text-base">
-                {formData.time_start || "Not specified"}
+                {formatTime(formData.time_start)}
               </p>
             </div>
           </div>
@@ -148,7 +177,7 @@ export function ReserveEventSummaryTab({
             <div className="flex items-center">
               {/* <Clock className="h-4 w-4 mr-1.5 text-gray-500" /> */}
               <p className="font-medium text-base">
-                {formData.time_end || "Not specified"}
+                {formatTime(formData.time_end)}
               </p>
             </div>
           </div>
@@ -160,7 +189,7 @@ export function ReserveEventSummaryTab({
           </div>
         </div>
       </div>
-      {formData.description && (
+      {(formData.description || formData.outsource || (formData.guests && formData.guests.length > 0)) && (
         <div className="bg-white text-card-foreground border border-border rounded-lg">
           <div className="flex items-center px-6 pt-6 pb-4">
             <FileText className="text-gray-500 mr-2 h-6 w-6" />
@@ -169,32 +198,43 @@ export function ReserveEventSummaryTab({
             </h3>
           </div>
           <div className="border-t border-gray-200" />
-          <div className="px-6 py-4">
-            <p className="text-sm text-gray-500">Description</p>
-            <p className="mt-1 text-base">{formData.description}</p>
+          <div className="px-6 py-4 space-y-4">
+            {formData.description && (
+              <div>
+                <p className="text-sm text-gray-500">Description</p>
+                <p className="mt-1 text-base">{formData.description}</p>
+              </div>
+            )}
+            {formData.outsource && (
+              <div>
+                <p className="text-sm text-gray-500">Outsource</p>
+                <p className="mt-1 text-base">{formData.outsource}</p>
+              </div>
+            )}
+            {formData.guests && formData.guests.length > 0 && (
+              <div>
+                <p className="text-sm text-gray-500 mb-2">Guests</p>
+                <div className="flex flex-col gap-2">
+                  {formData.guests.map((guest, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-gray-50"
+                    >
+                      <User className="w-4 h-4 shrink-0 text-gray-500" />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-gray-800">{guest.name}</p>
+                        {guest.details && (
+                          <p className="text-xs text-gray-500">{guest.details}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
-      <div
-        className={`mt-6 p-3 rounded-md flex items-center justify-center ${isFormValid()
-          ? "bg-green-50 text-green-800"
-          : "bg-yellow-50 text-yellow-800"
-          }`}
-      >
-        {isFormValid() ? (
-          <>
-            <CheckCircle2 className="h-5 w-5 mr-2" />
-            <span className="text-base">Ready for submission</span>
-          </>
-        ) : (
-          <>
-            <Clock className="h-5 w-5 mr-2" />
-            <span className="text-base">
-              Please complete all required fields
-            </span>
-          </>
-        )}
-      </div>
     </div>
   );
 }

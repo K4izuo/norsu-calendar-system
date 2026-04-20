@@ -17,6 +17,7 @@ export interface EventDetails {
     asset_type?: string
   }
   category: string
+  other_category?: string
   info_type: string
   description: string
   people_tag: string[]
@@ -46,6 +47,9 @@ export interface EventDetails {
   is_moved?: boolean;
   original_date?: string;
   move_reason?: string;
+  equipment?: { name: string; quantity: number }[];
+  outsource?: string
+  guests?: { name: string; details: string }[]
 }
 
 // Add this new interface for API payload
@@ -61,6 +65,8 @@ export interface ReservationAPIPayload {
   info_type: string
   category: string
   date: string
+  outsource?: string
+  guests?: { name: string; details: string }[]
 }
 
 export interface Reservation {
@@ -74,6 +80,7 @@ export interface Reservation {
   people_tag: string
   info_type: string
   category: string
+  other_category?: string
   date: string
   status: string
   created_at: string
@@ -101,6 +108,9 @@ export interface ReservationWithRelations extends Reservation {
     first_name: string
     last_name: string
   }
+  equipment?: { id: number; name: string; quantity: number }[]
+  outsource?: string
+  guests?: { name: string; details: string }[]
 }
 
 export interface EventsListModalProps {
@@ -160,7 +170,11 @@ export interface ReservationFormData {
   people_tag: string
   info_type: string
   category: string
+  other_category?: string
   date: string
+  equipment?: { name: string; quantity: number }[]
+  outsource?: string
+  guests?: { name: string; details: string }[]
 }
 
 export interface DeanRegisterFormData {

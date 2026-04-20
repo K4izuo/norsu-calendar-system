@@ -6,6 +6,7 @@ import { Tabs, TabsContent } from "@/shared/components/ui/tabs";
 import { ReserveEventFormTab } from "@/features/reservations/components/reserve-event/tabs/event-form-tab";
 import { ReserveEventAdditionalTab } from "@/features/reservations/components/reserve-event/tabs/event-additional-tab";
 import { ReserveEventSummaryTab } from "@/features/reservations/components/reserve-event/tabs/event-summary-tab";
+import { ReserveEventEquipmentTab } from "@/features/reservations/components/reserve-event/tabs/event-equipment-tab";
 import { AssetsVenueModal } from "@/features/reservations/components/reserve-event/assets/assets-venue-modal";
 import { AssetsVehicleModal } from "@/features/reservations/components/reserve-event/assets/assets-vehicle-modal";
 import { useAssets } from "@/features/calendar/services/academicDataService";
@@ -75,14 +76,31 @@ export function ReserveEventModal({
     handleTagInputChange,
     handleTagSelect,
     handleRemoveTag,
-    isFormValid,
     handleFormTabNext,
+    handleEquipmentTabNext,
     handleAdditionalTabNext,
+    equipmentTouched,
     handleFormSubmit,
     setValue,
     setTaggedPeople,
-    isCheckingConflict, // ✅ NEW: Destructure loading state
+    isCheckingConflict,
     peopleSuggestions,
+    showOutsource,
+    showGuest,
+    guestNameInput,
+    guestDetailsInput,
+    outsourceError,
+    guestNameError,
+    guestDetailsError,
+    setGuestNameInput,
+    setGuestDetailsInput,
+    setOutsourceError,
+    setGuestNameError,
+    setGuestDetailsError,
+    handleOutsourceToggle,
+    handleGuestToggle,
+    handleAddGuest,
+    handleRemoveGuest,
   } = useReserveEventForm({
     eventDate,
     onSubmit,
@@ -114,9 +132,10 @@ export function ReserveEventModal({
 
   const displayDate = useMemo(() => formatDisplayDate(eventDate), [eventDate]);
 
-  const tabOrder = ["form", "additional", "summary"];
+  const tabOrder = ["form", "equipment", "additional", "summary"];
   const tabLabels: Record<string, string> = {
     form: "Event Details",
+    equipment: "Equipment",
     additional: "Additional Info",
     summary: "Summary",
   };
@@ -175,6 +194,10 @@ export function ReserveEventModal({
                 />
               </TabsContent>
 
+              <TabsContent value="equipment" className="space-y-4 sm:space-y-6">
+                <ReserveEventEquipmentTab watch={watch} setValue={setValue} touched={equipmentTouched} />
+              </TabsContent>
+
               <TabsContent
                 value="additional"
                 className="space-y-4 sm:space-y-6"
@@ -193,6 +216,22 @@ export function ReserveEventModal({
                   handleRemoveTag={handleRemoveTag}
                   setShowDropdown={setShowDropdown}
                   peopleFieldRef={peopleFieldRef}
+                  showOutsource={showOutsource}
+                  showGuest={showGuest}
+                  guestNameInput={guestNameInput}
+                  guestDetailsInput={guestDetailsInput}
+                  outsourceError={outsourceError}
+                  guestNameError={guestNameError}
+                  guestDetailsError={guestDetailsError}
+                  setGuestNameInput={setGuestNameInput}
+                  setGuestDetailsInput={setGuestDetailsInput}
+                  setOutsourceError={setOutsourceError}
+                  setGuestNameError={setGuestNameError}
+                  setGuestDetailsError={setGuestDetailsError}
+                  handleOutsourceToggle={handleOutsourceToggle}
+                  handleGuestToggle={handleGuestToggle}
+                  handleAddGuest={handleAddGuest}
+                  handleRemoveGuest={handleRemoveGuest}
                 />
               </TabsContent>
 
@@ -202,7 +241,6 @@ export function ReserveEventModal({
                   categories={categories}
                   infoTypes={infoTypes}
                   taggedPeople={taggedPeople}
-                  isFormValid={isFormValid}
                 />
               </TabsContent>
             </Tabs>
@@ -215,6 +253,7 @@ export function ReserveEventModal({
             editMode={editMode}
             setActiveTab={setActiveTab}
             handleFormTabNext={handleFormTabNext}
+            handleEquipmentTabNext={handleEquipmentTabNext}
             handleAdditionalTabNext={handleAdditionalTabNext}
           />
         </form>

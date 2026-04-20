@@ -10,10 +10,11 @@ interface ModalFooterProps {
   editMode: boolean;
   setActiveTab: (tab: string) => void;
   handleFormTabNext: () => void;
+  handleEquipmentTabNext: () => void;
   handleAdditionalTabNext: () => void;
 }
 
-export function ModalFooter({ activeTab, isSubmitting, isCheckingConflict, editMode, setActiveTab, handleFormTabNext, handleAdditionalTabNext }: ModalFooterProps) {
+export function ModalFooter({ activeTab, isSubmitting, isCheckingConflict, editMode, setActiveTab, handleFormTabNext, handleEquipmentTabNext, handleAdditionalTabNext }: ModalFooterProps) {
   return (
     <div className="sticky bottom-0 bg-white z-10 p-4 sm:p-6 border-t border-gray-200 flex justify-end">
       {activeTab === "form" && (
@@ -37,11 +38,35 @@ export function ModalFooter({ activeTab, isSubmitting, isCheckingConflict, editM
           )}
         </Button>
       )}
-      {activeTab === "additional" && (
+      {activeTab === "equipment" && (
         <div className="flex gap-3">
           <Button
             type="button"
             onClick={() => setActiveTab("form")}
+            variant="outline"
+            className="text-base cursor-pointer py-2.5"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Button>
+          <Button
+            type="button"
+            onClick={handleEquipmentTabNext}
+            variant="default"
+            className="text-base cursor-pointer py-2.5"
+          >
+            <div className="flex items-center">
+              Next
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </div>
+          </Button>
+        </div>
+      )}
+      {activeTab === "additional" && (
+        <div className="flex gap-3">
+          <Button
+            type="button"
+            onClick={() => setActiveTab("equipment")}
             variant="outline"
             className="text-base cursor-pointer py-2.5"
             disabled={isSubmitting}

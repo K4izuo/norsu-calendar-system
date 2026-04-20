@@ -35,6 +35,8 @@ interface UserData {
   role: number;
 }
 
+const pathRoleMap: Record<string, number> = { dean: 1, staff: 2, admin: 3 }
+
 export default function RoleLayout({
   children,
 }: {
@@ -48,9 +50,13 @@ export default function RoleLayout({
   const [fadeOut, setFadeOut] = useState(false);
   const prevPathname = useRef<string | null>(null);
 
+  const pathRole = pathRoleMap[pathname?.split("/")?.[1] ?? ""] ?? 3
+  const pathRoleRef = useRef(pathRole)
+  pathRoleRef.current = pathRole
+
   const [userData, setUserData] = useState<UserData>({
     name: "User",
-    role: 3,
+    role: pathRole,
   });
 
   useEffect(() => {
@@ -66,7 +72,7 @@ export default function RoleLayout({
             `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim() ||
             user.username ||
             "User",
-          role: roleValue || 3,
+          role: roleValue || pathRoleRef.current,
         });
         return;
       }
@@ -93,7 +99,7 @@ export default function RoleLayout({
       console.error("Error loading user data:", error);
       toast.error(
         "Error loading user data: " +
-          (error instanceof Error ? error.message : "Unknown error"),
+        (error instanceof Error ? error.message : "Unknown error"),
       );
     }
   }, [user]);
@@ -138,7 +144,7 @@ export default function RoleLayout({
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset className="overflow-hidden">
-        <header className="flex shadow h-18 shrink-0 items-center justify-between gap-2 border-b bg-white px-4">
+        <header className="flex shadow-xs h-18 shrink-0 items-center justify-between gap-2 border-b bg-white px-4">
           <div className="flex items-center">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-1 h-4" />
@@ -193,7 +199,7 @@ export default function RoleLayout({
                 <UserProfile
                   name={userData.name}
                   role={getRoleLabelFromNumber(userData.role)}
-                  // avatar="https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-01-n0x8HFv8EUetf9z6ht0wScJKoTHqf8.png"
+                // avatar="https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-01-n0x8HFv8EUetf9z6ht0wScJKoTHqf8.png"
                 />
               </DropdownMenuContent>
             </DropdownMenu>

@@ -12,10 +12,13 @@ import {
   XCircle,
   MoveRight,
   GripVertical,
+  Package,
+  User,
 } from "lucide-react";
 import { Button } from "../../../shared/components/ui/button";
+import { Skeleton } from "@/shared/components/ui/skeleton";
 import { EventDetails } from "@/interface/user-props";
-import { getRoleColors, UserRole } from "@/shared/components/utils/role-colors";
+import { UserRole } from "@/shared/components/utils/role-colors";
 import {
   useApproveReservation,
   useDeclineReservation,
@@ -126,8 +129,6 @@ export const EventInfoModal = React.memo(function EventInfoModal({
     useApproveReservation();
   const { mutate: declineReservation, isPending: isDeclining } =
     useDeclineReservation();
-
-  const roleLoadingColors = getRoleColors(role);
 
   useEffect(() => {
     if (isOpen) {
@@ -241,20 +242,51 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                 </Button>
               </div>
 
-              {/* Loading spinner */}
+              {/* Loading skeleton */}
               {loading && (
-                <div className="flex justify-center items-center py-20">
-                  <div className="relative h-16 w-16 flex items-center justify-center">
-                    <div
-                      className={`absolute inset-0 h-16 w-16 rounded-full border-t-4 border-b-4 animate-spin-loading ${roleLoadingColors.spinner}`}
-                      style={{
-                        willChange: "transform",
-                        transform: "translateZ(0)",
-                      }}
-                    />
-                    <CalendarClock
-                      className={`absolute inset-0 m-auto h-7 w-7 ${roleLoadingColors.icon}`}
-                    />
+                <div className="flex-1 overflow-y-auto">
+                  <div className="p-4 sm:p-6 space-y-6">
+                    {/* Event summary card skeleton */}
+                    <div className="border border-border rounded-lg p-6 space-y-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-5 w-2/3" />
+                          <Skeleton className="h-4 w-1/3" />
+                        </div>
+                      </div>
+                      <div className="border-t border-border" />
+                      <div className="flex justify-between gap-4">
+                        {[...Array(4)].map((_, i) => (
+                          <div key={i} className="space-y-1.5">
+                            <Skeleton className="h-3.5 w-16" />
+                            <Skeleton className="h-5 w-20" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    {/* Reservation details card skeleton */}
+                    <div className="border border-border rounded-lg p-6 space-y-4">
+                      <Skeleton className="h-5 w-44" />
+                      <div className="border-t border-border" />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {[...Array(5)].map((_, i) => (
+                          <div key={i} className="space-y-1.5">
+                            <Skeleton className="h-3.5 w-20" />
+                            <Skeleton className="h-5 w-32" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    {/* Additional details card skeleton */}
+                    <div className="border border-border rounded-lg p-6 space-y-4">
+                      <Skeleton className="h-5 w-40" />
+                      <div className="border-t border-border" />
+                      <div className="space-y-2">
+                        <Skeleton className="h-3.5 w-24" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-4/5" />
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -360,7 +392,9 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                           <div>
                             <p className="text-sm text-gray-500">Category</p>
                             <p className="font-medium capitalize text-base">
-                              {event.category}
+                              {event.category === "other" && event.other_category
+                                ? event.other_category
+                                : event.category}
                             </p>
                           </div>
                           {assetAminities && assetAminities.length > 0 && (
@@ -450,7 +484,49 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                               <p className="font-medium text-base">{`${formatTime(event.time_start)} - ${formatTime(event.time_end)}`}</p>
                             </div>
                           </div>
+                          {event.people_tag && event.people_tag.length > 0 && (
+                            <div className="md:col-span-2">
+                              <p className="text-sm text-gray-500">People Tag</p>
+                              <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
+                                {event.people_tag.map((person, idx) => (
+                                  <span key={idx} className="inline-flex items-center gap-1 text-base font-medium text-gray-800">
+                                    <User className="w-3.5 h-3.5 text-gray-500" />
+                                    {person}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
+                      </div>
+                    </div>
+
+                    {/* Equipment card */}
+                    <div className="bg-white text-card-foreground border border-border rounded-lg">
+                      <div className="p-6">
+                        <div className="flex items-center">
+                          <Package className="text-gray-700 mr-2 h-5 w-5" />
+                          <h3 className="text-lg font-medium text-gray-700">
+                            Equipment
+                          </h3>
+                        </div>
+                      </div>
+                      <div className="border-t border-gray-200" />
+                      <div className="p-6">
+                        {event.equipment && event.equipment.length > 0 ? (
+                          <div className="flex flex-wrap gap-2">
+                            {event.equipment.map((item, idx) => (
+                              <span
+                                key={idx}
+                                className="inline-flex items-center px-2.5 py-1.5 rounded-full text-sm font-medium bg-gray-100"
+                              >
+                                {item.name} × {item.quantity}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-gray-400 text-sm">No equipment selected</p>
+                        )}
                       </div>
                     </div>
 
@@ -466,13 +542,38 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                       </div>
                       <div className="border-t border-gray-200" />
                       <div className="p-6">
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                           <div>
                             <p className="text-sm text-gray-500">Description</p>
-                            <p className="mt-1 text-base">
-                              {event.description}
-                            </p>
+                            <p className="mt-1 text-base">{event.description}</p>
                           </div>
+                          {event.outsource && (
+                            <div>
+                              <p className="text-sm text-gray-500">Outsource</p>
+                              <p className="mt-1 text-base">{event.outsource}</p>
+                            </div>
+                          )}
+                          {event.guests && event.guests.length > 0 && (
+                            <div>
+                              <p className="text-sm text-gray-500 mb-2">Guests</p>
+                              <div className="flex flex-col gap-2">
+                                {event.guests.map((guest, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-gray-50"
+                                  >
+                                    <User className="w-4 h-4 shrink-0 text-gray-500" />
+                                    <div className="min-w-0">
+                                      <p className="text-sm font-medium text-gray-800">{guest.name}</p>
+                                      {guest.details && (
+                                        <p className="text-xs text-gray-500">{guest.details}</p>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>

@@ -5,6 +5,7 @@ import { getRolePathFromNumber } from '@/core/lib/role-utils';
 const PUBLIC_ROUTES = [
   '/',
   '/info',
+  '/demo',
   '/dashboard',
   '/about',
   '/login',
@@ -75,6 +76,13 @@ export function proxy(request: NextRequest) {
       const rolePath = getCachedRolePath(roleNum);
       return NextResponse.redirect(new URL(`/${rolePath}/dashboard`, request.url));
     }
+    return NextResponse.next();
+  }
+
+  // If the path doesn't match any known role prefix, it's an unknown route — let Next.js render not-found
+  const ROLE_PREFIXES = ['/dean/', '/staff/', '/admin/'];
+  const isKnownProtectedRoute = ROLE_PREFIXES.some(prefix => pathname.startsWith(prefix));
+  if (!isKnownProtectedRoute) {
     return NextResponse.next();
   }
 

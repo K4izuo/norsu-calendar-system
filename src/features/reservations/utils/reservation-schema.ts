@@ -45,7 +45,15 @@ const reservationBaseSchema = z.object({
 
   category: z.string().min(1, "Category field is required"),
 
+  other_category: z.string().optional(),
+
   date: z.string(),
+
+  equipment: z.array(z.object({ name: z.string(), quantity: z.number() })).optional(),
+
+  outsource: z.string().optional(),
+
+  guests: z.array(z.object({ name: z.string(), details: z.string() })).optional(),
 });
 
 export const reservationSchema = reservationBaseSchema.superRefine((data, ctx) => {
@@ -61,6 +69,14 @@ export const reservationSchema = reservationBaseSchema.superRefine((data, ctx) =
       code: "custom",
       message: "Asset must have a name",
       path: ["asset"],
+    });
+  }
+
+  if (data.category === "other" && (!data.other_category || data.other_category.trim().length < 3)) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Please describe the category (at least 3 characters)",
+      path: ["other_category"],
     });
   }
 

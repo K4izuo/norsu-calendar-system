@@ -99,6 +99,7 @@ export default function CalendarPage() {
             capacity: asset?.capacity || 0,
           },
           category: reservation.category,
+          other_category: reservation.other_category,
           info_type: reservation.info_type,
           description: reservation.description,
           people_tag: reservation.people_tag.split(", "),
@@ -118,6 +119,9 @@ export default function CalendarPage() {
           is_moved: Boolean(reservation.is_moved),
           original_date: reservation.original_date,
           move_reason: reservation.move_reason,
+          equipment: reservation.equipment,
+          outsource: reservation.outsource,
+          guests: reservation.guests,
         };
       });
   }, [reservations, assets]);

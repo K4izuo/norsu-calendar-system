@@ -50,7 +50,7 @@ function CalendarComponent<T>({
   onPillDragEnd,
   onNativeDrop,
 }: CalendarProps<T>) {
-  const roleColors = useMemo(() => getRoleColors(role), [role]);
+  const roleColors = useMemo(() => getRoleColors(), []);
 
   const {
     direction,

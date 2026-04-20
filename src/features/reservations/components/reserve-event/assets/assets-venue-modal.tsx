@@ -30,10 +30,9 @@ export const AssetsVenueModal = React.memo(function AssetsVenueModal({
   assets,
   onAssetSelect,
   loading = false,
-  role,
 }: ModalProps) {
   const contentRef = useRef<HTMLDivElement>(null);
-  const roleColors = useMemo(() => getRoleColors(role), [role]);
+  const roleColors = useMemo(() => getRoleColors(), []);
   const [searchQuery, setSearchQuery] = useState("");
 
   // Filter assets based on search query

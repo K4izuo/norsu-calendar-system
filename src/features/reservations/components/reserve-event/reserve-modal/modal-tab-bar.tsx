@@ -6,10 +6,17 @@ interface ModalTabBarProps {
   activeTab: string;
 }
 
+const gridColsMap: Record<number, string> = {
+  2: "grid-cols-2",
+  3: "grid-cols-3",
+  4: "grid-cols-4",
+};
+
 export function ModalTabBar({ tabOrder, tabLabels, activeTab }: ModalTabBarProps) {
+  const gridCols = gridColsMap[tabOrder.length] || "grid-cols-3";
   return (
     <>
-      <div className="grid grid-cols-3 mb-4 sm:mb-4 bg-muted rounded-lg p-1 overflow-x-auto">
+      <div className={`${gridCols} grid mb-4 sm:mb-4 bg-muted rounded-lg p-1 overflow-x-auto`}>
         {tabOrder.map((tab) => (
           <div
             key={tab}

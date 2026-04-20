@@ -21,15 +21,16 @@ import {
 
 export function TeamSwitcher({
   teams,
+  initialTeam,
 }: {
   teams: {
     name: string
     logo: React.ElementType
-    // plan: string
   }[]
+  initialTeam?: { name: string; logo: React.ElementType }
 }) {
   const { isMobile } = useSidebar()
-  const [activeTeam, setActiveTeam] = React.useState(teams[0])
+  const [activeTeam, setActiveTeam] = React.useState(initialTeam ?? teams[0])
 
   if (!activeTeam) {
     return null

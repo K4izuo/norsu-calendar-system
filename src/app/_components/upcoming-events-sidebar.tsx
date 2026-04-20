@@ -9,8 +9,8 @@ interface UpcomingEventsSidebarProps {
 export default function UpcomingEventsSidebar({ loading, error, upcomingEvents }: UpcomingEventsSidebarProps) {
   return (
     <div className="w-full text-card-foreground border lg:w-[320px] bg-white rounded-md shadow-xs relative lg:h-full">
-      <div className="flex flex-col p-4 sm:p-6 w-full lg:absolute lg:inset-0">
-        <h2 className="text-2xl font-semibold mb-4 text-gray-700 text-center shrink-0">
+      <div className="flex flex-col p-4 sm:p-4 w-full lg:absolute lg:inset-0">
+        <h2 className="text-xl font-semibold mb-4 text-gray-700 text-center shrink-0">
           Upcoming Events
         </h2>
 
@@ -38,8 +38,8 @@ export default function UpcomingEventsSidebar({ loading, error, upcomingEvents }
                     key={idx}
                     className="bg-gray-50 rounded-md px-3 py-2 border border-gray-100 shrink-0"
                   >
-                    <div className="font-medium text-gray-800 text-lg">{event.title}</div>
-                    <div className="text-base text-gray-500">{event.date}</div>
+                    <div className="font-medium text-gray-800 text-sm">{event.title}</div>
+                    <div className="text-xs text-gray-500">{event.date}</div>
                   </li>
                 ))}
               </ul>

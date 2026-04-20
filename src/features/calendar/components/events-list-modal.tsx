@@ -84,7 +84,7 @@ export function EventsListModal({
   const [searchTerm, setSearchTerm] = useState("")
   const [recentLoading, setRecentLoading] = useState(false)
 
-  const roleLoadingColors = getRoleColors(role);
+  const roleLoadingColors = getRoleColors();
 
   // Filter events by search term and mode (past vs upcoming)
   const filteredEvents = useMemo(() => {

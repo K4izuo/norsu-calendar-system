@@ -47,6 +47,7 @@ export default function ReservationsPage() {
           capacity: asset?.capacity || 0,
         },
         category: reservation.category,
+        other_category: reservation.other_category,
         info_type: reservation.info_type,
         description: reservation.description,
         people_tag: reservation.people_tag.split(", "),
@@ -59,6 +60,9 @@ export default function ReservationsPage() {
           : "Unknown User",
         approved_by_user_details: reservation.approved_by_user,
         declined_by_user_details: reservation.declined_by_user,
+        equipment: reservation.equipment,
+        outsource: reservation.outsource,
+        guests: reservation.guests,
       };
     });
   }, [reservations, assets]);

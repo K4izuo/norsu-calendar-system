@@ -21,6 +21,7 @@ export interface Reservation {
   people_tag: string
   info_type: string
   category: string
+  other_category?: string
   date: string
   status: string
   created_at: string
@@ -29,6 +30,8 @@ export interface Reservation {
   is_moved?: boolean
   original_date?: string
   move_reason?: string
+  outsource?: string
+  guests?: { name: string; details: string }[]
 }
 
 /**
@@ -71,7 +74,10 @@ export interface ReservationAPIPayload {
   people_tag: string
   info_type: string
   category: string
+  other_category?: string
   date: string
+  outsource?: string
+  guests?: { name: string; details: string }[]
 }
 
 // ============================================================================
@@ -98,5 +104,9 @@ export interface ReservationFormData {
   people_tag: string
   info_type: string
   category: string
+  other_category?: string
   date: string
+  equipment?: { name: string; quantity: number }[]
+  outsource?: string
+  guests?: { name: string; details: string }[]
 }

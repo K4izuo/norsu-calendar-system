@@ -54,6 +54,14 @@ const getCurrentTime = () => {
 export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservation, editMode = false, eventData }: UseReserveEventFormProps) => {
   const [activeTab, setActiveTab] = useState<string>("form");
   const [isCheckingConflict, setIsCheckingConflict] = useState(false);
+  const [equipmentTouched, setEquipmentTouched] = useState(false);
+  const [showOutsource, setShowOutsource] = useState(false);
+  const [showGuest, setShowGuest] = useState(false);
+  const [guestNameInput, setGuestNameInput] = useState("");
+  const [guestDetailsInput, setGuestDetailsInput] = useState("");
+  const [outsourceError, setOutsourceError] = useState<string | null>(null);
+  const [guestNameError, setGuestNameError] = useState<string | null>(null);
+  const [guestDetailsError, setGuestDetailsError] = useState<string | null>(null);
   const { user } = useAuth();
 
   const { people } = usePeople();
@@ -87,7 +95,9 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       people_tag: "",
       info_type: "",
       category: "",
+      other_category: "",
       date: eventDate || "",
+      equipment: [],
     },
   });
 
@@ -124,6 +134,8 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       const currentTime = getCurrentTime();
       setValue("time_start", currentTime);
       setValue("time_end", currentTime);
+      setValue("equipment", []);
+      setEquipmentTouched(false);
       setActiveTab("form");
     } else if (!isOpen) {
       const currentTime = getCurrentTime();
@@ -138,6 +150,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         info_type: "",
         category: "",
         date: eventDate || "",
+        equipment: [],
       }, {
         keepErrors: false,
         keepDirty: false,
@@ -149,6 +162,14 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       setTaggedPeople([]);
       setTagInput("");
       setIsCheckingConflict(false);
+      setEquipmentTouched(false);
+      setShowOutsource(false);
+      setShowGuest(false);
+      setGuestNameInput("");
+      setGuestDetailsInput("");
+      setOutsourceError(null);
+      setGuestNameError(null);
+      setGuestDetailsError(null);
     }
   }, [isOpen, setValue, reset, eventDate, editMode, setTaggedPeople, setTagInput]);
 
@@ -252,6 +273,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
             info_type: "",
             category: "",
             date: eventDate || "",
+            equipment: [],
           },
           {
             keepErrors: false,
@@ -266,6 +288,13 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         setTaggedPeople([]);
         setTagInput("");
         setActiveTab("form");
+        setShowOutsource(false);
+        setShowGuest(false);
+        setGuestNameInput("");
+        setGuestDetailsInput("");
+        setOutsourceError(null);
+        setGuestNameError(null);
+        setGuestDetailsError(null);
         onClose();
 
       } catch {
@@ -313,7 +342,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
 
       if (freshReservations.length === 0) {
         setIsCheckingConflict(false);
-        setActiveTab("additional");
+        setActiveTab("equipment");
         return;
       }
 
@@ -370,7 +399,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       }
 
       // No conflicts, proceed to next tab
-      setActiveTab("additional");
+      setActiveTab("equipment");
     } catch (err) {
       console.error("Conflict check error:", err);
       setIsCheckingConflict(false);
@@ -379,18 +408,82 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
     }
   }, [trigger, getValues, editMode, eventData, setActiveTab, queryClient, user?.id]);
 
+  const handleOutsourceToggle = useCallback((checked: boolean) => {
+    setShowOutsource(checked);
+    if (!checked) { setValue("outsource", ""); setOutsourceError(null); }
+  }, [setValue]);
+
+  const handleGuestToggle = useCallback((checked: boolean) => {
+    setShowGuest(checked);
+    if (!checked) {
+      setValue("guests", []);
+      setGuestNameInput("");
+      setGuestDetailsInput("");
+      setGuestNameError(null);
+      setGuestDetailsError(null);
+    }
+  }, [setValue]);
+
+  const handleAddGuest = useCallback(() => {
+    let hasError = false;
+    if (!guestNameInput.trim()) { setGuestNameError("Guest name is required"); hasError = true; }
+    else setGuestNameError(null);
+    if (!guestDetailsInput.trim()) { setGuestDetailsError("Guest details is required"); hasError = true; }
+    else setGuestDetailsError(null);
+    if (hasError) return;
+    const current = getValues("guests") || [];
+    setValue("guests", [...current, { name: guestNameInput.trim(), details: guestDetailsInput.trim() }]);
+    setGuestNameInput("");
+    setGuestDetailsInput("");
+  }, [guestNameInput, guestDetailsInput, getValues, setValue]);
+
+  const handleRemoveGuest = useCallback((index: number) => {
+    const current = getValues("guests") || [];
+    setValue("guests", current.filter((_, i) => i !== index));
+  }, [getValues, setValue]);
+
+  const handleEquipmentTabNext = useCallback(() => {
+    const equipment = getValues("equipment") || [];
+    const valid = equipment.filter(
+      (e): e is { name: string; quantity: number } =>
+        typeof e === "object" && e !== null && typeof e.name === "string"
+    );
+    if (valid.length === 0) {
+      setEquipmentTouched(true);
+      return;
+    }
+    setEquipmentTouched(false);
+    setActiveTab("additional");
+  }, [getValues]);
+
   const handleAdditionalTabNext = useCallback(async () => {
     setValue("people_tag", taggedPeople.map(p => p.name).join(', '), {
       shouldValidate: true,
       shouldTouch: true
     });
 
-    const isValid = await trigger(['people_tag', 'info_type', 'category']);
+    const isValid = await trigger(['people_tag', 'info_type', 'category', 'other_category']);
 
-    if (isValid && taggedPeople.length > 0) {
+    let externalValid = true;
+    if (showOutsource) {
+      const outsourceVal = getValues("outsource");
+      if (!outsourceVal?.trim()) { setOutsourceError("Outsource description is required"); externalValid = false; }
+      else setOutsourceError(null);
+    }
+
+    if (showGuest) {
+      const guests = getValues("guests") || [];
+      if (guests.length === 0) {
+        setGuestNameError("Guest name is required");
+        setGuestDetailsError("Guest details is required");
+        externalValid = false;
+      }
+    }
+
+    if (isValid && taggedPeople.length > 0 && externalValid) {
       setActiveTab("summary");
     }
-  }, [trigger, taggedPeople, setValue]);
+  }, [trigger, taggedPeople, setValue, showOutsource, showGuest, getValues]);
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -433,10 +526,28 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
     handleRemoveTag,
     isFormValid,
     handleFormTabNext,
+    handleEquipmentTabNext,
     handleAdditionalTabNext,
+    equipmentTouched,
     handleFormSubmit,
     resetForm,
     isCheckingConflict,
     peopleSuggestions,
+    showOutsource,
+    showGuest,
+    guestNameInput,
+    guestDetailsInput,
+    outsourceError,
+    guestNameError,
+    guestDetailsError,
+    setGuestNameInput,
+    setGuestDetailsInput,
+    setOutsourceError,
+    setGuestNameError,
+    setGuestDetailsError,
+    handleOutsourceToggle,
+    handleGuestToggle,
+    handleAddGuest,
+    handleRemoveGuest,
   };
 };

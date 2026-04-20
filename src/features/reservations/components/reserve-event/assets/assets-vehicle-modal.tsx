@@ -29,10 +29,9 @@ export const AssetsVehicleModal = React.memo(function AssetsVehicleModal({
   assets,
   onAssetSelect,
   loading = false,
-  role,
 }: ModalProps) {
   const contentRef = useRef<HTMLDivElement>(null);
-  const roleColors = useMemo(() => getRoleColors(role), [role]);
+  const roleColors = useMemo(() => getRoleColors(), []);
 
   useEffect(() => {
     if (isOpen) {

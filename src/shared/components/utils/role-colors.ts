@@ -2,7 +2,7 @@
 export type UserRole = "dean" | "staff" | "admin" | "public";
 
 // Color mapping function - Defaults to public
-export const getRoleColors = (role?: UserRole) => {
+export const getRoleColors = () => {
   const colorMap = {
     public: {
       spinner: "border-teal-500",
@@ -79,5 +79,5 @@ export const getRoleColors = (role?: UserRole) => {
     },
   };
 
-  return colorMap[role || "public"]; // Default to public colors if role is undefined
+  return colorMap["admin"];
 };

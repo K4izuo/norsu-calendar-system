@@ -1,7 +1,7 @@
 export const ROLE_CONFIG = {
   1: {
     name: 'dean',
-    label: 'Faculty',
+    label: 'Dean',
     path: 'dean',
   },
   2: {

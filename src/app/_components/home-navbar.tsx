@@ -3,12 +3,24 @@
 import Image from "next/image";
 import { Button } from "@/shared/components/ui/button";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 interface HomeNavbarProps {
   onScrollToAbout: (e: React.MouseEvent<HTMLAnchorElement>) => void;
 }
 
 export default function HomeNavbar({ onScrollToAbout }: HomeNavbarProps) {
+  const pathname = usePathname();
+
+  const handleHomeClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (pathname !== "/") {
+      return;
+    }
+
+    event.preventDefault();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <div className="relative bg-white px-2 sm:px-4 md:px-8 lg:px-16 xl:px-36 py-4 shadow-sm flex flex-col sm:flex-row items-center sm:items-center justify-between w-full gap-y-2">
       <div className="flex flex-row items-center justify-center sm:justify-start w-full sm:w-auto gap-2 sm:gap-0">
@@ -39,6 +51,11 @@ export default function HomeNavbar({ onScrollToAbout }: HomeNavbarProps) {
         </p>
       </div>
       <div className="flex items-center space-x-1 shrink-0 mt-2 sm:mt-0 w-full sm:w-auto justify-center sm:justify-end">
+        <Button asChild variant="ghost">
+          <Link href="/" onClick={handleHomeClick} className="px-2 text-base sm:text-lg md:text-xl">
+            HOME
+          </Link>
+        </Button>
         <Button asChild variant="ghost">
           <a href="#about-section" onClick={onScrollToAbout} className="px-2 text-base sm:text-lg md:text-xl">
             ABOUT

@@ -95,10 +95,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     }
   ]
 
+  const initialTeam = data.teams.find(t => t.name.toLowerCase() === role) ?? data.teams[0]
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher teams={data.teams} initialTeam={initialTeam} />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navMain} />

@@ -117,7 +117,7 @@ const DraggableEventPill = React.memo(function DraggableEventPill({
           }
           : undefined
       }
-      className={`w-full flex flex-col px-1.5 py-1.5 ${roleColors.pillBg} border-l ${roleColors.pillBorder} rounded-r-md rounded-l-sm overflow-hidden select-none
+      className={`w-full flex flex-col p-1.5 ${roleColors.pillBg} border-l ${roleColors.pillBorder} rounded-r-md rounded-l-sm overflow-hidden select-none
         ${onEventSelect ? "cursor-pointer hover:brightness-95" : ""}
         ${isDraggable ? "cursor-grab active:cursor-grabbing" : ""}`}
     >
@@ -236,7 +236,7 @@ export const CalendarDayCell = React.memo(function CalendarDayCell<T>({
     } ${day.isToday ? "border-[1.5px]" : ""}`;
 
   return (
-    <motion.div
+    <div
       ref={cellRef}
       key={day.key}
       data-idx={idx}
@@ -246,15 +246,6 @@ export const CalendarDayCell = React.memo(function CalendarDayCell<T>({
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      initial={{ scale: 0.97, opacity: 0 }}
-      animate={{
-        scale: 1,
-        opacity: 1,
-        transition: {
-          delay: Math.min(0.01 * idx, 0.3),
-          duration: 0.12,
-        },
-      }}
     >
       <div className="flex justify-end items-start w-full">
         <span
@@ -336,6 +327,6 @@ export const CalendarDayCell = React.memo(function CalendarDayCell<T>({
             )}
           </div>
         )}
-    </motion.div>
+    </div>
   );
 }) as <T>(props: CalendarDayCellProps<T>) => React.ReactElement;
