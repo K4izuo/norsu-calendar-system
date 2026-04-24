@@ -284,8 +284,7 @@ export const CalendarDayCell = React.memo(function CalendarDayCell<T>({
 
             {day.eventCount > 1 && (
               <motion.div
-                className={`hidden sm:inline-flex items-center ${role === "admin" ? "text-gray-700" : roleColors.todayText
-                  } px-1 py-1 rounded-xl text-[10px] sm:text-xs md:text-sm font-semibold absolute top-1.5 left-1`}
+                className="hidden sm:inline-flex items-center text-gray-700 px-1 py-1 rounded-xl text-[10px] sm:text-xs md:text-sm font-semibold absolute top-1.5 left-1"
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{
                   scale: 1,
@@ -317,8 +316,7 @@ export const CalendarDayCell = React.memo(function CalendarDayCell<T>({
                 }}
               >
                 <div
-                  className={`inline-flex items-center ${role === "admin" ? "text-gray-700" : roleColors.todayText
-                    } px-1 py-0.5 rounded-xl text-xs xs:text-[10px]`}
+                  className="inline-flex items-center text-gray-700 px-1 py-0.5 rounded-xl text-xs xs:text-[10px]"
                 >
                   <CalendarClock size={10} className="mr-0.5 shrink-0" />
                   <span>{day.eventCount}</span>

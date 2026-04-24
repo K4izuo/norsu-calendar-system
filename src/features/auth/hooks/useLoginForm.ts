@@ -4,10 +4,9 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import toast from "react-hot-toast"
 import { LoginFormData, loginSchema } from "@/features/auth/utils/login/login-validation-rules"
 import { apiClient } from "@/core/api/api-client"
-import { useRouter } from "next/navigation"
 import { setAuthToken, setUserRole, setUserId } from "@/core/auth/auth"
 import { useQueryClient } from "@tanstack/react-query"
-import { getRolePathFromNumber } from "@/core/lib/role-utils"
+import { getRolePathFromNumber, getDefaultPageForRole } from "@/core/lib/role-utils"
 
 interface ValidationErrors {
   message?: string;
@@ -72,8 +71,7 @@ export const useLoginForm = () => {
   const [rememberMe, setRememberMe] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const [isSuccess, setIsSuccess] = React.useState(false);
-  const router = useRouter();
-  const queryClient = useQueryClient();
+const queryClient = useQueryClient();
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -137,9 +135,9 @@ export const useLoginForm = () => {
       // Get dynamic role path based on user's role number
       const role = response.data?.role || 3;
       const rolePath = getRolePathFromNumber(role);
-      const redirectPath = `/${rolePath}/dashboard`;
+      const defaultPage = getDefaultPageForRole(role);
+      const redirectPath = `/${rolePath}/${defaultPage}`;
 
-      router.refresh();
       window.location.href = redirectPath;
 
       reset();

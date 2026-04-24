@@ -1,7 +1,24 @@
 import { LucideIcon } from "lucide-react"
-// import { AssetFormValue } from "@/types/asset"
 
 type EventStatus = "pending" | "approved" | "decline"
+
+export interface RequestorInfo {
+  type: 'student' | 'faculty' | 'office'
+  student_sub_type?: 'student_org' | 'csg' | 'lso' | 'sgdc'
+  student_org_name?: string
+  csg_name?: string
+  tagged?: { id: number; name: string }[]
+}
+
+export interface ReservationApproval {
+  id: number
+  stage: string
+  user_id: number
+  action: 'APPROVED' | 'DECLINED' | 'APPROVE' | 'ENDORSE'
+  reason?: string | null
+  created_at: string
+  user?: { first_name: string; last_name: string }
+}
 
 export interface EventDetails {
   id: number
@@ -43,13 +60,23 @@ export interface EventDetails {
     last_name: string
   }
   finished_on?: string
-  isFinished?: boolean;
-  is_moved?: boolean;
-  original_date?: string;
-  move_reason?: string;
-  equipment?: { name: string; quantity: number }[];
+  isFinished?: boolean
+  is_moved?: boolean
+  original_date?: string
+  move_reason?: string
+  equipment?: { name: string; quantity: number }[]
   outsource?: string
   guests?: { name: string; details: string }[]
+  involves_students?: boolean
+  requires_vpaa?: boolean
+  requires_vpsas?: boolean
+  requires_vpaf?: boolean
+  requires_vprde?: boolean
+  current_stage?: string
+  declined_at_stage?: string | null
+  campus_director_action?: 'approve' | 'endorse' | null
+  approvals?: ReservationApproval[]
+  requestor?: RequestorInfo
 }
 
 // Add this new interface for API payload
@@ -67,6 +94,11 @@ export interface ReservationAPIPayload {
   date: string
   outsource?: string
   guests?: { name: string; details: string }[]
+  involves_students?: boolean
+  requires_vpaa?: boolean
+  requires_vpsas?: boolean
+  requires_vpaf?: boolean
+  requires_vprde?: boolean
 }
 
 export interface Reservation {
@@ -89,6 +121,14 @@ export interface Reservation {
   is_moved?: boolean
   original_date?: string
   move_reason?: string
+  involves_students?: boolean
+  requires_vpaa?: boolean
+  requires_vpsas?: boolean
+  requires_vpaf?: boolean
+  requires_vprde?: boolean
+  current_stage?: string
+  declined_at_stage?: string | null
+  campus_director_action?: 'approve' | 'endorse' | null
 }
 
 // Extended interface for API responses that include relationships
@@ -111,6 +151,7 @@ export interface ReservationWithRelations extends Reservation {
   equipment?: { id: number; name: string; quantity: number }[]
   outsource?: string
   guests?: { name: string; details: string }[]
+  approvals?: ReservationApproval[]
 }
 
 export interface EventsListModalProps {
@@ -125,6 +166,8 @@ export interface EventsListModalProps {
   eventDate?: string | undefined
   allReservations?: Reservation[]
   onNewReservation?: (reservation: Reservation) => void
+  userRole?: number
+  userOffice?: { oversight_vp_id: number | null }
 }
 
 export interface EventCardsListProps {
@@ -175,6 +218,12 @@ export interface ReservationFormData {
   equipment?: { name: string; quantity: number }[]
   outsource?: string
   guests?: { name: string; details: string }[]
+  involves_students?: boolean
+  requires_vpaa?: boolean
+  requires_vpsas?: boolean
+  requires_vpaf?: boolean
+  requires_vprde?: boolean
+  requestor?: RequestorInfo
 }
 
 export interface DeanRegisterFormData {
@@ -211,14 +260,6 @@ export interface CalendarDayType<T = unknown> {
 }
 
 // Add this NEW interface right after CalendarDayType
-export interface MoveReservationPayload {
-  new_date: string
-  new_time_start: string
-  new_time_end: string
-  move_reason: string
-  moved_by: number
-}
-
 export interface CalendarProps<T> {
   events: T[]
   onDaySelect: (day: CalendarDayType<T>) => void

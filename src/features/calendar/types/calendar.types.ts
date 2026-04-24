@@ -3,7 +3,7 @@
  * Types specific to calendar display and event listing
  */
 
-import type { Reservation, ReservationAPIPayload } from "../../reservations/types/reservation.types"
+import type { Reservation, ReservationAPIPayload, ReservationApproval } from "../../reservations/types/reservation.types"
 
 // ============================================================================
 // Event Status & Details
@@ -56,6 +56,15 @@ export interface EventDetails {
   finished_on?: string
   isFinished?: boolean
   is_moved?: boolean
+  involves_students?: boolean
+  requires_vpaa?: boolean
+  requires_vpsas?: boolean
+  requires_vpaf?: boolean
+  requires_vprde?: boolean
+  current_stage?: string
+  declined_at_stage?: string | null
+  campus_director_action?: 'approve' | 'endorse' | null
+  approvals?: ReservationApproval[]
 }
 
 /**

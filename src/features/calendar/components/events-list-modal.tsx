@@ -72,12 +72,16 @@ export function EventsListModal({
   setShowRecent,
   role,
   onNewReservation,
+  userRole,
+  userOffice,
 }: EventsListModalProps & {
   showRecent: "upcoming" | "past" | "moved";
   setShowRecent: React.Dispatch<React.SetStateAction<"upcoming" | "past" | "moved">>;
   role?: Role;
   allReservations?: Reservation[];
   onNewReservation?: (reservation: Reservation) => void;
+  userRole?: number;
+  userOffice?: { oversight_vp_id: number | null };
 }) {
   const contentRef = useRef<HTMLDivElement>(null)
   const [reserveModalOpen, setReserveModalOpen] = useState(false)
@@ -320,6 +324,8 @@ export function EventsListModal({
         onSubmit={handleSubmitReservation}
         eventDate={eventDate}
         onNewReservation={onNewReservation}
+        userRole={userRole}
+        userOffice={userOffice}
       />
     </>
   )

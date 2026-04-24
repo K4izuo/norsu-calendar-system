@@ -23,6 +23,11 @@ export interface User {
   last_name: string;
   username: string;
   role: Role;
+  office?: {
+    id: number;
+    name: string;
+    oversight_vp_id: number | null;
+  };
 }
 
 // ⚡ PERFORMANCE: Split context into state and actions for better optimization
@@ -132,7 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (user && authRoutes.some((route) => pathname?.startsWith(route))) {
         const storedRole = Number(localStorage.getItem("user-role") || "3");
         const rolePath = getRolePathFromNumber(storedRole);
-        router.replace(`/${rolePath}/dashboard`);
+        router.replace(`/${rolePath}/calendar`);
       } else if (!user && protectedRoutes.some((route) => pathname?.startsWith(route))) {
         router.replace("/login");
       }

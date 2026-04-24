@@ -13,6 +13,7 @@ import {
 import { checkReservationConflicts } from "@/features/reservations/utils/reservation-conflict-check";
 import { useQueryClient } from "@tanstack/react-query";
 import { getUserId } from "@/core/auth/auth";
+import { useAuth } from "@/shared/components/context/auth-context";
 import {
   getPhilippineMonth,
   getPhilippineYear,
@@ -32,9 +33,18 @@ const isEventFinished = (eventDate: string, timeEnd: string): boolean => {
   }
 };
 
+const PATH_ROLE_MAP: Record<string, number> = {
+  dean: 1, staff: 2, admin: 3,
+  "student-director": 4, "campus-director": 5,
+  vpaa: 6, vpsas: 7, vpaf: 8, vprde: 9, head: 10,
+};
+
 export default function CalendarPage() {
   const params = useParams();
   const role = params.role as string;
+  const { user } = useAuth();
+  const userRoleNumber = PATH_ROLE_MAP[role] ?? (user?.role ? Number(user.role) : undefined);
+  const userOffice = user?.office;
 
   const [modalOpen, setModalOpen] = useState(false);
   const [eventInfoModalOpen, setEventInfoModalOpen] = useState(false);
@@ -46,7 +56,6 @@ export default function CalendarPage() {
   const [currentMonth, setCurrentMonth] = useState(getPhilippineMonth());
   const [currentYear, setCurrentYear] = useState(getPhilippineYear());
 
-  const [eventInfoLoading, setEventInfoLoading] = useState(false);
   const [eventsListLoading, setEventsListLoading] = useState(false);
   const [showRecent, setShowRecent] = useState<"upcoming" | "past" | "moved">("upcoming");
   const [fromMovedEventsContext, setFromMovedEventsContext] = useState(false);
@@ -63,7 +72,7 @@ export default function CalendarPage() {
   );
 
   // Data fetching
-  const { reservations, error } = useReservations();
+  const { reservations, error, refetch } = useReservations();
 
   const assetIds = useMemo(() => {
     return [...new Set(reservations.map((r) => r.asset_id))];
@@ -194,12 +203,8 @@ export default function CalendarPage() {
 
   const handleEventClick = useCallback((event: EventDetails, fromMovedEvents?: boolean) => {
     setFromMovedEventsContext(fromMovedEvents ?? false);
-    setEventInfoLoading(true);
+    setSelectedEvent(event);
     setEventInfoModalOpen(true);
-    setTimeout(() => {
-      setSelectedEvent(event);
-      setEventInfoLoading(false);
-    }, 150);
   }, []);
 
   const handleCloseModal = useCallback(() => {
@@ -337,16 +342,20 @@ export default function CalendarPage() {
           }
           allReservations={reservations}
           onNewReservation={handleNewReservation}
+          userRole={userRoleNumber}
+          userOffice={userOffice}
         />
 
         <EventInfoModal
           role="admin"
+          userRoleNumber={userRoleNumber}
           isOpen={eventInfoModalOpen}
           onClose={() => { setEventInfoModalOpen(false); setFromMovedEventsContext(false); }}
           event={selectedEvent}
-          loading={eventInfoLoading}
           showBackdropBlur={false}
           fromMovedEvents={fromMovedEventsContext}
+          onApprove={refetch}
+          onDecline={refetch}
         />
       </div>
 

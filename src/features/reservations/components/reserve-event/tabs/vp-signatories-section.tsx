@@ -1,0 +1,78 @@
+import { UseFormWatch, UseFormSetValue } from "react-hook-form";
+import { ReservationFormData } from "@/interface/user-props";
+import { Label } from "@/shared/components/ui/label";
+import { Check } from "lucide-react";
+
+interface Props {
+  watch: UseFormWatch<ReservationFormData>;
+  setValue: UseFormSetValue<ReservationFormData>;
+}
+
+const VP_ITEMS: { label: string; field: keyof Pick<ReservationFormData, "requires_vpaa" | "requires_vpsas" | "requires_vpaf" | "requires_vprde"> }[] = [
+  { label: "VPAA", field: "requires_vpaa" },
+  { label: "VPSAS", field: "requires_vpsas" },
+  { label: "VPAF", field: "requires_vpaf" },
+  { label: "VPRDE", field: "requires_vprde" },
+];
+
+export function VpSignatoriesSection({ watch, setValue }: Props) {
+  const involvesStudents = watch("involves_students") ?? false;
+
+  const toggleStudents = () => {
+    setValue("involves_students", !involvesStudents, { shouldDirty: true });
+  };
+
+  return (
+    <div className="space-y-5 pb-9">
+      {/* Student Involvement */}
+      <div className="flex flex-col gap-1.5">
+        <Label>Student Involvement</Label>
+        <button
+          type="button"
+          onClick={toggleStudents}
+          className={`flex items-center gap-3 rounded-lg border p-4 w-full transition-colors cursor-pointer ${involvesStudents ? "border-gray-800 bg-gray-100" : "border-border bg-white hover:bg-muted"
+            }`}
+        >
+          <span
+            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${involvesStudents ? "border-gray-800 bg-gray-800" : "border-gray-300 bg-white"
+              }`}
+          >
+            {involvesStudents && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
+          </span>
+          <span className={`text-sm font-medium ${involvesStudents ? "text-gray-800" : "text-gray-700"}`}>
+            This event involves students
+          </span>
+        </button>
+      </div>
+
+      {/* VP Signatories */}
+      <div className="flex flex-col gap-1.5">
+        <Label>VP Signatories</Label>
+        <div className="grid grid-cols-2 gap-3">
+          {VP_ITEMS.map(({ label, field }) => {
+            const checked = watch(field) ?? false;
+
+            return (
+              <button
+                key={field}
+                type="button"
+                onClick={() => setValue(field, !checked, { shouldDirty: true })}
+                className={`flex items-center gap-3 rounded-lg border p-4 transition-colors cursor-pointer ${checked ? "border-gray-800 bg-gray-100" : "border-border bg-white hover:bg-muted"}`}
+              >
+                <span
+                  className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${checked ? "border-gray-800 bg-gray-800" : "border-gray-300 bg-white"
+                    }`}
+                >
+                  {checked && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
+                </span>
+                <span className={`text-sm font-medium ${checked ? "text-gray-800" : "text-gray-700"}`}>
+                  {label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}

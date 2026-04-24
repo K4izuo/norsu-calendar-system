@@ -37,6 +37,15 @@ const config: NextConfig = {
     } : false,
   },
 
+  async rewrites() {
+    return [
+      {
+        source: '/api-proxy/:path*',
+        destination: 'http://127.0.0.1:8000/api/:path*',
+      },
+    ]
+  },
+
   // 🔒 SECURITY: Security headers
   async headers() {
     return [

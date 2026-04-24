@@ -3,13 +3,13 @@ import { useForm } from "react-hook-form"
 import type { Resolver } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import toast from "react-hot-toast"
-import { ReservationFormData, ReservationAPIPayload, Reservation, EventDetails, ReservationWithRelations } from "@/interface/user-props"
+import { ReservationFormData, ReservationAPIPayload, Reservation, EventDetails, ReservationWithRelations, RequestorInfo } from "@/interface/user-props"
 import { reservationSchema } from "@/features/reservations/utils/reservation-schema"
 import { apiClient } from "@/core/api/api-client"
 import { useAuth } from "@/shared/components/context/auth-context"
 import { checkReservationConflicts } from "@/features/reservations/utils/reservation-conflict-check"
 import { useQueryClient } from "@tanstack/react-query"
-import { fetchReservations } from "@/features/calendar/services/reservation-service"
+import { fetchReservations, useResubmitReservation } from "@/features/calendar/services/reservation-service"
 import { normalizeTime, normalizeDate } from "./useFormNormalizers"
 import { usePeopleTagging } from "./usePeopleTagging"
 import { useAssetSelection } from "./useAssetSelection"
@@ -43,7 +43,10 @@ interface UseReserveEventFormProps {
   isOpen: boolean
   onNewReservation?: (reservation: Reservation) => void
   editMode?: boolean
+  resubmitMode?: boolean
   eventData?: EventDetails
+  userRole?: number
+  userOffice?: { oversight_vp_id: number | null }
 }
 
 const getCurrentTime = () => {
@@ -51,10 +54,12 @@ const getCurrentTime = () => {
   return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 };
 
-export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservation, editMode = false, eventData }: UseReserveEventFormProps) => {
-  const [activeTab, setActiveTab] = useState<string>("form");
+export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservation, editMode = false, resubmitMode = false, eventData, userRole, userOffice }: UseReserveEventFormProps) => {
+  const [activeTab, setActiveTab] = useState<string>("requestor");
   const [isCheckingConflict, setIsCheckingConflict] = useState(false);
   const [equipmentTouched, setEquipmentTouched] = useState(false);
+  const [requestor, setRequestor] = useState<RequestorInfo | null>(null);
+  const [requestorError, setRequestorError] = useState<string>("");
   const [showOutsource, setShowOutsource] = useState(false);
   const [showGuest, setShowGuest] = useState(false);
   const [guestNameInput, setGuestNameInput] = useState("");
@@ -63,6 +68,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
   const [guestNameError, setGuestNameError] = useState<string | null>(null);
   const [guestDetailsError, setGuestDetailsError] = useState<string | null>(null);
   const { user } = useAuth();
+  const { mutateAsync: resubmit } = useResubmitReservation();
 
   const { people } = usePeople();
   const peopleSuggestions = people.map(p => ({ id: p.id, name: p.personName }));
@@ -82,6 +88,10 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
     handleRemoveTag,
   } = usePeopleTagging();
 
+  const isDean = userRole === 1
+  const isHeadOfOffice = userRole === 10
+  const oversightVpId = userOffice?.oversight_vp_id ?? null
+
   const form = useForm<ReservationFormData>({
     mode: "onTouched",
     resolver: zodResolver(reservationSchema) as Resolver<ReservationFormData>,
@@ -98,6 +108,11 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       other_category: "",
       date: eventDate || "",
       equipment: [],
+      involves_students: false,
+      requires_vpaa: isDean,
+      requires_vpsas: false,
+      requires_vpaf: false,
+      requires_vprde: false,
     },
   });
 
@@ -118,6 +133,32 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
     }
   }, [eventDate, setValue]);
 
+  // Dean: always force VPAA on
+  useEffect(() => {
+    if (isDean) {
+      setValue("requires_vpaa", true);
+    }
+  }, [isDean, setValue]);
+
+  // HO under oversight VP: force that VP's flag on
+  useEffect(() => {
+    if (!isHeadOfOffice || !oversightVpId) return;
+    const vpRoleToField: Record<number, keyof ReservationFormData> = {
+      6: "requires_vpaa",
+      7: "requires_vpsas",
+      8: "requires_vpaf",
+      9: "requires_vprde",
+    };
+    const field = vpRoleToField[oversightVpId];
+    if (field) setValue(field as "requires_vpaa" | "requires_vpsas" | "requires_vpaf" | "requires_vprde", true);
+  }, [isHeadOfOffice, oversightVpId, setValue]);
+
+  // involves_students → auto-check VPSAS; uncheck when students unchecked
+  const watchedInvolvesStudents = watch("involves_students");
+  useEffect(() => {
+    setValue("requires_vpsas", !!watchedInvolvesStudents);
+  }, [watchedInvolvesStudents, setValue]);
+
   useEffect(() => {
     const peopleValue = taggedPeople.map(p => p.name).join(', ');
     const hasBeenTouched = form.formState.touchedFields.people_tag;
@@ -130,13 +171,17 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
   }, [taggedPeople, setValue, form.formState.touchedFields.people_tag]);
 
   useEffect(() => {
-    if (isOpen && !editMode) {
-      const currentTime = getCurrentTime();
-      setValue("time_start", currentTime);
-      setValue("time_end", currentTime);
-      setValue("equipment", []);
-      setEquipmentTouched(false);
-      setActiveTab("form");
+    if (isOpen) {
+      setActiveTab("requestor");
+      setRequestorError("");
+      if (!editMode) {
+        const currentTime = getCurrentTime();
+        setValue("time_start", currentTime);
+        setValue("time_end", currentTime);
+        setValue("equipment", []);
+        setEquipmentTouched(false);
+        setRequestor(null);
+      }
     } else if (!isOpen) {
       const currentTime = getCurrentTime();
       reset({
@@ -151,6 +196,11 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         category: "",
         date: eventDate || "",
         equipment: [],
+        involves_students: false,
+        requires_vpaa: isDean,
+        requires_vpsas: false,
+        requires_vpaf: false,
+        requires_vprde: false,
       }, {
         keepErrors: false,
         keepDirty: false,
@@ -170,8 +220,10 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       setOutsourceError(null);
       setGuestNameError(null);
       setGuestDetailsError(null);
+      setRequestor(null);
+      setRequestorError("");
     }
-  }, [isOpen, setValue, reset, eventDate, editMode, setTaggedPeople, setTagInput]);
+  }, [isOpen, setValue, reset, eventDate, editMode, setTaggedPeople, setTagInput, isDean]);
 
   const isFormValid = useCallback((): boolean => {
     const values = getValues();
@@ -207,7 +259,38 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
           people_tag: taggedPeople.map(p => p.name).join(", "),
           tagged_people_ids: taggedPeople.filter(p => p.id > 0).map(p => p.id),
           reserved_by_user: parseInt(user?.id || "0"),
+          involves_students: rest.involves_students ?? false,
+          requires_vpaa: rest.requires_vpaa ?? false,
+          requires_vpsas: rest.requires_vpsas ?? false,
+          requires_vpaf: rest.requires_vpaf ?? false,
+          requires_vprde: rest.requires_vprde ?? false,
         };
+
+        if (resubmitMode && eventData?.id) {
+          const payload: ReservationAPIPayload = {
+            title_name: formDataWithPeople.title_name,
+            asset_id: formDataWithPeople.asset_id,
+            time_start: formDataWithPeople.time_start,
+            time_end: formDataWithPeople.time_end,
+            description: formDataWithPeople.description,
+            range: formDataWithPeople.range,
+            people_tag: formDataWithPeople.people_tag,
+            tagged_people_ids: formDataWithPeople.tagged_people_ids,
+            info_type: formDataWithPeople.info_type,
+            category: formDataWithPeople.category,
+            date: formDataWithPeople.date,
+            outsource: formDataWithPeople.outsource,
+            guests: formDataWithPeople.guests,
+            involves_students: formDataWithPeople.involves_students,
+            requires_vpaa: formDataWithPeople.requires_vpaa,
+            requires_vpsas: formDataWithPeople.requires_vpsas,
+            requires_vpaf: formDataWithPeople.requires_vpaf,
+            requires_vprde: formDataWithPeople.requires_vprde,
+          };
+          await resubmit({ reservationId: eventData.id, payload });
+          onClose();
+          return;
+        }
 
         let response;
         if (editMode && eventData?.id) {
@@ -274,6 +357,11 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
             category: "",
             date: eventDate || "",
             equipment: [],
+            involves_students: false,
+            requires_vpaa: isDean,
+            requires_vpsas: false,
+            requires_vpaf: false,
+            requires_vprde: false,
           },
           {
             keepErrors: false,
@@ -287,7 +375,9 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
 
         setTaggedPeople([]);
         setTagInput("");
-        setActiveTab("form");
+        setActiveTab("requestor");
+        setRequestor(null);
+        setRequestorError("");
         setShowOutsource(false);
         setShowGuest(false);
         setGuestNameInput("");
@@ -301,8 +391,39 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         toast.error(editMode ? "Failed to update event. Please try again." : "Failed to reserve event. Please try again.");
       }
     },
-    [reset, onClose, taggedPeople, eventDate, onNewReservation, editMode, eventData, user?.id, queryClient, setTaggedPeople, setTagInput]
+    [reset, onClose, taggedPeople, eventDate, onNewReservation, editMode, resubmitMode, resubmit, eventData, user?.id, queryClient, setTaggedPeople, setTagInput, isDean]
   );
+
+  const handleRequestorTabNext = useCallback(() => {
+    if (!requestor?.type) {
+      setRequestorError("Please select a requestor type to continue.");
+      return;
+    }
+    if (requestor.type === 'student') {
+      if (!requestor.student_sub_type) {
+        setRequestorError("Please select a student category.");
+        return;
+      }
+      if (requestor.student_sub_type === 'student_org' && !requestor.student_org_name?.trim()) {
+        setRequestorError("Please enter the student organization/society name.");
+        return;
+      }
+      if (requestor.student_sub_type === 'csg' && !requestor.csg_name?.trim()) {
+        setRequestorError("Please enter the college student government name.");
+        return;
+      }
+    }
+    if (requestor.type === 'faculty' && (!requestor.tagged || requestor.tagged.length === 0)) {
+      setRequestorError("Please tag a faculty / degree course.");
+      return;
+    }
+    if (requestor.type === 'office' && (!requestor.tagged || requestor.tagged.length === 0)) {
+      setRequestorError("Please tag an office.");
+      return;
+    }
+    setRequestorError("");
+    setActiveTab("form");
+  }, [requestor]);
 
   const handleFormTabNext = useCallback(async () => {
     const isValid = await trigger(['title_name', 'asset', 'time_start', 'time_end', 'description', 'range']);
@@ -494,7 +615,9 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
     reset();
     setTaggedPeople([]);
     setTagInput("");
-    setActiveTab("form");
+    setActiveTab("requestor");
+    setRequestor(null);
+    setRequestorError("");
   }, [reset, setTaggedPeople, setTagInput]);
 
   return {
@@ -525,6 +648,11 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
     handleTagSelect,
     handleRemoveTag,
     isFormValid,
+    requestor,
+    setRequestor,
+    requestorError,
+    setRequestorError,
+    handleRequestorTabNext,
     handleFormTabNext,
     handleEquipmentTabNext,
     handleAdditionalTabNext,
@@ -549,5 +677,8 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
     handleGuestToggle,
     handleAddGuest,
     handleRemoveGuest,
+    isDean,
+    isHeadOfOffice,
+    oversightVpId,
   };
 };

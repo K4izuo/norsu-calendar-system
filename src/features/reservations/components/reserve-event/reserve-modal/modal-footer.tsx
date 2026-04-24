@@ -8,35 +8,61 @@ interface ModalFooterProps {
   isSubmitting: boolean;
   isCheckingConflict: boolean;
   editMode: boolean;
+  resubmitMode?: boolean;
   setActiveTab: (tab: string) => void;
+  handleRequestorTabNext: () => void;
   handleFormTabNext: () => void;
   handleEquipmentTabNext: () => void;
   handleAdditionalTabNext: () => void;
 }
 
-export function ModalFooter({ activeTab, isSubmitting, isCheckingConflict, editMode, setActiveTab, handleFormTabNext, handleEquipmentTabNext, handleAdditionalTabNext }: ModalFooterProps) {
+export function ModalFooter({ activeTab, isSubmitting, isCheckingConflict, editMode, resubmitMode, setActiveTab, handleRequestorTabNext, handleFormTabNext, handleEquipmentTabNext, handleAdditionalTabNext }: ModalFooterProps) {
   return (
     <div className="sticky bottom-0 bg-white z-10 p-4 sm:p-6 border-t border-gray-200 flex justify-end">
-      {activeTab === "form" && (
+      {activeTab === "requestor" && (
         <Button
           type="button"
-          onClick={handleFormTabNext}
+          onClick={handleRequestorTabNext}
           variant="default"
           className="text-base cursor-pointer py-2.5"
-          disabled={isCheckingConflict} // ✅ Disable during conflict check
         >
-          {isCheckingConflict ? (
-            <div className="flex items-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Checking for conflicts...
-            </div>
-          ) : (
-            <div className="flex items-center">
-              Next
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </div>
-          )}
+          <div className="flex items-center">
+            Next
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </div>
         </Button>
+      )}
+      {activeTab === "form" && (
+        <div className="flex gap-3">
+          <Button
+            type="button"
+            onClick={() => setActiveTab("requestor")}
+            variant="outline"
+            className="text-base cursor-pointer py-2.5"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Button>
+          <Button
+            type="button"
+            onClick={handleFormTabNext}
+            variant="default"
+            className="text-base cursor-pointer py-2.5"
+            disabled={isCheckingConflict}
+          >
+            {isCheckingConflict ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Checking for conflicts...
+              </div>
+            ) : (
+              <div className="flex items-center">
+                Next
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </div>
+            )}
+          </Button>
+        </div>
       )}
       {activeTab === "equipment" && (
         <div className="flex gap-3">
@@ -130,7 +156,7 @@ export function ModalFooter({ activeTab, isSubmitting, isCheckingConflict, editM
             ) : (
               <div className="flex items-center">
                 <Check className="w-4 h-4 mr-2" />
-                {editMode ? "Update" : "Submit"}
+                {resubmitMode ? "Resubmit" : editMode ? "Update" : "Submit"}
               </div>
             )}
           </Button>

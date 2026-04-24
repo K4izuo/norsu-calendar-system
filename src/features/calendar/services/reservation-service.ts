@@ -1,7 +1,7 @@
 import { apiClient } from "@/core/api/api-client";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/shared/components/context/auth-context";
-import { ReservationWithRelations, MoveReservationPayload } from "@/interface/user-props";
+import { ReservationWithRelations, MoveReservationPayload, ReservationAPIPayload } from "@/interface/user-props";
 import toast from "react-hot-toast";
 
 export type Asset = {
@@ -11,17 +11,11 @@ export type Asset = {
 };
 
 const toNumber = (value: unknown): number => {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
-  }
-
+  if (typeof value === "number" && Number.isFinite(value)) return value;
   if (typeof value === "string") {
     const parsed = Number(value);
-    if (Number.isFinite(parsed)) {
-      return parsed;
-    }
+    if (Number.isFinite(parsed)) return parsed;
   }
-
   return 0;
 };
 
@@ -37,75 +31,66 @@ export const normalizeReservation = (
 // Fetch all reservations with relations (PUBLIC endpoint)
 export const fetchReservations = async (): Promise<ReservationWithRelations[]> => {
   const response = await apiClient.get<ReservationWithRelations[]>("/reservations/all");
-
-  if (response.error) {
-    throw new Error(response.error);
-  }
-
-  if (!response.data) {
-    return [];
-  }
-
+  if (response.error) throw new Error(response.error);
+  if (!response.data) return [];
   return response.data.map(normalizeReservation);
 };
 
-// Fetch a single reservation by ID (PROTECTED endpoint)
+// Fetch single asset by ID (PROTECTED endpoint)
 const fetchReservation = async (id: number): Promise<Asset | null> => {
   const response = await apiClient.get<Asset[]>(`/reservations/${id}`);
-
-  if (response.error) {
-    throw new Error(response.error);
-  }
-
-  if (!response.data || response.data.length === 0) {
-    return null;
-  }
-
+  if (response.error) throw new Error(response.error);
+  if (!response.data || response.data.length === 0) return null;
   return response.data[0];
 };
 
-// Fetch a single asset by ID from public endpoint
+// Fetch single asset by ID from public endpoint
 const fetchPublicAsset = async (id: number): Promise<Asset | null> => {
   const response = await apiClient.get<Asset[]>(`/reservations/assets/${id}`);
-
   if (response.error) {
     console.warn(`Failed to fetch asset ${id}:`, response.error);
     return null;
   }
-
-  if (!response.data || response.data.length === 0) {
-    return null;
-  }
-
+  if (!response.data || response.data.length === 0) return null;
   return response.data[0];
 };
 
-// ✅ Approve reservation mutation
-const approveReservation = async ({ reservationId, userId }: { reservationId: number; userId: string | number }): Promise<void> => {
+// Approve / Campus-Director-action reservation
+const approveReservation = async ({
+  reservationId,
+  userId,
+  action = "APPROVED",
+}: {
+  reservationId: number;
+  userId: string | number;
+  action?: "APPROVED" | "APPROVE" | "ENDORSE";
+}): Promise<void> => {
   const response = await apiClient.put(`/reservations/${reservationId}`, {
-    status: 'APPROVED',
+    action,
     approved_by_user: userId,
   });
-
-  if (response.error) {
-    throw new Error(response.error);
-  }
+  if (response.error) throw new Error(response.error);
 };
 
-// ✅ Decline reservation mutation  
-const declineReservation = async ({ reservationId, userId, reason }: { reservationId: number; userId: string | number; reason?: string }): Promise<void> => {
+// Decline reservation
+const declineReservation = async ({
+  reservationId,
+  userId,
+  reason,
+}: {
+  reservationId: number;
+  userId: string | number;
+  reason?: string;
+}): Promise<void> => {
   const response = await apiClient.put(`/reservations/${reservationId}`, {
-    status: 'DECLINED',
+    action: "DECLINED",
     declined_by_user: userId,
-    reason: reason || '',
+    reason: reason || "",
   });
-
-  if (response.error) {
-    throw new Error(response.error);
-  }
+  if (response.error) throw new Error(response.error);
 };
 
-// Move reservation API call
+// Move reservation
 const moveReservation = async ({
   reservationId,
   payload,
@@ -117,46 +102,61 @@ const moveReservation = async ({
   if (response.error) throw new Error(response.error);
 };
 
-// Hook to fetch all reservations (AUTHENTICATED - for admin/user pages)
+// Resubmit a declined reservation
+const resubmitReservation = async ({
+  reservationId,
+  payload,
+}: {
+  reservationId: number;
+  payload: ReservationAPIPayload;
+}): Promise<void> => {
+  const response = await apiClient.post(`/reservations/${reservationId}/resubmit`, payload);
+  if (response.error) throw new Error(response.error);
+};
+
+// Fetch the approval queue for the current user's role
+export const fetchQueue = async (): Promise<ReservationWithRelations[]> => {
+  const response = await apiClient.get<ReservationWithRelations[]>("/reservations/queue");
+  if (response.error) throw new Error(response.error);
+  return (response.data ?? []).map(normalizeReservation);
+};
+
+// ─── Hooks ──────────────────────────────────────────────────────────────────
+
 export const useReservations = () => {
   const { user, isLoading: isAuthLoading, isAuthenticated } = useAuth();
 
   const { data, isFetching, error, refetch, dataUpdatedAt, isSuccess } = useQuery({
-    queryKey: ['reservations', user?.id],
+    queryKey: ["reservations", user?.id],
     queryFn: fetchReservations,
-    staleTime: 2 * 60 * 1000, // 2 minutes (was 0 - too aggressive)
-    refetchOnWindowFocus: false,
+    staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: true,
     refetchOnMount: true,
     enabled: !isAuthLoading && isAuthenticated,
     placeholderData: (previousData) => previousData,
     retry: (failureCount, error) => {
-      if (error instanceof Error && error.message.includes('401')) {
-        return false;
-      }
+      if (error instanceof Error && error.message.includes("401")) return false;
       return failureCount < 2;
     },
   });
 
-  // ✅ PRODUCTION FIX: Only trust data if query succeeded AND has data
-  // Don't rely on dataUpdatedAt alone - it can be from stale cache
   const hasValidData = isSuccess && !!data && dataUpdatedAt > 0;
 
   return {
     reservations: data || [],
     loading: isAuthLoading || isFetching,
-    hasData: hasValidData, // ✅ FIXED: Only true if fresh fetch succeeded
-    isQueryEnabled: !isAuthLoading && isAuthenticated, // ✅ NEW: Query execution state
+    hasData: hasValidData,
+    isQueryEnabled: !isAuthLoading && isAuthenticated,
     error: error?.message || null,
     refetch,
   };
 };
 
-// Hook to fetch all reservations (PUBLIC - for main landing page)
 export const usePublicReservations = () => {
   const { data, isFetching, error, refetch } = useQuery({
-    queryKey: ['public-reservations'],
+    queryKey: ["public-reservations"],
     queryFn: fetchReservations,
-    staleTime: 2 * 60 * 1000, // 2 minutes (was 0)
+    staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnMount: true,
     enabled: true,
@@ -172,46 +172,55 @@ export const usePublicReservations = () => {
   };
 };
 
-// Hook to fetch multiple assets efficiently (AUTHENTICATED)
+export const useGetQueue = () => {
+  const { user, isLoading: isAuthLoading, isAuthenticated } = useAuth();
+
+  const { data, isFetching, error, refetch } = useQuery({
+    queryKey: ["reservation-queue", user?.id],
+    queryFn: fetchQueue,
+    staleTime: 30 * 1000,
+    enabled: !isAuthLoading && isAuthenticated,
+    refetchOnWindowFocus: true,
+  });
+
+  return {
+    queue: data || [],
+    loading: isFetching,
+    error: error?.message || null,
+    refetch,
+  };
+};
+
 export const useAssets = (assetIds: number[]) => {
   const queryClient = useQueryClient();
   const { user, isLoading: isAuthLoading, isAuthenticated } = useAuth();
 
   const queries = useQuery({
-    queryKey: ['reservation-assets', user?.id, assetIds.sort().join(',')],
+    queryKey: ["reservation-assets", user?.id, [...assetIds].sort().join(",")],
     queryFn: async () => {
       const uniqueIds = [...new Set(assetIds)];
       const assets = new Map<number, Asset>();
       const missingIds: number[] = [];
 
-      // ⚡ PERFORMANCE: Check cache first to avoid redundant fetches
       for (const id of uniqueIds) {
-        const cached = queryClient.getQueryData<Asset>(['asset', id]);
-        if (cached) {
-          assets.set(id, cached);
-        } else {
-          missingIds.push(id);
-        }
+        const cached = queryClient.getQueryData<Asset>(["asset", id]);
+        if (cached) { assets.set(id, cached); } else { missingIds.push(id); }
       }
 
-      // ⚡ PERFORMANCE: Batch fetch missing assets in parallel
       if (missingIds.length > 0) {
-        const assetPromises = missingIds.map(id => fetchReservation(id));
-        const fetchedAssets = await Promise.all(assetPromises);
-
+        const fetchedAssets = await Promise.all(missingIds.map(id => fetchReservation(id)));
         fetchedAssets.forEach((asset, index) => {
           if (asset) {
             const assetId = missingIds[index];
             assets.set(assetId, asset);
-            // Cache individual assets for future use
-            queryClient.setQueryData(['asset', assetId], asset);
+            queryClient.setQueryData(["asset", assetId], asset);
           }
         });
       }
 
       return assets;
     },
-    staleTime: 5 * 60 * 1000, // ⚡ Assets change less frequently - cache longer
+    staleTime: 5 * 60 * 1000,
     enabled: assetIds.length > 0 && !isAuthLoading && isAuthenticated,
     placeholderData: (previousData) => previousData,
   });
@@ -223,45 +232,35 @@ export const useAssets = (assetIds: number[]) => {
   };
 };
 
-// Hook to fetch multiple assets efficiently (PUBLIC - for main landing page)
 export const usePublicAssets = (assetIds: number[]) => {
   const queryClient = useQueryClient();
 
   const queries = useQuery({
-    queryKey: ['public-reservation-assets', assetIds.sort().join(',')],
+    queryKey: ["public-reservation-assets", [...assetIds].sort().join(",")],
     queryFn: async () => {
       const uniqueIds = [...new Set(assetIds)];
       const assets = new Map<number, Asset>();
       const missingIds: number[] = [];
 
-      // ⚡ PERFORMANCE: Check cache first to avoid redundant fetches
       for (const id of uniqueIds) {
-        const cached = queryClient.getQueryData<Asset>(['public-asset', id]);
-        if (cached) {
-          assets.set(id, cached);
-        } else {
-          missingIds.push(id);
-        }
+        const cached = queryClient.getQueryData<Asset>(["public-asset", id]);
+        if (cached) { assets.set(id, cached); } else { missingIds.push(id); }
       }
 
-      // ⚡ PERFORMANCE: Batch fetch missing assets in parallel using PUBLIC endpoint
       if (missingIds.length > 0) {
-        const assetPromises = missingIds.map(id => fetchPublicAsset(id));
-        const fetchedAssets = await Promise.all(assetPromises);
-
+        const fetchedAssets = await Promise.all(missingIds.map(id => fetchPublicAsset(id)));
         fetchedAssets.forEach((asset, index) => {
           if (asset) {
             const assetId = missingIds[index];
             assets.set(assetId, asset);
-            // Cache individual assets for future use
-            queryClient.setQueryData(['public-asset', assetId], asset);
+            queryClient.setQueryData(["public-asset", assetId], asset);
           }
         });
       }
 
       return assets;
     },
-    staleTime: 5 * 60 * 1000, // ⚡ Public assets cached longer
+    staleTime: 5 * 60 * 1000,
     enabled: assetIds.length > 0,
     placeholderData: (previousData) => previousData,
     retry: 1,
@@ -275,12 +274,11 @@ export const usePublicAssets = (assetIds: number[]) => {
   };
 };
 
-// Hook to fetch a single asset (AUTHENTICATED)
 export const useAsset = (id: number) => {
   const { isLoading: isAuthLoading, isAuthenticated } = useAuth();
 
   const { data, isFetching, error } = useQuery({
-    queryKey: ['asset', id],
+    queryKey: ["asset", id],
     queryFn: () => fetchReservation(id),
     staleTime: 5 * 60 * 1000,
     enabled: !!id && !isAuthLoading && isAuthenticated,
@@ -293,73 +291,58 @@ export const useAsset = (id: number) => {
   };
 };
 
-// ✅ Hook to approve a reservation
+const invalidateReservationQueries = (queryClient: ReturnType<typeof useQueryClient>) => {
+  queryClient.invalidateQueries({ queryKey: ["reservations"], refetchType: "all" });
+  queryClient.invalidateQueries({ queryKey: ["public-reservations"], refetchType: "all" });
+  queryClient.invalidateQueries({ queryKey: ["reservation-queue"], refetchType: "all" });
+};
+
 export const useApproveReservation = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: (reservationId: number) => {
-      if (!user?.id) {
-        throw new Error('User not authenticated. Please login again.');
-      }
-      return approveReservation({ reservationId, userId: user.id });
+    mutationFn: ({
+      reservationId,
+      action = "APPROVED",
+    }: {
+      reservationId: number;
+      action?: "APPROVED" | "APPROVE" | "ENDORSE";
+    }) => {
+      if (!user?.id) throw new Error("User not authenticated. Please login again.");
+      return approveReservation({ reservationId, userId: user.id, action });
     },
     onSuccess: () => {
-      // ✅ CRITICAL FIX: Invalidate ALL reservation queries immediately
-      queryClient.invalidateQueries({
-        queryKey: ['reservations'],
-        refetchType: 'all', // Refetch ALL matching queries
-      });
-
-      queryClient.invalidateQueries({
-        queryKey: ['public-reservations'],
-        refetchType: 'all',
-      });
-
+      invalidateReservationQueries(queryClient);
       toast.success("Reservation approved successfully!");
     },
     onError: (err) => {
-      console.error('Approve error:', err);
+      console.error("Approve error:", err);
       toast.error("Failed to approve reservation");
     },
   });
 };
 
-// ✅ Hook to decline a reservation
 export const useDeclineReservation = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
   return useMutation({
     mutationFn: ({ reservationId, reason }: { reservationId: number; reason?: string }) => {
-      if (!user?.id) {
-        throw new Error('User not authenticated. Please login again.');
-      }
+      if (!user?.id) throw new Error("User not authenticated. Please login again.");
       return declineReservation({ reservationId, userId: user.id, reason });
     },
     onSuccess: () => {
-      // ✅ CRITICAL FIX: Invalidate ALL reservation queries immediately
-      queryClient.invalidateQueries({
-        queryKey: ['reservations'],
-        refetchType: 'all',
-      });
-
-      queryClient.invalidateQueries({
-        queryKey: ['public-reservations'],
-        refetchType: 'all',
-      });
-
+      invalidateReservationQueries(queryClient);
       toast.success("Reservation declined successfully!");
     },
     onError: (err) => {
-      console.error('Decline error:', err);
+      console.error("Decline error:", err);
       toast.error("Failed to decline reservation");
     },
   });
 };
 
-// Hook to move a reservation
 export const useMoveReservation = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -373,18 +356,40 @@ export const useMoveReservation = () => {
       payload: Omit<MoveReservationPayload, "moved_by">;
     }) => {
       if (!user?.id) throw new Error("User not authenticated. Please login again.");
-      return moveReservation({
-        reservationId,
-        payload: { ...payload, moved_by: Number(user.id) },
-      });
+      return moveReservation({ reservationId, payload: { ...payload, moved_by: Number(user.id) } });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["reservations"], refetchType: "all" });
-      queryClient.invalidateQueries({ queryKey: ["public-reservations"], refetchType: "all" });
+      invalidateReservationQueries(queryClient);
     },
     onError: (err) => {
       console.error("Move reservation error:", err);
       toast.error(err instanceof Error ? err.message : "Failed to move reservation");
+    },
+  });
+};
+
+export const useResubmitReservation = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: ({
+      reservationId,
+      payload,
+    }: {
+      reservationId: number;
+      payload: ReservationAPIPayload;
+    }) => {
+      if (!user?.id) throw new Error("User not authenticated. Please login again.");
+      return resubmitReservation({ reservationId, payload });
+    },
+    onSuccess: () => {
+      invalidateReservationQueries(queryClient);
+      toast.success("Reservation resubmitted successfully!");
+    },
+    onError: (err) => {
+      console.error("Resubmit error:", err);
+      toast.error("Failed to resubmit reservation");
     },
   });
 };

@@ -5,14 +5,32 @@ import {
   FileText,
   Package,
   User,
+  Users,
+  GraduationCap,
+  Building2,
 } from "lucide-react";
-import { ReservationFormData } from "@/interface/user-props";
+import { ReservationFormData, RequestorInfo } from "@/interface/user-props";
 
 interface Props {
   formData: ReservationFormData;
   categories: { value: string; label: string }[];
   infoTypes: { value: string; label: string }[];
   taggedPeople: { id: number; name: string }[];
+  requestorInfo?: RequestorInfo | null;
+}
+
+function formatRequestorLabel(r: RequestorInfo): string {
+  if (r.type === 'student') {
+    const subLabels: Record<string, string> = {
+      student_org: 'Student Organization/Society',
+      csg: 'College Student Government',
+      lso: 'LSO',
+      sgdc: 'SGDC',
+    };
+    return subLabels[r.student_sub_type ?? ''] ?? 'Student';
+  }
+  if (r.type === 'faculty') return 'Faculty';
+  return 'Office';
 }
 
 export function ReserveEventSummaryTab({
@@ -20,6 +38,7 @@ export function ReserveEventSummaryTab({
   categories,
   infoTypes,
   taggedPeople,
+  requestorInfo,
 }: Props) {
   const asset = formData.asset;
 
@@ -33,6 +52,55 @@ export function ReserveEventSummaryTab({
   };
   return (
     <div className="space-y-4 sm:space-y-6 pb-4 sm:pb-8">
+      {requestorInfo && (
+        <div className="bg-white text-card-foreground border border-border rounded-lg">
+          <div className="flex items-center px-6 pt-6 pb-4">
+            {requestorInfo.type === 'student' && <Users className="text-blue-500 mr-2 h-6 w-6" />}
+            {requestorInfo.type === 'faculty' && <GraduationCap className="text-green-500 mr-2 h-6 w-6" />}
+            {requestorInfo.type === 'office' && <Building2 className="text-amber-500 mr-2 h-6 w-6" />}
+            <h3 className="text-lg font-medium text-gray-700">Requestor Information</h3>
+          </div>
+          <div className="border-t border-gray-200" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-6 py-4">
+            <div>
+              <p className="text-sm text-gray-500">Type</p>
+              <p className="font-medium text-base capitalize">{requestorInfo.type}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Category</p>
+              <p className="font-medium text-base">{formatRequestorLabel(requestorInfo)}</p>
+            </div>
+            {requestorInfo.type === 'student' && requestorInfo.student_sub_type === 'student_org' && requestorInfo.student_org_name && (
+              <div className="md:col-span-2">
+                <p className="text-sm text-gray-500">Organization / Society Name</p>
+                <p className="font-medium text-base">{requestorInfo.student_org_name}</p>
+              </div>
+            )}
+            {requestorInfo.type === 'student' && requestorInfo.student_sub_type === 'csg' && requestorInfo.csg_name && (
+              <div className="md:col-span-2">
+                <p className="text-sm text-gray-500">College Student Government Name</p>
+                <p className="font-medium text-base">{requestorInfo.csg_name}</p>
+              </div>
+            )}
+            {(requestorInfo.type === 'faculty' || requestorInfo.type === 'office') && requestorInfo.tagged && requestorInfo.tagged.length > 0 && (
+              <div className="md:col-span-2">
+                <p className="text-sm text-gray-500">{requestorInfo.type === 'faculty' ? 'Degree Course' : 'Office'}</p>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {requestorInfo.tagged.map((item) => (
+                    <span key={item.id} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                      {requestorInfo.type === 'faculty'
+                        ? <GraduationCap className="w-3.5 h-3.5 text-green-600" />
+                        : <Building2 className="w-3.5 h-3.5 text-amber-600" />}
+                      {item.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="bg-white text-card-foreground border border-border rounded-lg">
         <div className="flex items-center px-6 pt-6 pb-4">
           <CalendarPlus2 className="text-gray-500 mr-2 h-6 w-6" />

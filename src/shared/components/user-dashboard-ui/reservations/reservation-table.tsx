@@ -16,19 +16,23 @@ import {
 } from "@/shared/components/ui/select"
 import { TableSkeleton } from "@/shared/components/ui/skeleton"
 
+// Roles that can approve/decline reservations
+const APPROVER_ROLE_NUMBERS = new Set([3, 4, 5, 6, 7, 8, 9]);
+
 interface ReservationsTableProps {
   events: EventDetails[];
   isLoading?: boolean;
   statusFilter: string;
   onStatusFilterChange: (value: string) => void;
+  userRoleNumber?: number;
+  onResubmit?: (event: EventDetails) => void;
 }
 
-export function ReservationsTable({ events, isLoading, statusFilter, onStatusFilterChange }: ReservationsTableProps) {
+export function ReservationsTable({ events, isLoading, statusFilter, onStatusFilterChange, userRoleNumber, onResubmit }: ReservationsTableProps) {
   const [searchQuery, setSearchQuery] = useState("")
 
   const [eventInfoModalOpen, setEventInfoModalOpen] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<EventDetails | undefined>(undefined)
-  const [eventInfoLoading, setEventInfoLoading] = useState(false)
 
   const formatDate = (dateStr: string): string => {
     const date = new Date(dateStr);
@@ -69,12 +73,8 @@ export function ReservationsTable({ events, isLoading, statusFilter, onStatusFil
   }, [events, searchQuery, statusFilter]);
 
   const handleRowClick = (event: EventDetails) => {
-    setEventInfoLoading(true)
+    setSelectedEvent(event)
     setEventInfoModalOpen(true)
-    setTimeout(() => {
-      setSelectedEvent(event)
-      setEventInfoLoading(false)
-    }, 150)
   }
 
   if (isLoading && events.length === 0) {
@@ -203,12 +203,13 @@ export function ReservationsTable({ events, isLoading, statusFilter, onStatusFil
       </div>
 
       <EventInfoModal
-        role="admin"
+        role={APPROVER_ROLE_NUMBERS.has(userRoleNumber ?? 0) ? "admin" : "public"}
+        userRoleNumber={userRoleNumber}
         isOpen={eventInfoModalOpen}
         onClose={() => setEventInfoModalOpen(false)}
         event={selectedEvent}
-        loading={eventInfoLoading}
         showBackdropBlur={true}
+        onResubmit={onResubmit}
       />
     </>
   )

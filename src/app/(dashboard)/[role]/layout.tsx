@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useContext, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import {
   setupActivityTracking,
   startTokenRefresh,
@@ -9,7 +10,7 @@ import {
 import { Search, Mail } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
-import { AuthContext } from "@/shared/components/context/auth-context";
+import { useAuth } from "@/shared/components/context/auth-context";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,9 +19,9 @@ import {
 import UserProfile from "@/features/user-profile/components/user-profile";
 import { NotificationBell } from "@/features/notifications/components/notification-bell";
 import toast from "react-hot-toast";
-import { getRoleLabelFromNumber } from "@/core/lib/role-utils";
+import { getRoleLabelFromNumber, getRolePathFromNumber } from "@/core/lib/role-utils";
 import { Separator } from "@/shared/components/ui/separator";
-import { usePathname } from "next/navigation";
+import { usePathname, useParams } from "next/navigation";
 import Loading from "@/app/(dashboard)/[role]/loading";
 import Image from "next/image";
 import { AppSidebar } from "@/shared/components/layouts/app-sidebar";
@@ -35,22 +36,35 @@ interface UserData {
   role: number;
 }
 
-const pathRoleMap: Record<string, number> = { dean: 1, staff: 2, admin: 3 }
+const pathRoleMap: Record<string, number> = {
+  dean:               1,
+  staff:              2,
+  admin:              3,
+  'student-director': 4,
+  'campus-director':  5,
+  vpaa:               6,
+  vpsas:              7,
+  vpaf:               8,
+  vprde:              9,
+  head:               10,
+}
 
 export default function RoleLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const auth = useContext(AuthContext);
-  const user = auth?.user;
+  const { user, isLoading: isAuthLoading } = useAuth();
+  const params = useParams();
+  const roleSegment = (params.role as string) ?? "";
   const pathname = usePathname();
+  const router = useRouter();
 
   const [showLoading, setShowLoading] = useState(false);
   const [fadeOut, setFadeOut] = useState(false);
   const prevPathname = useRef<string | null>(null);
 
-  const pathRole = pathRoleMap[pathname?.split("/")?.[1] ?? ""] ?? 3
+  const pathRole = pathRoleMap[roleSegment] ?? 3
   const pathRoleRef = useRef(pathRole)
   pathRoleRef.current = pathRole
 
@@ -103,6 +117,31 @@ export default function RoleLayout({
       );
     }
   }, [user]);
+
+  // Role URL guard — redirect if user navigates to a different role's path,
+  // or to a page their role is not allowed to access.
+  useEffect(() => {
+    if (isAuthLoading || !userData.role) return;
+
+    const expectedRoleNumber = pathRoleMap[roleSegment];
+
+    // Wrong role segment entirely (e.g. dean visiting /admin/...)
+    if (expectedRoleNumber !== undefined && expectedRoleNumber !== userData.role) {
+      const expectedPath = getRolePathFromNumber(userData.role);
+      router.replace(`/${expectedPath}/calendar`);
+      return;
+    }
+
+    // Non-admin roles may only access /calendar and /reservations
+    const ADMIN_ROLE = 3;
+    if (userData.role !== ADMIN_ROLE) {
+      const allowedSegments = ["calendar", "reservations"];
+      const pageSegment = pathname.split("/")[2]; // e.g. "dashboard", "calendar"
+      if (pageSegment && !allowedSegments.includes(pageSegment)) {
+        router.replace(`/${roleSegment}/calendar`);
+      }
+    }
+  }, [isAuthLoading, userData.role, roleSegment, pathname, router]);
 
   // Show loading on actual navigation, hide after fixed duration with fade
   useEffect(() => {

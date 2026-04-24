@@ -7,6 +7,8 @@ import { ReserveEventFormTab } from "@/features/reservations/components/reserve-
 import { ReserveEventAdditionalTab } from "@/features/reservations/components/reserve-event/tabs/event-additional-tab";
 import { ReserveEventSummaryTab } from "@/features/reservations/components/reserve-event/tabs/event-summary-tab";
 import { ReserveEventEquipmentTab } from "@/features/reservations/components/reserve-event/tabs/event-equipment-tab";
+import { VpSignatoriesSection } from "@/features/reservations/components/reserve-event/tabs/vp-signatories-section";
+import { EventRequestorTab } from "@/features/reservations/components/reserve-event/tabs/event-requestor-tab";
 import { AssetsVenueModal } from "@/features/reservations/components/reserve-event/assets/assets-venue-modal";
 import { AssetsVehicleModal } from "@/features/reservations/components/reserve-event/assets/assets-vehicle-modal";
 import { useAssets } from "@/features/calendar/services/academicDataService";
@@ -36,7 +38,10 @@ interface ModalProps {
   eventDate?: string | undefined;
   onNewReservation?: (reservation: Reservation) => void;
   editMode?: boolean;
+  resubmitMode?: boolean;
   eventData?: EventDetails;
+  userRole?: number;
+  userOffice?: { oversight_vp_id: number | null };
 }
 
 export function ReserveEventModal({
@@ -46,7 +51,10 @@ export function ReserveEventModal({
   eventDate,
   onNewReservation,
   editMode = false,
+  resubmitMode = false,
   eventData,
+  userRole,
+  userOffice,
 }: ModalProps) {
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -76,6 +84,11 @@ export function ReserveEventModal({
     handleTagInputChange,
     handleTagSelect,
     handleRemoveTag,
+    requestor,
+    setRequestor,
+    requestorError,
+    setRequestorError,
+    handleRequestorTabNext,
     handleFormTabNext,
     handleEquipmentTabNext,
     handleAdditionalTabNext,
@@ -108,7 +121,10 @@ export function ReserveEventModal({
     isOpen,
     onNewReservation,
     editMode,
+    resubmitMode,
     eventData,
+    userRole,
+    userOffice,
   });
 
   useModalBehavior({ isOpen, onClose });
@@ -132,8 +148,12 @@ export function ReserveEventModal({
 
   const displayDate = useMemo(() => formatDisplayDate(eventDate), [eventDate]);
 
-  const tabOrder = ["form", "equipment", "additional", "summary"];
+  // Roles that see the VP signatories section: Dean(1), Admin(3), CampusDirector(5), HeadOfOffice(10)
+  const showVpSection = userRole === 1 || userRole === 3 || userRole === 5 || userRole === 10;
+
+  const tabOrder = ["requestor", "form", "equipment", "additional", "summary"];
   const tabLabels: Record<string, string> = {
+    requestor: "Requestor",
     form: "Event Details",
     equipment: "Equipment",
     additional: "Additional Info",
@@ -182,6 +202,15 @@ export function ReserveEventModal({
                 activeTab={activeTab}
               />
 
+              <TabsContent value="requestor" className="space-y-4 sm:space-y-6">
+                <EventRequestorTab
+                  requestor={requestor}
+                  onChange={setRequestor}
+                  error={requestorError}
+                  onClearError={setRequestorError}
+                />
+              </TabsContent>
+
               <TabsContent value="form" className="space-y-4 sm:space-y-6">
                 <ReserveEventFormTab
                   control={control}
@@ -200,7 +229,7 @@ export function ReserveEventModal({
 
               <TabsContent
                 value="additional"
-                className="space-y-4 sm:space-y-6"
+                className="space-y-5"
               >
                 <ReserveEventAdditionalTab
                   control={control}
@@ -233,6 +262,13 @@ export function ReserveEventModal({
                   handleAddGuest={handleAddGuest}
                   handleRemoveGuest={handleRemoveGuest}
                 />
+
+                {showVpSection && (
+                  <VpSignatoriesSection
+                    watch={watch}
+                    setValue={setValue}
+                  />
+                )}
               </TabsContent>
 
               <TabsContent value="summary" className="space-y-4 sm:space-y-6">
@@ -241,6 +277,7 @@ export function ReserveEventModal({
                   categories={categories}
                   infoTypes={infoTypes}
                   taggedPeople={taggedPeople}
+                  requestorInfo={requestor}
                 />
               </TabsContent>
             </Tabs>
@@ -251,7 +288,9 @@ export function ReserveEventModal({
             isSubmitting={isSubmitting}
             isCheckingConflict={isCheckingConflict}
             editMode={editMode}
+            resubmitMode={resubmitMode}
             setActiveTab={setActiveTab}
+            handleRequestorTabNext={handleRequestorTabNext}
             handleFormTabNext={handleFormTabNext}
             handleEquipmentTabNext={handleEquipmentTabNext}
             handleAdditionalTabNext={handleAdditionalTabNext}

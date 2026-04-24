@@ -2,39 +2,65 @@
 
 import { useState, useMemo } from "react";
 import { ReservationsTable } from "@/shared/components/user-dashboard-ui/reservations/reservation-table";
+import { ReserveEventModal } from "@/features/reservations/components/reserve-event-modal";
 import { EventDetails } from "@/interface/user-props";
-import { useReservations, useAssets } from "@/features/calendar/services/reservation-service";
+import {
+  useReservations,
+  useAssets,
+  useGetQueue,
+} from "@/features/calendar/services/reservation-service";
 import { PageBreadcrumb } from "@/shared/components/ui/page-breadcrumb";
 import { PageStatCard } from "@/shared/components/ui/page-stat-card";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { CalendarDays, Clock, CircleCheck, XCircle } from "lucide-react";
 import { useParams } from "next/navigation";
+import { useAuth } from "@/shared/components/context/auth-context";
+
+const PATH_ROLE_MAP: Record<string, number> = {
+  dean:               1,
+  staff:              2,
+  admin:              3,
+  "student-director": 4,
+  "campus-director":  5,
+  vpaa:               6,
+  vpsas:              7,
+  vpaf:               8,
+  vprde:              9,
+  head:               10,
+};
 
 export default function ReservationsPage() {
   const params = useParams();
   const role = params.role as string;
+  const userRoleNumber = PATH_ROLE_MAP[role] ?? 3;
+  const { user } = useAuth();
+  const userOffice = user?.office;
+
   const [statusFilter, setStatusFilter] = useState("pending");
+  const [resubmitEvent, setResubmitEvent] = useState<EventDetails | undefined>();
 
-  const { reservations, error, loading } = useReservations();
+  // Only admin sees all reservations; every other role uses the queue
+  // (backend queue() already scopes by role: Dean/HO → own, VPs → matching flag, etc.)
+  const isAdmin = userRoleNumber === 3;
 
-  const total = reservations.length;
-  const pending = reservations.filter((r) => r.status.toUpperCase() === "PENDING").length;
-  const approved = reservations.filter((r) => r.status.toUpperCase() === "APPROVED").length;
-  const declined = reservations.filter((r) => r.status.toUpperCase() === "DECLINED").length;
+  const { reservations, error: resError, loading: resLoading } = useReservations();
+  const { queue, error: queueError, loading: queueLoading } = useGetQueue();
 
-  // Get unique asset IDs from reservations
-  const assetIds = useMemo(() => {
-    return [...new Set(reservations.map(r => r.asset_id))];
-  }, [reservations]);
+  const sourceList = isAdmin ? reservations : queue;
+  const loading = isAdmin ? resLoading : queueLoading;
+  const error = isAdmin ? resError : queueError;
 
-  // Fetch assets using TanStack Query
+  const total    = sourceList.length;
+  const pending  = sourceList.filter(r => r.status.toUpperCase() === "PENDING").length;
+  const approved = sourceList.filter(r => r.status.toUpperCase() === "APPROVED").length;
+  const declined = sourceList.filter(r => r.status.toUpperCase() === "DECLINED").length;
+
+  const assetIds = useMemo(() => [...new Set(sourceList.map(r => r.asset_id))], [sourceList]);
   const { assets } = useAssets(assetIds);
 
-  // Convert reservations to events format
   const events: EventDetails[] = useMemo(() => {
-    return reservations.map(reservation => {
+    return sourceList.map(reservation => {
       const asset = assets.get(reservation.asset_id);
-
       return {
         id: reservation.id,
         title_name: reservation.title_name,
@@ -56,16 +82,25 @@ export default function ReservationsPage() {
         registration_deadline: reservation.date,
         reserved_by_user: reservation.reserved_by_user,
         reserve_by_user: reservation.reserved_by_user
-          ? `${reservation.reserved_by_user.first_name} ${reservation.reserved_by_user.last_name}`
+          ? `${(reservation.reserved_by_user as { first_name: string; last_name: string }).first_name} ${(reservation.reserved_by_user as { first_name: string; last_name: string }).last_name}`
           : "Unknown User",
         approved_by_user_details: reservation.approved_by_user,
         declined_by_user_details: reservation.declined_by_user,
         equipment: reservation.equipment,
         outsource: reservation.outsource,
         guests: reservation.guests,
+        involves_students: reservation.involves_students,
+        requires_vpaa: reservation.requires_vpaa,
+        requires_vpsas: reservation.requires_vpsas,
+        requires_vpaf: reservation.requires_vpaf,
+        requires_vprde: reservation.requires_vprde,
+        current_stage: reservation.current_stage,
+        declined_at_stage: reservation.declined_at_stage,
+        campus_director_action: reservation.campus_director_action,
+        approvals: reservation.approvals,
       };
     });
-  }, [reservations, assets]);
+  }, [sourceList, assets]);
 
   return (
     <div className="flex flex-col items-start self-stretch h-full">
@@ -84,20 +119,16 @@ export default function ReservationsPage() {
       )}
 
       <div className="flex flex-col items-start gap-6 flex-1 self-stretch min-h-0">
-        {loading && reservations.length === 0 ? (
-          <>
-            <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[...Array(4)].map((_, i) => (
-                <Skeleton key={i} className="h-27.5 w-full" />
-              ))}
-            </div>
-          </>
+        {loading && sourceList.length === 0 ? (
+          <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-27.5 w-full" />)}
+          </div>
         ) : (
           <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <PageStatCard title="Total Reservations" value={total} subLabel="All submitted reservations" icon={CalendarDays} color="gray" />
-            <PageStatCard title="Pending" value={pending} subLabel="Awaiting approval" icon={Clock} color="amber" />
-            <PageStatCard title="Approved" value={approved} subLabel="Confirmed reservations" icon={CircleCheck} color="green" />
-            <PageStatCard title="Declined" value={declined} subLabel="Rejected reservations" icon={XCircle} color="red" />
+            <PageStatCard title="Total Reservations" value={total}    subLabel="All submitted reservations" icon={CalendarDays} color="gray"  />
+            <PageStatCard title="Pending"             value={pending}  subLabel="Awaiting approval"          icon={Clock}        color="amber" />
+            <PageStatCard title="Approved"            value={approved} subLabel="Confirmed reservations"     icon={CircleCheck}  color="green" />
+            <PageStatCard title="Declined"            value={declined} subLabel="Rejected reservations"      icon={XCircle}      color="red"   />
           </div>
         )}
 
@@ -107,9 +138,23 @@ export default function ReservationsPage() {
             isLoading={loading}
             statusFilter={statusFilter}
             onStatusFilterChange={setStatusFilter}
+            userRoleNumber={userRoleNumber}
+            onResubmit={(event) => setResubmitEvent(event)}
           />
         </div>
       </div>
+
+      {/* Resubmit modal — opens pre-filled for Dean/HO on declined reservations */}
+      {resubmitEvent && (
+        <ReserveEventModal
+          isOpen={!!resubmitEvent}
+          onClose={() => setResubmitEvent(undefined)}
+          resubmitMode={true}
+          eventData={resubmitEvent}
+          userRole={userRoleNumber}
+          userOffice={userOffice}
+        />
+      )}
     </div>
   );
 }

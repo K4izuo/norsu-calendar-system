@@ -1,0 +1,89 @@
+{
+  "description": "Test accounts for NORSU Calendar System — one per role. Password for all accounts is listed per entry.",
+  "accounts": [
+    {
+      "role": 4,
+      "role_label": "Student Director",
+      "dashboard_path": "/student-director/dashboard",
+      "username": "student_director",
+      "email": "student.director@norsu.edu.ph",
+      "password": "Password123!",
+      "first_name": "Maria",
+      "middle_name": "Cruz",
+      "last_name": "Santos",
+      "campus_id": "1",
+      "office_id": "4",
+      "assignment_id": "1"
+    },
+    {
+      "role": 5,
+      "role_label": "Campus Director",
+      "dashboard_path": "/campus-director/dashboard",
+      "username": "campus_director",
+      "email": "campus.director@norsu.edu.ph",
+      "password": "Password123!",
+      "first_name": "Jose",
+      "middle_name": "Reyes",
+      "last_name": "Garcia",
+      "campus_id": "1",
+      "office_id": "5",
+      "assignment_id": "2"
+    },
+    {
+      "role": 6,
+      "role_label": "VPAA",
+      "dashboard_path": "/vpaa/dashboard",
+      "username": "vpaa_user",
+      "email": "vpaa@norsu.edu.ph",
+      "password": "Password123!",
+      "first_name": "Ana",
+      "middle_name": "Lopez",
+      "last_name": "Mendoza",
+      "campus_id": "1",
+      "office_id": "6",
+      "assignment_id": "3"
+    },
+    {
+      "role": 7,
+      "role_label": "VPSAS",
+      "dashboard_path": "/vpsas/dashboard",
+      "username": "vpsas_user",
+      "email": "vpsas@norsu.edu.ph",
+      "password": "Password123!",
+      "first_name": "Carlos",
+      "middle_name": "Dela",
+      "last_name": "Rosa",
+      "campus_id": "1",
+      "office_id": "7",
+      "assignment_id": "4"
+    },
+    {
+      "role": 8,
+      "role_label": "VPAF",
+      "dashboard_path": "/vpaf/dashboard",
+      "username": "vpaf_user",
+      "email": "vpaf@norsu.edu.ph",
+      "password": "Password123!",
+      "first_name": "Elena",
+      "middle_name": "Bautista",
+      "last_name": "Torres",
+      "campus_id": "1",
+      "office_id": "8",
+      "assignment_id": "5"
+    },
+    {
+      "role": 9,
+      "role_label": "VPRDE",
+      "dashboard_path": "/vprde/dashboard",
+      "username": "vprde_user",
+      "email": "vprde@norsu.edu.ph",
+      "password": "Password123!",
+      "first_name": "Ricardo",
+      "middle_name": "Navarro",
+      "last_name": "Flores",
+      "campus_id": "1",
+      "office_id": "9",
+      "assignment_id": "6"
+    }
+  ]
+}

@@ -54,6 +54,12 @@ const reservationBaseSchema = z.object({
   outsource: z.string().optional(),
 
   guests: z.array(z.object({ name: z.string(), details: z.string() })).optional(),
+
+  involves_students: z.boolean().default(false),
+  requires_vpaa:     z.boolean().default(false),
+  requires_vpsas:    z.boolean().default(false),
+  requires_vpaf:     z.boolean().default(false),
+  requires_vprde:    z.boolean().default(false),
 });
 
 export const reservationSchema = reservationBaseSchema.superRefine((data, ctx) => {

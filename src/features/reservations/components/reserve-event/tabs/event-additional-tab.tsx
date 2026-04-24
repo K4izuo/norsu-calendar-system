@@ -101,7 +101,7 @@ export function ReserveEventAdditionalTab({
   const inputError = getInputError();
 
   return (
-    <div className="space-y-5 pb-9">
+    <div className="space-y-5">
       <div className="space-y-5">
         {/* People Tag */}
         <div className="flex flex-col gap-1.5">

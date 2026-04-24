@@ -9,9 +9,10 @@
 
 /**
  * User role enumeration
- * 1 = Dean, 2 = Staff, 3 = Admin (default)
+ * 1=Dean, 2=Staff, 3=Admin, 4=StudentDirector, 5=CampusDirector,
+ * 6=VPAA, 7=VPSAS, 8=VPAF, 9=VPRDE, 10=HeadOfOffice
  */
-export type UserRole = 1 | 2 | 3;
+export type UserRole = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 
 /**
  * Base user information returned from API
@@ -26,6 +27,11 @@ export interface User {
   campus_id?: string;
   office_id?: string;
   assignment_id?: string;
+  office?: {
+    id: number;
+    name: string;
+    oversight_vp_id: number | null;
+  };
 }
 
 // ============================================================================
@@ -207,22 +213,39 @@ export interface PasswordChangeFormData {
 /**
  * Role path mapping (for routing)
  */
-export type RolePath = 'admin' | 'dean' | 'staff';
+export type RolePath =
+  | 'admin' | 'dean' | 'staff'
+  | 'student-director' | 'campus-director'
+  | 'vpaa' | 'vpsas' | 'vpaf' | 'vprde' | 'head';
 
 /**
  * Role path map
  */
 export const ROLE_PATH_MAP: Record<UserRole, RolePath> = {
-  1: 'dean',
-  2: 'staff',
-  3: 'admin',
+  1:  'dean',
+  2:  'staff',
+  3:  'admin',
+  4:  'student-director',
+  5:  'campus-director',
+  6:  'vpaa',
+  7:  'vpsas',
+  8:  'vpaf',
+  9:  'vprde',
+  10: 'head',
 } as const;
 
 /**
  * Role display names
  */
 export const ROLE_DISPLAY_NAMES: Record<UserRole, string> = {
-  1: 'Dean',
-  2: 'Staff',
-  3: 'Admin',
+  1:  'Dean',
+  2:  'Staff',
+  3:  'Admin',
+  4:  'Student Director',
+  5:  'Campus Director',
+  6:  'VPAA',
+  7:  'VPSAS',
+  8:  'VPAF',
+  9:  'VPRDE',
+  10: 'Head of Office',
 } as const;

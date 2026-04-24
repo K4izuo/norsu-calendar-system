@@ -7,6 +7,16 @@
 // Reservation Data Models
 // ============================================================================
 
+export interface ReservationApproval {
+  id: number
+  stage: string
+  user_id: number
+  action: 'APPROVED' | 'DECLINED' | 'APPROVE' | 'ENDORSE'
+  reason?: string | null
+  created_at: string
+  user?: { first_name: string; last_name: string }
+}
+
 /**
  * Core reservation entity from database
  */
@@ -32,6 +42,14 @@ export interface Reservation {
   move_reason?: string
   outsource?: string
   guests?: { name: string; details: string }[]
+  involves_students?: boolean
+  requires_vpaa?: boolean
+  requires_vpsas?: boolean
+  requires_vpaf?: boolean
+  requires_vprde?: boolean
+  current_stage?: string
+  declined_at_stage?: string | null
+  campus_director_action?: 'approve' | 'endorse' | null
 }
 
 /**
@@ -54,6 +72,7 @@ export interface ReservationWithRelations extends Reservation {
     first_name: string
     last_name: string
   }
+  approvals?: ReservationApproval[]
 }
 
 // ============================================================================
@@ -78,6 +97,11 @@ export interface ReservationAPIPayload {
   date: string
   outsource?: string
   guests?: { name: string; details: string }[]
+  involves_students?: boolean
+  requires_vpaa?: boolean
+  requires_vpsas?: boolean
+  requires_vpaf?: boolean
+  requires_vprde?: boolean
 }
 
 // ============================================================================
@@ -109,4 +133,9 @@ export interface ReservationFormData {
   equipment?: { name: string; quantity: number }[]
   outsource?: string
   guests?: { name: string; details: string }[]
+  involves_students?: boolean
+  requires_vpaa?: boolean
+  requires_vpsas?: boolean
+  requires_vpaf?: boolean
+  requires_vprde?: boolean
 }
