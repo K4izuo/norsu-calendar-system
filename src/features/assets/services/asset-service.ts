@@ -52,7 +52,7 @@ const createAsset = async (data: AssetRegistrationPayload): Promise<Asset> => {
 export const useAssets = () => {
   const { user, isLoading: isAuthLoading, isAuthenticated } = useAuth();
 
-  const { data, isFetching, error, refetch } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['assets', user?.id],
     queryFn: fetchAssets,
     gcTime: 5 * 60 * 1000,
@@ -67,7 +67,7 @@ export const useAssets = () => {
 
   return {
     assets: data || [],
-    loading: isAuthLoading || isFetching,
+    loading: isAuthLoading || isLoading,
     error: error?.message || null,
     refetch,
   };

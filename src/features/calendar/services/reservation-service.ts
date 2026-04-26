@@ -126,7 +126,7 @@ export const fetchQueue = async (): Promise<ReservationWithRelations[]> => {
 export const useReservations = () => {
   const { user, isLoading: isAuthLoading, isAuthenticated } = useAuth();
 
-  const { data, isFetching, error, refetch, dataUpdatedAt, isSuccess } = useQuery({
+  const { data, isLoading, error, refetch, dataUpdatedAt, isSuccess } = useQuery({
     queryKey: ["reservations", user?.id],
     queryFn: fetchReservations,
     staleTime: 2 * 60 * 1000,
@@ -144,7 +144,7 @@ export const useReservations = () => {
 
   return {
     reservations: data || [],
-    loading: isAuthLoading || isFetching,
+    loading: isAuthLoading || isLoading,
     hasData: hasValidData,
     isQueryEnabled: !isAuthLoading && isAuthenticated,
     error: error?.message || null,
@@ -175,7 +175,7 @@ export const usePublicReservations = () => {
 export const useGetQueue = () => {
   const { user, isLoading: isAuthLoading, isAuthenticated } = useAuth();
 
-  const { data, isFetching, error, refetch } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["reservation-queue", user?.id],
     queryFn: fetchQueue,
     staleTime: 30 * 1000,
@@ -185,7 +185,7 @@ export const useGetQueue = () => {
 
   return {
     queue: data || [],
-    loading: isFetching,
+    loading: isAuthLoading || isLoading,
     error: error?.message || null,
     refetch,
   };
@@ -227,7 +227,7 @@ export const useAssets = (assetIds: number[]) => {
 
   return {
     assets: queries.data || new Map<number, Asset>(),
-    loading: isAuthLoading || queries.isFetching,
+    loading: isAuthLoading || queries.isLoading,
     error: queries.error?.message || null,
   };
 };

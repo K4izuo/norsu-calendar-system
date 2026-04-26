@@ -6,6 +6,7 @@ import { Users, GraduationCap, Briefcase, UserPlus } from "lucide-react";
 import { AccountsTabSection } from "@/features/accounts/components/accounts-tab-section";
 import { useParams } from "next/navigation";
 import { useUsers } from "@/features/accounts/services/account-service";
+import { usePageReady } from "@/shared/components/context/page-loading-context";
 import { Skeleton, TableSkeleton } from "@/shared/components/ui/skeleton";
 
 export default function AccountsPage() {
@@ -14,6 +15,7 @@ export default function AccountsPage() {
 
   // React Query deduplicates this — no extra network request vs AccountsTabSection
   const { users, loading } = useUsers();
+  usePageReady(loading);
 
   const total = users.length;
   const deans = users.filter((u) => u.role === 1);

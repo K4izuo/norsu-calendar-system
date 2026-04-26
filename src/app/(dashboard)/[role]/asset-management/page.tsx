@@ -12,6 +12,7 @@ import {
   officesQueryOptions
 } from "@/features/calendar/services/academicDataService";
 import { useAssets, useCreateAsset, Asset } from "@/features/assets/services/asset-service";
+import { usePageReady } from "@/shared/components/context/page-loading-context";
 import { Search, PackagePlus } from "lucide-react";
 import {
   Select,
@@ -48,6 +49,7 @@ export default function AssetsPage() {
 
   // Data fetching - TanStack Query handles caching
   const { assets, error, loading } = useAssets();
+  usePageReady(loading);
   const { mutateAsync: createAsset } = useCreateAsset();
 
   const totalAssets = assets.length;

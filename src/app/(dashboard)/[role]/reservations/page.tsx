@@ -15,6 +15,7 @@ import { Skeleton } from "@/shared/components/ui/skeleton";
 import { CalendarDays, Clock, CircleCheck, XCircle } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useAuth } from "@/shared/components/context/auth-context";
+import { usePageReady } from "@/shared/components/context/page-loading-context";
 
 const PATH_ROLE_MAP: Record<string, number> = {
   dean:               1,
@@ -49,6 +50,8 @@ export default function ReservationsPage() {
   const sourceList = isAdmin ? reservations : queue;
   const loading = isAdmin ? resLoading : queueLoading;
   const error = isAdmin ? resError : queueError;
+
+  usePageReady(loading);
 
   const total    = sourceList.length;
   const pending  = sourceList.filter(r => r.status.toUpperCase() === "PENDING").length;

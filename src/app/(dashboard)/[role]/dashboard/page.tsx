@@ -3,8 +3,12 @@
 import DashboardStatCard from "@/shared/components/user-dashboard-ui/dashboard/stat-card";
 import ReservationActivityChart from "@/shared/components/user-dashboard-ui/dashboard/total-visitors-chart";
 import { PageBreadcrumb } from "@/shared/components/ui/page-breadcrumb";
+import { usePageReady } from "@/shared/components/context/page-loading-context";
+import { useReservations } from "@/features/calendar/services/reservation-service";
 
 export default function DashboardPage() {
+  const { loading } = useReservations();
+  usePageReady(loading);
   return (
     <div className="flex flex-col items-start self-stretch flex-1 min-h-0">
       {/* Breadcrumb */}

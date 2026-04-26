@@ -58,6 +58,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
   const [activeTab, setActiveTab] = useState<string>("requestor");
   const [isCheckingConflict, setIsCheckingConflict] = useState(false);
   const [equipmentTouched, setEquipmentTouched] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [requestor, setRequestor] = useState<RequestorInfo | null>(null);
   const [requestorError, setRequestorError] = useState<string>("");
   const [showOutsource, setShowOutsource] = useState(false);
@@ -289,6 +290,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
           };
           await resubmit({ reservationId: eventData.id, payload });
           onClose();
+          setShowSuccessModal(true);
           return;
         }
 
@@ -328,7 +330,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
           }
 
           onClose();
-          toast.success("Event reservation sent successfully!");
+          setShowSuccessModal(true);
         }
 
         await queryClient.invalidateQueries({
@@ -680,5 +682,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
     isDean,
     isHeadOfOffice,
     oversightVpId,
+    showSuccessModal,
+    setShowSuccessModal,
   };
 };

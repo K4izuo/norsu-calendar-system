@@ -7,6 +7,7 @@ import { PeopleTable } from "@/features/people/components/people-table";
 import { PeopleAddModal } from "@/features/people/components/people-add-modal";
 import { PeopleLinkModal } from "@/features/people/components/people-link-modal";
 import { usePeople, useDeletePerson } from "@/features/people/services/people-service";
+import { usePageReady } from "@/shared/components/context/page-loading-context";
 import { Search, UserPlus } from "lucide-react";
 import {
   Select,
@@ -31,6 +32,7 @@ export default function PeoplePage() {
   const [statusFilter, setStatusFilter] = useState("all");
 
   const { people, error, loading } = usePeople();
+  usePageReady(loading);
   const { mutate: deletePerson } = useDeletePerson();
 
   const filteredPeople = useMemo(() => {

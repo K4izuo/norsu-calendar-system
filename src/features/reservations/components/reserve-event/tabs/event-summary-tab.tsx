@@ -55,9 +55,9 @@ export function ReserveEventSummaryTab({
       {requestorInfo && (
         <div className="bg-white text-card-foreground border border-border rounded-lg">
           <div className="flex items-center px-6 pt-6 pb-4">
-            {requestorInfo.type === 'student' && <Users className="text-blue-500 mr-2 h-6 w-6" />}
-            {requestorInfo.type === 'faculty' && <GraduationCap className="text-green-500 mr-2 h-6 w-6" />}
-            {requestorInfo.type === 'office' && <Building2 className="text-amber-500 mr-2 h-6 w-6" />}
+            {requestorInfo.type === 'student' && <Users className="text-gray-500 mr-2 h-6 w-6" />}
+            {requestorInfo.type === 'faculty' && <GraduationCap className="text-gray-500 mr-2 h-6 w-6" />}
+            {requestorInfo.type === 'office' && <Building2 className="text-gray-500 mr-2 h-6 w-6" />}
             <h3 className="text-lg font-medium text-gray-700">Requestor Information</h3>
           </div>
           <div className="border-t border-gray-200" />

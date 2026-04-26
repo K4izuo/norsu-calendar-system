@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   setupActivityTracking,
@@ -23,6 +23,7 @@ import { getRoleLabelFromNumber, getRolePathFromNumber } from "@/core/lib/role-u
 import { Separator } from "@/shared/components/ui/separator";
 import { usePathname, useParams } from "next/navigation";
 import Loading from "@/app/(dashboard)/[role]/loading";
+import { PageLoadingContext } from "@/shared/components/context/page-loading-context";
 import Image from "next/image";
 import { AppSidebar } from "@/shared/components/layouts/app-sidebar";
 import {
@@ -37,17 +38,18 @@ interface UserData {
 }
 
 const pathRoleMap: Record<string, number> = {
-  dean:               1,
-  staff:              2,
-  admin:              3,
+  dean: 1,
+  staff: 2,
+  admin: 3,
   'student-director': 4,
-  'campus-director':  5,
-  vpaa:               6,
-  vpsas:              7,
-  vpaf:               8,
-  vprde:              9,
-  head:               10,
+  'campus-director': 5,
+  vpaa: 6,
+  vpsas: 7,
+  vpaf: 8,
+  vprde: 9,
+  head: 10,
 }
+
 
 export default function RoleLayout({
   children,
@@ -60,9 +62,13 @@ export default function RoleLayout({
   const pathname = usePathname();
   const router = useRouter();
 
-  const [showLoading, setShowLoading] = useState(false);
+  const [overlayVisible, setOverlayVisible] = useState(false);
   const [fadeOut, setFadeOut] = useState(false);
+  const [isPageReady, setIsPageReady] = useState(true);
+  const [minTimerDone, setMinTimerDone] = useState(true);
   const prevPathname = useRef<string | null>(null);
+
+  const setPageReady = useCallback(() => setIsPageReady(true), []);
 
   const pathRole = pathRoleMap[roleSegment] ?? 3
   const pathRoleRef = useRef(pathRole)
@@ -120,53 +126,70 @@ export default function RoleLayout({
 
   // Role URL guard — redirect if user navigates to a different role's path,
   // or to a page their role is not allowed to access.
+  // NOTE: must guard on `user` (not `userData.role`) so we never redirect based
+  // on the stale localStorage value that gets applied before the API responds.
   useEffect(() => {
-    if (isAuthLoading || !userData.role) return;
+    if (isAuthLoading || !user) return;
+
+    const actualRole = typeof user.role === "string"
+      ? parseInt(user.role, 10) || pathRoleRef.current
+      : Number(user.role) || pathRoleRef.current;
 
     const expectedRoleNumber = pathRoleMap[roleSegment];
 
     // Wrong role segment entirely (e.g. dean visiting /admin/...)
-    if (expectedRoleNumber !== undefined && expectedRoleNumber !== userData.role) {
-      const expectedPath = getRolePathFromNumber(userData.role);
-      router.replace(`/${expectedPath}/calendar`);
+    if (expectedRoleNumber !== undefined && expectedRoleNumber !== actualRole) {
+      const expectedPath = getRolePathFromNumber(actualRole);
+      const targetPath = `/${expectedPath}/calendar`;
+      if (!pathname.startsWith(targetPath)) {
+        router.replace(targetPath);
+      }
       return;
     }
 
     // Non-admin roles may only access /calendar and /reservations
     const ADMIN_ROLE = 3;
-    if (userData.role !== ADMIN_ROLE) {
+    if (actualRole !== ADMIN_ROLE) {
       const allowedSegments = ["calendar", "reservations"];
-      const pageSegment = pathname.split("/")[2]; // e.g. "dashboard", "calendar"
+      const pageSegment = pathname.split("/")[2];
       if (pageSegment && !allowedSegments.includes(pageSegment)) {
-        router.replace(`/${roleSegment}/calendar`);
+        const targetPath = `/${roleSegment}/calendar`;
+        if (!pathname.startsWith(targetPath)) {
+          router.replace(targetPath);
+        }
       }
     }
-  }, [isAuthLoading, userData.role, roleSegment, pathname, router]);
+  }, [isAuthLoading, user, roleSegment, pathname, router]);
 
-  // Show loading on actual navigation, hide after fixed duration with fade
-  useEffect(() => {
+  // Show overlay on navigation. useLayoutEffect guarantees this runs before any
+  // child useEffect, so isPageReady is false before pages can call setPageReady().
+  useLayoutEffect(() => {
     if (prevPathname.current !== null && prevPathname.current !== pathname) {
-      setShowLoading(true);
+      setOverlayVisible(true);
       setFadeOut(false);
+      setIsPageReady(false);
+      setMinTimerDone(false);
     }
     prevPathname.current = pathname;
   }, [pathname]);
 
+  // 300ms floor — ensures the animation is always visible even for cached data.
   useEffect(() => {
-    if (!showLoading) return;
+    if (!overlayVisible) return;
+    const timer = setTimeout(() => setMinTimerDone(true), 300);
+    return () => clearTimeout(timer);
+  }, [overlayVisible]);
 
-    // Show spinner for 300ms, then fade out over 150ms
-    const showTimer = setTimeout(() => setFadeOut(true), 150);
-    const hideTimer = setTimeout(() => {
-      setShowLoading(false);
+  // Hide overlay once BOTH the page data is ready AND the minimum time has passed.
+  useEffect(() => {
+    if (!isPageReady || !minTimerDone || !overlayVisible) return;
+    setFadeOut(true);
+    const hide = setTimeout(() => {
+      setOverlayVisible(false);
       setFadeOut(false);
-    }, 300);
-
-    return () => {
-      clearTimeout(showTimer);
-      clearTimeout(hideTimer);
-    };
-  }, [showLoading]);
+    }, 150);
+    return () => clearTimeout(hide);
+  }, [isPageReady, minTimerDone, overlayVisible]);
 
   // Setup token refresh and activity tracking
   useEffect(() => {
@@ -246,7 +269,7 @@ export default function RoleLayout({
         </header>
 
         <div className="flex-1 bg-muted/50 flex flex-col gap-4 p-3 lg:p-6 overflow-y-auto overflow-x-hidden relative">
-          {showLoading && (
+          {overlayVisible && (
             <div
               style={{
                 position: "absolute",
@@ -261,8 +284,9 @@ export default function RoleLayout({
             </div>
           )}
 
-          {/* ✅ Content stays in normal flow - just fades when loading */}
-          {children}
+          <PageLoadingContext.Provider value={{ setPageReady }}>
+            {children}
+          </PageLoadingContext.Provider>
         </div>
       </SidebarInset>
     </SidebarProvider>

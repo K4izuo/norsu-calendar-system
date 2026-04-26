@@ -30,6 +30,7 @@ import { ModalFooter } from "./reserve-event/reserve-modal/modal-footer";
 import { useModalBehavior } from "@/features/reservations/hooks/useModalBehavior";
 import { useModalAssetLoader } from "@/features/reservations/hooks/useModalAssetLoader";
 import { useEditModePopulate } from "@/features/reservations/hooks/useEditModePopulate";
+import { ReservationSuccessModal } from "@/features/reservations/components/reservation-success-modal";
 
 interface ModalProps {
   isOpen: boolean;
@@ -57,6 +58,7 @@ export function ReserveEventModal({
   userOffice,
 }: ModalProps) {
   const contentRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const { assets } = useAssets();
 
@@ -114,6 +116,8 @@ export function ReserveEventModal({
     handleGuestToggle,
     handleAddGuest,
     handleRemoveGuest,
+    showSuccessModal,
+    setShowSuccessModal,
   } = useReserveEventForm({
     eventDate,
     onSubmit,
@@ -128,6 +132,11 @@ export function ReserveEventModal({
   });
 
   useModalBehavior({ isOpen, onClose });
+
+  React.useLayoutEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
+  }, [activeTab]);
+
   useEditModePopulate({
     editMode,
     eventData,
@@ -161,6 +170,7 @@ export function ReserveEventModal({
   };
 
   return (
+    <>
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 overscroll-none"
       style={{ pointerEvents: isOpen ? "auto" : "none" }}
@@ -194,7 +204,7 @@ export function ReserveEventModal({
         />
 
         <form className="flex flex-col flex-1" onSubmit={handleFormSubmit}>
-          <div className="overflow-y-auto p-4 sm:p-6 pt-2 sm:pt-4 flex-1 max-h-[calc(91vh-155px)]">
+          <div ref={scrollRef} className="overflow-y-auto p-4 sm:p-6 pt-2 sm:pt-4 flex-1 max-h-[calc(91vh-155px)]">
             <Tabs value={activeTab} className="w-full">
               <ModalTabBar
                 tabOrder={tabOrder}
@@ -316,5 +326,11 @@ export function ReserveEventModal({
         role="admin"
       />
     </div>
+
+    <ReservationSuccessModal
+      isOpen={showSuccessModal}
+      onClose={() => setShowSuccessModal(false)}
+    />
+    </>
   );
 }

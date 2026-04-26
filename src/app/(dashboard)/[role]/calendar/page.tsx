@@ -14,6 +14,7 @@ import { checkReservationConflicts } from "@/features/reservations/utils/reserva
 import { useQueryClient } from "@tanstack/react-query";
 import { getUserId } from "@/core/auth/auth";
 import { useAuth } from "@/shared/components/context/auth-context";
+import { usePageReady } from "@/shared/components/context/page-loading-context";
 import {
   getPhilippineMonth,
   getPhilippineYear,
@@ -72,13 +73,15 @@ export default function CalendarPage() {
   );
 
   // Data fetching
-  const { reservations, error, refetch } = useReservations();
+  const { reservations, loading: reservationsLoading, error, refetch } = useReservations();
 
   const assetIds = useMemo(() => {
     return [...new Set(reservations.map((r) => r.asset_id))];
   }, [reservations]);
 
-  const { assets } = useAssets(assetIds);
+  const { assets, loading: assetsLoading } = useAssets(assetIds);
+
+  usePageReady(reservationsLoading || assetsLoading);
 
   const queryClient = useQueryClient();
   const userId = getUserId();
