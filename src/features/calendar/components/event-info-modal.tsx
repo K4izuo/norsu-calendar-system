@@ -19,6 +19,7 @@ import {
   Building2,
   ClipboardCheck,
   RotateCcw,
+  Clock,
 } from "lucide-react";
 import { Button } from "../../../shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
@@ -59,10 +60,17 @@ const getStatus = (event: EventDetails): "PENDING" | "APPROVED" | "DECLINED" => 
 };
 
 const getStatusColor = (status: "PENDING" | "APPROVED" | "DECLINED") => {
-  if (status === "APPROVED") return "bg-green-100 text-green-800";
-  if (status === "PENDING") return "bg-yellow-100 text-yellow-800";
-  if (status === "DECLINED") return "bg-red-100 text-red-800";
-  return "bg-gray-100 text-gray-800";
+  if (status === "APPROVED") return "bg-green-100 text-green-800 border border-green-400";
+  if (status === "PENDING") return "bg-yellow-100 text-yellow-800 border border-yellow-400";
+  if (status === "DECLINED") return "bg-red-100 text-red-800 border border-red-400";
+  return "bg-gray-100 text-gray-800 border border-gray-400";
+};
+
+const getStatusIcon = (status: "PENDING" | "APPROVED" | "DECLINED") => {
+  if (status === "APPROVED") return <CircleCheckBig className="h-3.5 w-3.5" />;
+  if (status === "PENDING") return <Clock className="h-3.5 w-3.5" />;
+  if (status === "DECLINED") return <XCircle className="h-3.5 w-3.5" />;
+  return null;
 };
 
 const getStartedAgo = (eventDate: string, eventTime: string): string | null => {
@@ -434,8 +442,9 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                           <div>
                             <p className="text-sm text-gray-500">Status</p>
                             <div className="flex mt-1 items-center gap-2">
-                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-md font-medium ${getStatusColor(status)}`}>
-                                {status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()}
+                              <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-md font-medium ${getStatusColor(status)}`}>
+                                {getStatusIcon(status)}
+                                {status}
                               </span>
                               {status === "APPROVED" && event.approved_by_user_details && (
                                 <span className="text-base text-gray-600">

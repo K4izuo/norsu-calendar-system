@@ -67,8 +67,10 @@ export default function RoleLayout({
   const [isPageReady, setIsPageReady] = useState(true);
   const [minTimerDone, setMinTimerDone] = useState(true);
   const prevPathname = useRef<string | null>(null);
+  const hasCachedDataRef = useRef(false);
 
   const setPageReady = useCallback(() => setIsPageReady(true), []);
+  const reportHasData = useCallback(() => { hasCachedDataRef.current = true; }, []);
 
   const pathRole = pathRoleMap[roleSegment] ?? 3
   const pathRoleRef = useRef(pathRole)
@@ -161,19 +163,31 @@ export default function RoleLayout({
     }
   }, [isAuthLoading, user, roleSegment, pathname, router]);
 
-  // Show overlay on navigation. useLayoutEffect guarantees this runs before any
-  // child useEffect, so isPageReady is false before pages can call setPageReady().
+  // Show overlay on navigation — but only when the page has no cached data.
+  // Pages call reportHasData() in their useLayoutEffect, which React fires before
+  // this parent useLayoutEffect, so hasCachedDataRef is already set when we read it.
+  // Cached pages: overlay is skipped entirely → instant navigation.
+  // Uncached pages: overlay shows until data arrives.
   useLayoutEffect(() => {
     if (prevPathname.current !== null && prevPathname.current !== pathname) {
-      setOverlayVisible(true);
-      setFadeOut(false);
-      setIsPageReady(false);
-      setMinTimerDone(false);
+      if (hasCachedDataRef.current) {
+        setOverlayVisible(false);
+        setFadeOut(false);
+        setIsPageReady(true);
+        setMinTimerDone(true);
+      } else {
+        setOverlayVisible(true);
+        setFadeOut(false);
+        setIsPageReady(false);
+        setMinTimerDone(false);
+      }
+      hasCachedDataRef.current = false;
     }
     prevPathname.current = pathname;
   }, [pathname]);
 
-  // 300ms floor — ensures the animation is always visible even for cached data.
+  // 300ms floor for first-visit loads (no cached data) — ensures the spinner is
+  // visible long enough to be seen before the overlay hides.
   useEffect(() => {
     if (!overlayVisible) return;
     const timer = setTimeout(() => setMinTimerDone(true), 300);
@@ -284,7 +298,7 @@ export default function RoleLayout({
             </div>
           )}
 
-          <PageLoadingContext.Provider value={{ setPageReady }}>
+          <PageLoadingContext.Provider value={{ setPageReady, reportHasData }}>
             {children}
           </PageLoadingContext.Provider>
         </div>

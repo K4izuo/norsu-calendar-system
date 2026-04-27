@@ -79,9 +79,11 @@ export default function CalendarPage() {
     return [...new Set(reservations.map((r) => r.asset_id))];
   }, [reservations]);
 
-  const { assets, loading: assetsLoading } = useAssets(assetIds);
+  const { assets } = useAssets(assetIds);
 
-  usePageReady(reservationsLoading || assetsLoading);
+  // Only wait for reservations — assets aren't needed to render the calendar grid
+  // (event pills show title_name, not asset name). Assets load silently in background.
+  usePageReady(reservationsLoading);
 
   const queryClient = useQueryClient();
   const userId = getUserId();

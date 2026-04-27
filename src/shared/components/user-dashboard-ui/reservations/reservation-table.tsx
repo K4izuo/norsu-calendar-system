@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/components/ui/table"
 import { Input } from "@/shared/components/ui/input"
-import { Search, MoreVertical } from "lucide-react"
+import { Search, MoreVertical, CircleCheckBig, Clock, XCircle } from "lucide-react"
 import { EventInfoModal } from "@/features/calendar/components/event-info-modal"
 import { EventDetails } from "@/interface/user-props"
 import { formatTime } from "@/core/lib/utils"
@@ -176,10 +176,14 @@ export function ReservationsTable({ events, isLoading, statusFilter, onStatusFil
                         {formatTime(event.time_end)}
                       </TableCell>
                       <TableCell className="px-6 py-4 text-sm text-foreground">
-                        <span className={`px-2 py-1 rounded-md text-xs font-medium ${event.registration_status === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                          event.registration_status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-red-100 text-red-800'
-                          }`}>
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          event.registration_status === 'APPROVED' ? 'bg-green-100 text-green-800 border border-green-400' :
+                          event.registration_status === 'PENDING'  ? 'bg-yellow-100 text-yellow-800 border border-yellow-400' :
+                                                                      'bg-red-100 text-red-800 border border-red-400'
+                        }`}>
+                          {event.registration_status === 'APPROVED' && <CircleCheckBig className="h-3.5 w-3.5" />}
+                          {event.registration_status === 'PENDING'  && <Clock className="h-3.5 w-3.5" />}
+                          {event.registration_status === 'DECLINED' && <XCircle className="h-3.5 w-3.5" />}
                           {event.registration_status}
                         </span>
                       </TableCell>

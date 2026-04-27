@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useMemo, useRef, useCallback, useEffect } from "react";
-import { motion } from "framer-motion";
 import { CalendarClock, Clock } from "lucide-react";
 import { formatEventTimeRange } from "@/features/calendar/utils/timezone-utils";
 import { CalendarDayType, EventDetails } from "@/interface/user-props";
@@ -283,45 +282,19 @@ export const CalendarDayCell = React.memo(function CalendarDayCell<T>({
               ))}
 
             {day.eventCount > 1 && (
-              <motion.div
-                className="hidden sm:inline-flex items-center text-gray-700 px-1 py-1 rounded-xl text-[10px] sm:text-xs md:text-sm font-semibold absolute top-1.5 left-1"
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{
-                  scale: 1,
-                  opacity: 1,
-                  transition: {
-                    delay: Math.min(0.01 * idx + 0.3, 0.4),
-                    duration: 0.2,
-                    ease: "easeOut",
-                  },
-                }}
-              >
+              <div className="hidden sm:inline-flex items-center text-gray-700 px-1 py-1 rounded-xl text-[10px] sm:text-xs md:text-sm font-semibold absolute top-1.5 left-1">
                 <CalendarClock size={12} className="mr-0.5 sm:mr-1 shrink-0" />
                 <span>{day.eventCount}</span>
-              </motion.div>
+              </div>
             )}
 
             {day.eventCount > 1 && (
-              <motion.div
-                className="sm:hidden absolute top-1 left-1"
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{
-                  scale: 1,
-                  opacity: 1,
-                  transition: {
-                    delay: Math.min(0.01 * idx + 0.3, 0.4),
-                    duration: 0.2,
-                    ease: "easeOut",
-                  },
-                }}
-              >
-                <div
-                  className="inline-flex items-center text-gray-700 px-1 py-0.5 rounded-xl text-xs xs:text-[10px]"
-                >
+              <div className="sm:hidden absolute top-1 left-1">
+                <div className="inline-flex items-center text-gray-700 px-1 py-0.5 rounded-xl text-xs xs:text-[10px]">
                   <CalendarClock size={10} className="mr-0.5 shrink-0" />
                   <span>{day.eventCount}</span>
                 </div>
-              </motion.div>
+              </div>
             )}
           </div>
         )}

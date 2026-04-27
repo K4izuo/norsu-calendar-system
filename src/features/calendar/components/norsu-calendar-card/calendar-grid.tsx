@@ -53,7 +53,7 @@ export function CalendarGrid<T>({
       </div>
 
       <div className="flex-1 flex flex-col w-full relative" style={{ overflow: "clip", overflowClipMargin: "30px" }}>
-        <AnimatePresence mode="wait" custom={direction}>
+        <AnimatePresence mode="wait" initial={false} custom={direction}>
           <motion.div
             key={`${currentMonth}-${currentYear}`}
             custom={direction}

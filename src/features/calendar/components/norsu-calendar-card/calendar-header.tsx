@@ -194,7 +194,7 @@ export function CalendarHeader({
 
       {/* Center: month/year text */}
       <div className="flex justify-center items-center">
-        <AnimatePresence mode="wait" custom={direction}>
+        <AnimatePresence mode="wait" initial={false} custom={direction}>
           <motion.h2
             key={currentMonthYear}
             custom={direction}
