@@ -20,7 +20,6 @@ import { EventInfoModal } from "@/features/calendar/components/event-info-modal"
 import { fetchReservations } from "@/features/calendar/services/reservation-service"
 import { apiClient } from "@/core/api/api-client"
 import type { EventDetails } from "@/interface/user-props"
-import type { UserRole } from "@/shared/components/utils/role-colors"
 import type { AppNotification } from "../types/notification.types"
 
 export function NotificationBell() {
@@ -31,6 +30,7 @@ export function NotificationBell() {
 
   const queryClient = useQueryClient()
   const { user } = useAuth()
+  const userRoleNumber = user?.role ?? undefined
   const { unreadCount } = useUnreadCount()
   const { notifications, loading } = useNotifications(isOpen)
   const { mutate: markRead } = useMarkNotificationRead()
@@ -87,6 +87,7 @@ export function NotificationBell() {
           asset_type: asset?.asset_type,
         },
         category: reservation.category,
+        other_category: reservation.other_category,
         info_type: reservation.info_type,
         description: reservation.description,
         people_tag: reservation.people_tag ? reservation.people_tag.split(", ").filter(Boolean) : [],
@@ -101,6 +102,18 @@ export function NotificationBell() {
         declined_by_user_details: reservation.declined_by_user,
         is_moved: reservation.is_moved,
         original_date: reservation.original_date,
+        involves_students: reservation.involves_students,
+        requires_vpaa: reservation.requires_vpaa,
+        requires_vpsas: reservation.requires_vpsas,
+        requires_vpaf: reservation.requires_vpaf,
+        requires_vprde: reservation.requires_vprde,
+        current_stage: reservation.current_stage,
+        declined_at_stage: reservation.declined_at_stage,
+        campus_director_action: reservation.campus_director_action,
+        approvals: reservation.approvals,
+        equipment: reservation.equipment,
+        outsource: reservation.outsource,
+        guests: reservation.guests,
       })
     } catch {
       setEventModalOpen(false)
@@ -195,7 +208,17 @@ export function NotificationBell() {
       onClose={() => { setEventModalOpen(false); setSelectedEvent(undefined) }}
       event={selectedEvent}
       loading={eventModalLoading}
-      role={user?.role as UserRole}
+      userRoleNumber={userRoleNumber}
+      onApprove={() => {
+        queryClient.invalidateQueries({ queryKey: ["reservations"], refetchType: "all" })
+        queryClient.invalidateQueries({ queryKey: ["reservation-queue"], refetchType: "all" })
+        queryClient.invalidateQueries({ queryKey: ["notifications-unread", user?.id], refetchType: "all" })
+      }}
+      onDecline={() => {
+        queryClient.invalidateQueries({ queryKey: ["reservations"], refetchType: "all" })
+        queryClient.invalidateQueries({ queryKey: ["reservation-queue"], refetchType: "all" })
+        queryClient.invalidateQueries({ queryKey: ["notifications-unread", user?.id], refetchType: "all" })
+      }}
     />
     </>
   )

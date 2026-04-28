@@ -14,15 +14,13 @@ import { apiClient } from "@/core/api/api-client";
 import { getAuthToken, removeAuthToken } from "@/core/auth/auth";
 import { getRolePathFromNumber } from "@/core/lib/role-utils";
 
-type Role = "dean" | "staff" | "admin";
-
 export interface User {
   id: string;
   email: string;
   first_name: string;
   last_name: string;
   username: string;
-  role: Role;
+  role: number;
   office?: {
     id: number;
     name: string;
@@ -80,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         // ⚡ PERFORMANCE: /me endpoint is now cached via React Query in api-client
         // Fetch fresh user data from backend
-        const response = await apiClient.get<{ user: User; role: number }>(
+        const response = await apiClient.get<{ user: Omit<User, "role">; role: number }>(
           "/me",
         );
 
@@ -90,8 +88,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           localStorage.removeItem("user");
           setUser(null);
         } else {
-          // Update localStorage with fresh data
-          const userData = response.data.user;
+          // Merge role (top-level in response) into the user object
+          const userData: User = { ...response.data.user, role: response.data.role };
           localStorage.setItem("user", JSON.stringify(userData));
           setUser(userData);
         }
@@ -132,7 +130,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         "/auth/dean/register",
         "/auth/staff/register",
       ];
-      const protectedRoutes = ["/admin", "/dean", "/staff"];
+      const protectedRoutes = [
+        "/admin", "/dean", "/staff",
+        "/student-director", "/campus-director",
+        "/vpaa", "/vpsas", "/vpaf", "/vprde", "/head",
+      ];
 
       if (user && authRoutes.some((route) => pathname?.startsWith(route))) {
         const storedRole = Number(localStorage.getItem("user-role") || "3");

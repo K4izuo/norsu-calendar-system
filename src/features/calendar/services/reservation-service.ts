@@ -126,12 +126,12 @@ export const fetchQueue = async (): Promise<ReservationWithRelations[]> => {
 export const useReservations = () => {
   const { user, isLoading: isAuthLoading, isAuthenticated } = useAuth();
 
-  const { data, isLoading, error, refetch, dataUpdatedAt, isSuccess } = useQuery({
+  const { data, isFetching, isLoading, error, refetch, dataUpdatedAt, isSuccess } = useQuery({
     queryKey: ["reservations", user?.id],
     queryFn: fetchReservations,
-    staleTime: 2 * 60 * 1000,
+    staleTime: 60 * 1000,
     refetchOnWindowFocus: true,
-    refetchOnMount: true,
+    refetchOnMount: "always",
     enabled: !isAuthLoading && isAuthenticated,
     placeholderData: (previousData) => previousData,
     retry: (failureCount, error) => {
@@ -144,7 +144,8 @@ export const useReservations = () => {
 
   return {
     reservations: data || [],
-    loading: isAuthLoading || isLoading,
+    loading: isAuthLoading || isLoading || isFetching,
+    isFetching,
     hasData: hasValidData,
     isQueryEnabled: !isAuthLoading && isAuthenticated,
     error: error?.message || null,
@@ -178,9 +179,10 @@ export const useGetQueue = () => {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["reservation-queue", user?.id],
     queryFn: fetchQueue,
-    staleTime: 30 * 1000,
+    staleTime: 10 * 1000,
     enabled: !isAuthLoading && isAuthenticated,
     refetchOnWindowFocus: true,
+    refetchInterval: 15 * 1000,
   });
 
   return {

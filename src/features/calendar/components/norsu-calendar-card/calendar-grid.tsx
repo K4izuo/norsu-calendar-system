@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { CalendarDayType, EventDetails } from "@/interface/user-props";
 import { getRoleColors, UserRole } from "@/shared/components/utils/role-colors";
@@ -21,6 +20,7 @@ interface CalendarGridProps<T = unknown> {
   onPillDragStart?: (event: EventDetails) => void;
   onPillDragEnd?: () => void;
   onNativeDrop?: (dateString: string) => void;
+  currentUserId?: number;
 }
 
 export function CalendarGrid<T>({
@@ -29,13 +29,13 @@ export function CalendarGrid<T>({
   currentYear,
   direction,
   roleColors,
-  role,
   onDaySelect,
   onEventSelect,
   isDragging,
   onPillDragStart,
   onPillDragEnd,
   onNativeDrop,
+  currentUserId,
 }: CalendarGridProps<T>) {
   return (
     <div className="flex flex-col w-full flex-1">
@@ -69,13 +69,13 @@ export function CalendarGrid<T>({
                 day={day}
                 idx={idx}
                 roleColors={roleColors}
-                role={role}
                 onDaySelect={onDaySelect}
                 onEventSelect={onEventSelect}
                 isDragging={isDragging}
                 onPillDragStart={onPillDragStart}
                 onPillDragEnd={onPillDragEnd}
                 onNativeDrop={onNativeDrop}
+                currentUserId={currentUserId}
               />
             ))}
           </motion.div>

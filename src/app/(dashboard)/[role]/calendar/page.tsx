@@ -47,6 +47,12 @@ export default function CalendarPage() {
   const userRoleNumber = PATH_ROLE_MAP[role] ?? (user?.role ? Number(user.role) : undefined);
   const userOffice = user?.office;
 
+  const canDragAndDrop = userRoleNumber === 3 || userRoleNumber === 5;
+  const calendarRole =
+    role === "dean" ? ("dean" as const) :
+    role === "staff" ? ("staff" as const) :
+    ("admin" as const);
+
   const [modalOpen, setModalOpen] = useState(false);
   const [eventInfoModalOpen, setEventInfoModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventDetails | undefined>(
@@ -73,7 +79,7 @@ export default function CalendarPage() {
   );
 
   // Data fetching
-  const { reservations, loading: reservationsLoading, error, refetch } = useReservations();
+  const { reservations, loading: reservationsLoading, isFetching, error, refetch } = useReservations();
 
   const assetIds = useMemo(() => {
     return [...new Set(reservations.map((r) => r.asset_id))];
@@ -83,7 +89,7 @@ export default function CalendarPage() {
 
   // Only wait for reservations — assets aren't needed to render the calendar grid
   // (event pills show title_name, not asset name). Assets load silently in background.
-  usePageReady(reservationsLoading);
+  usePageReady(reservationsLoading, isFetching);
 
   const queryClient = useQueryClient();
   const userId = getUserId();
@@ -136,6 +142,7 @@ export default function CalendarPage() {
           equipment: reservation.equipment,
           outsource: reservation.outsource,
           guests: reservation.guests,
+          campus_director_action: reservation.campus_director_action,
         };
       });
   }, [reservations, assets]);
@@ -234,9 +241,12 @@ export default function CalendarPage() {
   // Native drag-and-drop handlers
 
   const handlePillDragStart = useCallback((event: EventDetails) => {
+    const approverId = event.approved_by_user_details?.id;
+    const currentUserId = user?.id ? Number(user.id) : null;
+    if (!approverId || !currentUserId || approverId !== currentUserId) return;
     activeDragEventRef.current = event;
     requestAnimationFrame(() => setIsDragging(true));
-  }, []);
+  }, [user?.id]);
 
   const handlePillDragEnd = useCallback(() => {
     activeDragEventRef.current = null;
@@ -311,17 +321,18 @@ export default function CalendarPage() {
 
       <div className="bg-white text-card-foreground border rounded-md shadow-xs flex flex-col flex-1 p-3 sm:p-6 md:p-6.5">
         <Calendar
-          role="admin"
+          role={calendarRole}
           onDaySelect={handleDaySelect}
           onEventSelect={handleEventClick}
           getEventsForDate={getEventsForDate}
           currentMonth={currentMonth}
           currentYear={currentYear}
           onMonthYearChange={handleMonthYearChange}
-          isDragging={isDragging}
-          onPillDragStart={handlePillDragStart}
-          onPillDragEnd={handlePillDragEnd}
-          onNativeDrop={handleNativeDrop}
+          isDragging={canDragAndDrop && isDragging}
+          onPillDragStart={canDragAndDrop ? handlePillDragStart : undefined}
+          onPillDragEnd={canDragAndDrop ? handlePillDragEnd : undefined}
+          onNativeDrop={canDragAndDrop ? handleNativeDrop : undefined}
+          currentUserId={canDragAndDrop && user?.id ? Number(user.id) : undefined}
         />
 
         <EventsListModal

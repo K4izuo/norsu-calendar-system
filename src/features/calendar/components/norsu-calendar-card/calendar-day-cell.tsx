@@ -4,34 +4,39 @@ import React, { useMemo, useRef, useCallback, useEffect } from "react";
 import { CalendarClock, Clock } from "lucide-react";
 import { formatEventTimeRange } from "@/features/calendar/utils/timezone-utils";
 import { CalendarDayType, EventDetails } from "@/interface/user-props";
-import { getRoleColors, UserRole } from "@/shared/components/utils/role-colors";
+import { getRoleColors } from "@/shared/components/utils/role-colors";
 
 // ─── Draggable pill sub-component ────────────────────────────────────────────
 
 interface DraggableEventPillProps {
   event: EventDetails;
   roleColors: ReturnType<typeof getRoleColors>;
-  role?: UserRole;
   onEventSelect?: (event: EventDetails) => void;
   getTitle: (event: EventDetails) => string;
   getTime: (event: EventDetails) => string;
   onPillDragStart?: (event: EventDetails) => void;
   onPillDragEnd?: () => void;
+  currentUserId?: number;
 }
 
 const DraggableEventPill = React.memo(function DraggableEventPill({
   event,
   roleColors,
-  role,
   onEventSelect,
   getTitle,
   getTime,
   onPillDragStart,
   onPillDragEnd,
+  currentUserId,
 }: DraggableEventPillProps) {
   const eventId = Number(event.id);
   const status = event.registration_status.toUpperCase();
-  const isDraggable = role === "admin" && status === "APPROVED" && !!eventId;
+  const isDraggable =
+    !!onPillDragStart &&
+    status === "APPROVED" &&
+    !!eventId &&
+    !!currentUserId &&
+    event.approved_by_user_details?.id === currentUserId;
 
   const pillRef = useRef<HTMLDivElement>(null);
   const title = getTitle(event);
@@ -139,26 +144,26 @@ interface CalendarDayCellProps<T = unknown> {
   day: CalendarDayType<T>;
   idx: number;
   roleColors: ReturnType<typeof getRoleColors> & { dragBgRaw?: string };
-  role?: UserRole;
   onDaySelect: (day: CalendarDayType<T>) => void;
   onEventSelect?: (event: T) => void;
   isDragging?: boolean;
   onPillDragStart?: (event: EventDetails) => void;
   onPillDragEnd?: () => void;
   onNativeDrop?: (dateString: string) => void;
+  currentUserId?: number;
 }
 
 export const CalendarDayCell = React.memo(function CalendarDayCell<T>({
   day,
   idx,
   roleColors,
-  role,
   onDaySelect,
   onEventSelect,
   isDragging = false,
   onPillDragStart,
   onPillDragEnd,
   onNativeDrop,
+  currentUserId,
 }: CalendarDayCellProps<T>) {
   const getEventTitle = (event: EventDetails) => {
     return event.title_name || "Event";
@@ -270,7 +275,6 @@ export const CalendarDayCell = React.memo(function CalendarDayCell<T>({
                   key={`pill-${idx}-${eventIdx}`}
                   event={event as unknown as EventDetails}
                   roleColors={roleColors}
-                  role={role}
                   onEventSelect={
                     onEventSelect ? (e: EventDetails) => onEventSelect(e as T) : undefined
                   }
@@ -278,6 +282,7 @@ export const CalendarDayCell = React.memo(function CalendarDayCell<T>({
                   getTime={getEventTime}
                   onPillDragStart={onPillDragStart}
                   onPillDragEnd={onPillDragEnd}
+                  currentUserId={currentUserId}
                 />
               ))}
 

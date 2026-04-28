@@ -35,6 +35,7 @@ interface CalendarProps<T> {
   onPillDragStart?: (event: EventDetails) => void;
   onPillDragEnd?: () => void;
   onNativeDrop?: (dateString: string) => void;
+  currentUserId?: number;
 }
 
 function CalendarComponent<T>({
@@ -49,6 +50,7 @@ function CalendarComponent<T>({
   onPillDragStart,
   onPillDragEnd,
   onNativeDrop,
+  currentUserId,
 }: CalendarProps<T>) {
   const roleColors = useMemo(() => getRoleColors(), []);
 
@@ -169,6 +171,7 @@ function CalendarComponent<T>({
         onPillDragStart={onPillDragStart}
         onPillDragEnd={onPillDragEnd}
         onNativeDrop={onNativeDrop}
+        currentUserId={currentUserId}
       />
 
       <div className="sm:hidden">

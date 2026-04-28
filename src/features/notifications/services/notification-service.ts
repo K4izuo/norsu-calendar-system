@@ -13,10 +13,10 @@ export const useNotifications = (enabled = true) => {
       if (response.error) throw new Error(response.error);
       return response.data || [];
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 10 * 1000,
     gcTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchInterval: enabled ? 60000 : false,
+    refetchOnWindowFocus: true,
+    refetchInterval: enabled ? 15 * 1000 : false,
     enabled: enabled && !isAuthLoading && isAuthenticated,
     retry: (failureCount, error) => {
       if (error instanceof Error && error.message.includes('401')) return false;
@@ -42,11 +42,10 @@ export const useUnreadCount = () => {
       if (response.error) throw new Error(response.error);
       return response.data?.count ?? 0;
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 10 * 1000,
     gcTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchInterval: 60000,
+    refetchOnWindowFocus: true,
+    refetchInterval: 15 * 1000,
     enabled: !isAuthLoading && isAuthenticated,
     retry: (failureCount, error) => {
       if (error instanceof Error && error.message.includes('401')) return false;
