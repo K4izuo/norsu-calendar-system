@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useMemo, useRef } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { Calendar } from "@/features/calendar/components/norsu-calendar";
 import { EventsListModal } from "@/features/calendar/components/events-list-modal";
 import { EventInfoModal } from "@/features/calendar/components/event-info-modal";

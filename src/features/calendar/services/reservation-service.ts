@@ -1,8 +1,10 @@
 import { apiClient } from "@/core/api/api-client";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { QueryClient, useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/shared/components/context/auth-context";
 import { ReservationWithRelations, MoveReservationPayload, ReservationAPIPayload, RequestorInfo } from "@/interface/user-props";
 import toast from "react-hot-toast";
+
+const DASHBOARD_RESERVATIONS_STALE_TIME = 60 * 1000;
 
 export type Asset = {
   id: number;
@@ -230,9 +232,9 @@ export const useReservations = () => {
   const { data, isFetching, isLoading, error, refetch, dataUpdatedAt, isSuccess } = useQuery({
     queryKey: ["reservations", user?.id],
     queryFn: fetchReservations,
-    staleTime: 60 * 1000,
+    staleTime: DASHBOARD_RESERVATIONS_STALE_TIME,
     refetchOnWindowFocus: true,
-    refetchOnMount: "always",
+    refetchOnMount: true,
     enabled: !isAuthLoading && isAuthenticated,
     placeholderData: (previousData) => previousData,
     retry: (failureCount, error) => {
@@ -252,6 +254,19 @@ export const useReservations = () => {
     error: error?.message || null,
     refetch,
   };
+};
+
+export const prefetchDashboardReservations = (
+  queryClient: QueryClient,
+  userId: string | number | null | undefined,
+) => {
+  if (!userId) return Promise.resolve();
+
+  return queryClient.prefetchQuery({
+    queryKey: ["reservations", userId],
+    queryFn: fetchReservations,
+    staleTime: DASHBOARD_RESERVATIONS_STALE_TIME,
+  });
 };
 
 export const usePublicReservations = () => {
@@ -277,7 +292,7 @@ export const usePublicReservations = () => {
 export const useGetQueue = () => {
   const { user, isLoading: isAuthLoading, isAuthenticated } = useAuth();
 
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isLoading, isFetching, error, refetch } = useQuery({
     queryKey: ["reservation-queue", user?.id],
     queryFn: fetchQueue,
     staleTime: 10 * 1000,
@@ -288,7 +303,8 @@ export const useGetQueue = () => {
 
   return {
     queue: data || [],
-    loading: isAuthLoading || isLoading,
+    loading: isAuthLoading || isLoading || isFetching,
+    isFetching,
     error: error?.message || null,
     refetch,
   };

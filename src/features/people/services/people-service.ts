@@ -17,7 +17,7 @@ const fetchPeople = async (): Promise<Person[]> => {
 export const usePeople = () => {
   const { user, isLoading: isAuthLoading, isAuthenticated } = useAuth();
 
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isLoading, isFetching, error, refetch } = useQuery({
     queryKey: ['people', user?.id],
     queryFn: fetchPeople,
     gcTime: 5 * 60 * 1000,
@@ -32,7 +32,8 @@ export const usePeople = () => {
 
   return {
     people: data || [],
-    loading: isAuthLoading || isLoading,
+    loading: isAuthLoading || isLoading || isFetching,
+    isFetching,
     error: error?.message || null,
     refetch,
   };

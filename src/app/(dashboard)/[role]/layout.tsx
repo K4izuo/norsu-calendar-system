@@ -152,7 +152,7 @@ export default function RoleLayout({
     }
 
     const allowedPages: Record<number, string[]> = {
-      3:  ['dashboard', 'calendar', 'reservations', 'accounts', 'people', 'asset-management'],
+      3: ['dashboard', 'calendar', 'reservations', 'accounts', 'people', 'asset-management'],
       11: ['calendar', 'reservations'],
       12: ['dashboard', 'calendar', 'reservations', 'asset-management'],
     };

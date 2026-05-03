@@ -17,7 +17,7 @@ import {
 import { TableSkeleton } from "@/shared/components/ui/skeleton"
 
 // Roles that can approve/decline reservations
-const APPROVER_ROLE_NUMBERS = new Set([3, 4, 5, 6, 7, 8, 9]);
+const APPROVER_ROLE_NUMBERS = new Set([3, 4, 5, 6, 7, 8, 9, 12]);
 
 interface ReservationsTableProps {
   events: EventDetails[];

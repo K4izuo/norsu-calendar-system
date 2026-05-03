@@ -44,8 +44,8 @@ export function ReservationSuccessModal({ isOpen, onClose }: ReservationSuccessM
       />
 
       <motion.div
-        initial={false}
-        animate={{ opacity: isOpen ? 1 : 0, y: isOpen ? 0 : 8 }}
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: isOpen ? 1 : 0, scale: isOpen ? 1 : 0.96 }}
         transition={{ type: "tween", duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
         className="relative w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden"
         style={{ pointerEvents: isOpen ? "auto" : "none" }}

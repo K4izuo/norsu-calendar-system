@@ -19,14 +19,11 @@ export function usePageLoading() {
 // If isLoading is already false on mount (data cached), this signals the layout
 // via useLayoutEffect — which fires before the parent layout's useLayoutEffect —
 // so the layout skips the overlay entirely and the page appears instantly.
-// If isLoading starts true (first visit), the layout shows the overlay until
-// isLoading flips to false.
+// If isLoading starts true (first visit or fresh refetch), the layout shows the
+// overlay until isLoading flips to false.
 export function usePageReady(isLoading: boolean, isFetching = false) {
   const { setPageReady, reportHasData } = usePageLoading()
 
-  // Only skip the overlay when data is cached AND no background refetch is in flight.
-  // isFetching=true on first render (e.g. refetchOnMount:'always') forces the overlay
-  // to show even though isLoading=false (stale cache).
   const hadDataOnMountRef = useRef(!isLoading && !isFetching)
 
   useLayoutEffect(() => {
