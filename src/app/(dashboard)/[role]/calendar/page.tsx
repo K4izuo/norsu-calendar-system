@@ -142,6 +142,17 @@ export default function CalendarPage() {
           equipment: reservation.equipment,
           outsource: reservation.outsource,
           guests: reservation.guests,
+          involves_students: reservation.involves_students,
+          requires_vpaa: reservation.requires_vpaa,
+          requires_vpsas: reservation.requires_vpsas,
+          requires_vpaf: reservation.requires_vpaf,
+          requires_vprde: reservation.requires_vprde,
+          requestor: reservation.requestor,
+          requestor_type: reservation.requestor_type,
+          student_sub_type: reservation.student_sub_type,
+          student_org_name: reservation.student_org_name,
+          csg_name: reservation.csg_name,
+          requestor_tagged: reservation.requestor_tagged,
           campus_director_action: reservation.campus_director_action,
         };
       });

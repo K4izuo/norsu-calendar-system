@@ -15,6 +15,8 @@ import {
   Shield,
   Building2,
   Briefcase,
+  Video,
+  Crown,
 } from "lucide-react"
 
 import { NavMain } from "@/shared/components/layouts/nav-main"
@@ -27,39 +29,39 @@ import {
 
 const data = {
   teams: [
-    { name: "Admin",            logo: GalleryVerticalEnd },
-    { name: "Dean",             logo: AudioWaveform },
-    { name: "Staff",            logo: Command },
-    { name: "Student Director", logo: BookUser },
-    { name: "Campus Director",  logo: Shield },
-    { name: "VPAA",             logo: Briefcase },
-    { name: "VPSAS",            logo: Briefcase },
-    { name: "VPAF",             logo: Briefcase },
-    { name: "VPRDE",            logo: Briefcase },
-    { name: "Head of Office",   logo: Building2 },
+    { name: "Admin",                logo: GalleryVerticalEnd },
+    { name: "Dean",                 logo: AudioWaveform },
+    { name: "Staff",                logo: Command },
+    { name: "Student Director",     logo: BookUser },
+    { name: "Campus Director",      logo: Shield },
+    { name: "VPAA",                 logo: Briefcase },
+    { name: "VPSAS",                logo: Briefcase },
+    { name: "VPAF",                 logo: Briefcase },
+    { name: "VPRDE",                logo: Briefcase },
+    { name: "Head of Office",       logo: Building2 },
+    { name: "Multimedia",           logo: Video },
+    { name: "University President", logo: Crown },
   ],
 }
 
 const PATH_TO_TEAM_NAME: Record<string, string> = {
-  admin:               "Admin",
-  dean:                "Dean",
-  staff:               "Staff",
-  "student-director":  "Student Director",
-  "campus-director":   "Campus Director",
-  vpaa:                "VPAA",
-  vpsas:               "VPSAS",
-  vpaf:                "VPAF",
-  vprde:               "VPRDE",
-  head:                "Head of Office",
+  admin:                  "Admin",
+  dean:                   "Dean",
+  staff:                  "Staff",
+  "student-director":     "Student Director",
+  "campus-director":      "Campus Director",
+  vpaa:                   "VPAA",
+  vpsas:                  "VPSAS",
+  vpaf:                   "VPAF",
+  vprde:                  "VPRDE",
+  head:                   "Head of Office",
+  multimedia:             "Multimedia",
+  "university-president": "University President",
 }
-
-const FULL_NAV_ROLES = new Set(["admin"])
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const params = useParams()
   const role = (params.role as string) || "admin"
-
-  const isFullNav = FULL_NAV_ROLES.has(role)
 
   const allNavItems = [
     { title: "Dashboard",    url: `/${role}/dashboard`,        icon: House },
@@ -70,9 +72,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     { title: "Assets",       url: `/${role}/asset-management`, icon: Archive },
   ]
 
-  const navMain = isFullNav
-    ? allNavItems
-    : allNavItems.filter(item => item.title === "Calendar" || item.title === "Reservations")
+  let navMain: typeof allNavItems;
+  if (role === "admin") {
+    navMain = allNavItems;
+  } else if (role === "university-president") {
+    navMain = allNavItems.filter(i => ["Dashboard", "Calendar", "Reservations", "Assets"].includes(i.title));
+  } else {
+    navMain = allNavItems.filter(i => i.title === "Calendar" || i.title === "Reservations");
+  }
 
   const teamName = PATH_TO_TEAM_NAME[role] ?? "Admin"
   const initialTeam = data.teams.find(t => t.name === teamName) ?? data.teams[0]

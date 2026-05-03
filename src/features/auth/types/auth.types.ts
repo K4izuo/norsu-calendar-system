@@ -10,9 +10,10 @@
 /**
  * User role enumeration
  * 1=Dean, 2=Staff, 3=Admin, 4=StudentDirector, 5=CampusDirector,
- * 6=VPAA, 7=VPSAS, 8=VPAF, 9=VPRDE, 10=HeadOfOffice
+ * 6=VPAA, 7=VPSAS, 8=VPAF, 9=VPRDE, 10=HeadOfOffice,
+ * 11=Multimedia, 12=UniversityPresident
  */
-export type UserRole = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+export type UserRole = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 
 /**
  * Base user information returned from API
@@ -216,7 +217,8 @@ export interface PasswordChangeFormData {
 export type RolePath =
   | 'admin' | 'dean' | 'staff'
   | 'student-director' | 'campus-director'
-  | 'vpaa' | 'vpsas' | 'vpaf' | 'vprde' | 'head';
+  | 'vpaa' | 'vpsas' | 'vpaf' | 'vprde' | 'head'
+  | 'multimedia' | 'university-president';
 
 /**
  * Role path map
@@ -232,6 +234,8 @@ export const ROLE_PATH_MAP: Record<UserRole, RolePath> = {
   8:  'vpaf',
   9:  'vprde',
   10: 'head',
+  11: 'multimedia',
+  12: 'university-president',
 } as const;
 
 /**
@@ -248,4 +252,6 @@ export const ROLE_DISPLAY_NAMES: Record<UserRole, string> = {
   8:  'VPAF',
   9:  'VPRDE',
   10: 'Head of Office',
+  11: 'Multimedia',
+  12: 'University President',
 } as const;

@@ -9,7 +9,7 @@ import { apiClient } from "@/core/api/api-client"
 import { useAuth } from "@/shared/components/context/auth-context"
 import { checkReservationConflicts } from "@/features/reservations/utils/reservation-conflict-check"
 import { useQueryClient } from "@tanstack/react-query"
-import { fetchReservations, useResubmitReservation } from "@/features/calendar/services/reservation-service"
+import { fetchReservations, normalizeRequestor, useResubmitReservation } from "@/features/calendar/services/reservation-service"
 import { normalizeTime, normalizeDate } from "./useFormNormalizers"
 import { usePeopleTagging } from "./usePeopleTagging"
 import { useAssetSelection } from "./useAssetSelection"
@@ -52,6 +52,27 @@ interface UseReserveEventFormProps {
 const getCurrentTime = () => {
   const now = new Date();
   return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+};
+
+const toFormBoolean = (value: unknown): boolean => {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value === 1;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    return normalized === "1" || normalized === "true";
+  }
+  return false;
+};
+
+const getEventRequestor = (eventData: EventDetails): RequestorInfo | undefined => {
+  return normalizeRequestor({
+    requestor: eventData.requestor,
+    requestor_type: eventData.requestor_type,
+    student_sub_type: eventData.student_sub_type,
+    student_org_name: eventData.student_org_name,
+    csg_name: eventData.csg_name,
+    requestor_tagged: eventData.requestor_tagged,
+  });
 };
 
 export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservation, editMode = false, resubmitMode = false, eventData, userRole, userOffice }: UseReserveEventFormProps) => {
@@ -175,7 +196,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
     if (isOpen) {
       setActiveTab("requestor");
       setRequestorError("");
-      if (!editMode) {
+      if (!editMode && !resubmitMode) {
         const currentTime = getCurrentTime();
         setValue("time_start", currentTime);
         setValue("time_end", currentTime);
@@ -224,7 +245,38 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
       setRequestor(null);
       setRequestorError("");
     }
-  }, [isOpen, setValue, reset, eventDate, editMode, setTaggedPeople, setTagInput, isDean]);
+  }, [isOpen, setValue, reset, eventDate, editMode, resubmitMode, setTaggedPeople, setTagInput, isDean]);
+
+  // Pre-populate extra fields that useEditModePopulate doesn't cover
+  useEffect(() => {
+    if (!(editMode || resubmitMode) || !eventData || !isOpen) return;
+
+    const eventRequestor = getEventRequestor(eventData);
+    setRequestor(eventRequestor ?? null);
+    setValue("requestor", eventRequestor);
+    setRequestorError("");
+
+    setValue("other_category", eventData.other_category ?? "");
+    setValue("involves_students", toFormBoolean(eventData.involves_students));
+    setValue("requires_vpaa", toFormBoolean(eventData.requires_vpaa) || isDean);
+    setValue("requires_vpsas", toFormBoolean(eventData.requires_vpsas));
+    setValue("requires_vpaf", toFormBoolean(eventData.requires_vpaf));
+    setValue("requires_vprde", toFormBoolean(eventData.requires_vprde));
+
+    if (eventData.equipment && eventData.equipment.length > 0) {
+      setValue("equipment", eventData.equipment);
+    }
+
+    if (eventData.outsource) {
+      setShowOutsource(true);
+      setValue("outsource", eventData.outsource);
+    }
+
+    if (eventData.guests && eventData.guests.length > 0) {
+      setShowGuest(true);
+      setValue("guests", eventData.guests);
+    }
+  }, [editMode, resubmitMode, eventData, isOpen, setValue, setRequestor, setShowOutsource, setShowGuest, isDean]);
 
   const isFormValid = useCallback((): boolean => {
     const values = getValues();
@@ -260,11 +312,17 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
           people_tag: taggedPeople.map(p => p.name).join(", "),
           tagged_people_ids: taggedPeople.filter(p => p.id > 0).map(p => p.id),
           reserved_by_user: parseInt(user?.id || "0"),
-          involves_students: rest.involves_students ?? false,
-          requires_vpaa: rest.requires_vpaa ?? false,
-          requires_vpsas: rest.requires_vpsas ?? false,
-          requires_vpaf: rest.requires_vpaf ?? false,
-          requires_vprde: rest.requires_vprde ?? false,
+          involves_students: toFormBoolean(rest.involves_students),
+          requires_vpaa: toFormBoolean(rest.requires_vpaa),
+          requires_vpsas: toFormBoolean(rest.requires_vpsas),
+          requires_vpaf: toFormBoolean(rest.requires_vpaf),
+          requires_vprde: toFormBoolean(rest.requires_vprde),
+          requestor: requestor ?? undefined,
+          requestor_type: requestor?.type,
+          student_sub_type: requestor?.student_sub_type,
+          student_org_name: requestor?.student_org_name,
+          csg_name: requestor?.csg_name,
+          requestor_tagged: requestor?.tagged,
         };
 
         if (resubmitMode && eventData?.id) {
@@ -279,6 +337,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
             tagged_people_ids: formDataWithPeople.tagged_people_ids,
             info_type: formDataWithPeople.info_type,
             category: formDataWithPeople.category,
+            other_category: formDataWithPeople.other_category,
             date: formDataWithPeople.date,
             outsource: formDataWithPeople.outsource,
             guests: formDataWithPeople.guests,
@@ -287,10 +346,20 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
             requires_vpsas: formDataWithPeople.requires_vpsas,
             requires_vpaf: formDataWithPeople.requires_vpaf,
             requires_vprde: formDataWithPeople.requires_vprde,
+            requestor: formDataWithPeople.requestor,
+            requestor_type: formDataWithPeople.requestor_type,
+            student_sub_type: formDataWithPeople.student_sub_type,
+            student_org_name: formDataWithPeople.student_org_name,
+            csg_name: formDataWithPeople.csg_name,
+            requestor_tagged: formDataWithPeople.requestor_tagged,
           };
-          await resubmit({ reservationId: eventData.id, payload });
-          onClose();
-          setShowSuccessModal(true);
+          try {
+            await resubmit({ reservationId: eventData.id, payload });
+            onClose();
+            setShowSuccessModal(true);
+          } catch {
+            // onError in useResubmitReservation already shows the error toast
+          }
           return;
         }
 
@@ -393,7 +462,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         toast.error(editMode ? "Failed to update event. Please try again." : "Failed to reserve event. Please try again.");
       }
     },
-    [reset, onClose, taggedPeople, eventDate, onNewReservation, editMode, resubmitMode, resubmit, eventData, user?.id, queryClient, setTaggedPeople, setTagInput, isDean]
+    [reset, onClose, taggedPeople, eventDate, onNewReservation, editMode, resubmitMode, resubmit, eventData, user?.id, queryClient, setTaggedPeople, setTagInput, isDean, requestor]
   );
 
   const handleRequestorTabNext = useCallback(() => {

@@ -90,6 +90,12 @@ export default function usePublicCalendarData({
           equipment: reservation.equipment,
           outsource: reservation.outsource,
           guests: reservation.guests,
+          requestor: reservation.requestor,
+          requestor_type: reservation.requestor_type,
+          student_sub_type: reservation.student_sub_type,
+          student_org_name: reservation.student_org_name,
+          csg_name: reservation.csg_name,
+          requestor_tagged: reservation.requestor_tagged,
         };
       });
   }, [reservations, assets]);

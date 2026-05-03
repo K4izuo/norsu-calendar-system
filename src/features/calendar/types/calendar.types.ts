@@ -3,7 +3,7 @@
  * Types specific to calendar display and event listing
  */
 
-import type { Reservation, ReservationAPIPayload, ReservationApproval } from "../../reservations/types/reservation.types"
+import type { Reservation, ReservationAPIPayload, ReservationApproval, RequestorInfo } from "../../reservations/types/reservation.types"
 
 // ============================================================================
 // Event Status & Details
@@ -65,6 +65,12 @@ export interface EventDetails {
   declined_at_stage?: string | null
   campus_director_action?: 'approve' | 'endorse' | null
   approvals?: ReservationApproval[]
+  requestor?: RequestorInfo
+  requestor_type?: RequestorInfo["type"]
+  student_sub_type?: RequestorInfo["student_sub_type"]
+  student_org_name?: string
+  csg_name?: string
+  requestor_tagged?: { id: number; name: string }[] | string
 }
 
 /**

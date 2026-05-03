@@ -1,7 +1,7 @@
 import { apiClient } from "@/core/api/api-client";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/shared/components/context/auth-context";
-import { ReservationWithRelations, MoveReservationPayload, ReservationAPIPayload } from "@/interface/user-props";
+import { ReservationWithRelations, MoveReservationPayload, ReservationAPIPayload, RequestorInfo } from "@/interface/user-props";
 import toast from "react-hot-toast";
 
 export type Asset = {
@@ -19,6 +19,100 @@ const toNumber = (value: unknown): number => {
   return 0;
 };
 
+const toBoolean = (value: unknown): boolean => {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value === 1;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    return normalized === "1" || normalized === "true";
+  }
+  return false;
+};
+
+const parseJsonValue = (value: unknown): unknown => {
+  if (typeof value !== "string") return value;
+
+  try {
+    return JSON.parse(value) as unknown;
+  } catch {
+    return value;
+  }
+};
+
+export const normalizeTagged = (value: unknown): RequestorInfo["tagged"] | undefined => {
+  const parsed = parseJsonValue(value);
+
+  if (!Array.isArray(parsed)) return undefined;
+
+  const tagged = parsed
+    .map((item, index) => {
+      if (typeof item === "string") {
+        return { id: -(index + 1), name: item };
+      }
+
+      if (!item || typeof item !== "object") return null;
+
+      const record = item as Record<string, unknown>;
+      const name = record.name ?? record.label ?? record.office_name ?? record.degree_name;
+      const id = toNumber(record.id ?? record.value);
+
+      return typeof name === "string" && name.trim()
+        ? { id: id || -(index + 1), name }
+        : null;
+    })
+    .filter((item): item is { id: number; name: string } => item !== null);
+
+  return tagged.length > 0 ? tagged : undefined;
+};
+
+export const normalizeRequestor = (value: unknown): RequestorInfo | undefined => {
+  if (!value) return undefined;
+
+  const parsed = parseJsonValue(value);
+
+  if (typeof parsed === "string") {
+    const type = parsed.trim().toLowerCase();
+    return type === "student" || type === "faculty" || type === "office"
+      ? { type }
+      : undefined;
+  }
+
+  if (!parsed || typeof parsed !== "object") return undefined;
+
+  const record = parsed as Record<string, unknown>;
+  const nestedRequestor = normalizeRequestor(record.requestor ?? record.requestor_info ?? record.requestorInfo);
+
+  const rawType = record.type ?? record.requestor_type ?? record.requestorType ?? nestedRequestor?.type ?? record.requestor;
+  const type = typeof rawType === "string" ? rawType.trim().toLowerCase() : rawType;
+
+  if (type !== "student" && type !== "faculty" && type !== "office") {
+    return nestedRequestor;
+  }
+
+  const tagged = normalizeTagged(
+    record.tagged ??
+    record.requestor_tagged ??
+    record.requestorTagged ??
+    record.requestor_tags ??
+    record.requestorTags
+  ) ?? nestedRequestor?.tagged;
+
+  const rawStudentSubType = record.student_sub_type ?? record.studentSubType ?? record.requestor_student_sub_type ?? record.requestorStudentSubType;
+  const studentSubType = typeof rawStudentSubType === "string"
+    ? rawStudentSubType.trim().toLowerCase()
+    : rawStudentSubType ?? nestedRequestor?.student_sub_type;
+  const studentOrgName = record.student_org_name ?? record.studentOrgName ?? record.requestor_student_org_name ?? record.requestorStudentOrgName;
+  const csgName = record.csg_name ?? record.csgName ?? record.requestor_csg_name ?? record.requestorCsgName;
+
+  return {
+    type,
+    student_sub_type: studentSubType as RequestorInfo["student_sub_type"],
+    student_org_name: typeof studentOrgName === "string" ? studentOrgName : nestedRequestor?.student_org_name,
+    csg_name: typeof csgName === "string" ? csgName : nestedRequestor?.csg_name,
+    tagged,
+  };
+};
+
 export const normalizeReservation = (
   reservation: ReservationWithRelations,
 ): ReservationWithRelations => ({
@@ -26,6 +120,13 @@ export const normalizeReservation = (
   id: toNumber(reservation.id),
   asset_id: toNumber(reservation.asset_id),
   range: toNumber(reservation.range),
+  involves_students: toBoolean(reservation.involves_students),
+  requires_vpaa: toBoolean(reservation.requires_vpaa),
+  requires_vpsas: toBoolean(reservation.requires_vpsas),
+  requires_vpaf: toBoolean(reservation.requires_vpaf),
+  requires_vprde: toBoolean(reservation.requires_vprde),
+  is_moved: toBoolean(reservation.is_moved),
+  requestor: normalizeRequestor(reservation),
 });
 
 // Fetch all reservations with relations (PUBLIC endpoint)
@@ -116,7 +217,7 @@ const resubmitReservation = async ({
 
 // Fetch the approval queue for the current user's role
 export const fetchQueue = async (): Promise<ReservationWithRelations[]> => {
-  const response = await apiClient.get<ReservationWithRelations[]>("/reservations/queue");
+  const response = await apiClient.get<ReservationWithRelations[]>("/reservations/queue", { cache: "no-store" });
   if (response.error) throw new Error(response.error);
   return (response.data ?? []).map(normalizeReservation);
 };
@@ -299,6 +400,16 @@ const invalidateReservationQueries = (queryClient: ReturnType<typeof useQueryCli
   queryClient.invalidateQueries({ queryKey: ["reservation-queue"], refetchType: "all" });
 };
 
+const removeReservationFromQueueQueries = (
+  queryClient: ReturnType<typeof useQueryClient>,
+  reservationId: number,
+) => {
+  queryClient.setQueriesData<ReservationWithRelations[]>(
+    { queryKey: ["reservation-queue"] },
+    (previous) => previous?.filter((reservation) => reservation.id !== reservationId),
+  );
+};
+
 export const useApproveReservation = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -314,7 +425,8 @@ export const useApproveReservation = () => {
       if (!user?.id) throw new Error("User not authenticated. Please login again.");
       return approveReservation({ reservationId, userId: user.id, action });
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
+      removeReservationFromQueueQueries(queryClient, variables.reservationId);
       invalidateReservationQueries(queryClient);
       toast.success("Reservation approved successfully!");
     },
@@ -334,7 +446,8 @@ export const useDeclineReservation = () => {
       if (!user?.id) throw new Error("User not authenticated. Please login again.");
       return declineReservation({ reservationId, userId: user.id, reason });
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
+      removeReservationFromQueueQueries(queryClient, variables.reservationId);
       invalidateReservationQueries(queryClient);
       toast.success("Reservation declined successfully!");
     },
@@ -366,6 +479,22 @@ export const useMoveReservation = () => {
     onError: (err) => {
       console.error("Move reservation error:", err);
       toast.error(err instanceof Error ? err.message : "Failed to move reservation");
+    },
+  });
+};
+
+export const useUpdateMultimediaComment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ reservationId, comment }: { reservationId: number; comment: string }) =>
+      apiClient.put(`/reservations/${reservationId}/multimedia-comment`, { multimedia_comment: comment }),
+    onSuccess: () => {
+      invalidateReservationQueries(queryClient);
+    },
+    onError: (err) => {
+      console.error("Multimedia comment error:", err);
+      toast.error("Failed to save comment");
     },
   });
 };

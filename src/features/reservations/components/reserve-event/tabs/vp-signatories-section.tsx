@@ -15,8 +15,18 @@ const VP_ITEMS: { label: string; field: keyof Pick<ReservationFormData, "require
   { label: "VPRDE", field: "requires_vprde" },
 ];
 
+const toChecked = (value: unknown): boolean => {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value === 1;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    return normalized === "1" || normalized === "true";
+  }
+  return false;
+};
+
 export function VpSignatoriesSection({ watch, setValue }: Props) {
-  const involvesStudents = watch("involves_students") ?? false;
+  const involvesStudents = toChecked(watch("involves_students"));
 
   const toggleStudents = () => {
     setValue("involves_students", !involvesStudents, { shouldDirty: true });
@@ -50,7 +60,7 @@ export function VpSignatoriesSection({ watch, setValue }: Props) {
         <Label>VP Signatories</Label>
         <div className="grid grid-cols-2 gap-3">
           {VP_ITEMS.map(({ label, field }) => {
-            const checked = watch(field) ?? false;
+            const checked = toChecked(watch(field));
 
             return (
               <button

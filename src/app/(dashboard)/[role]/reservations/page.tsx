@@ -18,16 +18,18 @@ import { useAuth } from "@/shared/components/context/auth-context";
 import { usePageReady } from "@/shared/components/context/page-loading-context";
 
 const PATH_ROLE_MAP: Record<string, number> = {
-  dean:               1,
-  staff:              2,
-  admin:              3,
-  "student-director": 4,
-  "campus-director":  5,
-  vpaa:               6,
-  vpsas:              7,
-  vpaf:               8,
-  vprde:              9,
-  head:               10,
+  dean:                   1,
+  staff:                  2,
+  admin:                  3,
+  "student-director":     4,
+  "campus-director":      5,
+  vpaa:                   6,
+  vpsas:                  7,
+  vpaf:                   8,
+  vprde:                  9,
+  head:                   10,
+  multimedia:             11,
+  "university-president": 12,
 };
 
 export default function ReservationsPage() {
@@ -40,9 +42,8 @@ export default function ReservationsPage() {
   const [statusFilter, setStatusFilter] = useState("pending");
   const [resubmitEvent, setResubmitEvent] = useState<EventDetails | undefined>();
 
-  // Only admin sees all reservations; every other role uses the queue
-  // (backend queue() already scopes by role: Dean/HO → own, VPs → matching flag, etc.)
-  const isAdmin = userRoleNumber === 3;
+  // Admin and Multimedia see all reservations; every other role uses the queue
+  const isAdmin = userRoleNumber === 3 || userRoleNumber === 11;
 
   const { reservations, error: resError, loading: resLoading } = useReservations();
   const { queue, error: queueError, loading: queueLoading } = useGetQueue();
@@ -97,10 +98,17 @@ export default function ReservationsPage() {
         requires_vpsas: reservation.requires_vpsas,
         requires_vpaf: reservation.requires_vpaf,
         requires_vprde: reservation.requires_vprde,
+        requestor: reservation.requestor,
+        requestor_type: reservation.requestor_type,
+        student_sub_type: reservation.student_sub_type,
+        student_org_name: reservation.student_org_name,
+        csg_name: reservation.csg_name,
+        requestor_tagged: reservation.requestor_tagged,
         current_stage: reservation.current_stage,
         declined_at_stage: reservation.declined_at_stage,
         campus_director_action: reservation.campus_director_action,
         approvals: reservation.approvals,
+        multimedia_comment: reservation.multimedia_comment,
       };
     });
   }, [sourceList, assets]);

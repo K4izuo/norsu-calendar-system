@@ -140,7 +140,7 @@ export const CampusDirectorApprovalModal: React.FC<CampusDirectorApprovalModalPr
             <div className="flex-1 overflow-y-auto p-6">
               <div className="space-y-4">
                 <p className="text-gray-700 text-center text-base">
-                  Choose to directly approve this reservation or endorse it to Admin for final approval.
+                  Choose to directly approve this reservation or endorse it to the University President for final approval.
                 </p>
 
                 {event && (
@@ -248,7 +248,7 @@ export const CampusDirectorApprovalModal: React.FC<CampusDirectorApprovalModalPr
               </div>
               <div className="flex gap-3 px-0.5">
                 <div className="flex-1" />
-                <p className="flex-1 text-center text-xs text-gray-400">Forwards to Admin for final approval</p>
+                <p className="flex-1 text-center text-xs text-gray-400">Forwards to University President for final approval</p>
                 <p className="flex-1 text-center text-xs text-gray-400">Directly approves — event goes live</p>
               </div>
             </div>

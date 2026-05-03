@@ -134,6 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         "/admin", "/dean", "/staff",
         "/student-director", "/campus-director",
         "/vpaa", "/vpsas", "/vpaf", "/vprde", "/head",
+        "/multimedia", "/university-president",
       ];
 
       if (user && authRoutes.some((route) => pathname?.startsWith(route))) {

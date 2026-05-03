@@ -48,6 +48,8 @@ const pathRoleMap: Record<string, number> = {
   vpaf: 8,
   vprde: 9,
   head: 10,
+  multimedia: 11,
+  'university-president': 12,
 }
 
 
@@ -149,16 +151,17 @@ export default function RoleLayout({
       return;
     }
 
-    // Non-admin roles may only access /calendar and /reservations
-    const ADMIN_ROLE = 3;
-    if (actualRole !== ADMIN_ROLE) {
-      const allowedSegments = ["calendar", "reservations"];
-      const pageSegment = pathname.split("/")[2];
-      if (pageSegment && !allowedSegments.includes(pageSegment)) {
-        const targetPath = `/${roleSegment}/calendar`;
-        if (!pathname.startsWith(targetPath)) {
-          router.replace(targetPath);
-        }
+    const allowedPages: Record<number, string[]> = {
+      3:  ['dashboard', 'calendar', 'reservations', 'accounts', 'people', 'asset-management'],
+      11: ['calendar', 'reservations'],
+      12: ['dashboard', 'calendar', 'reservations', 'asset-management'],
+    };
+    const roleAllowed = allowedPages[actualRole] ?? ['calendar', 'reservations'];
+    const pageSegment = pathname.split('/')[2];
+    if (pageSegment && !roleAllowed.includes(pageSegment)) {
+      const targetPath = `/${roleSegment}/calendar`;
+      if (!pathname.startsWith(targetPath)) {
+        router.replace(targetPath);
       }
     }
   }, [isAuthLoading, user, roleSegment, pathname, router]);

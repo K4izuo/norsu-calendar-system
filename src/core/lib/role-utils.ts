@@ -8,14 +8,17 @@ export const ROLE_CONFIG = {
   7:  { name: 'vpsas',            label: 'VPSAS',            path: 'vpsas',            defaultPage: 'calendar' },
   8:  { name: 'vpaf',             label: 'VPAF',             path: 'vpaf',             defaultPage: 'calendar' },
   9:  { name: 'vprde',            label: 'VPRDE',            path: 'vprde',            defaultPage: 'calendar' },
-  10: { name: 'head',             label: 'Head of Office',   path: 'head',             defaultPage: 'calendar' },
+  10: { name: 'head',               label: 'Head of Office',       path: 'head',               defaultPage: 'calendar'   },
+  11: { name: 'multimedia',         label: 'Multimedia',           path: 'multimedia',         defaultPage: 'calendar'   },
+  12: { name: 'university-president', label: 'University President', path: 'university-president', defaultPage: 'dashboard' },
 } as const;
 
-export type RoleNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+export type RoleNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 export type RolePath =
   | 'dean' | 'staff' | 'admin'
   | 'student-director' | 'campus-director'
-  | 'vpaa' | 'vpsas' | 'vpaf' | 'vprde' | 'head';
+  | 'vpaa' | 'vpsas' | 'vpaf' | 'vprde' | 'head'
+  | 'multimedia' | 'university-president';
 
 export function getRolePathFromNumber(roleNum: number): RolePath {
   const role = ROLE_CONFIG[roleNum as RoleNumber];

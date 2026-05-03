@@ -14,10 +14,10 @@ import { AssetsVehicleModal } from "@/features/reservations/components/reserve-e
 import { useAssets } from "@/features/calendar/services/academicDataService";
 import { useReserveEventForm } from "@/features/reservations/hooks/useReserveEventForm";
 import {
+  EventDetails,
   Reservation,
   ReservationAPIPayload,
-} from "@/features/reservations/types/reservation.types";
-import { EventDetails } from "@/features/calendar/types/calendar.types";
+} from "@/interface/user-props";
 import {
   infoTypes,
   categories,
@@ -139,6 +139,7 @@ export function ReserveEventModal({
 
   useEditModePopulate({
     editMode,
+    resubmitMode,
     eventData,
     isOpen,
     setValue,

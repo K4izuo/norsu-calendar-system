@@ -17,6 +17,14 @@ export interface ReservationApproval {
   user?: { first_name: string; last_name: string }
 }
 
+export interface RequestorInfo {
+  type: 'student' | 'faculty' | 'office'
+  student_sub_type?: 'student_org' | 'csg' | 'lso' | 'sgdc'
+  student_org_name?: string
+  csg_name?: string
+  tagged?: { id: number; name: string }[]
+}
+
 /**
  * Core reservation entity from database
  */
@@ -29,6 +37,7 @@ export interface Reservation {
   description: string
   range: number
   people_tag: string
+  tagged_people_ids?: number[]
   info_type: string
   category: string
   other_category?: string
@@ -50,6 +59,12 @@ export interface Reservation {
   current_stage?: string
   declined_at_stage?: string | null
   campus_director_action?: 'approve' | 'endorse' | null
+  requestor?: RequestorInfo
+  requestor_type?: RequestorInfo["type"]
+  student_sub_type?: RequestorInfo["student_sub_type"]
+  student_org_name?: string
+  csg_name?: string
+  requestor_tagged?: { id: number; name: string }[] | string
 }
 
 /**
@@ -102,6 +117,12 @@ export interface ReservationAPIPayload {
   requires_vpsas?: boolean
   requires_vpaf?: boolean
   requires_vprde?: boolean
+  requestor?: RequestorInfo
+  requestor_type?: RequestorInfo["type"]
+  student_sub_type?: RequestorInfo["student_sub_type"]
+  student_org_name?: string
+  csg_name?: string
+  requestor_tagged?: { id: number; name: string }[]
 }
 
 // ============================================================================
@@ -138,4 +159,5 @@ export interface ReservationFormData {
   requires_vpsas?: boolean
   requires_vpaf?: boolean
   requires_vprde?: boolean
+  requestor?: RequestorInfo
 }

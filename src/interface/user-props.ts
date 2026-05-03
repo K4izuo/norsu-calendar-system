@@ -77,6 +77,12 @@ export interface EventDetails {
   campus_director_action?: 'approve' | 'endorse' | null
   approvals?: ReservationApproval[]
   requestor?: RequestorInfo
+  requestor_type?: RequestorInfo["type"]
+  student_sub_type?: RequestorInfo["student_sub_type"]
+  student_org_name?: string
+  csg_name?: string
+  requestor_tagged?: { id: number; name: string }[] | string
+  multimedia_comment?: string | null
 }
 
 // Add this new interface for API payload
@@ -91,6 +97,7 @@ export interface ReservationAPIPayload {
   tagged_people_ids?: number[]
   info_type: string
   category: string
+  other_category?: string
   date: string
   outsource?: string
   guests?: { name: string; details: string }[]
@@ -99,6 +106,12 @@ export interface ReservationAPIPayload {
   requires_vpsas?: boolean
   requires_vpaf?: boolean
   requires_vprde?: boolean
+  requestor?: RequestorInfo
+  requestor_type?: RequestorInfo["type"]
+  student_sub_type?: RequestorInfo["student_sub_type"]
+  student_org_name?: string
+  csg_name?: string
+  requestor_tagged?: { id: number; name: string }[]
 }
 
 export interface Reservation {
@@ -129,6 +142,12 @@ export interface Reservation {
   current_stage?: string
   declined_at_stage?: string | null
   campus_director_action?: 'approve' | 'endorse' | null
+  requestor?: RequestorInfo
+  requestor_type?: RequestorInfo["type"]
+  student_sub_type?: RequestorInfo["student_sub_type"]
+  student_org_name?: string
+  csg_name?: string
+  requestor_tagged?: { id: number; name: string }[] | string
 }
 
 // Extended interface for API responses that include relationships
@@ -152,6 +171,7 @@ export interface ReservationWithRelations extends Reservation {
   outsource?: string
   guests?: { name: string; details: string }[]
   approvals?: ReservationApproval[]
+  multimedia_comment?: string | null
 }
 
 export interface EventsListModalProps {

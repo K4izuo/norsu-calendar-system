@@ -9,6 +9,7 @@ type RequestOptions<D = unknown> = {
   headers?: Record<string, string>;
   body?: D;
   credentials?: RequestCredentials;
+  cache?: RequestCache;
 };
 
 type ApiResponse<T> = {
@@ -35,8 +36,6 @@ const buildHeaders = (token: string | null, customHeaders?: Record<string, strin
   const headers = {
     'Accept': 'application/json',
     'Content-Type': 'application/json',
-    // ⚡ PERFORMANCE: Enable HTTP caching for GET requests
-    'Cache-Control': 'public, max-age=120', // 2 minutes
     // ⚡ PERFORMANCE: Keep connection alive for connection pooling
     'Connection': 'keep-alive',
     ...(token && { 'Authorization': `Bearer ${token}` }),
@@ -93,6 +92,7 @@ const isPublicEndpoint = (endpoint: string): boolean => {
 
 // Define endpoints that definitely require authentication
 const isProtectedEndpoint = (endpoint: string): boolean => {
+  const normalizedEndpoint = endpoint.replace(/^\/+/, '');
   const protectedPatterns = [
     '/me',
     'logout',
@@ -107,13 +107,15 @@ const isProtectedEndpoint = (endpoint: string): boolean => {
   ];
 
   // Special case: reservations/{id} is protected, but reservations/all and reservations/assets/{id} are public
-  if (endpoint.startsWith('reservations/')) {
+  if (normalizedEndpoint.startsWith('reservations/')) {
     // If it's /all or /assets/, it's public
-    if (endpoint.includes('/all') || endpoint.includes('/assets/')) {
+    if (normalizedEndpoint.includes('/all') || normalizedEndpoint.includes('/assets/')) {
       return false;
     }
     // Otherwise it's a single reservation by ID, which is protected
-    return /^reservations\/\d+$/.test(endpoint) || /^reservations\/\d+\/move$/.test(endpoint);
+    return /^reservations\/\d+$/.test(normalizedEndpoint)
+      || /^reservations\/\d+\/move$/.test(normalizedEndpoint)
+      || /^reservations\/\d+\/resubmit$/.test(normalizedEndpoint);
   }
 
   return protectedPatterns.some(pattern => endpoint.includes(pattern));
@@ -142,6 +144,7 @@ export const apiClient = {
       method,
       headers: buildHeaders(token, customOptions.headers),
       credentials: customOptions.credentials || 'include',
+      cache: customOptions.cache,
       // ⚡ PERFORMANCE: Support AbortSignal for request cancellation
       signal: customOptions.signal,
       ...(data && { body: JSON.stringify(data) })

@@ -1,27 +1,29 @@
 import { useEffect } from "react";
 import { UseFormSetValue } from "react-hook-form";
-import { EventDetails } from "@/features/calendar/types/calendar.types";
-import { ReservationFormData } from "@/interface/user-props";
+import { EventDetails, ReservationFormData } from "@/interface/user-props";
 
 export function useEditModePopulate({
   editMode,
+  resubmitMode,
   eventData,
   isOpen,
   setValue,
   setTaggedPeople,
 }: {
   editMode: boolean;
+  resubmitMode?: boolean;
   eventData: EventDetails | undefined;
   isOpen: boolean;
   setValue: UseFormSetValue<ReservationFormData>;
   setTaggedPeople: (people: { id: number; name: string }[]) => void;
 }): void {
   useEffect(() => {
-    if (editMode && eventData && isOpen) {
+    if ((editMode || resubmitMode) && eventData && isOpen) {
       setValue("title_name", eventData.title_name || "");
       setValue("description", eventData.description || "");
       setValue("time_start", eventData.time_start || "");
       setValue("time_end", eventData.time_end || "");
+      setValue("date", eventData.date || "");
       setValue("range", eventData.range || 1);
       setValue("info_type", eventData.info_type || "");
       setValue("category", eventData.category || "");
@@ -39,5 +41,5 @@ export function useEditModePopulate({
         setValue("people_tag", eventData.people_tag.join(", "));
       }
     }
-  }, [editMode, eventData, isOpen, setValue, setTaggedPeople]);
+  }, [editMode, resubmitMode, eventData, isOpen, setValue, setTaggedPeople]);
 }
