@@ -118,7 +118,7 @@ const HeroSection = () => {
         {/* Subheadline */}
         <motion.p
           {...fadeUp(0.2, 16, 0.6)}
-          className="mt-4 text-center text-base md:text-lg text-muted-foreground max-w-[650px] leading-relaxed font-body"
+          className="mt-4 text-center text-base md:text-lg text-muted-foreground max-w-[650px] leading-relaxed"
         >
           NORSU Calendar System: Digital Scheduling and Event Management for Main Campus I & II
         </motion.p>

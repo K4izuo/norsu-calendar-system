@@ -96,9 +96,9 @@ export const EventInfoModal = React.memo(function EventInfoModal({
 
             <motion.div
               ref={contentRef}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 4 }}
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.96 }}
               transition={{ type: "tween", duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
               className="relative w-full max-w-4xl max-h-[90vh] bg-white rounded-xl shadow-2xl flex flex-col"
               onClick={e => e.stopPropagation()}

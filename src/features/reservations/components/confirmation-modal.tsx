@@ -154,9 +154,9 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
           />
           <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 4 }}
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.96 }}
             transition={{ type: "tween", duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             className="relative max-w-xl w-full bg-white rounded-lg shadow-xl overflow-hidden flex flex-col max-h-[85vh]"
             onClick={(e) => e.stopPropagation()}

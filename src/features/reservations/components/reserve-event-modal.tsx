@@ -172,166 +172,166 @@ export function ReserveEventModal({
 
   return (
     <>
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 overscroll-none"
-      style={{ pointerEvents: isOpen ? "auto" : "none" }}
-    >
-      <motion.div
-        className="absolute inset-0 bg-black/40"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isOpen ? 1 : 0 }}
-        transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-      />
-
-      <motion.div
-        ref={contentRef}
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: isOpen ? 1 : 0, y: isOpen ? 0 : 8 }}
-        transition={{ type: "tween", duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-        className="relative w-full max-w-216 sm:mx-4 mx-px max-h-[92vh] bg-white rounded-xl shadow-xl overflow-hidden flex flex-col"
-        style={{
-          transform: "translateZ(0)",
-          backfaceVisibility: "hidden",
-          transformOrigin: "center",
-          willChange: isOpen ? "transform, opacity" : "auto",
-          pointerEvents: isOpen ? "auto" : "none",
-        }}
-        onClick={(e) => e.stopPropagation()}
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 overscroll-none"
+        style={{ pointerEvents: isOpen ? "auto" : "none" }}
       >
-        <ModalHeader
-          editMode={editMode}
-          displayDate={displayDate}
-          onClose={onClose}
+        <motion.div
+          className="absolute inset-0 bg-black/40"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isOpen ? 1 : 0 }}
+          transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
         />
 
-        <form className="flex flex-col flex-1" onSubmit={handleFormSubmit}>
-          <div ref={scrollRef} className="overflow-y-auto p-4 sm:p-6 pt-2 sm:pt-4 flex-1 max-h-[calc(91vh-155px)]">
-            <Tabs value={activeTab} className="w-full">
-              <ModalTabBar
-                tabOrder={tabOrder}
-                tabLabels={tabLabels}
-                activeTab={activeTab}
-              />
-
-              <TabsContent value="requestor" className="space-y-4 sm:space-y-6">
-                <EventRequestorTab
-                  requestor={requestor}
-                  onChange={setRequestor}
-                  error={requestorError}
-                  onClearError={setRequestorError}
-                />
-              </TabsContent>
-
-              <TabsContent value="form" className="space-y-4 sm:space-y-6">
-                <ReserveEventFormTab
-                  control={control}
-                  errors={errors}
-                  assets={formattedAssets}
-                  handleAssetChange={handleAssetChange}
-                  selectedAsset={watchedAsset}
-                  register={register}
-                  watch={watch}
-                />
-              </TabsContent>
-
-              <TabsContent value="equipment" className="space-y-4 sm:space-y-6">
-                <ReserveEventEquipmentTab watch={watch} setValue={setValue} touched={equipmentTouched} />
-              </TabsContent>
-
-              <TabsContent
-                value="additional"
-                className="space-y-5"
-              >
-                <ReserveEventAdditionalTab
-                  control={control}
-                  errors={errors}
-                  infoTypes={infoTypes}
-                  categories={categories}
-                  tagInput={tagInput}
-                  taggedPeople={taggedPeople}
-                  peopleSuggestions={peopleSuggestions}
-                  showDropdown={showDropdown}
-                  handleTagInputChange={handleTagInputChange}
-                  handleTagSelect={handleTagSelect}
-                  handleRemoveTag={handleRemoveTag}
-                  setShowDropdown={setShowDropdown}
-                  peopleFieldRef={peopleFieldRef}
-                  showOutsource={showOutsource}
-                  showGuest={showGuest}
-                  guestNameInput={guestNameInput}
-                  guestDetailsInput={guestDetailsInput}
-                  outsourceError={outsourceError}
-                  guestNameError={guestNameError}
-                  guestDetailsError={guestDetailsError}
-                  setGuestNameInput={setGuestNameInput}
-                  setGuestDetailsInput={setGuestDetailsInput}
-                  setOutsourceError={setOutsourceError}
-                  setGuestNameError={setGuestNameError}
-                  setGuestDetailsError={setGuestDetailsError}
-                  handleOutsourceToggle={handleOutsourceToggle}
-                  handleGuestToggle={handleGuestToggle}
-                  handleAddGuest={handleAddGuest}
-                  handleRemoveGuest={handleRemoveGuest}
-                />
-
-                {showVpSection && (
-                  <VpSignatoriesSection
-                    watch={watch}
-                    setValue={setValue}
-                  />
-                )}
-              </TabsContent>
-
-              <TabsContent value="summary" className="space-y-4 sm:space-y-6">
-                <ReserveEventSummaryTab
-                  formData={getValues()}
-                  categories={categories}
-                  infoTypes={infoTypes}
-                  taggedPeople={taggedPeople}
-                  requestorInfo={requestor}
-                />
-              </TabsContent>
-            </Tabs>
-          </div>
-
-          <ModalFooter
-            activeTab={activeTab}
-            isSubmitting={isSubmitting}
-            isCheckingConflict={isCheckingConflict}
+        <motion.div
+          ref={contentRef}
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: isOpen ? 1 : 0, scale: isOpen ? 1 : 0.96 }}
+          transition={{ type: "tween", duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+          className="relative w-full max-w-216 sm:mx-4 mx-px max-h-[92vh] bg-white rounded-xl shadow-xl overflow-hidden flex flex-col"
+          style={{
+            transform: "translateZ(0)",
+            backfaceVisibility: "hidden",
+            transformOrigin: "center",
+            willChange: isOpen ? "transform, opacity" : "auto",
+            pointerEvents: isOpen ? "auto" : "none",
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <ModalHeader
             editMode={editMode}
-            resubmitMode={resubmitMode}
-            setActiveTab={setActiveTab}
-            handleRequestorTabNext={handleRequestorTabNext}
-            handleFormTabNext={handleFormTabNext}
-            handleEquipmentTabNext={handleEquipmentTabNext}
-            handleAdditionalTabNext={handleAdditionalTabNext}
+            displayDate={displayDate}
+            onClose={onClose}
           />
-        </form>
-      </motion.div>
 
-      <AssetsVenueModal
-        isOpen={showVenueModal}
-        onClose={() => setShowVenueModal(false)}
-        assets={venueAssets}
-        onAssetSelect={handleAssetItemSelect}
-        loading={loadingVenueAssets}
-        role="admin"
+          <form className="flex flex-col flex-1" onSubmit={handleFormSubmit}>
+            <div ref={scrollRef} className="overflow-y-auto p-4 sm:p-6 pt-2 sm:pt-4 flex-1 max-h-[calc(91vh-155px)]">
+              <Tabs value={activeTab} className="w-full">
+                <ModalTabBar
+                  tabOrder={tabOrder}
+                  tabLabels={tabLabels}
+                  activeTab={activeTab}
+                />
+
+                <TabsContent value="requestor" className="space-y-4 sm:space-y-6">
+                  <EventRequestorTab
+                    requestor={requestor}
+                    onChange={setRequestor}
+                    error={requestorError}
+                    onClearError={setRequestorError}
+                  />
+                </TabsContent>
+
+                <TabsContent value="form" className="space-y-4 sm:space-y-6">
+                  <ReserveEventFormTab
+                    control={control}
+                    errors={errors}
+                    assets={formattedAssets}
+                    handleAssetChange={handleAssetChange}
+                    selectedAsset={watchedAsset}
+                    register={register}
+                    watch={watch}
+                  />
+                </TabsContent>
+
+                <TabsContent value="equipment" className="space-y-4 sm:space-y-6">
+                  <ReserveEventEquipmentTab watch={watch} setValue={setValue} touched={equipmentTouched} />
+                </TabsContent>
+
+                <TabsContent
+                  value="additional"
+                  className="space-y-5"
+                >
+                  <ReserveEventAdditionalTab
+                    control={control}
+                    errors={errors}
+                    infoTypes={infoTypes}
+                    categories={categories}
+                    tagInput={tagInput}
+                    taggedPeople={taggedPeople}
+                    peopleSuggestions={peopleSuggestions}
+                    showDropdown={showDropdown}
+                    handleTagInputChange={handleTagInputChange}
+                    handleTagSelect={handleTagSelect}
+                    handleRemoveTag={handleRemoveTag}
+                    setShowDropdown={setShowDropdown}
+                    peopleFieldRef={peopleFieldRef}
+                    showOutsource={showOutsource}
+                    showGuest={showGuest}
+                    guestNameInput={guestNameInput}
+                    guestDetailsInput={guestDetailsInput}
+                    outsourceError={outsourceError}
+                    guestNameError={guestNameError}
+                    guestDetailsError={guestDetailsError}
+                    setGuestNameInput={setGuestNameInput}
+                    setGuestDetailsInput={setGuestDetailsInput}
+                    setOutsourceError={setOutsourceError}
+                    setGuestNameError={setGuestNameError}
+                    setGuestDetailsError={setGuestDetailsError}
+                    handleOutsourceToggle={handleOutsourceToggle}
+                    handleGuestToggle={handleGuestToggle}
+                    handleAddGuest={handleAddGuest}
+                    handleRemoveGuest={handleRemoveGuest}
+                  />
+
+                  {showVpSection && (
+                    <VpSignatoriesSection
+                      watch={watch}
+                      setValue={setValue}
+                    />
+                  )}
+                </TabsContent>
+
+                <TabsContent value="summary" className="space-y-4 sm:space-y-6">
+                  <ReserveEventSummaryTab
+                    formData={getValues()}
+                    categories={categories}
+                    infoTypes={infoTypes}
+                    taggedPeople={taggedPeople}
+                    requestorInfo={requestor}
+                  />
+                </TabsContent>
+              </Tabs>
+            </div>
+
+            <ModalFooter
+              activeTab={activeTab}
+              isSubmitting={isSubmitting}
+              isCheckingConflict={isCheckingConflict}
+              editMode={editMode}
+              resubmitMode={resubmitMode}
+              setActiveTab={setActiveTab}
+              handleRequestorTabNext={handleRequestorTabNext}
+              handleFormTabNext={handleFormTabNext}
+              handleEquipmentTabNext={handleEquipmentTabNext}
+              handleAdditionalTabNext={handleAdditionalTabNext}
+            />
+          </form>
+        </motion.div>
+
+        <AssetsVenueModal
+          isOpen={showVenueModal}
+          onClose={() => setShowVenueModal(false)}
+          assets={venueAssets}
+          onAssetSelect={handleAssetItemSelect}
+          loading={loadingVenueAssets}
+          role="admin"
+        />
+
+        <AssetsVehicleModal
+          isOpen={showVehicleModal}
+          onClose={() => setShowVehicleModal(false)}
+          assets={vehicleAssets}
+          onAssetSelect={handleAssetItemSelect}
+          loading={loadingVehicleAssets}
+          role="admin"
+        />
+      </div>
+
+      <ReservationSuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
       />
-
-      <AssetsVehicleModal
-        isOpen={showVehicleModal}
-        onClose={() => setShowVehicleModal(false)}
-        assets={vehicleAssets}
-        onAssetSelect={handleAssetItemSelect}
-        loading={loadingVehicleAssets}
-        role="admin"
-      />
-    </div>
-
-    <ReservationSuccessModal
-      isOpen={showSuccessModal}
-      onClose={() => setShowSuccessModal(false)}
-    />
     </>
   );
 }

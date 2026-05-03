@@ -20,7 +20,7 @@ export default function UserLoginPage() {
   } = useLoginForm()
 
   return (
-    <div className="min-h-dvh w-full font-['Poppins'] flex relative bg-white overflow-hidden">
+    <div className="min-h-dvh w-full flex relative bg-white overflow-hidden">
 
       {/* ── CLIP-PATH DEFINITIONS ── */}
       <svg width="0" height="0" style={{ position: "absolute", overflow: "hidden" }} aria-hidden="true">

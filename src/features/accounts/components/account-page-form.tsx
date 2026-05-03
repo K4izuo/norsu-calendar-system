@@ -59,12 +59,12 @@ export const AccountPageLayout = React.memo(({
   register,
   errors,
 }: AccountPageProps) => {
-  
+
   // Theme configuration
   const themeConfig = {
     dean: {
       color: "blue",
-      accentColor: "indigo", 
+      accentColor: "indigo",
       bgGradient: "from-blue-50 to-indigo-50"
     },
     staff: {
@@ -84,25 +84,24 @@ export const AccountPageLayout = React.memo(({
 
   const TabIndicator = ({ isActive, children }: { isActive: boolean; children: React.ReactNode }) => (
     <div
-      className={`flex items-center justify-center py-2 px-2 rounded-md text-base font-medium transition-colors ${
-        isActive ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
-      }`}
+      className={`flex items-center justify-center py-2 px-2 rounded-md text-base font-medium transition-colors ${isActive ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+        }`}
       style={{ cursor: "default", minWidth: "100px" }}
     >
       {children}
     </div>
   )
 
-  const FormField = ({ 
-    name, 
-    label, 
-    type = "text", 
-    placeholder 
-  }: { 
+  const FormField = ({
+    name,
+    label,
+    type = "text",
+    placeholder
+  }: {
     name: keyof AccountFormData
     label: string
     type?: string
-    placeholder: string 
+    placeholder: string
   }) => (
     <div className="flex-1 flex flex-col gap-1">
       <Label className="inline-block select-none">
@@ -122,7 +121,7 @@ export const AccountPageLayout = React.memo(({
   return (
     <div className={`min-h-dvh w-full bg-linear-to-br ${theme.bgGradient} flex items-center justify-center py-6 px-2 sm:px-4 lg:px-6 relative font-['Poppins'] overflow-hidden`}>
       <BgBlobs color={theme.color as "blue" | "purple"} />
-      
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -140,22 +139,22 @@ export const AccountPageLayout = React.memo(({
           <TabsContent value="details" className="space-y-6">
             <form className="flex flex-col gap-y-5" onSubmit={(e) => { e.preventDefault(); onNextClick(); }}>
               <div className="flex flex-col gap-4">
-                <FormField 
-                  name="username" 
-                  label="Username" 
-                  placeholder="Enter a username" 
+                <FormField
+                  name="username"
+                  label="Username"
+                  placeholder="Enter a username"
                 />
-                <FormField 
-                  name="password" 
-                  label="Password" 
-                  type="password" 
-                  placeholder="Enter password" 
+                <FormField
+                  name="password"
+                  label="Password"
+                  type="password"
+                  placeholder="Enter password"
                 />
-                <FormField 
-                  name="confirmPassword" 
-                  label="Confirm Password" 
-                  type="password" 
-                  placeholder="Re-enter password" 
+                <FormField
+                  name="confirmPassword"
+                  label="Confirm Password"
+                  type="password"
+                  placeholder="Re-enter password"
                 />
                 {passwordError && (
                   <div className="text-red-500 text-sm mt-1">{passwordError}</div>
@@ -191,11 +190,10 @@ export const AccountPageLayout = React.memo(({
                 </div>
               </div>
             </div>
-            <div className={`mt-6 p-3 rounded-md flex items-center justify-center ${
-              isFormValid
+            <div className={`mt-6 p-3 rounded-md flex items-center justify-center ${isFormValid
                 ? `bg-${theme.color}-50 text-${theme.color}-800`
                 : 'bg-yellow-50 text-yellow-800'
-            }`}>
+              }`}>
               {isFormValid ? (
                 <span className="text-base">Ready for submission</span>
               ) : (

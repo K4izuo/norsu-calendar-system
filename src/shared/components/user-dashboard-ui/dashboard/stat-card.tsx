@@ -1,54 +1,199 @@
 "use client";
 
-import React from "react";
-import { TrendingUp, TrendingDown } from "lucide-react";
+import React, { useId } from "react";
+import {
+  CalendarDays,
+  ClipboardList,
+  Clock3,
+  TrendingDown,
+  TrendingUp,
+  Users,
+} from "lucide-react";
+import { Area, AreaChart, ResponsiveContainer, Tooltip } from "recharts";
+import { cn } from "@/core/lib/utils";
 
 interface DashboardStatCardProps {
   title: string;
   value: string | number;
   badge: string;
   badgePositive: boolean;
-  trendLabel: string;
-  subLabel: string;
 }
+
+const positiveSparkline = [
+  { value: 18 },
+  { value: 22 },
+  { value: 14 },
+  { value: 25 },
+  { value: 21 },
+  { value: 29 },
+  { value: 33 },
+  { value: 27 },
+  { value: 36 },
+  { value: 32 },
+  { value: 39 },
+  { value: 42 },
+];
+
+const negativeSparkline = [
+  { value: 42 },
+  { value: 38 },
+  { value: 40 },
+  { value: 31 },
+  { value: 34 },
+  { value: 28 },
+  { value: 24 },
+  { value: 26 },
+  { value: 20 },
+  { value: 18 },
+  { value: 15 },
+  { value: 12 },
+];
+
+const getStatIcon = (title: string) => {
+  const normalizedTitle = title.toLowerCase();
+
+  if (normalizedTitle.includes("user")) return Users;
+  if (normalizedTitle.includes("upcoming")) return Clock3;
+  if (normalizedTitle.includes("request")) return ClipboardList;
+
+  return CalendarDays;
+};
+
+const getStatIconClasses = (title: string) => {
+  const normalizedTitle = title.toLowerCase();
+
+  if (normalizedTitle.includes("user")) {
+    return "bg-blue-50 text-blue-600";
+  }
+
+  if (normalizedTitle.includes("upcoming")) {
+    return "bg-amber-50 text-amber-600";
+  }
+
+  if (normalizedTitle.includes("request")) {
+    return "bg-rose-50 text-rose-600";
+  }
+
+  return "bg-violet-50 text-violet-600";
+};
+
+const getStatAccentColor = (title: string) => {
+  const normalizedTitle = title.toLowerCase();
+
+  if (normalizedTitle.includes("user")) return "#2563eb";
+  if (normalizedTitle.includes("upcoming")) return "#d97706";
+  if (normalizedTitle.includes("request")) return "#e11d48";
+
+  return "#7c3aed";
+};
 
 const DashboardStatCard: React.FC<DashboardStatCardProps> = ({
   title,
   value,
   badge,
   badgePositive,
-  trendLabel,
-  subLabel,
 }) => {
   const TrendIcon = badgePositive ? TrendingUp : TrendingDown;
-  const badgeClasses = badgePositive
-    ? "bg-green-500/10 text-green-400"
-    : "bg-red-500/10 text-red-400";
-  const iconColor = badgePositive ? "text-green-400" : "text-red-400";
+  const StatIcon = getStatIcon(title);
+  const gradientId = useId().replace(/:/g, "");
+  const sparklineData = badgePositive ? positiveSparkline : negativeSparkline;
+  const trendColor = getStatAccentColor(title);
+  const trendClasses = badgePositive ? "text-emerald-600" : "text-red-600";
+  const iconClasses = getStatIconClasses(title);
 
   return (
-    <div className="flex text-card-foreground flex-col gap-3 rounded-xl bg-white p-6 shadow-xs border">
-      {/* Title + badge */}
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-500">{title}</span>
-        <span
-          className={`flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${badgeClasses}`}
-        >
-          <TrendIcon className={`h-3 w-3 ${iconColor}`} />
-          {badge}
-        </span>
+    <div
+      className="group relative flex min-h-[160px] flex-col overflow-hidden rounded-xl border bg-card text-card-foreground shadow-xs transition-all duration-300 hover:border-primary/20 hover:shadow-md"
+      aria-label={`${title}: ${value}, ${badge} vs last month`}
+    >
+      <div className="p-5 pb-0">
+        <div className="flex items-start justify-between gap-5">
+          <div className="min-w-0 space-y-2">
+            <p className="truncate text-sm font-medium text-muted-foreground">
+              {title}
+            </p>
+            <p className="text-3xl font-bold tracking-tight text-foreground">
+              {value}
+            </p>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <TrendIcon
+                className={cn("h-3.5 w-3.5 shrink-0", trendClasses)}
+                aria-hidden="true"
+              />
+              <span className={cn("text-sm font-semibold", trendClasses)}>
+                {badge}
+              </span>
+              <span className="text-sm text-muted-foreground">
+                vs last month
+              </span>
+            </div>
+          </div>
+
+          <div
+            className={cn(
+              "flex h-12 w-12 shrink-0 items-center justify-center rounded-[18px] transition-transform duration-300 group-hover:scale-110",
+              iconClasses
+            )}
+          >
+            <StatIcon className="h-6 w-6" aria-hidden="true" />
+          </div>
+        </div>
       </div>
 
-      {/* Value */}
-      <p className="text-3xl font-bold text-gray-800">{value}</p>
+      <div className="mt-auto h-16 w-full" aria-label={`${title} trend chart`}>
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart
+            data={sparklineData}
+            margin={{ top: 8, right: 0, bottom: 0, left: 0 }}
+          >
+            <defs>
+              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={trendColor} stopOpacity={0.16} />
+                <stop offset="100%" stopColor={trendColor} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <Tooltip
+              cursor={{
+                stroke: trendColor,
+                strokeOpacity: 0.2,
+                strokeWidth: 1,
+              }}
+              wrapperStyle={{ outline: "none" }}
+              content={({ active, payload }) => {
+                if (!active || !payload?.length) return null;
 
-      {/* Trend label + sub label */}
-      <div className="flex flex-col gap-0.5">
-        <div className="flex items-center gap-1">
-          <span className="text-sm font-semibold text-gray-800">{trendLabel}</span>
-          <TrendIcon className={`h-4 w-4 ${iconColor}`} />
-        </div>
-        <span className="text-xs text-gray-500">{subLabel}</span>
+                return (
+                  <div className="flex items-center gap-2 rounded-lg border bg-background px-2.5 py-1.5 text-xs shadow-md">
+                    <span
+                      className="h-2 w-2 rounded-full"
+                      style={{ backgroundColor: trendColor }}
+                    />
+                    <span className="text-muted-foreground">Value</span>
+                    <span className="font-semibold text-foreground">
+                      {payload[0]?.value?.toLocaleString()}
+                    </span>
+                  </div>
+                );
+              }}
+            />
+            <Area
+              type="monotone"
+              dataKey="value"
+              stroke={trendColor}
+              strokeWidth={1.75}
+              fill={`url(#${gradientId})`}
+              fillOpacity={1}
+              dot={false}
+              activeDot={{
+                r: 4,
+                fill: "#ffffff",
+                stroke: trendColor,
+                strokeWidth: 2,
+              }}
+              isAnimationActive={false}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );

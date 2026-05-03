@@ -21,7 +21,7 @@ export default function AdminLoginPage() {
   } = useLoginForm()
 
   return (
-    <div className="min-h-dvh w-full bg-linear-to-br from-gray-50 to-gray-100 font-['Poppins'] flex items-center justify-center py-6 px-3 sm:px-4 lg:px-6 relative overflow-hidden">
+    <div className="min-h-dvh w-full bg-linear-to-br from-gray-50 to-gray-100 flex items-center justify-center py-6 px-3 sm:px-4 lg:px-6 relative overflow-hidden">
       {/* Background decorative elements */}
       <div className="absolute top-0 left-0 w-48 h-48 bg-gray-900 rounded-full opacity-20 -translate-x-24 -translate-y-24"></div>
       <div className="absolute top-0 right-0 w-48 h-48 bg-gray-800 rounded-full opacity-10 translate-x-24 -translate-y-24"></div>
