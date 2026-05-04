@@ -45,14 +45,16 @@ export default function ReservationsPage() {
   // Admin and Multimedia see all reservations; every other role uses the queue
   const isAdmin = userRoleNumber === 3 || userRoleNumber === 11;
 
-  const { reservations, error: resError, loading: resLoading } = useReservations();
-  const { queue, error: queueError, loading: queueLoading } = useGetQueue();
+  const { reservations, error: resError, loading: resLoading, isFetching: resFetching, isStale: resStale } = useReservations();
+  const { queue, error: queueError, loading: queueLoading, isFetching: queueFetching, isStale: queueStale } = useGetQueue();
 
   const sourceList = isAdmin ? reservations : queue;
   const loading = isAdmin ? resLoading : queueLoading;
+  const isFetching = isAdmin ? resFetching : queueFetching;
+  const isStale = isAdmin ? resStale : queueStale;
   const error = isAdmin ? resError : queueError;
 
-  usePageReady(loading);
+  usePageReady(loading, isFetching, isStale);
 
   const total    = sourceList.length;
   const pending  = sourceList.filter(r => r.status.toUpperCase() === "PENDING").length;

@@ -23,7 +23,8 @@ import { getRoleLabelFromNumber, getRolePathFromNumber } from "@/core/lib/role-u
 import { Separator } from "@/shared/components/ui/separator";
 import { usePathname, useParams } from "next/navigation";
 import Loading from "@/app/(dashboard)/[role]/loading";
-import { PageLoadingContext } from "@/shared/components/context/page-loading-context";
+import { PageLoadingContext, consumeNavigationOverlay, scheduleNavigationOverlay } from "@/shared/components/context/page-loading-context";
+import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import { AppSidebar } from "@/shared/components/layouts/app-sidebar";
 import {
@@ -59,6 +60,7 @@ export default function RoleLayout({
   children: React.ReactNode;
 }) {
   const { user, isLoading: isAuthLoading } = useAuth();
+  const queryClient = useQueryClient();
   const params = useParams();
   const roleSegment = (params.role as string) ?? "";
   const pathname = usePathname();
@@ -173,7 +175,8 @@ export default function RoleLayout({
   // Uncached pages: overlay shows until data arrives.
   useLayoutEffect(() => {
     if (prevPathname.current !== null && prevPathname.current !== pathname) {
-      if (hasCachedDataRef.current) {
+      const forceOverlay = consumeNavigationOverlay();
+      if (hasCachedDataRef.current && !forceOverlay) {
         setOverlayVisible(false);
         setFadeOut(false);
         setIsPageReady(true);
@@ -218,6 +221,15 @@ export default function RoleLayout({
       stopTokenRefresh();
     };
   }, []);
+
+  useEffect(() => {
+    const handleFocus = () => {
+      const staleQueries = queryClient.getQueryCache().findAll({ stale: true });
+      if (staleQueries.length > 0) scheduleNavigationOverlay();
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [queryClient]);
 
   return (
     <SidebarProvider>

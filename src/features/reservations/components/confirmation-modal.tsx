@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertCircle, CheckCircle, X, AlertTriangle, User, Clock, Loader2 } from "lucide-react";
+import { AlertCircle, CheckCircle, X, AlertTriangle, User, Clock, Loader2, MapPin } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { EventDetails, ReservationWithRelations } from "@/interface/user-props";
 import { Textarea } from "@/shared/components/ui/textarea";
@@ -10,6 +10,7 @@ import { Label } from "@/shared/components/ui/label";
 import { apiClient } from "@/core/api/api-client";
 import { formatTime } from "@/core/lib/utils";
 import { normalizeReservation } from "@/features/calendar/services/reservation-service";
+import { formatDate } from "@/features/calendar/components/event-info-card/helpers";
 
 type ConfirmationModalProps = {
   isOpen: boolean;
@@ -24,7 +25,7 @@ const typeConfig = {
     icon: CheckCircle,
     iconColor: "text-emerald-500",
     title: "Approve Reservation",
-    message: "Are you sure you want to approve this reservation?",
+    message: "Are you sure you want to approve this event reservation?",
     confirmButton: "bg-emerald-600 hover:bg-emerald-500",
     confirmText: "Yes, Approve",
   },
@@ -32,7 +33,7 @@ const typeConfig = {
     icon: AlertCircle,
     iconColor: "text-rose-500",
     title: "Decline Reservation",
-    message: "Are you sure you want to decline this reservation?",
+    message: "Are you sure you want to decline this event reservation?",
     confirmButton: "bg-rose-600 hover:bg-rose-500",
     confirmText: "Yes, Decline",
   },
@@ -158,10 +159,10 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.96 }}
             transition={{ type: "tween", duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="relative max-w-xl w-full bg-white rounded-lg shadow-xl overflow-hidden flex flex-col max-h-[85vh]"
+            className="relative max-w-lg w-full bg-white rounded-lg shadow-xl overflow-hidden flex flex-col max-h-[85vh]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 bg-white z-10 p-4 border-b border-gray-200 flex justify-between items-center">
+            <div className="sticky top-0 bg-white z-10 p-6 border-b border-gray-200 flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <Icon className={`${config.iconColor} h-5 w-5`} />
                 <h2 className="text-lg font-semibold text-gray-800">{config.title}</h2>
@@ -180,29 +181,32 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                 <p className="text-gray-700 text-center text-base">{config.message}</p>
 
                 {event && (
-                  <div className="bg-gray-100 shadow-sm rounded-lg p-4">
-                    <div className="mb-3">
-                      <p className="text-sm text-gray-500">Event Title</p>
-                      <p className="font-medium text-gray-800">{event.title_name}</p>
-                    </div>
-                    <div className="border-b border-gray-300 mb-4" />
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm text-gray-500 mb-1">Date</p>
-                        <div className="flex items-center gap-2">
-                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                          <p className="font-medium text-gray-900">{event.date}</p>
+                  <div className="bg-white text-card-foreground border border-border rounded-lg">
+                    <div className="p-6">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="text-lg capitalize font-medium">
+                              {event.title_name || "Event Title"}
+                            </h3>
+                          </div>
+                          <p className="text-sm text-gray-500 flex items-center gap-1.5 mt-1">
+                            <MapPin className="h-4 w-4" />
+                            {event.asset?.asset_name || "Not specified"}
+                          </p>
                         </div>
                       </div>
-                      <div>
-                        <p className="text-sm text-gray-500 mb-1">Time</p>
-                        <div className="flex items-center gap-2">
-                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          <p className="font-medium text-gray-900">
+                    </div>
+                    <div className="border-t border-gray-200" />
+                    <div className="p-6">
+                      <div className="flex justify-between items-start gap-4">
+                        <div>
+                          <p className="text-sm text-gray-500">Date</p>
+                          <p className="font-medium text-base">{formatDate(event.date)}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Time</p>
+                          <p className="font-medium text-base">
                             {`${formatTime(event.time_start)} - ${formatTime(event.time_end)}`}
                           </p>
                         </div>
@@ -305,7 +309,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               </div>
             </div>
 
-            <div className="sticky bottom-0 bg-white z-10 p-4 border-t border-gray-200 shadow-lg">
+            <div className="sticky bottom-0 bg-white z-10 p-6 border-t border-gray-200 shadow-lg">
               <div className="flex gap-3">
                 <Button
                   onClick={onClose}

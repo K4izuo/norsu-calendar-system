@@ -48,8 +48,8 @@ export default function AssetsPage() {
   }, [queryClient]);
 
   // Data fetching - TanStack Query handles caching
-  const { assets, error, loading } = useAssets();
-  usePageReady(loading);
+  const { assets, error, loading, isFetching, isStale } = useAssets();
+  usePageReady(loading, isFetching, isStale);
   const { mutateAsync: createAsset } = useCreateAsset();
 
   const totalAssets = assets.length;

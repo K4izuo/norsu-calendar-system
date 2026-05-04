@@ -20,11 +20,13 @@ const fetchUsers = async (): Promise<UserAccount[]> => {
 export const useUsers = () => {
   const { user, isLoading: isAuthLoading, isAuthenticated } = useAuth();
 
-  const { data, isLoading, isFetching, error, refetch } = useQuery({
+  const { data, isLoading, isFetching, isStale, error, refetch } = useQuery({
     queryKey: ['users', user?.id],
     queryFn: fetchUsers,
+    staleTime: 5 * 60 * 1000,
     gcTime: 5 * 60 * 1000,
     enabled: !isAuthLoading && isAuthenticated,
+    placeholderData: (prev) => prev,
     retry: (failureCount, error) => {
       if (error instanceof Error && error.message.includes('401')) {
         return false;
@@ -37,6 +39,7 @@ export const useUsers = () => {
     users: data || [],
     loading: isAuthLoading || isLoading || isFetching,
     isFetching,
+    isStale,
     error: error?.message || null,
     refetch,
   };

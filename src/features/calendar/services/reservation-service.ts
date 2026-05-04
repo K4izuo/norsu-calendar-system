@@ -1,4 +1,5 @@
 import { apiClient } from "@/core/api/api-client";
+import { scheduleNavigationOverlay } from "@/shared/components/context/page-loading-context";
 import { QueryClient, useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/shared/components/context/auth-context";
 import { ReservationWithRelations, MoveReservationPayload, ReservationAPIPayload, RequestorInfo } from "@/interface/user-props";
@@ -229,7 +230,7 @@ export const fetchQueue = async (): Promise<ReservationWithRelations[]> => {
 export const useReservations = () => {
   const { user, isLoading: isAuthLoading, isAuthenticated } = useAuth();
 
-  const { data, isFetching, isLoading, error, refetch, dataUpdatedAt, isSuccess } = useQuery({
+  const { data, isFetching, isLoading, isStale, error, refetch, dataUpdatedAt, isSuccess } = useQuery({
     queryKey: ["reservations", user?.id],
     queryFn: fetchReservations,
     staleTime: DASHBOARD_RESERVATIONS_STALE_TIME,
@@ -249,6 +250,7 @@ export const useReservations = () => {
     reservations: data || [],
     loading: isAuthLoading || isLoading || isFetching,
     isFetching,
+    isStale,
     hasData: hasValidData,
     isQueryEnabled: !isAuthLoading && isAuthenticated,
     error: error?.message || null,
@@ -292,7 +294,7 @@ export const usePublicReservations = () => {
 export const useGetQueue = () => {
   const { user, isLoading: isAuthLoading, isAuthenticated } = useAuth();
 
-  const { data, isLoading, isFetching, error, refetch } = useQuery({
+  const { data, isLoading, isFetching, isStale, error, refetch } = useQuery({
     queryKey: ["reservation-queue", user?.id],
     queryFn: fetchQueue,
     staleTime: 10 * 1000,
@@ -305,6 +307,7 @@ export const useGetQueue = () => {
     queue: data || [],
     loading: isAuthLoading || isLoading || isFetching,
     isFetching,
+    isStale,
     error: error?.message || null,
     refetch,
   };
@@ -411,6 +414,7 @@ export const useAsset = (id: number) => {
 };
 
 const invalidateReservationQueries = (queryClient: ReturnType<typeof useQueryClient>) => {
+  scheduleNavigationOverlay();
   queryClient.invalidateQueries({ queryKey: ["reservations"], refetchType: "all" });
   queryClient.invalidateQueries({ queryKey: ["public-reservations"], refetchType: "all" });
   queryClient.invalidateQueries({ queryKey: ["reservation-queue"], refetchType: "all" });
