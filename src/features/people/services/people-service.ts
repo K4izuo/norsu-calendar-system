@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import { useAuth } from "@/shared/components/context/auth-context";
 import type { Person, CreatePersonPayload, LinkUserPayload } from "../types/people.types";
 
-export const PEOPLE_STALE_TIME = 5 * 60 * 1000;
+export const PEOPLE_STALE_TIME = 60 * 1000;
 
 const fetchPeople = async (): Promise<Person[]> => {
   const response = await apiClient.get<Person[]>('people');

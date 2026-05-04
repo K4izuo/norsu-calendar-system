@@ -18,7 +18,7 @@ export type Asset = {
   created_by: number;
 };
 
-export const ASSETS_STALE_TIME = 5 * 60 * 1000;
+export const ASSETS_STALE_TIME = 60 * 1000;
 
 // Fetch all assets
 const fetchAssets = async (): Promise<Asset[]> => {

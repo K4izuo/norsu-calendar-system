@@ -31,6 +31,7 @@ import {
   DialogTitle,
 } from "@/shared/components/ui/dialog";
 import { getRoleLabelFromNumber } from "@/core/lib/role-utils";
+import { usePageReady } from "@/shared/components/context/page-loading-context";
 
 function formatMemberSince(dateStr?: string): string {
   if (!dateStr) return "—";
@@ -86,6 +87,8 @@ export default function ProfilePage() {
   const { user: currentUser, loading: userLoading } = useCurrentUser();
   const { campuses, loading: campusesLoading } = useCampuses();
 
+  usePageReady(isLoading || userLoading || campusesLoading);
+
   const campusName = currentUser?.campus_id
     ? (campuses.find((c) => c.value === String(currentUser.campus_id))?.label ?? "—")
     : role === "admin"
@@ -95,7 +98,7 @@ export default function ProfilePage() {
   const isCampusLoading = userLoading || campusesLoading;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col">
       {/* Breadcrumb */}
       <PageBreadcrumb
         items={[
@@ -166,9 +169,9 @@ export default function ProfilePage() {
                   <h2 className="mt-3 text-base font-bold text-gray-900 text-center">
                     {user?.first_name} {user?.last_name}
                   </h2>
-                  <span className="mt-1.5 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold border border-blue-100 capitalize">
+                  <span className="mt-1.5 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold border border-blue-100">
                     <UserCog className="w-3 h-3" />
-                    {role}
+                    {getRoleLabelFromNumber(currentUser?.role ?? 0) || role}
                   </span>
                 </>
               )}

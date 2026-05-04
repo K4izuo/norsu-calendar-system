@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, Settings, UserRoundCog } from "lucide-react";
+import { LogOut, Settings, UserRoundCog, History } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useContext, useState } from "react";
@@ -44,6 +44,11 @@ export default function UserProfile({
       label: "Profile",
       href: `/${roleSlug}/profile`,
       icon: <UserRoundCog className="size-5" />,
+    },
+    {
+      label: "Activity Logs",
+      href: `/${roleSlug}/activity-logs`,
+      icon: <History className="size-5" />,
     },
     {
       label: "Settings",

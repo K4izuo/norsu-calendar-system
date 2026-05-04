@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/shared/components/context/auth-context";
 import type { UserAccount } from "../types/account.types";
 
-export const USERS_STALE_TIME = 5 * 60 * 1000;
+export const USERS_STALE_TIME = 60 * 1000;
 
 const fetchUsers = async (): Promise<UserAccount[]> => {
   const response = await apiClient.get<UserAccount[]>('users/all');

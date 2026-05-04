@@ -29,6 +29,7 @@ import { RESERVATIONS_STALE_TIME, QUEUE_STALE_TIME } from "@/features/calendar/s
 import { USERS_STALE_TIME } from "@/features/accounts/services/account-service";
 import { PEOPLE_STALE_TIME } from "@/features/people/services/people-service";
 import { ASSETS_STALE_TIME } from "@/features/assets/services/asset-service";
+import { ACTIVITY_LOGS_STALE_TIME } from "@/features/activity-logs/services/activity-log-service";
 import Image from "next/image";
 import { AppSidebar } from "@/shared/components/layouts/app-sidebar";
 import {
@@ -70,6 +71,7 @@ const SEGMENT_QUERY_STALE: Record<string, {
   accounts:           { keys: (uid) => [['users', uid]],                  staleMs: () => USERS_STALE_TIME },
   people:             { keys: (uid) => [['people', uid]],                 staleMs: () => PEOPLE_STALE_TIME },
   'asset-management': { keys: (uid) => [['assets', uid]],                 staleMs: () => ASSETS_STALE_TIME },
+  'activity-logs':    { keys: (uid) => [['activity-logs', uid]],          staleMs: () => ACTIVITY_LOGS_STALE_TIME },
 }
 
 function hasCachedFreshData(
@@ -190,6 +192,7 @@ export default function RoleLayout({
       return;
     }
 
+    const universalPages = ['profile', 'settings', 'activity-logs'];
     const allowedPages: Record<number, string[]> = {
       3: ['dashboard', 'calendar', 'reservations', 'accounts', 'people', 'asset-management'],
       11: ['calendar', 'reservations'],
@@ -197,7 +200,7 @@ export default function RoleLayout({
     };
     const roleAllowed = allowedPages[actualRole] ?? ['calendar', 'reservations'];
     const pageSegment = pathname.split('/')[2];
-    if (pageSegment && !roleAllowed.includes(pageSegment)) {
+    if (pageSegment && !universalPages.includes(pageSegment) && !roleAllowed.includes(pageSegment)) {
       const targetPath = `/${roleSegment}/calendar`;
       if (!pathname.startsWith(targetPath)) {
         router.replace(targetPath);
@@ -264,17 +267,30 @@ export default function RoleLayout({
 
   useEffect(() => {
     const handleFocus = () => {
-      const staleQueries = queryClient.getQueryCache().findAll({ stale: true });
-      if (staleQueries.length > 0) scheduleNavigationOverlay();
+      const pageSegment = pathname.split('/')[2] ?? '';
+      if (!SEGMENT_QUERY_STALE[pageSegment]) return;
+      const currentUser = userRef.current;
+      const userId = currentUser?.id;
+      const role = typeof currentUser?.role === 'string'
+        ? parseInt(currentUser.role, 10) || pathRoleRef.current
+        : Number(currentUser?.role) || pathRoleRef.current;
+      const fresh = hasCachedFreshData(queryClient, pageSegment, userId, role);
+      if (!fresh) {
+        scheduleNavigationOverlay();
+        setOverlayVisible(true);
+        setFadeOut(false);
+        setIsPageReady(false);
+        setMinTimerDone(false);
+      }
     };
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
-  }, [queryClient]);
+  }, [queryClient, pathname]);
 
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset className="overflow-hidden">
+      <SidebarInset className="h-svh overflow-hidden">
         <header className="flex shadow-xs h-18 shrink-0 items-center justify-between gap-2 border-b bg-white px-4">
           <div className="flex items-center">
             <SidebarTrigger className="-ml-1" />
@@ -337,7 +353,7 @@ export default function RoleLayout({
           </div>
         </header>
 
-        <div className="flex-1 bg-muted/50 flex flex-col gap-4 p-3 lg:p-6 overflow-y-auto overflow-x-hidden relative">
+        <div className="flex-1 min-h-0 bg-muted/50 flex flex-col gap-4 p-3 lg:p-6 overflow-y-auto overflow-x-hidden relative">
           {overlayVisible && (
             <div
               style={{
