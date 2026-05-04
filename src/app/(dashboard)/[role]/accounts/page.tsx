@@ -14,8 +14,8 @@ export default function AccountsPage() {
   const role = params.role as string;
 
   // React Query deduplicates this — no extra network request vs AccountsTabSection
-  const { users, loading, isFetching, isStale } = useUsers();
-  usePageReady(loading, isFetching, isStale);
+  const { users, loading, isFetching } = useUsers();
+  usePageReady(loading, isFetching);
 
   const total = users.length;
   const deans = users.filter((u) => u.role === 1);

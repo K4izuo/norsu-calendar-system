@@ -79,7 +79,7 @@ export default function CalendarPage() {
   );
 
   // Data fetching
-  const { reservations, loading: reservationsLoading, isFetching, isStale, error, refetch } = useReservations();
+  const { reservations, loading: reservationsLoading, isFetching, error, refetch } = useReservations();
 
   const assetIds = useMemo(() => {
     return [...new Set(reservations.map((r) => r.asset_id))];
@@ -89,7 +89,7 @@ export default function CalendarPage() {
 
   // Only wait for reservations — assets aren't needed to render the calendar grid
   // (event pills show title_name, not asset name). Assets load silently in background.
-  usePageReady(reservationsLoading, isFetching, isStale);
+  usePageReady(reservationsLoading, isFetching);
 
   const queryClient = useQueryClient();
   const userId = getUserId();

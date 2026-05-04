@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/shared/components/context/auth-context";
 import type { UserAccount } from "../types/account.types";
 
+export const USERS_STALE_TIME = 5 * 60 * 1000;
+
 const fetchUsers = async (): Promise<UserAccount[]> => {
   const response = await apiClient.get<UserAccount[]>('users/all');
 
@@ -23,8 +25,8 @@ export const useUsers = () => {
   const { data, isLoading, isFetching, isStale, error, refetch } = useQuery({
     queryKey: ['users', user?.id],
     queryFn: fetchUsers,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 5 * 60 * 1000,
+    staleTime: USERS_STALE_TIME,
+    gcTime: USERS_STALE_TIME,
     enabled: !isAuthLoading && isAuthenticated,
     placeholderData: (prev) => prev,
     retry: (failureCount, error) => {

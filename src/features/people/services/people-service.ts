@@ -4,6 +4,8 @@ import toast from "react-hot-toast";
 import { useAuth } from "@/shared/components/context/auth-context";
 import type { Person, CreatePersonPayload, LinkUserPayload } from "../types/people.types";
 
+export const PEOPLE_STALE_TIME = 5 * 60 * 1000;
+
 const fetchPeople = async (): Promise<Person[]> => {
   const response = await apiClient.get<Person[]>('people');
 
@@ -20,8 +22,8 @@ export const usePeople = () => {
   const { data, isLoading, isFetching, isStale, error, refetch } = useQuery({
     queryKey: ['people', user?.id],
     queryFn: fetchPeople,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 5 * 60 * 1000,
+    staleTime: PEOPLE_STALE_TIME,
+    gcTime: PEOPLE_STALE_TIME,
     enabled: !isAuthLoading && isAuthenticated,
     placeholderData: (prev) => prev,
     retry: (failureCount, error) => {

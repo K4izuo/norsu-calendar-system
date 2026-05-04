@@ -31,8 +31,8 @@ export default function PeoplePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const { people, error, loading, isFetching, isStale } = usePeople();
-  usePageReady(loading, isFetching, isStale);
+  const { people, error, loading, isFetching } = usePeople();
+  usePageReady(loading, isFetching);
   const { mutate: deletePerson } = useDeletePerson();
 
   const filteredPeople = useMemo(() => {

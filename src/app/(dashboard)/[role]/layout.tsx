@@ -24,7 +24,11 @@ import { Separator } from "@/shared/components/ui/separator";
 import { usePathname, useParams } from "next/navigation";
 import Loading from "@/app/(dashboard)/[role]/loading";
 import { PageLoadingContext, consumeNavigationOverlay, scheduleNavigationOverlay } from "@/shared/components/context/page-loading-context";
-import { useQueryClient } from "@tanstack/react-query";
+import { QueryClient, useQueryClient } from "@tanstack/react-query";
+import { RESERVATIONS_STALE_TIME, QUEUE_STALE_TIME } from "@/features/calendar/services/reservation-service";
+import { USERS_STALE_TIME } from "@/features/accounts/services/account-service";
+import { PEOPLE_STALE_TIME } from "@/features/people/services/people-service";
+import { ASSETS_STALE_TIME } from "@/features/assets/services/asset-service";
 import Image from "next/image";
 import { AppSidebar } from "@/shared/components/layouts/app-sidebar";
 import {
@@ -53,6 +57,39 @@ const pathRoleMap: Record<string, number> = {
   'university-president': 12,
 }
 
+const SEGMENT_QUERY_STALE: Record<string, {
+  keys: (uid: string | number, role: number) => unknown[][]
+  staleMs: (role: number) => number
+}> = {
+  dashboard:          { keys: (uid) => [['reservations', uid]],           staleMs: () => RESERVATIONS_STALE_TIME },
+  calendar:           { keys: (uid) => [['reservations', uid]],           staleMs: () => RESERVATIONS_STALE_TIME },
+  reservations:       {
+    keys: (uid, role) => (role === 3 || role === 11) ? [['reservations', uid]] : [['reservation-queue', uid]],
+    staleMs: (role) => (role === 3 || role === 11) ? RESERVATIONS_STALE_TIME : QUEUE_STALE_TIME,
+  },
+  accounts:           { keys: (uid) => [['users', uid]],                  staleMs: () => USERS_STALE_TIME },
+  people:             { keys: (uid) => [['people', uid]],                 staleMs: () => PEOPLE_STALE_TIME },
+  'asset-management': { keys: (uid) => [['assets', uid]],                 staleMs: () => ASSETS_STALE_TIME },
+}
+
+function hasCachedFreshData(
+  queryClient: QueryClient,
+  segment: string,
+  userId: string | number | undefined,
+  role: number,
+): boolean {
+  if (!userId) return false
+  const config = SEGMENT_QUERY_STALE[segment]
+  if (!config) return false
+  const now = Date.now()
+  const staleMs = config.staleMs(role)
+  return config.keys(userId, role).every((key) => {
+    const state = queryClient.getQueryState(key as readonly unknown[])
+    if (!state || state.data === undefined) return false
+    if (state.isInvalidated) return false
+    return now - state.dataUpdatedAt < staleMs
+  })
+}
 
 export default function RoleLayout({
   children,
@@ -71,10 +108,10 @@ export default function RoleLayout({
   const [isPageReady, setIsPageReady] = useState(true);
   const [minTimerDone, setMinTimerDone] = useState(true);
   const prevPathname = useRef<string | null>(null);
-  const hasCachedDataRef = useRef(false);
+  const userRef = useRef(user);
+  userRef.current = user;
 
   const setPageReady = useCallback(() => setIsPageReady(true), []);
-  const reportHasData = useCallback(() => { hasCachedDataRef.current = true; }, []);
 
   const pathRole = pathRoleMap[roleSegment] ?? 3
   const pathRoleRef = useRef(pathRole)
@@ -168,15 +205,19 @@ export default function RoleLayout({
     }
   }, [isAuthLoading, user, roleSegment, pathname, router]);
 
-  // Show overlay on navigation — but only when the page has no cached data.
-  // Pages call reportHasData() in their useLayoutEffect, which React fires before
-  // this parent useLayoutEffect, so hasCachedDataRef is already set when we read it.
-  // Cached pages: overlay is skipped entirely → instant navigation.
-  // Uncached pages: overlay shows until data arrives.
+  // Show overlay on navigation; skip it when the destination page has fresh cached data.
+  // consumeNavigationOverlay() forces the overlay after mutations even if data exists.
   useLayoutEffect(() => {
     if (prevPathname.current !== null && prevPathname.current !== pathname) {
       const forceOverlay = consumeNavigationOverlay();
-      if (hasCachedDataRef.current && !forceOverlay) {
+      const pageSegment = pathname.split('/')[2] ?? '';
+      const currentUser = userRef.current;
+      const userId = currentUser?.id;
+      const role = typeof currentUser?.role === 'string'
+        ? parseInt(currentUser.role, 10) || pathRoleRef.current
+        : Number(currentUser?.role) || pathRoleRef.current;
+      const fresh = !forceOverlay && hasCachedFreshData(queryClient, pageSegment, userId, role);
+      if (fresh) {
         setOverlayVisible(false);
         setFadeOut(false);
         setIsPageReady(true);
@@ -187,10 +228,9 @@ export default function RoleLayout({
         setIsPageReady(false);
         setMinTimerDone(false);
       }
-      hasCachedDataRef.current = false;
     }
     prevPathname.current = pathname;
-  }, [pathname]);
+  }, [pathname, queryClient]);
 
   // 300ms floor for first-visit loads (no cached data) — ensures the spinner is
   // visible long enough to be seen before the overlay hides.
@@ -313,7 +353,7 @@ export default function RoleLayout({
             </div>
           )}
 
-          <PageLoadingContext.Provider value={{ setPageReady, reportHasData }}>
+          <PageLoadingContext.Provider value={{ setPageReady }}>
             {children}
           </PageLoadingContext.Provider>
         </div>

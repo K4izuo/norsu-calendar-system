@@ -5,7 +5,8 @@ import { useAuth } from "@/shared/components/context/auth-context";
 import { ReservationWithRelations, MoveReservationPayload, ReservationAPIPayload, RequestorInfo } from "@/interface/user-props";
 import toast from "react-hot-toast";
 
-const DASHBOARD_RESERVATIONS_STALE_TIME = 60 * 1000;
+export const RESERVATIONS_STALE_TIME = 60 * 1000;
+export const QUEUE_STALE_TIME = 10 * 1000;
 
 export type Asset = {
   id: number;
@@ -233,7 +234,7 @@ export const useReservations = () => {
   const { data, isFetching, isLoading, isStale, error, refetch, dataUpdatedAt, isSuccess } = useQuery({
     queryKey: ["reservations", user?.id],
     queryFn: fetchReservations,
-    staleTime: DASHBOARD_RESERVATIONS_STALE_TIME,
+    staleTime: RESERVATIONS_STALE_TIME,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     enabled: !isAuthLoading && isAuthenticated,
@@ -267,7 +268,7 @@ export const prefetchDashboardReservations = (
   return queryClient.prefetchQuery({
     queryKey: ["reservations", userId],
     queryFn: fetchReservations,
-    staleTime: DASHBOARD_RESERVATIONS_STALE_TIME,
+    staleTime: RESERVATIONS_STALE_TIME,
   });
 };
 
@@ -297,7 +298,7 @@ export const useGetQueue = () => {
   const { data, isLoading, isFetching, isStale, error, refetch } = useQuery({
     queryKey: ["reservation-queue", user?.id],
     queryFn: fetchQueue,
-    staleTime: 10 * 1000,
+    staleTime: QUEUE_STALE_TIME,
     enabled: !isAuthLoading && isAuthenticated,
     refetchOnWindowFocus: true,
     refetchInterval: 15 * 1000,

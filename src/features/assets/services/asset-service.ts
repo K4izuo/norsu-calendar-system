@@ -18,6 +18,8 @@ export type Asset = {
   created_by: number;
 };
 
+export const ASSETS_STALE_TIME = 5 * 60 * 1000;
+
 // Fetch all assets
 const fetchAssets = async (): Promise<Asset[]> => {
   const response = await apiClient.get<Asset[]>('/assets/all');
@@ -55,8 +57,8 @@ export const useAssets = () => {
   const { data, isLoading, isFetching, isStale, error, refetch } = useQuery({
     queryKey: ['assets', user?.id],
     queryFn: fetchAssets,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 5 * 60 * 1000,
+    staleTime: ASSETS_STALE_TIME,
+    gcTime: ASSETS_STALE_TIME,
     enabled: !isAuthLoading && isAuthenticated,
     placeholderData: (prev) => prev,
     retry: (failureCount, error) => {

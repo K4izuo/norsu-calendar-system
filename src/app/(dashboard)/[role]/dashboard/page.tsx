@@ -7,8 +7,8 @@ import { usePageReady } from "@/shared/components/context/page-loading-context";
 import { useReservations } from "@/features/calendar/services/reservation-service";
 
 export default function DashboardPage() {
-  const { loading, isFetching, isStale } = useReservations();
-  usePageReady(loading, isFetching, isStale);
+  const { loading, isFetching } = useReservations();
+  usePageReady(loading, isFetching);
   return (
     <div className="flex flex-col items-start self-stretch flex-1 min-h-0">
       {/* Breadcrumb */}
