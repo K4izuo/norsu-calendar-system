@@ -62,16 +62,16 @@ const SEGMENT_QUERY_STALE: Record<string, {
   keys: (uid: string | number, role: number) => unknown[][]
   staleMs: (role: number) => number
 }> = {
-  dashboard:          { keys: (uid) => [['reservations', uid]],           staleMs: () => RESERVATIONS_STALE_TIME },
-  calendar:           { keys: (uid) => [['reservations', uid]],           staleMs: () => RESERVATIONS_STALE_TIME },
-  reservations:       {
+  dashboard: { keys: (uid) => [['reservations', uid]], staleMs: () => RESERVATIONS_STALE_TIME },
+  calendar: { keys: (uid) => [['reservations', uid]], staleMs: () => RESERVATIONS_STALE_TIME },
+  reservations: {
     keys: (uid, role) => (role === 3 || role === 11) ? [['reservations', uid]] : [['reservation-queue', uid]],
     staleMs: (role) => (role === 3 || role === 11) ? RESERVATIONS_STALE_TIME : QUEUE_STALE_TIME,
   },
-  accounts:           { keys: (uid) => [['users', uid]],                  staleMs: () => USERS_STALE_TIME },
-  people:             { keys: (uid) => [['people', uid]],                 staleMs: () => PEOPLE_STALE_TIME },
-  'asset-management': { keys: (uid) => [['assets', uid]],                 staleMs: () => ASSETS_STALE_TIME },
-  'activity-logs':    { keys: (uid) => [['activity-logs', uid]],          staleMs: () => ACTIVITY_LOGS_STALE_TIME },
+  accounts: { keys: (uid) => [['users', uid]], staleMs: () => USERS_STALE_TIME },
+  people: { keys: (uid) => [['people', uid]], staleMs: () => PEOPLE_STALE_TIME },
+  'asset-management': { keys: (uid) => [['assets', uid]], staleMs: () => ASSETS_STALE_TIME },
+  'activity-logs': { keys: (uid) => [['activity-logs', uid]], staleMs: () => ACTIVITY_LOGS_STALE_TIME },
 }
 
 function hasCachedFreshData(
@@ -290,7 +290,7 @@ export default function RoleLayout({
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset className="h-svh overflow-hidden">
+      <SidebarInset className="h-dvh overflow-hidden">
         <header className="flex shadow-xs h-18 shrink-0 items-center justify-between gap-2 border-b bg-white px-4">
           <div className="flex items-center">
             <SidebarTrigger className="-ml-1" />

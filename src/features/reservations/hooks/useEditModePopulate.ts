@@ -32,6 +32,9 @@ export function useEditModePopulate({
         setValue("asset", eventData.asset);
       }
 
+      setValue("proof_of_request", eventData.proof_of_request || "");
+      setValue("proof_of_approval", eventData.proof_of_approval || "");
+
       if (eventData.people_tag && eventData.people_tag.length > 0) {
         const people = eventData.people_tag.map((name, index) => ({
           id: -(index + 1), // negative = legacy tag with no People table ID

@@ -123,6 +123,8 @@ export interface ReservationAPIPayload {
   student_org_name?: string
   csg_name?: string
   requestor_tagged?: { id: number; name: string }[]
+  proof_of_request?: string
+  proof_of_approval?: string
 }
 
 // ============================================================================

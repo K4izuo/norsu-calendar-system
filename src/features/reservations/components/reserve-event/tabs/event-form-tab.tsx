@@ -260,6 +260,16 @@ export function ReserveEventFormTab({
           />
         </div>
         <EventFormInput
+          name="proof_of_request"
+          id="proof_of_request"
+          label={<>Proof of Request <span className="text-muted-foreground">(optional)</span></>}
+          register={register}
+          errors={errors}
+          required={false}
+          placeholder="Paste Google Drive/Cloud Storage link"
+          type="url"
+        />
+        <EventFormInput
           name="description"
           id="description"
           label="Description"

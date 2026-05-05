@@ -352,6 +352,8 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
             student_org_name: formDataWithPeople.student_org_name,
             csg_name: formDataWithPeople.csg_name,
             requestor_tagged: formDataWithPeople.requestor_tagged,
+            proof_of_request: formDataWithPeople.proof_of_request,
+            proof_of_approval: formDataWithPeople.proof_of_approval,
           };
           try {
             await resubmit({ reservationId: eventData.id, payload });

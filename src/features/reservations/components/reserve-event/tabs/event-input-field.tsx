@@ -12,7 +12,7 @@ import { AlertCircle, Clock3 } from "lucide-react";
 
 type EventFormInputProps<T extends FieldValues = FieldValues> = {
   name: Path<T>;
-  label: string;
+  label: React.ReactNode;
   register: UseFormRegister<T>;
   errors: FieldErrors<T>;
   required?: boolean;
@@ -91,7 +91,7 @@ export const EventFormInput = <T extends FieldValues>({
               type="button"
               onClick={handlePickerOpen}
               className="absolute right-4 top-1/2 z-10 -translate-y-1/2 cursor-pointer text-gray-900"
-              aria-label={`Open ${label.toLowerCase()} picker`}
+              aria-label={`Open ${typeof label === "string" ? label.toLowerCase() : "time"} picker`}
             >
               <Clock3 className="h-4 w-4" />
             </button>

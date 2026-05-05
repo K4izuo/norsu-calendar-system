@@ -1,11 +1,13 @@
-import { UseFormWatch, UseFormSetValue } from "react-hook-form";
+import { UseFormWatch, UseFormSetValue, UseFormRegister } from "react-hook-form";
 import { ReservationFormData } from "@/interface/user-props";
 import { Label } from "@/shared/components/ui/label";
+import { Input } from "@/shared/components/ui/input";
 import { Check } from "lucide-react";
 
 interface Props {
   watch: UseFormWatch<ReservationFormData>;
   setValue: UseFormSetValue<ReservationFormData>;
+  register: UseFormRegister<ReservationFormData>;
 }
 
 const VP_ITEMS: { label: string; field: keyof Pick<ReservationFormData, "requires_vpaa" | "requires_vpsas" | "requires_vpaf" | "requires_vprde"> }[] = [
@@ -25,7 +27,7 @@ const toChecked = (value: unknown): boolean => {
   return false;
 };
 
-export function VpSignatoriesSection({ watch, setValue }: Props) {
+export function VpSignatoriesSection({ watch, setValue, register }: Props) {
   const involvesStudents = toChecked(watch("involves_students"));
 
   const toggleStudents = () => {
@@ -82,6 +84,20 @@ export function VpSignatoriesSection({ watch, setValue }: Props) {
             );
           })}
         </div>
+      </div>
+
+      {/* Proof of Approval/Decline */}
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="proof_of_approval" className="text-sm">
+          Proof of Approval/Decline <span className="text-muted-foreground">(optional)</span>
+        </Label>
+        <Input
+          {...register("proof_of_approval")}
+          id="proof_of_approval"
+          type="url"
+          placeholder="Paste Google Drive/Cloud Storage link"
+          className="h-12 text-base border border-gray-300 rounded-lg transition-all duration-150 focus:border-blue-500 focus:ring-blue-500/20"
+        />
       </div>
     </div>
   );

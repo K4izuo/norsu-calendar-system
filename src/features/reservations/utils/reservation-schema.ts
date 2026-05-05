@@ -60,6 +60,9 @@ const reservationBaseSchema = z.object({
   requires_vpsas:    z.boolean().default(false),
   requires_vpaf:     z.boolean().default(false),
   requires_vprde:    z.boolean().default(false),
+
+  proof_of_request: z.string().optional(),
+  proof_of_approval: z.string().optional(),
 });
 
 export const reservationSchema = reservationBaseSchema.superRefine((data, ctx) => {

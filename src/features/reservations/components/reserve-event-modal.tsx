@@ -278,6 +278,7 @@ export function ReserveEventModal({
                     <VpSignatoriesSection
                       watch={watch}
                       setValue={setValue}
+                      register={register}
                     />
                   )}
                 </TabsContent>

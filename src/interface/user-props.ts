@@ -83,6 +83,8 @@ export interface EventDetails {
   csg_name?: string
   requestor_tagged?: { id: number; name: string }[] | string
   multimedia_comment?: string | null
+  proof_of_request?: string
+  proof_of_approval?: string
 }
 
 // Add this new interface for API payload
@@ -112,6 +114,8 @@ export interface ReservationAPIPayload {
   student_org_name?: string
   csg_name?: string
   requestor_tagged?: { id: number; name: string }[]
+  proof_of_request?: string
+  proof_of_approval?: string
 }
 
 export interface Reservation {
@@ -148,6 +152,8 @@ export interface Reservation {
   student_org_name?: string
   csg_name?: string
   requestor_tagged?: { id: number; name: string }[] | string
+  proof_of_request?: string
+  proof_of_approval?: string
 }
 
 // Extended interface for API responses that include relationships
@@ -172,6 +178,8 @@ export interface ReservationWithRelations extends Reservation {
   guests?: { name: string; details: string }[]
   approvals?: ReservationApproval[]
   multimedia_comment?: string | null
+  proof_of_request?: string
+  proof_of_approval?: string
 }
 
 export interface EventsListModalProps {
@@ -244,6 +252,8 @@ export interface ReservationFormData {
   requires_vpaf?: boolean
   requires_vprde?: boolean
   requestor?: RequestorInfo
+  proof_of_request?: string
+  proof_of_approval?: string
 }
 
 export interface DeanRegisterFormData {
