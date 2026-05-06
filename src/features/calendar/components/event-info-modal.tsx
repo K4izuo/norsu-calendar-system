@@ -11,10 +11,13 @@ import {
 import { ConfirmationModal } from "@/features/reservations/components/confirmation-modal";
 import { CampusDirectorApprovalModal } from "@/features/reservations/components/campus-director-approval-modal";
 import { MoveReservationModal } from "@/features/reservations/components/move-reservation-modal";
+import { QrCodeModal } from "@/features/calendar/components/qr-code-modal";
+import { printEventReceipt } from "@/features/calendar/components/event-info-card/print-receipt";
 import { ModalProps } from "@/features/calendar/components/event-info-card/types";
 import { getStatus } from "@/features/calendar/components/event-info-card/helpers";
 import { ModalLoadingSkeleton } from "@/features/calendar/components/event-info-card/modal-loading-skeleton";
 import { EventDetailsBody } from "@/features/calendar/components/event-info-card/event-details-body";
+import { useAuth } from "@/shared/components/context/auth-context";
 
 export const EventInfoModal = React.memo(function EventInfoModal({
   isOpen,
@@ -34,9 +37,28 @@ export const EventInfoModal = React.memo(function EventInfoModal({
   const [showDeclineConfirm, setShowDeclineConfirm] = useState(false);
   const [showCdModal, setShowCdModal] = useState(false);
   const [showMoveModal, setShowMoveModal] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
 
   const { mutate: approveReservation, isPending: isApproving } = useApproveReservation();
   const { mutate: declineReservation, isPending: isDeclining } = useDeclineReservation();
+  const { user } = useAuth();
+
+  const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+  const printedBy = user ? `${user.first_name} ${user.last_name}` : "Staff";
+
+  const [isPrinting, setIsPrinting] = useState(false);
+
+  const handlePrintReceipt = async () => {
+    if (!event || isPrinting) return;
+    setIsPrinting(true);
+    try {
+      await printEventReceipt(event, printedBy, baseUrl);
+    } catch {
+      // silently ignore — user will see an empty tab if template is missing
+    } finally {
+      setIsPrinting(false);
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -127,6 +149,9 @@ export const EventInfoModal = React.memo(function EventInfoModal({
                   status={status}
                   fromMovedEvents={fromMovedEvents}
                   onMoveReservation={() => setShowMoveModal(true)}
+                  onPrintReceipt={handlePrintReceipt}
+                  onShowQR={() => setShowQrModal(true)}
+                  isPrinting={isPrinting}
                   userRoleNumber={userRoleNumber}
                 />
               )}
@@ -227,6 +252,16 @@ export const EventInfoModal = React.memo(function EventInfoModal({
         event={event}
         onMoved={onClose}
       />
+
+      {event && (
+        <QrCodeModal
+          isOpen={showQrModal}
+          onClose={() => setShowQrModal(false)}
+          event={event}
+          baseUrl={baseUrl}
+        />
+      )}
+
     </>
   );
 });

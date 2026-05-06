@@ -1,0 +1,138 @@
+@startuml NORSU_Calendar_System
+
+!theme plain
+skinparam {
+  BackgroundColor      white
+  ActorBackgroundColor white
+  ActorBorderColor     #000000
+  ActorFontSize        12
+  ActorFontStyle       bold
+  UsecaseBackgroundColor white
+  UsecaseBorderColor   #000000
+  UsecaseFontSize      11
+  RectangleBorderColor #000000
+  RectangleBorderThickness 2
+  ArrowColor           #000000
+  ArrowThickness       1
+  TitleFontSize        15
+  TitleFontStyle       bold
+  NoteBorderColor      #888888
+  NoteBackgroundColor  #FFFFCC
+  Padding              8
+}
+
+title NORSU Calendar System — Use Case Diagram
+
+left to right direction
+
+' ─────────────────────────────────────────────────────
+'  LEFT ACTORS  (top → bottom sets their vertical order)
+' ─────────────────────────────────────────────────────
+actor "Office User\n(Dean / VP /\nHead / Student Dir.)" as OfficeUser
+actor "System\n(Automated)" as System
+
+' ─────────────────────────────────────────────────────
+'  SYSTEM BOUNDARY
+'  Use-case order controls vertical layout:
+'    top    = Office-User-dominant
+'    bottom = Admin/elevated-role-dominant
+' ─────────────────────────────────────────────────────
+rectangle "NORSU Calendar System" {
+
+  ' ── Office User zone (top) ───────────────────────
+  usecase "Login / Authentication"       as UC01
+  usecase "Change Password"              as UC02
+  usecase "Reset Password"               as UC03
+  usecase "View Monthly Calendar"        as UC05
+  usecase "View Events by Date"          as UC06
+  usecase "View Event Details"           as UC07
+  usecase "Create Reservation"           as UC08
+  usecase "Edit Reservation"             as UC09
+  usecase "View Reservation Queue"       as UC10
+  usecase "View / Update Own Profile"    as UC16
+  usecase "View Notifications"           as UC21
+  usecase "View Activity Logs"           as UC22
+
+  ' ── Elevated role zone (bottom) ──────────────────
+  usecase "View All Reservations"        as UC11
+  usecase "Approve Reservation"          as UC12
+  usecase "Decline Reservation"          as UC13
+  usecase "Move Reservation Date"        as UC14
+  usecase "Register User"                as UC04
+  usecase "Manage User Accounts"         as UC17
+  usecase "View Assets / Venues"         as UC18
+  usecase "Register / Manage Assets"     as UC19
+  usecase "Manage People Records"        as UC20
+  usecase "View Dashboard & Statistics"  as UC23
+
+  ' ── System automated (far bottom) ────────────────
+  usecase "Detect Conflicts"             as UC15
+  usecase "Log User Action"              as UC24
+  usecase "Dispatch Notification"        as UC25
+
+}
+
+' ─────────────────────────────────────────────────────
+'  RIGHT ACTORS  (top → bottom sets their vertical order)
+' ─────────────────────────────────────────────────────
+actor "Admin"                as Admin
+actor "Campus Director"      as CampusDir
+actor "University President" as President
+actor "Multimedia Staff"     as Multimedia
+
+' ─────────────────────────────────────────────────────
+'  NOTE — inheritance shortcut
+' ─────────────────────────────────────────────────────
+note "Admin, Campus Director, and\nUniversity President can also\nperform all Office User use cases." as NOTE1
+
+' ─────────────────────────────────────────────────────
+'  CONNECTIONS
+' ─────────────────────────────────────────────────────
+
+' Office User → top zone (short, clean lines)
+OfficeUser --> UC01
+OfficeUser --> UC02
+OfficeUser --> UC03
+OfficeUser --> UC05
+OfficeUser --> UC06
+OfficeUser --> UC07
+OfficeUser --> UC08
+OfficeUser --> UC09
+OfficeUser --> UC10
+OfficeUser --> UC16
+OfficeUser --> UC21
+OfficeUser --> UC22
+
+' System → bottom zone (short, clean lines)
+System --> UC15
+System --> UC24
+System --> UC25
+
+' Admin → elevated zone only  (inherits Office User)
+Admin --> UC11
+Admin --> UC12
+Admin --> UC13
+Admin --> UC14
+Admin --> UC04
+Admin --> UC17
+Admin --> UC18
+Admin --> UC19
+Admin --> UC20
+Admin --> UC23
+
+' Campus Director → elevated zone only  (inherits Office User)
+CampusDir --> UC11
+CampusDir --> UC12
+CampusDir --> UC14
+
+' University President → elevated zone only  (inherits Office User)
+President --> UC11
+President --> UC18
+President --> UC23
+
+' Multimedia → specific access (no inheritance)
+Multimedia --> UC01
+Multimedia --> UC05
+Multimedia --> UC11
+
+@enduml

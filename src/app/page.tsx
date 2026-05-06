@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { useMemo, useState, useEffect, useCallback, Suspense } from "react";
 import { Calendar } from "@/features/calendar/components/norsu-calendar";
 import { CalendarSkeleton } from "@/shared/components/ui/skeleton";
 import AboutSection from "@/shared/components/ui/about-section";
@@ -9,6 +9,7 @@ import { getPhilippineDateTime } from "@/features/calendar/utils/timezone-utils"
 import HomeNavbar from "./_components/home-navbar";
 import UpcomingEventsSidebar from "./_components/upcoming-events-sidebar";
 import HomeModals from "./_components/home-modals";
+import { EventDeepLinkHandler } from "./_components/event-deep-link-handler";
 import usePublicCalendarData from "./_hooks/use-public-calendar-data";
 import useErrorToast from "./_hooks/use-error-toast";
 
@@ -49,6 +50,7 @@ export default function Home() {
   const {
     loading,
     error,
+    allEvents,
     // calendarEvents,
     upcomingEvents,
     getEventsForDate,
@@ -149,6 +151,11 @@ export default function Home() {
         {/* About Section */}
         <AboutSection />
       </div>
+
+      {/* Deep-link: auto-open event modal when ?eventId= is present in the URL */}
+      <Suspense fallback={null}>
+        <EventDeepLinkHandler allEvents={allEvents} onEventClick={handleEventClick} />
+      </Suspense>
 
       {/* Modals */}
       <HomeModals

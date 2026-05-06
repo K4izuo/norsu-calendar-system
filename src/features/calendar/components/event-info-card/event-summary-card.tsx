@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { MapPin, GripVertical, MoveRight } from "lucide-react";
+import { MapPin, GripVertical, MoveRight, Printer, QrCode } from "lucide-react";
 import { EventDetails } from "@/interface/user-props";
 import { UserRole } from "@/shared/components/utils/role-colors";
 import { getStartedAgo, formatDate } from "./helpers";
@@ -11,9 +11,12 @@ interface EventSummaryCardProps {
   role?: UserRole;
   status: "PENDING" | "APPROVED" | "DECLINED";
   onMoveReservation: () => void;
+  onPrintReceipt: () => void;
+  onShowQR: () => void;
+  isPrinting?: boolean;
 }
 
-export function EventSummaryCard({ event, role, status, onMoveReservation }: EventSummaryCardProps) {
+export function EventSummaryCard({ event, role, status, onMoveReservation, onPrintReceipt, onShowQR, isPrinting = false }: EventSummaryCardProps) {
   const [showDotsMenu, setShowDotsMenu] = useState(false);
 
   const asset = event.asset;
@@ -55,6 +58,21 @@ export function EventSummaryCard({ event, role, status, onMoveReservation }: Eve
                     >
                       <MoveRight className="h-4 w-4" />
                       Move Reservation
+                    </button>
+                    <button
+                      onClick={() => { setShowDotsMenu(false); onPrintReceipt(); }}
+                      disabled={isPrinting}
+                      className="flex cursor-pointer items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Printer className="h-4 w-4" />
+                      {isPrinting ? "Generating…" : "Print Receipt"}
+                    </button>
+                    <button
+                      onClick={() => { setShowDotsMenu(false); onShowQR(); }}
+                      className="flex cursor-pointer items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
+                    >
+                      <QrCode className="h-4 w-4" />
+                      Show QR Code
                     </button>
                   </div>
                 </>

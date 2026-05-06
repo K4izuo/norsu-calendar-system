@@ -17,6 +17,9 @@ interface EventDetailsBodyProps {
   status: "PENDING" | "APPROVED" | "DECLINED";
   fromMovedEvents?: boolean;
   onMoveReservation: () => void;
+  onPrintReceipt: () => void;
+  onShowQR: () => void;
+  isPrinting?: boolean;
   userRoleNumber?: number;
 }
 
@@ -26,6 +29,9 @@ export function EventDetailsBody({
   status,
   fromMovedEvents,
   onMoveReservation,
+  onPrintReceipt,
+  onShowQR,
+  isPrinting,
   userRoleNumber,
 }: EventDetailsBodyProps) {
   const showSignatoriesCard = !!(
@@ -61,9 +67,18 @@ export function EventDetailsBody({
           role={role}
           status={status}
           onMoveReservation={onMoveReservation}
+          onPrintReceipt={onPrintReceipt}
+          onShowQR={onShowQR}
+          isPrinting={isPrinting}
         />
 
-        {event.requestor && <RequestorCard requestor={event.requestor} />}
+        {event.requestor && (
+          <RequestorCard
+            requestor={event.requestor}
+            proofOfRequest={event.proof_of_request}
+            proofOfApproval={event.proof_of_approval}
+          />
+        )}
 
         <ReservationDetailsCard event={event} status={status} />
 

@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NORSU Calendar System — Use Case Diagram</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f5f7fa;
+      color: #1a202c;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #1e3a5f;
+      color: white;
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    header h1 { font-size: 1.4rem; font-weight: 700; }
+    header p  { font-size: 0.85rem; opacity: 0.7; margin-top: 2px; }
+
+    .layout {
+      display: flex;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px 20px;
+      gap: 24px;
+    }
+
+    /* ── LEGEND ── */
+    aside {
+      width: 220px;
+      flex-shrink: 0;
+    }
+    .legend-card {
+      background: white;
+      border-radius: 10px;
+      padding: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      margin-bottom: 16px;
+    }
+    .legend-card h3 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: #718096;
+      margin-bottom: 10px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-size: 0.82rem;
+    }
+    .dot {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .arrow-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 0.82rem; }
+    .line-solid { width: 28px; height: 2px; background: #4A90D9; }
+    .line-dashed { width: 28px; height: 2px; background: repeating-linear-gradient(90deg,#4A90D9 0,#4A90D9 4px,transparent 4px,transparent 7px); }
+    .line-gen    { width: 28px; height: 2px; background: #aaa; }
+
+    /* ── MAIN DIAGRAM ── */
+    main { flex: 1; min-width: 0; }
+
+    .diagram-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+      color: #1e3a5f;
+    }
+
+    /* Actors row */
+    .actors-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .actor-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: white;
+      border: 2px solid;
+      border-radius: 40px;
+      padding: 6px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0,0,0,.07);
+    }
+    .actor-icon { font-size: 1.1rem; }
+
+    /* Subsystem grid */
+    .subsystems {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    .subsystem {
+      background: white;
+      border-radius: 10px;
+      border-left: 4px solid;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      overflow: hidden;
+    }
+    .subsystem-header {
+      padding: 10px 14px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: white;
+    }
+    .subsystem-body { padding: 12px 14px; }
+
+    .uc-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 5px 0;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 0.82rem;
+    }
+    .uc-row:last-child { border-bottom: none; }
+
+    .uc-name { flex: 1; }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+      justify-content: flex-end;
+    }
+    .badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 3px;
+      color: white;
+      white-space: nowrap;
+    }
+    .badge-all        { background: #718096; }
+    .badge-admin      { background: #3182CE; }
+    .badge-campusdir  { background: #38A169; }
+    .badge-president  { background: #D69E2E; }
+    .badge-multimedia { background: #805AD5; }
+    .badge-system     { background: #E53E3E; }
+
+    .tag-include {
+      font-size: 0.65rem;
+      color: #A0AEC0;
+      font-style: italic;
+    }
+
+    /* ── COLOR SCHEME ── */
+    /* Auth */      .ss-auth      { border-color: #3182CE; } .ss-auth      .subsystem-header { background: #3182CE; }
+    /* Calendar */  .ss-cal       { border-color: #319795; } .ss-cal       .subsystem-header { background: #319795; }
+    /* Reserv */    .ss-res       { border-color: #D69E2E; } .ss-res       .subsystem-header { background: #D69E2E; }
+    /* Accounts */  .ss-acc       { border-color: #805AD5; } .ss-acc       .subsystem-header { background: #805AD5; }
+    /* Assets */    .ss-asset     { border-color: #DD6B20; } .ss-asset     .subsystem-header { background: #DD6B20; }
+    /* People */    .ss-people    { border-color: #E53E3E; } .ss-people    .subsystem-header { background: #E53E3E; }
+    /* Notif */     .ss-notif     { border-color: #38A169; } .ss-notif     .subsystem-header { background: #38A169; }
+    /* Logs */      .ss-logs      { border-color: #718096; } .ss-logs      .subsystem-header { background: #718096; }
+    /* Dashboard */ .ss-dash      { border-color: #1e3a5f; } .ss-dash      .subsystem-header { background: #1e3a5f; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>NORSU Calendar System — Use Case Diagram</h1>
+    <p>12 roles · 9 subsystems · 40+ use cases</p>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- ── LEGEND ── -->
+  <aside>
+    <div class="legend-card">
+      <h3>Actors</h3>
+      <div class="legend-item"><div class="dot" style="background:#3182CE"></div> Admin (Role 3)</div>
+      <div class="legend-item"><div class="dot" style="background:#38A169"></div> Campus Director (Role 5)</div>
+      <div class="legend-item"><div class="dot" style="background:#D69E2E"></div> Univ. President (Role 12)</div>
+      <div class="legend-item"><div class="dot" style="background:#805AD5"></div> Multimedia (Role 11)</div>
+      <div class="legend-item"><div class="dot" style="background:#718096"></div> Office User (all others)</div>
+      <div class="legend-item"><div class="dot" style="background:#E53E3E"></div> System (automated)</div>
+    </div>
+
+    <div class="legend-card">
+      <h3>Access Badges</h3>
+      <div class="legend-item"><span class="badge badge-all">ALL</span> All authenticated users</div>
+      <div class="legend-item"><span class="badge badge-admin">ADM</span> Admin only</div>
+      <div class="legend-item"><span class="badge badge-campusdir">CD</span> Campus Director + Admin</div>
+      <div class="legend-item"><span class="badge badge-president">PRES</span> President + Admin</div>
+      <div class="legend-item"><span class="badge badge-multimedia">MM</span> Multimedia + Admin</div>
+      <div class="legend-item"><span class="badge badge-system">SYS</span> Automated / System</div>
+    </div>
+
+    <div class="legend-card">
+      <h3>Relationships</h3>
+      <div class="arrow-row"><div class="line-solid"></div> Association</div>
+      <div class="arrow-row"><div class="line-dashed"></div> &lt;&lt;include&gt;&gt;</div>
+      <div class="arrow-row"><div class="line-gen"></div> Generalization</div>
+    </div>
+
+    <div class="legend-card">
+      <h3>Role Hierarchy</h3>
+      <p style="font-size:0.78rem;color:#555;line-height:1.5">
+        Admin, Campus Director, University President, and Multimedia all <em>inherit</em> Office User capabilities and add their own.
+      </p>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <main>
+    <div class="diagram-title">Use Cases by Subsystem</div>
+
+    <!-- Actors row -->
+    <div class="actors-row">
+      <div class="actor-chip" style="border-color:#3182CE;color:#3182CE">
+        <span class="actor-icon">👤</span> Admin
+      </div>
+      <div class="actor-chip" style="border-color:#38A169;color:#38A169">
+        <span class="actor-icon">👤</span> Campus Director
+      </div>
+      <div class="actor-chip" style="border-color:#D69E2E;color:#D69E2E">
+        <span class="actor-icon">👤</span> University President
+      </div>
+      <div class="actor-chip" style="border-color:#805AD5;color:#805AD5">
+        <span class="actor-icon">👤</span> Multimedia Staff
+      </div>
+      <div class="actor-chip" style="border-color:#718096;color:#718096">
+        <span class="actor-icon">👤</span> Dean / VP / Head / Student Dir
+      </div>
+      <div class="actor-chip" style="border-color:#E53E3E;color:#E53E3E">
+        <span class="actor-icon">⚙️</span> System (Automated)
+      </div>
+    </div>
+
+    <div class="subsystems">
+
+      <!-- ── AUTHENTICATION ── -->
+      <div class="subsystem ss-auth">
+        <div class="subsystem-header">Authentication</div>
+        <div class="subsystem-body">
+          <div class="uc-row">
+            <span class="uc-name">Login</span>
+            <div class="badges"><span class="badge badge-all">ALL</span></div>
+          </div>
+          <div class="uc-row">
+            <span class="uc-name">Register User</span>
+            <div class="badges"><span class="badge badge-admin">ADM</span></div>
+          </div>
+          <div class="uc-row">
+            <span class="uc-name">Change Password</span>
+            <div class="badges"><span class="badge badge-all">ALL</span></div>
+          </div>
+          <div class="uc-row">
+            <span class="uc-name">Reset Password</span>
+            <div class="badges"><span class="badge badge-all">ALL</span></div>
+          </div>
+          <div class="uc-row">
+            <span class="uc-name">Verify Email</span>
+            <div class="badges"><span class="badge badge-all">ALL</span></div>
+          </div>
+          <div class="uc-row">
+            <span class="uc-name">Refresh Session Token</span>
+            <div class="badges"><span class="badge badge-system">SYS</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── CALENDAR ── -->
+      <div class="subsystem ss-cal">
+        <div class="subsystem-header">Calendar</div>
+        <div class="subsystem-body">
+          <div class="uc-row">
+            <span class="uc-name">View Monthly Calendar</span>
+            <div class="badges"><span class="badge badge-all">ALL</span></div>
+          </div>
+          <div class="uc-row">
+            <span class="uc-name">View Events by Date</span>
+            <div class="badges"><span class="badge badge-all">ALL</span></div>
+          </div>
+          <div class="uc-row">
+            <span class="uc-name">View Event Details</span>
+            <div class="badges"><span class="badge badge-all">ALL</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── RESERVATION MANAGEMENT ── -->
+      <div class="subsystem ss-res" style="grid-column: span 1;">
+        <div class="subsystem-header">Reservation Management</div>
+        <div class="subsystem-body">
+          <div class="uc-row">
+            <span class="uc-name">Create Reservation</span>
+            <div class="badges"><span class="badge badge-all">ALL</span></div>
+          </div>
+          <div class="uc-row">
+            <span class="uc-name">Edit Reservation</span>
+            <div class="badges"><span class="badge badge-all">ALL</span></div>
+          </div>
+          <div class="uc-row">
+            <span class="uc-name">View Own Reservation Queue</span>
+            <div class="badges"><span class="badge badge-all">ALL</span></div>
+          </div>
+          <div class="uc-row">
+            <span class="uc-name">View All Reservations</span>
+            <div class="badges">
+              <span class="badge badge-admin">ADM</span>
+              <span class="badge badge-campusdir">CD</span>
+              <span class="badge badge-multimedia">MM</span>
+              <span class="badge badge-president">PRES</span>
+            </div>
+          </div>
+          <div class="uc-row">
+            <span class="uc-name">Approve Reservation</span>
+            <div class="badges">
+              <span class="badge badge-admin">ADM</span>
+              <span class="badge badge-campusdir">CD</span>
+            </div>
+          </div>
+          <div class="uc-row">
+            <span class="uc-name">Decline Reservation</span>
+            <div class="badges">
+              <span class="badge badge-admin">ADM</span>
+            </div>
+          </div>
+          <div class="uc-row">
+            <span class="uc-name">Move Reservation Date</span>
+            <div class="badges">
+              <span class="badge badge-admin">ADM</span>
+              <span class="badge badge-campusdir">CD</span>
+            </div>
+          </div>
+          <div class="uc-row">
+            <span class="uc-name">
+              Detect Time / Asset Conflicts
+              <div class="tag-include">«include» from Create &amp; Move</div>
+            </span>
+            <div class="badges"><span class="badge badge-system">SYS</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ACCOUNT MANAGEMENT ── -->
+      <div class="subsystem ss-acc">
+        <div class="subsystem-header">Account Management</div>
+        <div class="subsystem-body">
+          <div class="uc-row">
+            <span class="uc-name">View All User Accounts</span>
+            <div class="badges"><span class="badge badge-admin">ADM</span></div>
+          </div>
+          <div class="uc-row">
+            <span class="uc-name">Update User Account</span>
+            <div class="badges"><span class="badge badge-admin">ADM</span></div>
+          </div>
+          <div class="uc-row">
+            <span class="uc-name">View Own Profile</span>
+            <div class="badges"><span class="badge badge-all">ALL</span></div>
+          </div>
+          <div class="uc-row">
+            <span class="uc-name">Update Own Profile</span>
+            <div class="badges"><span class="badge badge-all">ALL</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ASSET MANAGEMENT ── -->
+      <div class="subsystem ss-asset">
+        <div class="subsystem-header">Asset / Venue Management</div>
+        <div class="subsystem-body">
+          <div class="uc-row">
+            <span class="uc-name">View Assets</span>
+            <div class="badges">
+              <span class="badge badge-admin">ADM</span>
+              <span class="badge badge-president">PRES</span>
+            </div>
+          </div>
+          <div class="uc-row">
+            <span class="uc-name">Register Asset</span>
+            <div class="badges"><span class="badge badge-admin">ADM</span></div>
+          </div>
+          <div class="uc-row">
+            <span class="uc-name">Update Asset</span>
+            <div class="badges"><span class="badge badge-admin">ADM</span></div>
+          </div>
+          <div class="uc-row">
+            <span class="uc-name">Delete Asset</span>
+            <div class="badges"><span class="badge badge-admin">ADM</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PEOPLE MANAGEMENT ── -->
+      <div class="subsystem ss-people">
+        <div class="subsystem-header">People Management</div>
+        <div class="subsystem-body">
+          <div class="uc-row">
+            <span class="uc-name">View People</span>
+            <div class="badges"><span class="badge badge-admin">ADM</span></div>
+          </div>
+          <div class="uc-row">
+            <span class="uc-name">Add Person</span>
+            <div class="badges"><span class="badge badge-admin">ADM</span></div>
+          </div>
+          <div class="uc-row">
+            <span class="uc-name">Update Person</span>
+            <div class="badges"><span class="badge badge-admin">ADM</span></div>
+          </div>
+          <div class="uc-row">
+            <span class="uc-name">Delete Person</span>
+            <div class="badges"><span class="badge badge-admin">ADM</span></div>
+          </div>
+          <div class="uc-row">
+            <span class="uc-name">Link Person to Account</span>
+            <div class="badges"><span class="badge badge-admin">ADM</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── NOTIFICATIONS ── -->
+      <div class="subsystem ss-notif">
+        <div class="subsystem-header">Notifications</div>
+        <div class="subsystem-body">
+          <div class="uc-row">
+            <span class="uc-name">View Notifications</span>
+            <div class="badges"><span class="badge badge-all">ALL</span></div>
+          </div>
+          <div class="uc-row">
+            <span class="uc-name">Mark Notification as Read</span>
+            <div class="badges"><span class="badge badge-all">ALL</span></div>
+          </div>
+          <div class="uc-row">
+            <span class="uc-name">
+              Dispatch Notification
+              <div class="tag-include">«include» from Approve / Decline</div>
+            </span>
+            <div class="badges"><span class="badge badge-system">SYS</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ACTIVITY LOGS ── -->
+      <div class="subsystem ss-logs">
+        <div class="subsystem-header">Activity Logs</div>
+        <div class="subsystem-body">
+          <div class="uc-row">
+            <span class="uc-name">View Activity History</span>
+            <div class="badges"><span class="badge badge-all">ALL</span></div>
+          </div>
+          <div class="uc-row">
+            <span class="uc-name">
+              Log User Action
+              <div class="tag-include">«include» from Create / Approve / Decline / Move</div>
+            </span>
+            <div class="badges"><span class="badge badge-system">SYS</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── DASHBOARD ── -->
+      <div class="subsystem ss-dash">
+        <div class="subsystem-header">Dashboard</div>
+        <div class="subsystem-body">
+          <div class="uc-row">
+            <span class="uc-name">View System Statistics</span>
+            <div class="badges">
+              <span class="badge badge-admin">ADM</span>
+              <span class="badge badge-president">PRES</span>
+            </div>
+          </div>
+          <div class="uc-row">
+            <span class="uc-name">View Visitor Analytics</span>
+            <div class="badges"><span class="badge badge-admin">ADM</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /subsystems -->
+
+    <!-- ── MULTI-STAGE APPROVAL FLOW NOTE ── -->
+    <div style="margin-top:24px;background:#FFFDE7;border:1px solid #F0AD00;border-radius:8px;padding:16px;font-size:0.82rem;line-height:1.6">
+      <strong>Multi-Stage Approval Flow</strong><br>
+      A reservation progresses through configurable stages before reaching <em>APPROVED</em> or <em>DECLINED</em>:
+      <ol style="margin-top:6px;padding-left:18px">
+        <li>Office User submits reservation → status: <code>PENDING</code></li>
+        <li>VP-level officers (VPAA / VPSAS / VPAF / VPRDE) review if required</li>
+        <li>Campus Director endorses or approves at final stage</li>
+        <li>Admin can approve or decline at any stage</li>
+        <li>Each action is logged and triggers a notification to the requestor</li>
+      </ol>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>

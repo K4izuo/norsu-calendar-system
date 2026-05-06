@@ -8,6 +8,7 @@ import {
   Users,
   GraduationCap,
   Building2,
+  ExternalLink,
 } from "lucide-react";
 import { ReservationFormData, RequestorInfo } from "@/interface/user-props";
 
@@ -95,6 +96,34 @@ export function ReserveEventSummaryTab({
                     </span>
                   ))}
                 </div>
+              </div>
+            )}
+            {formData.proof_of_request && (
+              <div className="md:col-span-2">
+                <p className="text-sm text-gray-500">Proof of Request</p>
+                <a
+                  href={formData.proof_of_request}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 mt-1 text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  View Document
+                </a>
+              </div>
+            )}
+            {formData.proof_of_approval && (
+              <div className="md:col-span-2">
+                <p className="text-sm text-gray-500">Proof of Approval/Decline</p>
+                <a
+                  href={formData.proof_of_approval}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 mt-1 text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  View Document
+                </a>
               </div>
             )}
           </div>

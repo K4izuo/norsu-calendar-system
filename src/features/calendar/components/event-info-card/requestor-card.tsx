@@ -1,12 +1,13 @@
-import React from "react";
-import { Users, GraduationCap, Building2 } from "lucide-react";
+import { Users, GraduationCap, Building2, ExternalLink } from "lucide-react";
 import { EventDetails } from "@/interface/user-props";
 
 interface RequestorCardProps {
   requestor: NonNullable<EventDetails["requestor"]>;
+  proofOfRequest?: string;
+  proofOfApproval?: string;
 }
 
-export function RequestorCard({ requestor }: RequestorCardProps) {
+export function RequestorCard({ requestor, proofOfRequest, proofOfApproval }: RequestorCardProps) {
   return (
     <div className="bg-white text-card-foreground border border-border rounded-lg">
       <div className="p-6 flex items-center">
@@ -57,6 +58,34 @@ export function RequestorCard({ requestor }: RequestorCardProps) {
                 </span>
               ))}
             </div>
+          </div>
+        )}
+        {proofOfRequest && (
+          <div className="md:col-span-2">
+            <p className="text-sm text-gray-500">Proof of Request</p>
+            <a
+              href={proofOfRequest}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 mt-1 text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              View Document
+            </a>
+          </div>
+        )}
+        {proofOfApproval && (
+          <div className="md:col-span-2">
+            <p className="text-sm text-gray-500">Proof of Approval/Decline</p>
+            <a
+              href={proofOfApproval}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 mt-1 text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              View Document
+            </a>
           </div>
         )}
       </div>
