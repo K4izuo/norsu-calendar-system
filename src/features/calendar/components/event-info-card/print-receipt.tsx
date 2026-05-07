@@ -13,6 +13,25 @@ const LINE_H = 15.5;
 const DESCRIPTION_FIRST_LINE_INDENT = 39;
 const TABLE_BORDER_WIDTH = 0.5;
 const TEMPLATE_TOP_SHIFT = 8;
+const FOOTER_SAFE_TOP = 130;
+const QR_SECTION_MIN_Y = 620;
+const PRINTED_BY_MIN_Y = 785;
+const POINTS_PER_INCH = 72;
+const LONG_BOND_WIDTH = 8.5 * POINTS_PER_INCH;
+const LONG_BOND_HEIGHT = 13 * POINTS_PER_INCH;
+const FOOTER_PAGE_TRIM = 0;
+const FOOTER_X = 135;
+const FOOTER_RIGHT_MARGIN = 18;
+const FOOTER_TABLE_Y = 35;
+const FOOTER_ROW_H = 10;
+const FOOTER_TABLE_H = FOOTER_ROW_H * 3;
+const FOOTER_LABEL_W = 127;
+const FOOTER_VALUE_W = 122;
+const FOOTER_STATUS_LABEL_W = 55;
+const FOOTER_PAGE_W = 55;
+const FOOTER_FONT_SIZE = 5.2;
+const FOOTER_DISCLAIMER_SIZE = 5.1;
+const FOOTER_LINE_H = 6;
 const BLACK = rgb(0, 0, 0);
 
 const STAGE_TITLE: Record<string, string> = {
@@ -63,6 +82,114 @@ function requestorThrough(event: EventDetails): string {
   if (t === "faculty") return "Faculty";
   if (t === "office") return "Head of Office / Dean";
   return "N/A";
+}
+
+function setLongBondPageSize(page: PDFPage) {
+  page.setSize(LONG_BOND_WIDTH, LONG_BOND_HEIGHT);
+  page.setMediaBox(0, 0, LONG_BOND_WIDTH, LONG_BOND_HEIGHT);
+  page.setCropBox(0, 0, LONG_BOND_WIDTH, LONG_BOND_HEIGHT);
+  page.setBleedBox(0, 0, LONG_BOND_WIDTH, LONG_BOND_HEIGHT);
+  page.setTrimBox(0, 0, LONG_BOND_WIDTH, LONG_BOND_HEIGHT);
+  page.setArtBox(0, 0, LONG_BOND_WIDTH, LONG_BOND_HEIGHT);
+}
+
+function fitPageHeightToFooter(page: PDFPage) {
+  const visibleHeight = LONG_BOND_HEIGHT - FOOTER_PAGE_TRIM;
+  page.translateContent(0, -FOOTER_PAGE_TRIM);
+  page.resetPosition();
+  page.setSize(LONG_BOND_WIDTH, visibleHeight);
+  page.setMediaBox(0, 0, LONG_BOND_WIDTH, visibleHeight);
+  page.setCropBox(0, 0, LONG_BOND_WIDTH, visibleHeight);
+  page.setBleedBox(0, 0, LONG_BOND_WIDTH, visibleHeight);
+  page.setTrimBox(0, 0, LONG_BOND_WIDTH, visibleHeight);
+  page.setArtBox(0, 0, LONG_BOND_WIDTH, visibleHeight);
+}
+
+function wrapFooterText(text: string, font: PDFFont, size: number, maxWidth: number) {
+  const words = text.split(" ");
+  const lines: string[] = [];
+  let line = "";
+
+  for (const word of words) {
+    const candidate = line ? `${line} ${word}` : word;
+    if (font.widthOfTextAtSize(candidate, size) > maxWidth && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = candidate;
+    }
+  }
+
+  if (line) lines.push(line);
+  return lines;
+}
+
+function drawLongBondFooter(page: PDFPage, bold: PDFFont, italic: PDFFont) {
+  const { width } = page.getSize();
+  const tableWidth = width - FOOTER_X - FOOTER_RIGHT_MARGIN;
+  const pageColX = FOOTER_X + tableWidth - FOOTER_PAGE_W;
+  const leftTableW = tableWidth - FOOTER_PAGE_W;
+  const value1X = FOOTER_X + FOOTER_LABEL_W;
+  const statusLabelX = value1X + FOOTER_VALUE_W;
+  const statusValueX = statusLabelX + FOOTER_STATUS_LABEL_W;
+
+  page.drawRectangle({
+    x: FOOTER_X - 1,
+    y: 0,
+    width: width - FOOTER_X - 4,
+    height: 112,
+    color: rgb(1, 1, 1),
+  });
+
+  page.drawRectangle({
+    x: FOOTER_X,
+    y: FOOTER_TABLE_Y,
+    width: tableWidth,
+    height: FOOTER_TABLE_H,
+    borderColor: BLACK,
+    borderWidth: TABLE_BORDER_WIDTH,
+  });
+
+  page.drawLine({ start: { x: pageColX, y: FOOTER_TABLE_Y }, end: { x: pageColX, y: FOOTER_TABLE_Y + FOOTER_TABLE_H }, thickness: TABLE_BORDER_WIDTH, color: BLACK });
+  page.drawLine({ start: { x: value1X, y: FOOTER_TABLE_Y }, end: { x: value1X, y: FOOTER_TABLE_Y + FOOTER_TABLE_H }, thickness: TABLE_BORDER_WIDTH, color: BLACK });
+  page.drawLine({ start: { x: statusLabelX, y: FOOTER_TABLE_Y }, end: { x: statusLabelX, y: FOOTER_TABLE_Y + FOOTER_ROW_H * 2 }, thickness: TABLE_BORDER_WIDTH, color: BLACK });
+  page.drawLine({ start: { x: statusValueX, y: FOOTER_TABLE_Y }, end: { x: statusValueX, y: FOOTER_TABLE_Y + FOOTER_ROW_H * 2 }, thickness: TABLE_BORDER_WIDTH, color: BLACK });
+
+  for (let i = 1; i <= 2; i++) {
+    const y = FOOTER_TABLE_Y + FOOTER_ROW_H * i;
+    page.drawLine({ start: { x: FOOTER_X, y }, end: { x: FOOTER_X + leftTableW, y }, thickness: TABLE_BORDER_WIDTH, color: BLACK });
+  }
+
+  const drawCell = (text: string, x: number, y: number) => {
+    page.drawText(text, { x: x + 4, y: y + 3, size: FOOTER_FONT_SIZE, font: bold, color: BLACK });
+  };
+
+  drawCell("Correspondence ID", FOOTER_X, FOOTER_TABLE_Y + FOOTER_ROW_H * 2);
+  drawCell("Issue Date", FOOTER_X, FOOTER_TABLE_Y + FOOTER_ROW_H);
+  drawCell("Issue Status", statusLabelX, FOOTER_TABLE_Y + FOOTER_ROW_H);
+  drawCell("Reviewed & Authorized by", FOOTER_X, FOOTER_TABLE_Y);
+  drawCell("Approved by", statusLabelX, FOOTER_TABLE_Y);
+
+  const pageText = "Page 1 of 1";
+  page.drawText(pageText, {
+    x: pageColX + (FOOTER_PAGE_W - bold.widthOfTextAtSize(pageText, 8)) / 2,
+    y: FOOTER_TABLE_Y + 11,
+    size: 8,
+    font: bold,
+    color: BLACK,
+  });
+
+  const disclaimer = "Disclaimer: The information transmitted by this document is intended only for the person or entity to which it is addressed. This document may contain proprietary, business-confidential and/or privileged material. If you are not the intended recipient of this message, be aware that any use, review, retransmission, distribution, reproduction or any action taken in reliance upon this message is strictly prohibited. If you received this in error, please contact the sender. Thank you.";
+  const lines = wrapFooterText(disclaimer, italic, FOOTER_DISCLAIMER_SIZE, tableWidth);
+  lines.forEach((line, index) => {
+    page.drawText(line, {
+      x: FOOTER_X,
+      y: FOOTER_TABLE_Y - 8 - index * FOOTER_LINE_H,
+      size: FOOTER_DISCLAIMER_SIZE,
+      font: italic,
+      color: BLACK,
+    });
+  });
 }
 
 // ─── Canvas helper ────────────────────────────────────────────────────────────
@@ -223,9 +350,9 @@ class Canvas {
     const lw = this.bold.widthOfTextAtSize(label, FS);
     this.draw(label, CONTENT_X, this.bold);
     const lx = CONTENT_X + lw;
-    const baselineY = this.py(this.y) + 1;
-    this.page.drawLine({ start: { x: lx, y: baselineY }, end: { x: lx + 160, y: baselineY }, thickness: TABLE_BORDER_WIDTH, color: BLACK });
     if (name) this.draw(name, lx, this.regular);
+    const lineY = this.py(this.y) - 4;
+    this.page.drawLine({ start: { x: lx, y: lineY }, end: { x: lx + 160, y: lineY }, thickness: TABLE_BORDER_WIDTH, color: BLACK });
     this.nl();
   }
 }
@@ -243,24 +370,25 @@ export async function printEventReceipt(
   if (!res.ok) throw new Error(`Could not load receipt template (${res.status})`);
   const pdfDoc = await PDFDocument.load(await res.arrayBuffer());
   const page = pdfDoc.getPages()[0];
+  setLongBondPageSize(page);
   const { width: pgW, height: pgH } = page.getSize();
 
   // Keep the full long-bond page size, then move the template up to hide the top gap.
-  page.setMediaBox(0, 0, pgW, pgH);
   page.translateContent(0, TEMPLATE_TOP_SHIFT);
   page.resetPosition();
 
   // White out the shifted editable content area while leaving the official header intact.
   page.drawRectangle({
     x: 113,
-    y: 90,
+    y: FOOTER_SAFE_TOP,
     width: pgW - 113 - 5,
-    height: pgH - (112 - TEMPLATE_TOP_SHIFT) - 90,
+    height: pgH - (112 - TEMPLATE_TOP_SHIFT) - FOOTER_SAFE_TOP,
     color: rgb(1, 1, 1),
   });
 
   const bold = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
   const regular = await pdfDoc.embedFont(StandardFonts.TimesRoman);
+  const italic = await pdfDoc.embedFont(StandardFonts.TimesRomanItalic);
   const cv = new Canvas(page, bold, regular, 115);
 
   // ── Date ──────────────────────────────────────────────────────────────────
@@ -333,6 +461,7 @@ export async function printEventReceipt(
   cv.gap(LINE_H);
 
   // ── QR code ───────────────────────────────────────────────────────────────
+  cv.y = Math.max(cv.y, QR_SECTION_MIN_Y);
   cv.heading("QR code");
   try {
     const dataUrl = await QRCode.toDataURL(eventUrl, { width: 90, margin: 1, color: { dark: "#000000", light: "#ffffff" } });
@@ -346,7 +475,10 @@ export async function printEventReceipt(
   }
 
   // ── Printed by ────────────────────────────────────────────────────────────
+  cv.y = Math.max(cv.y, PRINTED_BY_MIN_Y);
   cv.printedBy(printedBy);
+  drawLongBondFooter(page, bold, italic);
+  fitPageHeightToFooter(page);
 
   // ── Output via hidden iframe (bypasses IDM / download managers) ───────────
   const pdfBytes = await pdfDoc.save();

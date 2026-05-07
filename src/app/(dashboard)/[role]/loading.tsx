@@ -10,7 +10,7 @@ export default function Loading({ className = "" }: { className?: string }) {
 
   return (
     <div
-      className={`absolute inset-0 flex items-center justify-center z-50 bg-white ${className}`}
+      className={`absolute inset-0 flex items-center justify-center bg-white ${className}`}
     >
       <div className="relative h-16 w-16 flex items-center justify-center">
         {/* Hardware accelerated CSS spinner - using custom class to GUARANTEE rotation */}

@@ -290,7 +290,7 @@ export default function RoleLayout({
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset className="h-dvh overflow-hidden">
+      <SidebarInset className="overflow-hidden">
         <header className="flex shadow-xs h-18 shrink-0 items-center justify-between gap-2 border-b bg-white px-4">
           <div className="flex items-center">
             <SidebarTrigger className="-ml-1" />
@@ -353,13 +353,17 @@ export default function RoleLayout({
           </div>
         </header>
 
-        <div className="flex-1 min-h-0 bg-muted/50 flex flex-col gap-4 p-3 lg:p-6 overflow-y-auto overflow-x-hidden relative">
+        <div className="flex-1 bg-muted/50 flex flex-col gap-4 p-3 lg:p-6 overflow-y-auto overflow-x-hidden relative">
+          <PageLoadingContext.Provider value={{ setPageReady }}>
+            {children}
+          </PageLoadingContext.Provider>
+
           {overlayVisible && (
             <div
               style={{
                 position: "absolute",
                 inset: 0,
-                zIndex: 9999,
+                zIndex: 40,
                 backgroundColor: "white",
                 opacity: fadeOut ? 0 : 1,
                 transition: "opacity 150ms ease-out",
@@ -368,10 +372,6 @@ export default function RoleLayout({
               <Loading />
             </div>
           )}
-
-          <PageLoadingContext.Provider value={{ setPageReady }}>
-            {children}
-          </PageLoadingContext.Provider>
         </div>
       </SidebarInset>
     </SidebarProvider>

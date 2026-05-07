@@ -10,6 +10,19 @@ const CONTENT_X = 170;   // left edge of main content (right of sidebar border)
 const RIGHT_MARGIN = 35; // right page margin
 const FONT_SIZE = 10;
 const LINE_H = 13;       // points between wrapped lines
+const TABLE_BORDER_WIDTH = 0.5;
+const FOOTER_X = 135;
+const FOOTER_RIGHT_MARGIN = 18;
+const FOOTER_TABLE_Y = 22;
+const FOOTER_ROW_H = 10;
+const FOOTER_TABLE_H = FOOTER_ROW_H * 3;
+const FOOTER_LABEL_W = 127;
+const FOOTER_VALUE_W = 122;
+const FOOTER_STATUS_LABEL_W = 55;
+const FOOTER_PAGE_W = 55;
+const FOOTER_FONT_SIZE = 5.2;
+const FOOTER_DISCLAIMER_SIZE = 5.1;
+const FOOTER_LINE_H = 5;
 
 // y distance FROM THE TOP of the page for each label row
 const Y: Record<string, number> = {
@@ -24,9 +37,9 @@ const Y: Record<string, number> = {
   requestedThrough: 252,
   approvedBy: 284,
   dateTimeFullyApproved: 316,
-  qrLabel: 348,
-  qrImage: 360,  // top of QR image (90 × 90 pt)
-  printedBy: 465,
+  qrLabel: 620,
+  qrImage: 635,  // top of QR image (90 × 90 pt)
+  printedBy: 765,
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -71,6 +84,93 @@ function requestorThrough(event: EventDetails): string {
   return "N/A";
 }
 
+function wrapFooterText(text: string, font: PDFFont, size: number, maxWidth: number) {
+  const words = text.split(" ");
+  const lines: string[] = [];
+  let line = "";
+
+  for (const word of words) {
+    const candidate = line ? `${line} ${word}` : word;
+    if (font.widthOfTextAtSize(candidate, size) > maxWidth && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = candidate;
+    }
+  }
+
+  if (line) lines.push(line);
+  return lines;
+}
+
+function drawLongBondFooter(page: PDFPage, bold: PDFFont, italic: PDFFont) {
+  const { width } = page.getSize();
+  const tableWidth = width - FOOTER_X - FOOTER_RIGHT_MARGIN;
+  const pageColX = FOOTER_X + tableWidth - FOOTER_PAGE_W;
+  const leftTableW = tableWidth - FOOTER_PAGE_W;
+  const value1X = FOOTER_X + FOOTER_LABEL_W;
+  const statusLabelX = value1X + FOOTER_VALUE_W;
+  const statusValueX = statusLabelX + FOOTER_STATUS_LABEL_W;
+
+  page.drawRectangle({
+    x: FOOTER_X - 1,
+    y: 0,
+    width: width - FOOTER_X - 4,
+    height: 112,
+    color: rgb(1, 1, 1),
+  });
+
+  page.drawRectangle({
+    x: FOOTER_X,
+    y: FOOTER_TABLE_Y,
+    width: tableWidth,
+    height: FOOTER_TABLE_H,
+    borderColor: rgb(0, 0, 0),
+    borderWidth: TABLE_BORDER_WIDTH,
+  });
+
+  page.drawLine({ start: { x: pageColX, y: FOOTER_TABLE_Y }, end: { x: pageColX, y: FOOTER_TABLE_Y + FOOTER_TABLE_H }, thickness: TABLE_BORDER_WIDTH, color: rgb(0, 0, 0) });
+  page.drawLine({ start: { x: value1X, y: FOOTER_TABLE_Y }, end: { x: value1X, y: FOOTER_TABLE_Y + FOOTER_TABLE_H }, thickness: TABLE_BORDER_WIDTH, color: rgb(0, 0, 0) });
+  page.drawLine({ start: { x: statusLabelX, y: FOOTER_TABLE_Y }, end: { x: statusLabelX, y: FOOTER_TABLE_Y + FOOTER_ROW_H * 2 }, thickness: TABLE_BORDER_WIDTH, color: rgb(0, 0, 0) });
+  page.drawLine({ start: { x: statusValueX, y: FOOTER_TABLE_Y }, end: { x: statusValueX, y: FOOTER_TABLE_Y + FOOTER_ROW_H * 2 }, thickness: TABLE_BORDER_WIDTH, color: rgb(0, 0, 0) });
+
+  for (let i = 1; i <= 2; i++) {
+    const y = FOOTER_TABLE_Y + FOOTER_ROW_H * i;
+    page.drawLine({ start: { x: FOOTER_X, y }, end: { x: FOOTER_X + leftTableW, y }, thickness: TABLE_BORDER_WIDTH, color: rgb(0, 0, 0) });
+  }
+
+  const drawCell = (text: string, x: number, y: number) => {
+    page.drawText(text, { x: x + 4, y: y + 3, size: FOOTER_FONT_SIZE, font: bold, color: rgb(0, 0, 0) });
+  };
+
+  drawCell("Correspondence ID", FOOTER_X, FOOTER_TABLE_Y + FOOTER_ROW_H * 2);
+  drawCell("Issue Date", FOOTER_X, FOOTER_TABLE_Y + FOOTER_ROW_H);
+  drawCell("Issue Status", statusLabelX, FOOTER_TABLE_Y + FOOTER_ROW_H);
+  drawCell("Reviewed & Authorized by", FOOTER_X, FOOTER_TABLE_Y);
+  drawCell("Approved by", statusLabelX, FOOTER_TABLE_Y);
+
+  const pageText = "Page 1 of 1";
+  page.drawText(pageText, {
+    x: pageColX + (FOOTER_PAGE_W - bold.widthOfTextAtSize(pageText, 8)) / 2,
+    y: FOOTER_TABLE_Y + 11,
+    size: 8,
+    font: bold,
+    color: rgb(0, 0, 0),
+  });
+
+  const disclaimer = "Disclaimer: The information transmitted by this document is intended only for the person or entity to which it is addressed. This document may contain proprietary, business-confidential and/or privileged material. If you are not the intended recipient of this message, be aware that any use, review, retransmission, distribution, reproduction or any action taken in reliance upon this message is strictly prohibited. If you received this in error, please contact the sender. Thank you.";
+  const lines = wrapFooterText(disclaimer, italic, FOOTER_DISCLAIMER_SIZE, tableWidth);
+  lines.forEach((line, index) => {
+    page.drawText(line, {
+      x: FOOTER_X,
+      y: FOOTER_TABLE_Y - 8 - index * FOOTER_LINE_H,
+      size: FOOTER_DISCLAIMER_SIZE,
+      font: italic,
+      color: rgb(0, 0, 0),
+    });
+  });
+}
+
 // Draw text value starting right after the label on the same baseline.
 // Long values wrap onto subsequent lines at CONTENT_X.
 function drawValue(
@@ -111,6 +211,37 @@ function drawValue(
   if (line) flush(line);
 }
 
+function drawPrintedBy(
+  page: PDFPage,
+  font: PDFFont,
+  pageWidth: number,
+  pageHeight: number,
+  printedBy: string,
+) {
+  const labelText = "Printed by:  ";
+  const valueX = CONTENT_X + font.widthOfTextAtSize(labelText, FONT_SIZE);
+  const y = pageHeight - Y.printedBy;
+  const signatureW = Math.min(
+    Math.max(160, font.widthOfTextAtSize(printedBy, FONT_SIZE) + 12),
+    pageWidth - RIGHT_MARGIN - valueX,
+  );
+
+  page.drawRectangle({
+    x: valueX - 2,
+    y: y - 2,
+    width: signatureW + 4,
+    height: FONT_SIZE + 4,
+    color: rgb(1, 1, 1),
+  });
+  page.drawText(printedBy, { x: valueX, y, size: FONT_SIZE, font, color: rgb(0, 0, 0) });
+  page.drawLine({
+    start: { x: valueX, y: y - 5 },
+    end: { x: valueX + signatureW, y: y - 5 },
+    thickness: TABLE_BORDER_WIDTH,
+    color: rgb(0, 0, 0),
+  });
+}
+
 // ─── Main export ─────────────────────────────────────────────────────────────
 
 export async function printEventReceipt(
@@ -130,6 +261,8 @@ export async function printEventReceipt(
   const { width, height } = page.getSize();
 
   const font = await pdfDoc.embedFont(StandardFonts.TimesRoman);
+  const footerBold = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
+  const footerItalic = await pdfDoc.embedFont(StandardFonts.TimesRomanItalic);
 
   // 2. Prepare field values
   const approval = lastApproval(event.approvals);
@@ -172,7 +305,7 @@ export async function printEventReceipt(
   draw("Requested Through: ",       requestorThrough(event),                                            "requestedThrough");
   draw("Approved By: (Includes Date and time) ", `${approvedByName}  —  ${approvedAt}`,                "approvedBy");
   draw("Date and Time (Fully Approved) ",         approvedAt,                                           "dateTimeFullyApproved");
-  draw("Printed by:  ",             printedBy,                                                          "printedBy");
+  drawPrintedBy(page, font, width, height, printedBy);
 
   // 4. Generate QR code PNG and embed it
   try {
@@ -189,6 +322,8 @@ export async function printEventReceipt(
   } catch {
     // QR generation failed silently; receipt still prints without it
   }
+
+  drawLongBondFooter(page, footerBold, footerItalic);
 
   // 5. Open filled PDF in a new tab and trigger browser print dialog
   const pdfBytes = await pdfDoc.save();
