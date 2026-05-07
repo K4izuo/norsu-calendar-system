@@ -12,6 +12,7 @@ const FS = 12;
 const LINE_H = 15.5;
 const DESCRIPTION_FIRST_LINE_INDENT = 39;
 const TABLE_BORDER_WIDTH = 0.5;
+const TEMPLATE_TOP_SHIFT = 8;
 const BLACK = rgb(0, 0, 0);
 
 const STAGE_TITLE: Record<string, string> = {
@@ -244,25 +245,22 @@ export async function printEventReceipt(
   const page = pdfDoc.getPages()[0];
   const { width: pgW, height: pgH } = page.getSize();
 
-  // Crop the white margin above the header that the template has at the top of the page.
-  page.setMediaBox(0, 0, pgW, pgH - 8);
+  // Keep the full long-bond page size, then move the template up to hide the top gap.
+  page.setMediaBox(0, 0, pgW, pgH);
+  page.translateContent(0, TEMPLATE_TOP_SHIFT);
+  page.resetPosition();
 
-  // White out the content area. x=113 is just before the label text (x=113.78) but after
-  // the sidebar border (~x=110-112). Top=112pt leaves header intact (absolute coords, pgH=792).
-  // Bottom=90pt (not 75): footer text baseline is at 74.76pt from bottom with 14pt ascenders
-  // reaching to ~85pt — y=90 ensures none of those ascenders are whited out.
+  // White out the shifted editable content area while leaving the official header intact.
   page.drawRectangle({
     x: 113,
     y: 90,
     width: pgW - 113 - 5,
-    height: pgH - 112 - 90,
+    height: pgH - (112 - TEMPLATE_TOP_SHIFT) - 90,
     color: rgb(1, 1, 1),
   });
 
   const bold = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
   const regular = await pdfDoc.embedFont(StandardFonts.TimesRoman);
-  // After setMediaBox, page.getSize().height = pgH-8, so Canvas.h = pgH-8.
-  // startY=115 → py(115) = (pgH-8)-115 = pgH-123, same absolute y as original startY=123.
   const cv = new Canvas(page, bold, regular, 115);
 
   // ── Date ──────────────────────────────────────────────────────────────────
