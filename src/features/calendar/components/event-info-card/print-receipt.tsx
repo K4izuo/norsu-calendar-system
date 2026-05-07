@@ -340,7 +340,7 @@ export async function printEventReceipt(
     const dataUrl = await QRCode.toDataURL(eventUrl, { width: 90, margin: 1, color: { dark: "#000000", light: "#ffffff" } });
     const pngBytes = Uint8Array.from(atob(dataUrl.split(",")[1]), c => c.charCodeAt(0));
     const qrImage = await pdfDoc.embedPng(pngBytes);
-    page.drawImage(qrImage, { x: CONTENT_X, y: cv.py(cv.y + 90), width: 90, height: 90 });
+    page.drawImage(qrImage, { x: CONTENT_X + (CONTENT_W - 90) / 2, y: cv.py(cv.y + 90), width: 90, height: 90 });
     cv.gap(90 + LINE_H);
   } catch {
     cv.text("(QR code unavailable)");
