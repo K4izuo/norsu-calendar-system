@@ -64,7 +64,7 @@ class Canvas {
   h: number; // page height
   y: number; // current Y from page top
 
-  constructor(page: PDFPage, bold: PDFFont, regular: PDFFont, startY = 123) {
+  constructor(page: PDFPage, bold: PDFFont, regular: PDFFont, startY = 131) {
     this.page = page;
     this.bold = bold;
     this.regular = regular;
@@ -208,8 +208,11 @@ export async function printEventReceipt(
   const page = pdfDoc.getPages()[0];
   const { width: pgW, height: pgH } = page.getSize();
 
+  // Crop the white margin above the header that the template has at the top of the page.
+  page.setMediaBox(0, 0, pgW, pgH - 8);
+
   // White out the content area. x=113 is just before the label text (x=113.78) but after
-  // the sidebar border (~x=110-112). Top=112pt leaves header intact.
+  // the sidebar border (~x=110-112). Top=112pt leaves header intact (absolute coords, pgH=792).
   // Bottom=90pt (not 75): footer text baseline is at 74.76pt from bottom with 14pt ascenders
   // reaching to ~85pt — y=90 ensures none of those ascenders are whited out.
   page.drawRectangle({
@@ -222,11 +225,13 @@ export async function printEventReceipt(
 
   const bold = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
   const regular = await pdfDoc.embedFont(StandardFonts.TimesRoman);
-  const cv = new Canvas(page, bold, regular);
+  // After setMediaBox, page.getSize().height = pgH-8, so Canvas.h = pgH-8.
+  // startY=115 → py(115) = (pgH-8)-115 = pgH-123, same absolute y as original startY=123.
+  const cv = new Canvas(page, bold, regular, 115);
 
   // ── Date ──────────────────────────────────────────────────────────────────
   cv.row("Date: ", fmtDate(event.date));
-  cv.gap(LINE_H); // one blank line gap (matches template: Date at 122.5, Event name at 151.6)
+  cv.gap(17 + LINE_H); // one blank line gap (matches template: Date at 122.5, Event name at 151.6)
 
   // ── Core event fields ─────────────────────────────────────────────────────
   cv.row("Event name: ", event.title_name || "N/A");
@@ -239,7 +244,7 @@ export async function printEventReceipt(
   // ── Equipment table ───────────────────────────────────────────────────────
   cv.heading("Requested equipment's:");
   cv.equipTable(event.equipment?.filter(e => e?.name) ?? []);
-  cv.gap(LINE_H);
+  cv.gap(15 + LINE_H);
 
   // ── Description ───────────────────────────────────────────────────────────
   cv.heading("Event Description:");
