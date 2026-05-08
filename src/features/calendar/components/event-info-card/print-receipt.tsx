@@ -1,6 +1,6 @@
 "use client";
 
-import { PDFDocument, StandardFonts, rgb, PDFPage, PDFFont } from "pdf-lib";
+import { PDFBool, PDFDocument, PDFName, StandardFonts, rgb, PDFPage, PDFFont } from "pdf-lib";
 import QRCode from "qrcode";
 import { EventDetails } from "../../../../interface/user-props";
 
@@ -13,6 +13,7 @@ const LINE_H = 15.5;
 const DESCRIPTION_FIRST_LINE_INDENT = 39;
 const TABLE_BORDER_WIDTH = 0.5;
 const TEMPLATE_TOP_SHIFT = 8;
+const TEMPLATE_HEADER_H = 112;
 const FOOTER_SAFE_TOP = 130;
 const QR_SECTION_MIN_Y = 620;
 const PRINTED_BY_MIN_Y = 785;
@@ -22,7 +23,7 @@ const LONG_BOND_HEIGHT = 13 * POINTS_PER_INCH;
 // const FOOTER_PAGE_TRIM = 0;
 const FOOTER_X = 135;
 const FOOTER_RIGHT_MARGIN = 18;
-const FOOTER_TABLE_Y = 35;
+const FOOTER_TABLE_Y = 27;
 const FOOTER_ROW_H = 10;
 const FOOTER_TABLE_H = FOOTER_ROW_H * 3;
 const FOOTER_LABEL_W = 127;
@@ -31,7 +32,7 @@ const FOOTER_STATUS_LABEL_W = 55;
 const FOOTER_PAGE_W = 55;
 const FOOTER_FONT_SIZE = 5.2;
 const FOOTER_DISCLAIMER_SIZE = 5.1;
-const FOOTER_LINE_H = 6;
+const FOOTER_LINE_H = 5;
 const BLACK = rgb(0, 0, 0);
 
 const STAGE_TITLE: Record<string, string> = {
@@ -91,6 +92,22 @@ function setLongBondPageSize(page: PDFPage) {
   page.setBleedBox(0, 0, LONG_BOND_WIDTH, LONG_BOND_HEIGHT);
   page.setTrimBox(0, 0, LONG_BOND_WIDTH, LONG_BOND_HEIGHT);
   page.setArtBox(0, 0, LONG_BOND_WIDTH, LONG_BOND_HEIGHT);
+}
+
+function setPrintPreferences(pdfDoc: PDFDocument) {
+  const viewerPreferences = pdfDoc.context.obj({
+    PrintScaling: PDFName.of("None"),
+    PickTrayByPDFSize: PDFBool.True,
+  });
+
+  pdfDoc.catalog.set(PDFName.of("ViewerPreferences"), viewerPreferences);
+}
+
+function cropShiftedBottomGap(page: PDFPage) {
+  const visibleHeight = LONG_BOND_HEIGHT - TEMPLATE_TOP_SHIFT;
+  page.setCropBox(0, TEMPLATE_TOP_SHIFT, LONG_BOND_WIDTH, visibleHeight);
+  page.setTrimBox(0, TEMPLATE_TOP_SHIFT, LONG_BOND_WIDTH, visibleHeight);
+  page.setArtBox(0, TEMPLATE_TOP_SHIFT, LONG_BOND_WIDTH, visibleHeight);
 }
 
 // function fitPageHeightToFooter(page: PDFPage) {
@@ -371,6 +388,7 @@ export async function printEventReceipt(
   const pdfDoc = await PDFDocument.load(await res.arrayBuffer());
   const page = pdfDoc.getPages()[0];
   setLongBondPageSize(page);
+  setPrintPreferences(pdfDoc);
   const { width: pgW, height: pgH } = page.getSize();
 
   // Keep the full long-bond page size, then move the template up to hide the top gap.
@@ -382,7 +400,7 @@ export async function printEventReceipt(
     x: 113,
     y: FOOTER_SAFE_TOP,
     width: pgW - 113 - 5,
-    height: pgH - (112 - TEMPLATE_TOP_SHIFT) - FOOTER_SAFE_TOP,
+    height: pgH - (TEMPLATE_HEADER_H - TEMPLATE_TOP_SHIFT) - FOOTER_SAFE_TOP,
     color: rgb(1, 1, 1),
   });
 
@@ -478,6 +496,7 @@ export async function printEventReceipt(
   cv.y = Math.max(cv.y, PRINTED_BY_MIN_Y);
   cv.printedBy(printedBy);
   drawLongBondFooter(page, bold, italic);
+  cropShiftedBottomGap(page);
   // fitPageHeightToFooter(page);
 
   // ── Output via hidden iframe (bypasses IDM / download managers) ───────────

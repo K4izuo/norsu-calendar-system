@@ -1,4 +1,4 @@
-import { PDFDocument, StandardFonts, rgb, PDFPage, PDFFont } from "pdf-lib";
+import { PDFBool, PDFDocument, PDFName, StandardFonts, rgb, PDFPage, PDFFont } from "pdf-lib";
 import QRCode from "qrcode";
 import type { EventDetails, ReservationApproval } from "@/interface/user-props";
 
@@ -11,6 +11,9 @@ const RIGHT_MARGIN = 35; // right page margin
 const FONT_SIZE = 10;
 const LINE_H = 13;       // points between wrapped lines
 const TABLE_BORDER_WIDTH = 0.5;
+const POINTS_PER_INCH = 72;
+const LONG_BOND_WIDTH = 8.5 * POINTS_PER_INCH;
+const LONG_BOND_HEIGHT = 13 * POINTS_PER_INCH;
 const FOOTER_X = 135;
 const FOOTER_RIGHT_MARGIN = 18;
 const FOOTER_TABLE_Y = 22;
@@ -23,6 +26,24 @@ const FOOTER_PAGE_W = 55;
 const FOOTER_FONT_SIZE = 5.2;
 const FOOTER_DISCLAIMER_SIZE = 5.1;
 const FOOTER_LINE_H = 5;
+
+function setLongBondPageSize(page: PDFPage) {
+  page.setSize(LONG_BOND_WIDTH, LONG_BOND_HEIGHT);
+  page.setMediaBox(0, 0, LONG_BOND_WIDTH, LONG_BOND_HEIGHT);
+  page.setCropBox(0, 0, LONG_BOND_WIDTH, LONG_BOND_HEIGHT);
+  page.setBleedBox(0, 0, LONG_BOND_WIDTH, LONG_BOND_HEIGHT);
+  page.setTrimBox(0, 0, LONG_BOND_WIDTH, LONG_BOND_HEIGHT);
+  page.setArtBox(0, 0, LONG_BOND_WIDTH, LONG_BOND_HEIGHT);
+}
+
+function setPrintPreferences(pdfDoc: PDFDocument) {
+  const viewerPreferences = pdfDoc.context.obj({
+    PrintScaling: PDFName.of("None"),
+    PickTrayByPDFSize: PDFBool.True,
+  });
+
+  pdfDoc.catalog.set(PDFName.of("ViewerPreferences"), viewerPreferences);
+}
 
 // y distance FROM THE TOP of the page for each label row
 const Y: Record<string, number> = {
@@ -258,6 +279,8 @@ export async function printEventReceipt(
 
   const pdfDoc = await PDFDocument.load(templateBytes);
   const page = pdfDoc.getPages()[0];
+  setLongBondPageSize(page);
+  setPrintPreferences(pdfDoc);
   const { width, height } = page.getSize();
 
   const font = await pdfDoc.embedFont(StandardFonts.TimesRoman);
