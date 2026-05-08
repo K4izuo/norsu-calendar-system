@@ -19,7 +19,7 @@ const PRINTED_BY_MIN_Y = 785;
 const POINTS_PER_INCH = 72;
 const LONG_BOND_WIDTH = 8.5 * POINTS_PER_INCH;
 const LONG_BOND_HEIGHT = 13 * POINTS_PER_INCH;
-const FOOTER_PAGE_TRIM = 0;
+// const FOOTER_PAGE_TRIM = 0;
 const FOOTER_X = 135;
 const FOOTER_RIGHT_MARGIN = 18;
 const FOOTER_TABLE_Y = 35;
@@ -93,17 +93,17 @@ function setLongBondPageSize(page: PDFPage) {
   page.setArtBox(0, 0, LONG_BOND_WIDTH, LONG_BOND_HEIGHT);
 }
 
-function fitPageHeightToFooter(page: PDFPage) {
-  const visibleHeight = LONG_BOND_HEIGHT - FOOTER_PAGE_TRIM;
-  page.translateContent(0, -FOOTER_PAGE_TRIM);
-  page.resetPosition();
-  page.setSize(LONG_BOND_WIDTH, visibleHeight);
-  page.setMediaBox(0, 0, LONG_BOND_WIDTH, visibleHeight);
-  page.setCropBox(0, 0, LONG_BOND_WIDTH, visibleHeight);
-  page.setBleedBox(0, 0, LONG_BOND_WIDTH, visibleHeight);
-  page.setTrimBox(0, 0, LONG_BOND_WIDTH, visibleHeight);
-  page.setArtBox(0, 0, LONG_BOND_WIDTH, visibleHeight);
-}
+// function fitPageHeightToFooter(page: PDFPage) {
+//   const visibleHeight = LONG_BOND_HEIGHT - FOOTER_PAGE_TRIM;
+//   page.translateContent(0, -FOOTER_PAGE_TRIM);
+//   page.resetPosition();
+//   page.setSize(LONG_BOND_WIDTH, visibleHeight);
+//   page.setMediaBox(0, 0, LONG_BOND_WIDTH, visibleHeight);
+//   page.setCropBox(0, 0, LONG_BOND_WIDTH, visibleHeight);
+//   page.setBleedBox(0, 0, LONG_BOND_WIDTH, visibleHeight);
+//   page.setTrimBox(0, 0, LONG_BOND_WIDTH, visibleHeight);
+//   page.setArtBox(0, 0, LONG_BOND_WIDTH, visibleHeight);
+// }
 
 function wrapFooterText(text: string, font: PDFFont, size: number, maxWidth: number) {
   const words = text.split(" ");
@@ -478,7 +478,7 @@ export async function printEventReceipt(
   cv.y = Math.max(cv.y, PRINTED_BY_MIN_Y);
   cv.printedBy(printedBy);
   drawLongBondFooter(page, bold, italic);
-  fitPageHeightToFooter(page);
+  // fitPageHeightToFooter(page);
 
   // ── Output via hidden iframe (bypasses IDM / download managers) ───────────
   const pdfBytes = await pdfDoc.save();

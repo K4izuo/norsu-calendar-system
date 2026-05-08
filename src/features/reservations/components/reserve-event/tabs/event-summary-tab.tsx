@@ -72,19 +72,19 @@ export function ReserveEventSummaryTab({
               <p className="font-medium text-base">{formatRequestorLabel(requestorInfo)}</p>
             </div>
             {requestorInfo.type === 'student' && requestorInfo.student_sub_type === 'student_org' && requestorInfo.student_org_name && (
-              <div className="md:col-span-2">
+              <div className="md:col-start-1">
                 <p className="text-sm text-gray-500">Organization / Society Name</p>
                 <p className="font-medium text-base">{requestorInfo.student_org_name}</p>
               </div>
             )}
             {requestorInfo.type === 'student' && requestorInfo.student_sub_type === 'csg' && requestorInfo.csg_name && (
-              <div className="md:col-span-2">
+              <div className="md:col-start-1">
                 <p className="text-sm text-gray-500">College Student Government Name</p>
                 <p className="font-medium text-base">{requestorInfo.csg_name}</p>
               </div>
             )}
             {(requestorInfo.type === 'faculty' || requestorInfo.type === 'office') && requestorInfo.tagged && requestorInfo.tagged.length > 0 && (
-              <div className="md:col-span-2">
+              <div className="md:col-start-1">
                 <p className="text-sm text-gray-500">{requestorInfo.type === 'faculty' ? 'Degree Course' : 'Office'}</p>
                 <div className="flex flex-wrap gap-2 mt-1">
                   {requestorInfo.tagged.map((item) => (
@@ -99,30 +99,30 @@ export function ReserveEventSummaryTab({
               </div>
             )}
             {formData.proof_of_request && (
-              <div className="md:col-span-2">
+              <div className="md:col-start-2">
                 <p className="text-sm text-gray-500">Proof of Request</p>
                 <a
                   href={formData.proof_of_request}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 mt-1 text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                  className="inline-flex max-w-full items-start gap-1.5 mt-1 text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
                 >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  View Document
+                  <ExternalLink className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                  <span className="min-w-0 break-all">{formData.proof_of_request}</span>
                 </a>
               </div>
             )}
             {formData.proof_of_approval && (
-              <div className="md:col-span-2">
+              <div className="md:col-start-1">
                 <p className="text-sm text-gray-500">Proof of Approval/Decline</p>
                 <a
                   href={formData.proof_of_approval}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 mt-1 text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                  className="inline-flex max-w-full items-start gap-1.5 mt-1 text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
                 >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  View Document
+                  <ExternalLink className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                  <span className="min-w-0 break-all">{formData.proof_of_approval}</span>
                 </a>
               </div>
             )}
@@ -153,7 +153,7 @@ export function ReserveEventSummaryTab({
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">People Tag</p>
+            <p className="text-sm text-gray-500">Participants</p>
             <div className="flex flex-wrap gap-2 mt-1">
               {taggedPeople.length > 0 ? (
                 taggedPeople.map((person) => (

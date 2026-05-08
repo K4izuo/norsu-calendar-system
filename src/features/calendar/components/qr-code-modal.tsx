@@ -96,9 +96,6 @@ export function QrCodeModal({ isOpen, onClose, event, baseUrl }: QrCodeModalProp
                 />
               </div>
 
-              <p className="text-xs text-gray-400 text-center break-all max-w-xs">
-                {eventUrl}
-              </p>
             </div>
 
             {/* Footer */}

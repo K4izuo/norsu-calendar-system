@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Calendar } from "@/features/calendar/components/norsu-calendar";
 import { CalendarSkeleton } from "@/shared/components/ui/skeleton";
 import UpcomingEventsSidebar from "@/app/_components/upcoming-events-sidebar";
 import HomeModals from "@/app/_components/home-modals";
+import { useTimedLoading } from "@/shared/components/hooks/use-timed-loading";
 import usePublicCalendarData from "@/app/_hooks/use-public-calendar-data";
 import useErrorToast from "@/app/_hooks/use-error-toast";
 import type { EventDetails, CalendarDayType } from "@/interface/user-props";
@@ -34,10 +35,18 @@ export function NorsuOfficialCalendar() {
   const [eventInfoModalOpen, setEventInfoModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventDetails | undefined>(undefined);
   const [selectedDay, setSelectedDay] = useState<CalendarDayType | null>(null);
-  const [eventInfoLoading, setEventInfoLoading] = useState(false);
   const [showRecent, setShowRecent] = useState<"upcoming" | "past" | "moved">("upcoming");
-  const [eventsListLoading, setEventsListLoading] = useState(false);
   const [fromMovedEventsContext, setFromMovedEventsContext] = useState(false);
+  const {
+    isLoading: eventInfoLoading,
+    startLoading: startEventInfoLoading,
+    stopLoading: stopEventInfoLoading,
+  } = useTimedLoading();
+  const {
+    isLoading: eventsListLoading,
+    startLoading: startEventsListLoading,
+    stopLoading: stopEventsListLoading,
+  } = useTimedLoading();
 
   useErrorToast();
 
@@ -47,18 +56,16 @@ export function NorsuOfficialCalendar() {
   const handleEventClick = useCallback((event: EventDetails, fromMovedEvents?: boolean) => {
     setFromMovedEventsContext(fromMovedEvents ?? false);
     setSelectedEvent(event);
-    setEventInfoLoading(true);
+    startEventInfoLoading(700);
     setEventInfoModalOpen(true);
-    setTimeout(() => setEventInfoLoading(false), 700);
-  }, []);
+  }, [startEventInfoLoading]);
 
   const handleDaySelect = useCallback((day: CalendarDayType) => {
     setShowRecent("upcoming");
     setSelectedDay(day);
-    setEventsListLoading(true);
+    startEventsListLoading(300);
     setModalOpen(true);
-    setTimeout(() => setEventsListLoading(false), 300);
-  }, []);
+  }, [startEventsListLoading]);
 
   const handleMonthYearChange = useCallback((month: number, year: number) => {
     setCurrentMonth(month);
@@ -95,9 +102,16 @@ export function NorsuOfficialCalendar() {
 
         <HomeModals
           modalOpen={modalOpen}
-          onModalClose={() => setModalOpen(false)}
+          onModalClose={() => {
+            setModalOpen(false);
+            stopEventsListLoading();
+          }}
           eventInfoModalOpen={eventInfoModalOpen}
-          onEventInfoModalClose={() => { setEventInfoModalOpen(false); setFromMovedEventsContext(false); }}
+          onEventInfoModalClose={() => {
+            setEventInfoModalOpen(false);
+            setFromMovedEventsContext(false);
+            stopEventInfoLoading();
+          }}
           selectedDay={selectedDay}
           currentMonth={currentMonth}
           currentYear={currentYear}

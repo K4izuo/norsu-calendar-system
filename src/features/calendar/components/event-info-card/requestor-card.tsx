@@ -34,19 +34,19 @@ export function RequestorCard({ requestor, proofOfRequest, proofOfApproval }: Re
           </p>
         </div>
         {requestor.type === 'student' && requestor.student_sub_type === 'student_org' && requestor.student_org_name && (
-          <div className="md:col-span-2">
+          <div className="md:col-start-1">
             <p className="text-sm text-gray-500">Organization / Society Name</p>
             <p className="font-medium text-base">{requestor.student_org_name}</p>
           </div>
         )}
         {requestor.type === 'student' && requestor.student_sub_type === 'csg' && requestor.csg_name && (
-          <div className="md:col-span-2">
+          <div className="md:col-start-1">
             <p className="text-sm text-gray-500">College Student Government Name</p>
             <p className="font-medium text-base">{requestor.csg_name}</p>
           </div>
         )}
         {(requestor.type === 'faculty' || requestor.type === 'office') && requestor.tagged && requestor.tagged.length > 0 && (
-          <div className="md:col-span-2">
+          <div className="md:col-start-1">
             <p className="text-sm text-gray-500">{requestor.type === 'faculty' ? 'Degree Course' : 'Office'}</p>
             <div className="flex flex-wrap gap-2 mt-1">
               {requestor.tagged.map((item) => (
@@ -61,30 +61,30 @@ export function RequestorCard({ requestor, proofOfRequest, proofOfApproval }: Re
           </div>
         )}
         {proofOfRequest && (
-          <div className="md:col-span-2">
+          <div className="md:col-start-2">
             <p className="text-sm text-gray-500">Proof of Request</p>
             <a
               href={proofOfRequest}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 mt-1 text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
+              className="inline-flex max-w-full items-start gap-1.5 mt-1 text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
             >
-              <ExternalLink className="w-3.5 h-3.5" />
-              View Document
+              <ExternalLink className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+              <span className="min-w-0 break-all">{proofOfRequest}</span>
             </a>
           </div>
         )}
         {proofOfApproval && (
-          <div className="md:col-span-2">
+          <div className="md:col-start-1">
             <p className="text-sm text-gray-500">Proof of Approval/Decline</p>
             <a
               href={proofOfApproval}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 mt-1 text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
+              className="inline-flex max-w-full items-start gap-1.5 mt-1 text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
             >
-              <ExternalLink className="w-3.5 h-3.5" />
-              View Document
+              <ExternalLink className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+              <span className="min-w-0 break-all">{proofOfApproval}</span>
             </a>
           </div>
         )}

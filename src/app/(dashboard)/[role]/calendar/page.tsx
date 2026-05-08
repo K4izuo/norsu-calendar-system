@@ -15,6 +15,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { getUserId } from "@/core/auth/auth";
 import { useAuth } from "@/shared/components/context/auth-context";
 import { usePageReady } from "@/shared/components/context/page-loading-context";
+import { useTimedLoading } from "@/shared/components/hooks/use-timed-loading";
 import {
   getPhilippineMonth,
   getPhilippineYear,
@@ -63,9 +64,13 @@ export default function CalendarPage() {
   const [currentMonth, setCurrentMonth] = useState(getPhilippineMonth());
   const [currentYear, setCurrentYear] = useState(getPhilippineYear());
 
-  const [eventsListLoading, setEventsListLoading] = useState(false);
   const [showRecent, setShowRecent] = useState<"upcoming" | "past" | "moved">("upcoming");
   const [fromMovedEventsContext, setFromMovedEventsContext] = useState(false);
+  const {
+    isLoading: timedEventsListLoading,
+    startLoading: startEventsListLoading,
+    stopLoading: stopEventsListLoading,
+  } = useTimedLoading();
 
   // Native drag-and-drop state
   const [isDragging, setIsDragging] = useState(false);
@@ -232,17 +237,15 @@ export default function CalendarPage() {
 
   const handleCloseModal = useCallback(() => {
     setModalOpen(false);
-  }, []);
+    stopEventsListLoading();
+  }, [stopEventsListLoading]);
 
   const handleDaySelect = useCallback((day: CalendarDayType) => {
     setShowRecent("upcoming");
     setSelectedDay(day);
-    setEventsListLoading(true);
+    startEventsListLoading(150);
     setModalOpen(true);
-    setTimeout(() => {
-      setEventsListLoading(false);
-    }, 150);
-  }, []);
+  }, [startEventsListLoading]);
 
   const handleMonthYearChange = useCallback((month: number, year: number) => {
     setCurrentMonth(month);
@@ -359,7 +362,7 @@ export default function CalendarPage() {
           }
           events={selectedDayEvents}
           onEventClick={handleEventClick}
-          isLoading={eventsListLoading}
+          isLoading={timedEventsListLoading}
           showRecent={showRecent}
           setShowRecent={setShowRecent}
           eventDate={

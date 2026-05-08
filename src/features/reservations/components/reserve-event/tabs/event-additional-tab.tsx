@@ -93,7 +93,7 @@ export function ReserveEventAdditionalTab({
 
   const getInputError = () => {
     if (tagInput.length > 0 && tagInput.length < 3) {
-      return "People tag must be at least 3 characters";
+      return "Participants must be at least 3 characters";
     }
     return null;
   };
@@ -103,14 +103,14 @@ export function ReserveEventAdditionalTab({
   return (
     <div className="space-y-5">
       <div className="space-y-5">
-        {/* People Tag */}
+        {/* Participants */}
         <div className="flex flex-col gap-1.5">
           <Label
             htmlFor="people"
             className="text-sm inline-flex pointer-events-none"
           >
             <span className="pointer-events-auto">
-              People Tag<span className="text-red-500"> *</span>
+              Participants<span className="text-red-500"> *</span>
             </span>
           </Label>
           <Controller
@@ -130,7 +130,7 @@ export function ReserveEventAdditionalTab({
                     name="people_tag"
                     id="people_tag"
                     ref={peopleFieldRef}
-                    placeholder="Type a name to tag..."
+                    placeholder="Type a participants name to tag..."
                     value={tagInput}
                     onChange={(e) => {
                       handleTagInputChange(e);

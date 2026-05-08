@@ -6,6 +6,7 @@ import { Calendar } from "@/features/calendar/components/norsu-calendar";
 import { CalendarSkeleton } from "@/shared/components/ui/skeleton";
 import UpcomingEventsSidebar from "./upcoming-events-sidebar";
 import HomeModals from "./home-modals";
+import { useTimedLoading } from "@/shared/components/hooks/use-timed-loading";
 import { getPhilippineDateTime } from "@/features/calendar/utils/timezone-utils";
 import usePublicCalendarData from "@/app/_hooks/use-public-calendar-data";
 import useErrorToast from "@/app/_hooks/use-error-toast";
@@ -29,10 +30,18 @@ const HeroSection = () => {
   const [eventInfoModalOpen, setEventInfoModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventDetails | undefined>(undefined);
   const [selectedDay, setSelectedDay] = useState<CalendarDayType | null>(null);
-  const [eventInfoLoading, setEventInfoLoading] = useState(false);
   const [showRecent, setShowRecent] = useState<"upcoming" | "past" | "moved">("upcoming");
-  const [eventsListLoading, setEventsListLoading] = useState(false);
   const [fromMovedEventsContext, setFromMovedEventsContext] = useState(false);
+  const {
+    isLoading: eventInfoLoading,
+    startLoading: startEventInfoLoading,
+    stopLoading: stopEventInfoLoading,
+  } = useTimedLoading();
+  const {
+    isLoading: eventsListLoading,
+    startLoading: startEventsListLoading,
+    stopLoading: stopEventsListLoading,
+  } = useTimedLoading();
 
   const monthNames = useMemo(
     () => ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
@@ -70,18 +79,16 @@ const HeroSection = () => {
   const handleDaySelect = useCallback((day: CalendarDayType) => {
     setShowRecent("upcoming");
     setSelectedDay(day);
-    setEventsListLoading(true);
+    startEventsListLoading(300);
     setModalOpen(true);
-    setTimeout(() => setEventsListLoading(false), 300);
-  }, []);
+  }, [startEventsListLoading]);
 
   const handleEventClick = useCallback((event: EventDetails, fromMovedEvents?: boolean) => {
     setFromMovedEventsContext(fromMovedEvents ?? false);
     setSelectedEvent(event);
-    setEventInfoLoading(true);
+    startEventInfoLoading(700);
     setEventInfoModalOpen(true);
-    setTimeout(() => setEventInfoLoading(false), 700);
-  }, []);
+  }, [startEventInfoLoading]);
 
   return (
     <section id="hero-section" className="relative overflow-hidden flex flex-col items-center">
@@ -123,10 +130,22 @@ const HeroSection = () => {
           NORSU Calendar System: Digital Scheduling and Event Management for Main Campus I & II
         </motion.p>
 
+        <motion.div
+          {...fadeUp(0.3, 16, 0.6)}
+          className="relative mt-16 h-20 w-full"
+        >
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2">
+            <div className="text-xs text-muted-foreground uppercase tracking-[0.2em]">SCROLL</div>
+            <div className="relative w-px h-10 overflow-hidden">
+              <div className="absolute left-0 right-0 h-8 bg-text-primary animate-scroll-down" />
+            </div>
+          </div>
+        </motion.div>
+
         {/* Calendar Preview */}
         <motion.div
           {...fadeUp(0.5, 30, 0.8)}
-          className="mt-8 w-full max-w-355 pb-16"
+          className="mt-4 w-full max-w-355 pb-16"
         >
           <div
             className="rounded-2xl p-3 md:p-4 flex flex-col min-h-[calc(100vh-80px)]"
@@ -171,9 +190,16 @@ const HeroSection = () => {
 
       <HomeModals
         modalOpen={modalOpen}
-        onModalClose={() => setModalOpen(false)}
+        onModalClose={() => {
+          setModalOpen(false);
+          stopEventsListLoading();
+        }}
         eventInfoModalOpen={eventInfoModalOpen}
-        onEventInfoModalClose={() => { setEventInfoModalOpen(false); setFromMovedEventsContext(false); }}
+        onEventInfoModalClose={() => {
+          setEventInfoModalOpen(false);
+          setFromMovedEventsContext(false);
+          stopEventInfoLoading();
+        }}
         selectedDay={selectedDay}
         currentMonth={currentMonth}
         currentYear={currentYear}

@@ -21,9 +21,9 @@
    * Loading indicators are functional UI, not decorative, so they should always work */
   @media (prefers-reduced-motion: reduce) {
 
-    *:not(.animate-spin):not([class*="animate-spin"]),
-    *:not(.animate-spin):not([class*="animate-spin"])::before,
-    *:not(.animate-spin):not([class*="animate-spin"])::after {
+    *:not(.animate-spin):not([class*="animate-spin"]):not(.animate-scroll-down):not([class*="animate-scroll-down"]),
+    *:not(.animate-spin):not([class*="animate-spin"]):not(.animate-scroll-down):not([class*="animate-scroll-down"])::before,
+    *:not(.animate-spin):not([class*="animate-spin"]):not(.animate-scroll-down):not([class*="animate-scroll-down"])::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       /* transition-duration: 0.01ms !important; */
@@ -80,6 +80,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-text-primary: var(--foreground);
+  --color-stroke: var(--muted-foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-display: 'Instrument Serif', serif;
@@ -117,6 +119,8 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  --animate-scroll-down: scroll-down 1.5s ease-in-out infinite;
 }
 
 :root {
@@ -211,6 +215,21 @@
 
 .animate-spin-loading {
   animation: spin-loading 0.9s linear infinite;
+}
+
+@keyframes scroll-down {
+  0% {
+    transform: translateY(-100%);
+  }
+
+  100% {
+    transform: translateY(200%);
+  }
+}
+
+.animate-scroll-down {
+  animation: scroll-down 1.5s ease-in-out infinite;
+  will-change: transform;
 }
 
 body.dragging-pill,

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { MapPin, GripVertical, MoveRight, Printer, QrCode } from "lucide-react";
+import { MapPin, MoreVertical, MoveRight, Printer, QrCode } from "lucide-react";
 import { EventDetails } from "@/interface/user-props";
 import { UserRole } from "@/shared/components/utils/role-colors";
 import { getStartedAgo, formatDate } from "./helpers";
@@ -46,7 +46,7 @@ export function EventSummaryCard({ event, role, status, onMoveReservation, onPri
                 className="p-1.5 cursor-pointer rounded-lg hover:bg-gray-100 transition-colors focus:outline-none"
                 aria-label="More options"
               >
-                <GripVertical className="h-5 w-5 text-gray-500" />
+                <MoreVertical className="h-5 w-5 text-gray-500" />
               </button>
               {showDotsMenu && (
                 <>
