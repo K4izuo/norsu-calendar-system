@@ -10,13 +10,23 @@ interface EventSummaryCardProps {
   event: EventDetails;
   role?: UserRole;
   status: "PENDING" | "APPROVED" | "DECLINED";
+  canMoveReservation?: boolean;
   onMoveReservation: () => void;
   onPrintReceipt: () => void;
   onShowQR: () => void;
   isPrinting?: boolean;
 }
 
-export function EventSummaryCard({ event, role, status, onMoveReservation, onPrintReceipt, onShowQR, isPrinting = false }: EventSummaryCardProps) {
+export function EventSummaryCard({
+  event,
+  role,
+  status,
+  canMoveReservation = false,
+  onMoveReservation,
+  onPrintReceipt,
+  onShowQR,
+  isPrinting = false,
+}: EventSummaryCardProps) {
   const [showDotsMenu, setShowDotsMenu] = useState(false);
 
   const asset = event.asset;
@@ -52,13 +62,15 @@ export function EventSummaryCard({ event, role, status, onMoveReservation, onPri
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setShowDotsMenu(false)} />
                   <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
-                    <button
-                      onClick={() => { setShowDotsMenu(false); onMoveReservation(); }}
-                      className="flex cursor-pointer items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
-                    >
-                      <MoveRight className="h-4 w-4" />
-                      Move Reservation
-                    </button>
+                    {canMoveReservation && (
+                      <button
+                        onClick={() => { setShowDotsMenu(false); onMoveReservation(); }}
+                        className="flex cursor-pointer items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
+                      >
+                        <MoveRight className="h-4 w-4" />
+                        Move Reservation
+                      </button>
+                    )}
                     <button
                       onClick={() => { setShowDotsMenu(false); onPrintReceipt(); }}
                       disabled={isPrinting}

@@ -85,6 +85,21 @@ function requestorThrough(event: EventDetails): string {
   return "N/A";
 }
 
+function formatRequiredAttendees(
+  attendees: EventDetails["people_tag"] | string | null | undefined,
+): string {
+  const names = Array.isArray(attendees)
+    ? attendees
+    : typeof attendees === "string"
+      ? attendees.split(",")
+      : [];
+
+  return names
+    .map(name => name.trim())
+    .filter(Boolean)
+    .join(", ");
+}
+
 function setLongBondPageSize(page: PDFPage) {
   page.setSize(LONG_BOND_WIDTH, LONG_BOND_HEIGHT);
   page.setMediaBox(0, 0, LONG_BOND_WIDTH, LONG_BOND_HEIGHT);
@@ -431,9 +446,13 @@ export async function printEventReceipt(
   cv.text(event.description || "N/A", DESCRIPTION_FIRST_LINE_INDENT);
   cv.gap(LINE_H);
 
+  const requiredAttendees = formatRequiredAttendees(event.people_tag);
+  cv.row("Required Attendees: ", requiredAttendees || "N/A");
+  cv.gap(LINE_H);
+
   // ── Additional details ────────────────────────────────────────────────────
   const extras: string[] = [];
-  if (event.outsource) extras.push(`Catering - ${event.outsource}`);
+  if (event.outsource) extras.push(`Outsource: ${event.outsource}`);
   if (event.guests?.length) {
     for (const g of event.guests)
       extras.push(`Guest - ${g.name}${g.details ? `, ${g.details}` : ""}`);

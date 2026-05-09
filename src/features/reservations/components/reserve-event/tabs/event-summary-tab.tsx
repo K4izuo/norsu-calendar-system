@@ -153,7 +153,7 @@ export function ReserveEventSummaryTab({
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Participants</p>
+            <p className="text-sm text-gray-500">Required Attendees</p>
             <div className="flex flex-wrap gap-2 mt-1">
               {taggedPeople.length > 0 ? (
                 taggedPeople.map((person) => (

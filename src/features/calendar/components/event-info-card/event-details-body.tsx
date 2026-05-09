@@ -16,6 +16,7 @@ interface EventDetailsBodyProps {
   role?: UserRole;
   status: "PENDING" | "APPROVED" | "DECLINED";
   fromMovedEvents?: boolean;
+  canMoveReservation?: boolean;
   onMoveReservation: () => void;
   onPrintReceipt: () => void;
   onShowQR: () => void;
@@ -28,6 +29,7 @@ export function EventDetailsBody({
   role,
   status,
   fromMovedEvents,
+  canMoveReservation,
   onMoveReservation,
   onPrintReceipt,
   onShowQR,
@@ -66,6 +68,7 @@ export function EventDetailsBody({
           event={event}
           role={role}
           status={status}
+          canMoveReservation={canMoveReservation}
           onMoveReservation={onMoveReservation}
           onPrintReceipt={onPrintReceipt}
           onShowQR={onShowQR}

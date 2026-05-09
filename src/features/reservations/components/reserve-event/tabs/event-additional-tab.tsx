@@ -93,7 +93,7 @@ export function ReserveEventAdditionalTab({
 
   const getInputError = () => {
     if (tagInput.length > 0 && tagInput.length < 3) {
-      return "Participants must be at least 3 characters";
+      return "Required Attendees must be at least 3 characters";
     }
     return null;
   };
@@ -103,14 +103,14 @@ export function ReserveEventAdditionalTab({
   return (
     <div className="space-y-5">
       <div className="space-y-5">
-        {/* Participants */}
+        {/* Required Attendees */}
         <div className="flex flex-col gap-1.5">
           <Label
             htmlFor="people"
             className="text-sm inline-flex pointer-events-none"
           >
             <span className="pointer-events-auto">
-              Participants<span className="text-red-500"> *</span>
+              Required Attendees<span className="text-red-500"> *</span>
             </span>
           </Label>
           <Controller
@@ -130,7 +130,7 @@ export function ReserveEventAdditionalTab({
                     name="people_tag"
                     id="people_tag"
                     ref={peopleFieldRef}
-                    placeholder="Type a participants name to tag..."
+                    placeholder="Type a required attendee name to tag..."
                     value={tagInput}
                     onChange={(e) => {
                       handleTagInputChange(e);
@@ -289,7 +289,7 @@ export function ReserveEventAdditionalTab({
           />
         )}
 
-        {/* Add External Participants */}
+        {/* Add External Required Attendees */}
         <Controller
           name="outsource"
           control={control}
@@ -303,7 +303,7 @@ export function ReserveEventAdditionalTab({
                 return (
                   <div className="flex flex-col gap-1.5">
                     <Label className="text-sm font-medium">
-                      Add External Participants
+                      Add External Required Attendees
                     </Label>
 
                     {/* Option cards */}

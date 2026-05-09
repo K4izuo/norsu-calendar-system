@@ -20,7 +20,7 @@ interface CalendarGridProps<T = unknown> {
   onPillDragStart?: (event: EventDetails) => void;
   onPillDragEnd?: () => void;
   onNativeDrop?: (dateString: string) => void;
-  currentUserId?: number;
+  canMoveEvent?: (event: EventDetails) => boolean;
 }
 
 export function CalendarGrid<T>({
@@ -35,7 +35,7 @@ export function CalendarGrid<T>({
   onPillDragStart,
   onPillDragEnd,
   onNativeDrop,
-  currentUserId,
+  canMoveEvent,
 }: CalendarGridProps<T>) {
   return (
     <div className="flex flex-col w-full flex-1">
@@ -75,7 +75,7 @@ export function CalendarGrid<T>({
                 onPillDragStart={onPillDragStart}
                 onPillDragEnd={onPillDragEnd}
                 onNativeDrop={onNativeDrop}
-                currentUserId={currentUserId}
+                canMoveEvent={canMoveEvent}
               />
             ))}
           </motion.div>

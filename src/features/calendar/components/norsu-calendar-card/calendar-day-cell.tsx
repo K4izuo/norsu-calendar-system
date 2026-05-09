@@ -16,7 +16,7 @@ interface DraggableEventPillProps {
   getTime: (event: EventDetails) => string;
   onPillDragStart?: (event: EventDetails) => void;
   onPillDragEnd?: () => void;
-  currentUserId?: number;
+  canMoveEvent?: (event: EventDetails) => boolean;
 }
 
 const DraggableEventPill = React.memo(function DraggableEventPill({
@@ -27,7 +27,7 @@ const DraggableEventPill = React.memo(function DraggableEventPill({
   getTime,
   onPillDragStart,
   onPillDragEnd,
-  currentUserId,
+  canMoveEvent,
 }: DraggableEventPillProps) {
   const eventId = Number(event.id);
   const status = event.registration_status.toUpperCase();
@@ -35,8 +35,7 @@ const DraggableEventPill = React.memo(function DraggableEventPill({
     !!onPillDragStart &&
     status === "APPROVED" &&
     !!eventId &&
-    !!currentUserId &&
-    event.approved_by_user_details?.id === currentUserId;
+    !!canMoveEvent?.(event);
 
   const pillRef = useRef<HTMLDivElement>(null);
   const title = getTitle(event);
@@ -150,7 +149,7 @@ interface CalendarDayCellProps<T = unknown> {
   onPillDragStart?: (event: EventDetails) => void;
   onPillDragEnd?: () => void;
   onNativeDrop?: (dateString: string) => void;
-  currentUserId?: number;
+  canMoveEvent?: (event: EventDetails) => boolean;
 }
 
 export const CalendarDayCell = React.memo(function CalendarDayCell<T>({
@@ -163,7 +162,7 @@ export const CalendarDayCell = React.memo(function CalendarDayCell<T>({
   onPillDragStart,
   onPillDragEnd,
   onNativeDrop,
-  currentUserId,
+  canMoveEvent,
 }: CalendarDayCellProps<T>) {
   const getEventTitle = (event: EventDetails) => {
     return event.title_name || "Event";
@@ -282,7 +281,7 @@ export const CalendarDayCell = React.memo(function CalendarDayCell<T>({
                   getTime={getEventTime}
                   onPillDragStart={onPillDragStart}
                   onPillDragEnd={onPillDragEnd}
-                  currentUserId={currentUserId}
+                  canMoveEvent={canMoveEvent}
                 />
               ))}
 

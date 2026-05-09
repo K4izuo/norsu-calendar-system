@@ -53,7 +53,8 @@ const Y: Record<string, number> = {
   requestedVenue: 141,
   requestedEquipment: 155,
   eventDescription: 169,
-  additionalDetails: 183,
+  requiredAttendees: 183,
+  additionalDetails: 202,
   requestedBy: 220,
   requestedThrough: 252,
   approvedBy: 284,
@@ -103,6 +104,21 @@ function requestorThrough(event: EventDetails): string {
   if (t === "faculty") return "Faculty";
   if (t === "office") return "Head of Office / Dean";
   return "N/A";
+}
+
+function formatRequiredAttendees(
+  attendees: EventDetails["people_tag"] | string | null | undefined,
+): string {
+  const names = Array.isArray(attendees)
+    ? attendees
+    : typeof attendees === "string"
+      ? attendees.split(",")
+      : [];
+
+  return names
+    .map(name => name.trim())
+    .filter(Boolean)
+    .join(", ");
 }
 
 function wrapFooterText(text: string, font: PDFFont, size: number, maxWidth: number) {
@@ -232,6 +248,68 @@ function drawValue(
   if (line) flush(line);
 }
 
+function clearMainContentBlock(
+  page: PDFPage,
+  pageWidth: number,
+  pageHeight: number,
+  yFromTop: number,
+  blockHeight: number,
+) {
+  page.drawRectangle({
+    x: CONTENT_X - 2,
+    y: pageHeight - (yFromTop + blockHeight),
+    width: pageWidth - RIGHT_MARGIN - CONTENT_X + 4,
+    height: blockHeight + 4,
+    color: rgb(1, 1, 1),
+  });
+}
+
+function drawLabeledValue(
+  page: PDFPage,
+  labelFont: PDFFont,
+  valueFont: PDFFont,
+  pageWidth: number,
+  pageHeight: number,
+  labelText: string,
+  value: string,
+  yFromTop: number,
+) {
+  const labelW = labelFont.widthOfTextAtSize(labelText, FONT_SIZE);
+  const maxLineW = pageWidth - RIGHT_MARGIN - CONTENT_X;
+
+  page.drawText(labelText, {
+    x: CONTENT_X,
+    y: pageHeight - yFromTop,
+    size: FONT_SIZE,
+    font: labelFont,
+    color: rgb(0, 0, 0),
+  });
+
+  const words = value.split(" ");
+  let line = "";
+  let isFirst = true;
+  let y = pageHeight - yFromTop;
+
+  const flush = (text: string) => {
+    const x = isFirst ? CONTENT_X + labelW : CONTENT_X;
+    page.drawText(text, { x, y, size: FONT_SIZE, font: valueFont, color: rgb(0, 0, 0) });
+    y -= LINE_H;
+    isFirst = false;
+  };
+
+  for (const word of words) {
+    const candidate = line ? `${line} ${word}` : word;
+    const available = isFirst ? maxLineW - labelW : maxLineW;
+    if (valueFont.widthOfTextAtSize(candidate, FONT_SIZE) > available && line) {
+      flush(line);
+      line = word;
+    } else {
+      line = candidate;
+    }
+  }
+  if (line) flush(line);
+}
+
 function drawPrintedBy(
   page: PDFPage,
   font: PDFFont,
@@ -303,6 +381,7 @@ export async function printEventReceipt(
     : "None";
 
   const extras: string[] = [];
+  const requiredAttendees = formatRequiredAttendees(event.people_tag);
   if (event.outsource) extras.push(`Outsource: ${event.outsource}`);
   if (event.guests?.length) extras.push(`Guests: ${event.guests.map(g => g.name).join(", ")}`);
 
@@ -323,7 +402,9 @@ export async function printEventReceipt(
   draw("Requested Venue: ",         event.asset?.asset_name || "N/A",                                  "requestedVenue");
   draw("Requested equipment's: ",   equipment,                                                          "requestedEquipment");
   draw("Event Description: ",       event.description || "N/A",                                        "eventDescription");
-  draw("Additional Details: ",      extras.join("; ") || "N/A",                                        "additionalDetails");
+  clearMainContentBlock(page, width, height, Y.requiredAttendees - 3, 39);
+  drawLabeledValue(page, footerBold, font, width, height, "Required Attendees: ", requiredAttendees || "N/A", Y.requiredAttendees);
+  drawLabeledValue(page, footerBold, font, width, height, "Additional Details: ", extras.join("; ") || "N/A", Y.additionalDetails);
   draw("Requested By: ",            requestedBy,                                                        "requestedBy");
   draw("Requested Through: ",       requestorThrough(event),                                            "requestedThrough");
   draw("Approved By: (Includes Date and time) ", `${approvedByName}  —  ${approvedAt}`,                "approvedBy");

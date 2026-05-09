@@ -94,7 +94,7 @@ export const TermsAndConditionModal: React.FC<TermsAndConditionModalProps> = ({
                 </p>
                 <ul className="list-disc pl-5 space-y-2">
                   <li>You confirm that all information provided is accurate and truthful.</li>
-                  <li>You agree to follow all event rules and respect other participants.</li>
+                  <li>You agree to follow all event rules and respect other required attendees.</li>
                   <li>Any violation may result in removal from the event and further disciplinary action.</li>
                   <li>For questions, contact the university administration.</li>
                 </ul>

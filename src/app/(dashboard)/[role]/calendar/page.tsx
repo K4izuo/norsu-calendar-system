@@ -20,6 +20,7 @@ import {
   getPhilippineMonth,
   getPhilippineYear,
 } from "@/features/calendar/utils/timezone-utils";
+import { canMoveApprovedReservation } from "@/features/calendar/utils/move-permissions";
 import { PageBreadcrumb } from "@/shared/components/ui/page-breadcrumb";
 import { useParams } from "next/navigation";
 import toast from "react-hot-toast";
@@ -39,6 +40,7 @@ const PATH_ROLE_MAP: Record<string, number> = {
   dean: 1, staff: 2, admin: 3,
   "student-director": 4, "campus-director": 5,
   vpaa: 6, vpsas: 7, vpaf: 8, vprde: 9, head: 10,
+  multimedia: 11, "university-president": 12,
 };
 
 export default function CalendarPage() {
@@ -48,7 +50,7 @@ export default function CalendarPage() {
   const userRoleNumber = PATH_ROLE_MAP[role] ?? (user?.role ? Number(user.role) : undefined);
   const userOffice = user?.office;
 
-  const canDragAndDrop = userRoleNumber === 3 || userRoleNumber === 5;
+  const canDragAndDrop = userRoleNumber === 5 || userRoleNumber === 12;
   const calendarRole =
     role === "dean" ? ("dean" as const) :
     role === "staff" ? ("staff" as const) :
@@ -158,7 +160,10 @@ export default function CalendarPage() {
           student_org_name: reservation.student_org_name,
           csg_name: reservation.csg_name,
           requestor_tagged: reservation.requestor_tagged,
+          current_stage: reservation.current_stage,
+          declined_at_stage: reservation.declined_at_stage,
           campus_director_action: reservation.campus_director_action,
+          approvals: reservation.approvals,
         };
       });
   }, [reservations, assets]);
@@ -254,13 +259,15 @@ export default function CalendarPage() {
 
   // Native drag-and-drop handlers
 
+  const canCurrentUserMoveEvent = useCallback((event: EventDetails) => {
+    return canMoveApprovedReservation(event, userRoleNumber, user?.id);
+  }, [user?.id, userRoleNumber]);
+
   const handlePillDragStart = useCallback((event: EventDetails) => {
-    const approverId = event.approved_by_user_details?.id;
-    const currentUserId = user?.id ? Number(user.id) : null;
-    if (!approverId || !currentUserId || approverId !== currentUserId) return;
+    if (!canCurrentUserMoveEvent(event)) return;
     activeDragEventRef.current = event;
     requestAnimationFrame(() => setIsDragging(true));
-  }, [user?.id]);
+  }, [canCurrentUserMoveEvent]);
 
   const handlePillDragEnd = useCallback(() => {
     activeDragEventRef.current = null;
@@ -346,7 +353,7 @@ export default function CalendarPage() {
           onPillDragStart={canDragAndDrop ? handlePillDragStart : undefined}
           onPillDragEnd={canDragAndDrop ? handlePillDragEnd : undefined}
           onNativeDrop={canDragAndDrop ? handleNativeDrop : undefined}
-          currentUserId={canDragAndDrop && user?.id ? Number(user.id) : undefined}
+          canMoveEvent={canDragAndDrop ? canCurrentUserMoveEvent : undefined}
         />
 
         <EventsListModal
