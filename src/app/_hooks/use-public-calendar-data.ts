@@ -5,6 +5,8 @@ import type { EventDetails, CalendarDayType } from "@/interface/user-props";
 import { usePublicReservations, usePublicAssets } from "@/features/calendar/services/reservation-service";
 import { getPhilippineYear, getPhilippineMonth, getPhilippineDay } from "@/features/calendar/utils/timezone-utils";
 
+const EMPTY_EVENTS: EventDetails[] = [];
+
 // Helper function to check if an event has finished
 const isEventFinished = (eventDate: string, timeEnd: string): boolean => {
   try {
@@ -127,23 +129,34 @@ export default function usePublicCalendarData({
     return allEvents.filter(event => !event.isFinished);
   }, [allEvents]);
 
+  const calendarEventsByDate = useMemo(() => {
+    const eventsByDate = new Map<string, EventDetails[]>();
+
+    for (const event of calendarEvents) {
+      const eventsForDate = eventsByDate.get(event.date);
+
+      if (eventsForDate) {
+        eventsForDate.push(event);
+      } else {
+        eventsByDate.set(event.date, [event]);
+      }
+    }
+
+    return eventsByDate;
+  }, [calendarEvents]);
+
   // Get events for a particular day
   const getEventsForDate = useCallback((year: number, month: number, day: number) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 
-    // Early return for better performance
-    if (calendarEvents.length === 0) {
-      return { hasEvent: false, count: 0, eventsList: [] };
-    }
-
-    const dayEvents = calendarEvents.filter(event => event.date === dateStr);
+    const dayEvents = calendarEventsByDate.get(dateStr) ?? EMPTY_EVENTS;
 
     return {
       hasEvent: dayEvents.length > 0,
       count: dayEvents.length,
       eventsList: dayEvents
     };
-  }, [calendarEvents]);
+  }, [calendarEventsByDate]);
 
   // Selected day events - includes ALL events (past and upcoming) for modal filtering
   // Also includes moved events indexed by their original_date

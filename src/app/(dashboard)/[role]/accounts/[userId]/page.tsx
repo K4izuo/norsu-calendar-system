@@ -17,6 +17,7 @@ import { apiClient } from "@/core/api/api-client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
 import { Button } from "@/shared/components/ui/button";
 import { useCampuses } from "@/features/calendar/services/academicDataService";
+import { usePageReady } from "@/shared/components/context/page-loading-context";
 import { ROLE_DISPLAY_NAMES } from "@/features/auth/types/auth.types";
 import { getRoleLabelFromNumber } from "@/core/lib/role-utils";
 import { AccountUser } from "./_components/types";
@@ -30,9 +31,17 @@ export default function AccountProfilePage() {
   const role = params.role as string;
   const userId = Number(params.userId);
 
-  const { campuses, loading: campusesLoading } = useCampuses();
+  const {
+    campuses,
+    loading: campusesLoading,
+    isFetching: campusesFetching,
+  } = useCampuses();
 
-  const { data: accountUser, isLoading } = useQuery({
+  const {
+    data: accountUser,
+    isLoading,
+    isFetching,
+  } = useQuery({
     queryKey: ["accountUser", userId],
     queryFn: async () => {
       const response = await apiClient.get<AccountUser>(`users/${userId}`);
@@ -42,6 +51,8 @@ export default function AccountProfilePage() {
     enabled: !!userId,
     staleTime: 2 * 60 * 1000,
   });
+
+  usePageReady(isLoading || campusesLoading, isFetching || campusesFetching);
 
   const campusName = accountUser?.campus_id
     ? (campuses.find((c) => c.value === String(accountUser.campus_id))?.label ?? "—")

@@ -109,11 +109,19 @@ export default function RoleLayout({
   const [fadeOut, setFadeOut] = useState(false);
   const [isPageReady, setIsPageReady] = useState(true);
   const [minTimerDone, setMinTimerDone] = useState(true);
+  const [readySignal, setReadySignal] = useState(0);
   const prevPathname = useRef<string | null>(null);
   const userRef = useRef(user);
   userRef.current = user;
 
   const setPageReady = useCallback(() => setIsPageReady(true), []);
+  const showOverlay = useCallback(() => {
+    setOverlayVisible(true);
+    setFadeOut(false);
+    setIsPageReady(false);
+    setMinTimerDone(false);
+    setReadySignal((signal) => signal + 1);
+  }, []);
 
   const pathRole = pathRoleMap[roleSegment] ?? 3
   const pathRoleRef = useRef(pathRole)
@@ -226,14 +234,11 @@ export default function RoleLayout({
         setIsPageReady(true);
         setMinTimerDone(true);
       } else {
-        setOverlayVisible(true);
-        setFadeOut(false);
-        setIsPageReady(false);
-        setMinTimerDone(false);
+        showOverlay();
       }
     }
     prevPathname.current = pathname;
-  }, [pathname, queryClient]);
+  }, [pathname, queryClient, showOverlay]);
 
   // 300ms floor for first-visit loads (no cached data) — ensures the spinner is
   // visible long enough to be seen before the overlay hides.
@@ -277,15 +282,12 @@ export default function RoleLayout({
       const fresh = hasCachedFreshData(queryClient, pageSegment, userId, role);
       if (!fresh) {
         scheduleNavigationOverlay();
-        setOverlayVisible(true);
-        setFadeOut(false);
-        setIsPageReady(false);
-        setMinTimerDone(false);
+        showOverlay();
       }
     };
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
-  }, [queryClient, pathname]);
+  }, [queryClient, pathname, showOverlay]);
 
   return (
     <SidebarProvider>
@@ -354,7 +356,7 @@ export default function RoleLayout({
         </header>
 
         <div className="flex-1 bg-muted/50 flex flex-col gap-4 p-3 lg:p-6 overflow-y-auto overflow-x-hidden relative">
-          <PageLoadingContext.Provider value={{ setPageReady }}>
+          <PageLoadingContext.Provider value={{ readySignal, setPageReady }}>
             {children}
           </PageLoadingContext.Provider>
 

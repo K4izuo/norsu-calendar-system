@@ -1,12 +1,14 @@
 "use client";
 
+import { memo } from "react";
+
 interface UpcomingEventsSidebarProps {
   loading: boolean;
   error: string | null;
   upcomingEvents: { title: string; date: string }[];
 }
 
-export default function UpcomingEventsSidebar({ loading, error, upcomingEvents }: UpcomingEventsSidebarProps) {
+function UpcomingEventsSidebar({ loading, error, upcomingEvents }: UpcomingEventsSidebarProps) {
   return (
     <div className="w-full text-card-foreground border lg:w-[320px] bg-white rounded-md shadow-xs relative lg:h-full">
       <div className="flex flex-col p-4 sm:p-4 w-full lg:absolute lg:inset-0">
@@ -36,7 +38,7 @@ export default function UpcomingEventsSidebar({ loading, error, upcomingEvents }
                 {upcomingEvents.map((event, idx) => (
                   <li
                     key={idx}
-                    className="bg-gray-50 rounded-md px-3 py-2 border border-gray-100 shrink-0"
+                    className="landing-event-list-item bg-gray-50 rounded-md px-3 py-2 border border-gray-100 shrink-0"
                   >
                     <div className="font-medium text-gray-800 text-sm">{event.title}</div>
                     <div className="text-xs text-gray-500">{event.date}</div>
@@ -57,3 +59,5 @@ export default function UpcomingEventsSidebar({ loading, error, upcomingEvents }
     </div>
   );
 }
+
+export default memo(UpcomingEventsSidebar);

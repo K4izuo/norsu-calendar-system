@@ -232,6 +232,18 @@
   will-change: transform;
 }
 
+@supports (content-visibility: auto) {
+  .landing-deferred-section {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 900px;
+  }
+
+  .landing-event-list-item {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 44px;
+  }
+}
+
 body.dragging-pill,
 body.dragging-pill * {
   cursor: grabbing !important;

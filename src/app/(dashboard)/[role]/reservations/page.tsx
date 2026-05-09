@@ -11,7 +11,6 @@ import {
 } from "@/features/calendar/services/reservation-service";
 import { PageBreadcrumb } from "@/shared/components/ui/page-breadcrumb";
 import { PageStatCard } from "@/shared/components/ui/page-stat-card";
-import { Skeleton } from "@/shared/components/ui/skeleton";
 import { CalendarDays, Clock, CircleCheck, XCircle } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useAuth } from "@/shared/components/context/auth-context";
@@ -114,6 +113,8 @@ export default function ReservationsPage() {
     });
   }, [sourceList, assets]);
 
+  const isInitialLoading = loading && sourceList.length === 0;
+
   return (
     <div className="flex flex-col items-start self-stretch h-full">
       <PageBreadcrumb
@@ -131,11 +132,7 @@ export default function ReservationsPage() {
       )}
 
       <div className="flex flex-col items-start gap-6 flex-1 self-stretch min-h-0">
-        {loading && sourceList.length === 0 ? (
-          <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-27.5 w-full" />)}
-          </div>
-        ) : (
+        {!isInitialLoading && (
           <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <PageStatCard title="Total Reservations" value={total}    subLabel="All submitted reservations" icon={CalendarDays} color="gray"  />
             <PageStatCard title="Pending"             value={pending}  subLabel="Awaiting approval"          icon={Clock}        color="amber" />

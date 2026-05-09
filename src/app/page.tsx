@@ -8,8 +8,12 @@ const Index = () => {
       <Navbar />
       <HeroSection />
       {/* Below-fold sections */}
-      <AboutSection />
-      <TeamSection />
+      <div className="landing-deferred-section">
+        <AboutSection />
+      </div>
+      <div className="landing-deferred-section">
+        <TeamSection />
+      </div>
     </div>
   );
 };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo, type CSSProperties } from "react";
 import { motion } from "framer-motion";
 import { Calendar } from "@/features/calendar/components/norsu-calendar";
 import { CalendarSkeleton } from "@/shared/components/ui/skeleton";
@@ -47,6 +47,10 @@ const HeroSection = () => {
     () => ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
     [],
   );
+  const revealLayerStyle = useMemo<CSSProperties>(() => ({
+    backfaceVisibility: "hidden",
+    willChange: "transform, opacity",
+  }), []);
 
   useEffect(() => {
     setMounted(true);
@@ -110,6 +114,7 @@ const HeroSection = () => {
         <motion.div
           {...fadeUp(0, 10, 0.5)}
           className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-4 py-1.5 text-sm text-muted-foreground font-body mb-6"
+          style={revealLayerStyle}
         >
           <span><span className="text-red-600">N</span><span className="text-blue-600">EGROS </span><span className="text-red-600">OR</span><span className="text-blue-600">IENTAL </span><span className="text-red-600">S</span><span className="text-blue-600">TATE </span><span className="text-red-600">U</span><span className="text-blue-600">NIVERSITY</span></span>
         </motion.div>
@@ -118,6 +123,7 @@ const HeroSection = () => {
         <motion.h1
           {...fadeUp(0.1, 16, 0.6)}
           className="text-center font-display text-5xl md:text-6xl lg:text-[5rem] leading-[0.95] tracking-tight text-foreground max-w-xl"
+          style={revealLayerStyle}
         >
           Our Pride, Our Hope, <em className="font-display italic">Our Future</em>
         </motion.h1>
@@ -126,6 +132,7 @@ const HeroSection = () => {
         <motion.p
           {...fadeUp(0.2, 16, 0.6)}
           className="mt-4 text-center text-base md:text-lg text-muted-foreground max-w-[650px] leading-relaxed"
+          style={revealLayerStyle}
         >
           NORSU Calendar System: Digital Scheduling and Event Management for Main Campus I & II
         </motion.p>
@@ -133,6 +140,7 @@ const HeroSection = () => {
         <motion.div
           {...fadeUp(0.3, 16, 0.6)}
           className="relative mt-16 h-20 w-full"
+          style={revealLayerStyle}
         >
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2">
             <div className="text-xs text-muted-foreground uppercase tracking-[0.2em]">SCROLL</div>
@@ -146,6 +154,7 @@ const HeroSection = () => {
         <motion.div
           {...fadeUp(0.5, 30, 0.8)}
           className="mt-4 w-full max-w-355 pb-16"
+          style={revealLayerStyle}
         >
           <div
             className="rounded-2xl p-3 md:p-4 flex flex-col min-h-[calc(100vh-80px)]"

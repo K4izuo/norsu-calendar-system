@@ -14,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select"
-import { TableSkeleton } from "@/shared/components/ui/skeleton"
 
 // Roles that can approve/decline reservations
 const APPROVER_ROLE_NUMBERS = new Set([3, 4, 5, 6, 7, 8, 9, 12]);
@@ -78,7 +77,7 @@ export function ReservationsTable({ events, isLoading, statusFilter, onStatusFil
   }
 
   if (isLoading && events.length === 0) {
-    return <TableSkeleton rows={5} />;
+    return null;
   }
 
   return (

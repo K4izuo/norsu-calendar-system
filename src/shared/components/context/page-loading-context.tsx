@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect } from "react"
 
 interface PageLoadingContextValue {
+  readySignal: number
   setPageReady: () => void
 }
 
@@ -23,8 +24,8 @@ export function usePageLoading() {
 }
 
 export function usePageReady(isLoading: boolean, isFetching = false) {
-  const { setPageReady } = usePageLoading()
+  const { readySignal, setPageReady } = usePageLoading()
   useEffect(() => {
     if (!isLoading && !isFetching) setPageReady()
-  }, [isLoading, isFetching, setPageReady])
+  }, [isLoading, isFetching, readySignal, setPageReady])
 }
