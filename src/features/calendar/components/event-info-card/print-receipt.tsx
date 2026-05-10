@@ -452,7 +452,7 @@ export async function printEventReceipt(
 
   // ── Additional details ────────────────────────────────────────────────────
   const extras: string[] = [];
-  if (event.outsource) extras.push(`Outsource: ${event.outsource}`);
+  if (event.outsource) extras.push(`Outsource - ${event.outsource}`);
   if (event.guests?.length) {
     for (const g of event.guests)
       extras.push(`Guest - ${g.name}${g.details ? `, ${g.details}` : ""}`);

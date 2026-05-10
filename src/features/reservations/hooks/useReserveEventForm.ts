@@ -40,6 +40,7 @@ interface UseReserveEventFormProps {
   eventDate?: string | undefined
   onSubmit?: (data: ReservationAPIPayload) => void
   onClose: () => void
+  onReservationSuccess?: () => void
   isOpen: boolean
   onNewReservation?: (reservation: Reservation) => void
   editMode?: boolean
@@ -75,7 +76,7 @@ const getEventRequestor = (eventData: EventDetails): RequestorInfo | undefined =
   });
 };
 
-export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservation, editMode = false, resubmitMode = false, eventData, userRole, userOffice }: UseReserveEventFormProps) => {
+export const useReserveEventForm = ({ eventDate, onClose, onReservationSuccess, isOpen, onNewReservation, editMode = false, resubmitMode = false, eventData, userRole, userOffice }: UseReserveEventFormProps) => {
   const [activeTab, setActiveTab] = useState<string>("requestor");
   const [isCheckingConflict, setIsCheckingConflict] = useState(false);
   const [equipmentTouched, setEquipmentTouched] = useState(false);
@@ -113,6 +114,17 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
   const isDean = userRole === 1
   const isHeadOfOffice = userRole === 10
   const oversightVpId = userOffice?.oversight_vp_id ?? null
+
+  const handleReservationSuccess = useCallback(() => {
+    onClose();
+
+    if (onReservationSuccess) {
+      onReservationSuccess();
+      return;
+    }
+
+    setShowSuccessModal(true);
+  }, [onClose, onReservationSuccess]);
 
   const form = useForm<ReservationFormData>({
     mode: "onTouched",
@@ -180,6 +192,12 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
   useEffect(() => {
     setValue("requires_vpsas", !!watchedInvolvesStudents);
   }, [watchedInvolvesStudents, setValue]);
+
+  useEffect(() => {
+    if (requestor?.type === "student") {
+      setValue("involves_students", true);
+    }
+  }, [requestor?.type, setValue]);
 
   useEffect(() => {
     const peopleValue = taggedPeople.map(p => p.name).join(', ');
@@ -357,8 +375,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
           };
           try {
             await resubmit({ reservationId: eventData.id, payload });
-            onClose();
-            setShowSuccessModal(true);
+            handleReservationSuccess();
           } catch {
             // onError in useResubmitReservation already shows the error toast
           }
@@ -400,8 +417,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
             onNewReservation?.(response.data.reservation);
           }
 
-          onClose();
-          setShowSuccessModal(true);
+          handleReservationSuccess();
         }
 
         await queryClient.invalidateQueries({
@@ -464,7 +480,7 @@ export const useReserveEventForm = ({ eventDate, onClose, isOpen, onNewReservati
         toast.error(editMode ? "Failed to update event. Please try again." : "Failed to reserve event. Please try again.");
       }
     },
-    [reset, onClose, taggedPeople, eventDate, onNewReservation, editMode, resubmitMode, resubmit, eventData, user?.id, queryClient, setTaggedPeople, setTagInput, isDean, requestor]
+    [reset, onClose, taggedPeople, eventDate, onNewReservation, editMode, resubmitMode, resubmit, eventData, user?.id, queryClient, setTaggedPeople, setTagInput, isDean, requestor, handleReservationSuccess]
   );
 
   const handleRequestorTabNext = useCallback(() => {

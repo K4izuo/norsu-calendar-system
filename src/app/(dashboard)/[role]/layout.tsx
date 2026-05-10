@@ -19,7 +19,7 @@ import {
 import UserProfile from "@/features/user-profile/components/user-profile";
 import { NotificationBell } from "@/features/notifications/components/notification-bell";
 import toast from "react-hot-toast";
-import { getRoleLabelFromNumber, getRolePathFromNumber } from "@/core/lib/role-utils";
+import { getDefaultPageForRole, getRoleLabelFromNumber, getRolePathFromNumber } from "@/core/lib/role-utils";
 import { Separator } from "@/shared/components/ui/separator";
 import { usePathname, useParams } from "next/navigation";
 import Loading from "@/app/(dashboard)/[role]/loading";
@@ -193,7 +193,8 @@ export default function RoleLayout({
     // Wrong role segment entirely (e.g. dean visiting /admin/...)
     if (expectedRoleNumber !== undefined && expectedRoleNumber !== actualRole) {
       const expectedPath = getRolePathFromNumber(actualRole);
-      const targetPath = `/${expectedPath}/calendar`;
+      const defaultPage = getDefaultPageForRole(actualRole);
+      const targetPath = `/${expectedPath}/${defaultPage}`;
       if (!pathname.startsWith(targetPath)) {
         router.replace(targetPath);
       }
@@ -203,13 +204,15 @@ export default function RoleLayout({
     const universalPages = ['profile', 'settings', 'activity-logs'];
     const allowedPages: Record<number, string[]> = {
       3: ['dashboard', 'calendar', 'reservations', 'accounts', 'people', 'asset-management'],
+      5: ['dashboard', 'calendar', 'reservations'],
       11: ['calendar', 'reservations'],
       12: ['dashboard', 'calendar', 'reservations', 'asset-management'],
     };
     const roleAllowed = allowedPages[actualRole] ?? ['calendar', 'reservations'];
     const pageSegment = pathname.split('/')[2];
     if (pageSegment && !universalPages.includes(pageSegment) && !roleAllowed.includes(pageSegment)) {
-      const targetPath = `/${roleSegment}/calendar`;
+      const defaultPage = getDefaultPageForRole(actualRole);
+      const targetPath = `/${roleSegment}/${defaultPage}`;
       if (!pathname.startsWith(targetPath)) {
         router.replace(targetPath);
       }

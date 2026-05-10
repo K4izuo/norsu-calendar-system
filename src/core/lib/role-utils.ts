@@ -3,7 +3,7 @@ export const ROLE_CONFIG = {
   2:  { name: 'staff',            label: 'Staff',            path: 'staff',            defaultPage: 'calendar' },
   3:  { name: 'admin',            label: 'Admin',            path: 'admin',            defaultPage: 'dashboard' },
   4:  { name: 'student-director', label: 'Student Director', path: 'student-director', defaultPage: 'calendar' },
-  5:  { name: 'campus-director',  label: 'Campus Director',  path: 'campus-director',  defaultPage: 'calendar' },
+  5:  { name: 'campus-director',  label: 'Campus Director',  path: 'campus-director',  defaultPage: 'dashboard' },
   6:  { name: 'vpaa',             label: 'VPAA',             path: 'vpaa',             defaultPage: 'calendar' },
   7:  { name: 'vpsas',            label: 'VPSAS',            path: 'vpsas',            defaultPage: 'calendar' },
   8:  { name: 'vpaf',             label: 'VPAF',             path: 'vpaf',             defaultPage: 'calendar' },

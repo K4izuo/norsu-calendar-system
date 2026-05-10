@@ -382,7 +382,7 @@ export async function printEventReceipt(
 
   const extras: string[] = [];
   const requiredAttendees = formatRequiredAttendees(event.people_tag);
-  if (event.outsource) extras.push(`Outsource: ${event.outsource}`);
+  if (event.outsource) extras.push(`Outsource - ${event.outsource}`);
   if (event.guests?.length) extras.push(`Guests: ${event.guests.map(g => g.name).join(", ")}`);
 
   const requestedBy = event.reserve_by_user
@@ -394,21 +394,21 @@ export async function printEventReceipt(
     drawValue(page, font, width, height, label, value, Y[key]);
 
   // 3. Draw values onto the template
-  draw("Date (Requested) ",         fmtDate(event.date),                                               "dateRequested");
-  draw("Event name: ",              event.title_name || "N/A",                                         "eventName");
+  draw("Date (Requested) ", fmtDate(event.date), "dateRequested");
+  draw("Event name: ", event.title_name || "N/A", "eventName");
   draw("Event Time & Date: ",
     `${fmt12h(event.time_start)} - ${fmt12h(event.time_end)}, ${fmtDate(event.date)}` +
-    (event.range > 1 ? ` (${event.range} days)` : ""),                                                 "eventTimeDate");
-  draw("Requested Venue: ",         event.asset?.asset_name || "N/A",                                  "requestedVenue");
-  draw("Requested equipment's: ",   equipment,                                                          "requestedEquipment");
-  draw("Event Description: ",       event.description || "N/A",                                        "eventDescription");
+    (event.range > 1 ? ` (${event.range} days)` : ""), "eventTimeDate");
+  draw("Requested Venue: ", event.asset?.asset_name || "N/A", "requestedVenue");
+  draw("Requested equipment's: ", equipment, "requestedEquipment");
+  draw("Event Description: ", event.description || "N/A", "eventDescription");
   clearMainContentBlock(page, width, height, Y.requiredAttendees - 3, 39);
   drawLabeledValue(page, footerBold, font, width, height, "Required Attendees: ", requiredAttendees || "N/A", Y.requiredAttendees);
   drawLabeledValue(page, footerBold, font, width, height, "Additional Details: ", extras.join("; ") || "N/A", Y.additionalDetails);
-  draw("Requested By: ",            requestedBy,                                                        "requestedBy");
-  draw("Requested Through: ",       requestorThrough(event),                                            "requestedThrough");
-  draw("Approved By: (Includes Date and time) ", `${approvedByName}  —  ${approvedAt}`,                "approvedBy");
-  draw("Date and Time (Fully Approved) ",         approvedAt,                                           "dateTimeFullyApproved");
+  draw("Requested By: ", requestedBy, "requestedBy");
+  draw("Requested Through: ", requestorThrough(event), "requestedThrough");
+  draw("Approved By: (Includes Date and time) ", `${approvedByName}  —  ${approvedAt}`, "approvedBy");
+  draw("Date and Time (Fully Approved) ", approvedAt, "dateTimeFullyApproved");
   drawPrintedBy(page, font, width, height, printedBy);
 
   // 4. Generate QR code PNG and embed it

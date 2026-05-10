@@ -3,33 +3,16 @@
 import { PageBreadcrumb } from "@/shared/components/ui/page-breadcrumb";
 import { useParams } from "next/navigation";
 import {
-  User,
-  Lock,
-  Trash2,
-  Pencil,
   UserCog,
-  Camera,
   Building2,
   ShieldCheck,
   CalendarDays,
 } from "lucide-react";
 import Image from "next/image";
-import { Button } from "@/shared/components/ui/button";
-import { useState } from "react";
 import { useAuth } from "@/shared/components/context/auth-context";
 import { useCurrentUser } from "@/shared/components/hooks/useCurrentUser";
 import { useCampuses } from "@/features/calendar/services/academicDataService";
 import { MyProfileContent } from "@/features/user-profile/components/my-profile-content";
-import { PasswordSecurityContent } from "@/features/user-profile/components/password-security-content";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/shared/components/ui/dialog";
 import { getRoleLabelFromNumber } from "@/core/lib/role-utils";
 import { usePageReady } from "@/shared/components/context/page-loading-context";
 
@@ -81,7 +64,6 @@ function InfoRow({
 export default function ProfilePage() {
   const params = useParams();
   const role = params.role as string;
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const { user, isLoading } = useAuth();
   const { user: currentUser, loading: userLoading } = useCurrentUser();
@@ -129,11 +111,6 @@ export default function ProfilePage() {
             <rect width="100%" height="100%" fill="url(#dots)" />
           </svg>
 
-          {/* Change Cover button */}
-          <button className="absolute bottom-3 right-4 flex items-center gap-1.5 bg-black/30 hover:bg-black/50 text-white text-xs font-medium px-3 py-1.5 rounded-md backdrop-blur-sm transition-colors cursor-pointer">
-            <Camera className="w-3.5 h-3.5" />
-            Change Cover
-          </button>
         </div>
 
         {/* ── Two-column body ── */}
@@ -154,9 +131,6 @@ export default function ProfilePage() {
                     className="object-cover"
                   />
                 </div>
-                <button className="absolute bottom-0 right-0 w-7 h-7 bg-blue-600 rounded-full border-2 border-white flex items-center justify-center hover:bg-blue-700 transition-colors cursor-pointer">
-                  <Pencil className="w-3.5 h-3.5 text-white" />
-                </button>
               </div>
 
               {isLoading ? (
@@ -205,79 +179,21 @@ export default function ProfilePage() {
               />
             </div>
 
-            {/* Delete account — pushed to bottom */}
-            <div className="mt-auto border-t px-4 py-4">
-              <button
-                onClick={() => setShowDeleteDialog(true)}
-                className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors text-sm font-medium cursor-pointer"
-              >
-                <Trash2 className="w-4 h-4" />
-                Delete Account
-              </button>
-            </div>
           </div>
 
           {/* ── Right Panel ── */}
           <div className="flex-1 p-8">
-            <Tabs defaultValue="profile" className="w-full">
-              <TabsList className="mb-6 bg-gray-100 p-1 rounded-lg h-10">
-                <TabsTrigger
-                  value="profile"
-                  className="flex cursor-pointer items-center gap-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
-                >
-                  <User className="w-4 h-4" />
-                  My Profile
-                </TabsTrigger>
-                <TabsTrigger
-                  value="password"
-                  className="flex cursor-pointer items-center gap-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
-                >
-                  <Lock className="w-4 h-4" />
-                  Password & Security
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="profile">
-                <MyProfileContent
-                  user={user}
-                  role={role}
-                  isLoading={isLoading}
-                  campusName={campusName}
-                  isCampusLoading={isCampusLoading}
-                  campuses={campuses}
-                  campusId={currentUser?.campus_id}
-                />
-              </TabsContent>
-
-              <TabsContent value="password">
-                <PasswordSecurityContent />
-              </TabsContent>
-            </Tabs>
+            <MyProfileContent
+              user={user}
+              isLoading={isLoading}
+              campusName={campusName}
+              isCampusLoading={isCampusLoading}
+            />
           </div>
 
         </div>
       </div>
 
-      {/* Delete Account confirmation dialog */}
-      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Account</DialogTitle>
-            <DialogDescription>
-              This action cannot be undone. Your account and all associated data will be
-              permanently deleted.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" disabled>
-              Delete Account
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

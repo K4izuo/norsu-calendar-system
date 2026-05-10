@@ -12,7 +12,7 @@ import React, {
 import { useRouter, usePathname } from "next/navigation";
 import { apiClient } from "@/core/api/api-client";
 import { getAuthToken, removeAuthToken } from "@/core/auth/auth";
-import { getRolePathFromNumber } from "@/core/lib/role-utils";
+import { getDefaultPageForRole, getRolePathFromNumber } from "@/core/lib/role-utils";
 
 export interface User {
   id: string;
@@ -140,7 +140,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (user && authRoutes.some((route) => pathname?.startsWith(route))) {
         const storedRole = Number(localStorage.getItem("user-role") || "3");
         const rolePath = getRolePathFromNumber(storedRole);
-        router.replace(`/${rolePath}/calendar`);
+        const defaultPage = getDefaultPageForRole(storedRole);
+        router.replace(`/${rolePath}/${defaultPage}`);
       } else if (!user && protectedRoutes.some((route) => pathname?.startsWith(route))) {
         router.replace("/login");
       }

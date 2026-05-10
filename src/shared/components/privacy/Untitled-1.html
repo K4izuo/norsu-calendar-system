@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Diaz College - Homepage</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "secondary-gold": "#C5A959",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-slate-800 dark:text-white font-display">
+    <div class="relative w-full flex flex-col min-h-screen">
+        <!-- Navigation Bar -->
+        <header class="absolute top-0 w-full z-50 border-b border-white/10 bg-black/20 backdrop-blur-sm">
+            <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+                <!-- Logo -->
+                <div class="flex items-center gap-3">
+                    <div
+                        class="size-8 bg-white/10 rounded flex items-center justify-center backdrop-blur-md border border-white/20">
+                        <span class="material-symbols-outlined text-white text-xl">school</span>
+                    </div>
+                    <h2 class="text-white text-xl font-bold tracking-tight">Diaz College</h2>
+                </div>
+                <!-- Desktop Nav -->
+                <nav class="hidden lg:flex items-center gap-8">
+                    <a class="text-white/90 hover:text-white text-sm font-medium transition-colors" href="#">About
+                        Us</a>
+                    <a class="text-white/90 hover:text-white text-sm font-medium transition-colors" href="#">Academic
+                        Programs</a>
+                    <a class="text-white/90 hover:text-white text-sm font-medium transition-colors"
+                        href="#">Admissions</a>
+                    <a class="text-white/90 hover:text-white text-sm font-medium transition-colors" href="#">Student
+                        Life</a>
+                </nav>
+                <!-- Actions -->
+                <div class="flex items-center gap-4">
+                    <button
+                        class="hidden sm:flex text-white hover:text-primary transition-colors text-sm font-medium items-center gap-1">
+                        <span class="material-symbols-outlined text-[20px]">account_circle</span>
+                        <span>Portal Login</span>
+                    </button>
+                    <button
+                        class="bg-primary hover:bg-blue-600 text-white text-sm font-bold py-2.5 px-5 rounded-lg transition-all shadow-lg shadow-blue-900/20">
+                        Apply Now
+                    </button>
+                </div>
+            </div>
+        </header>
+        <!-- Hero Section -->
+        <section
+            class="relative h-[85vh] min-h-[600px] w-full flex items-center justify-center bg-gray-900 overflow-hidden">
+            <!-- Background Image with Overlay -->
+            <div class="absolute inset-0 z-0">
+                <img alt="Modern university campus building with glass facade and greenery"
+                    class="w-full h-full object-cover opacity-80"
+                    data-alt="Modern university campus building with glass facade and greenery"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrKpPhPXuGXDZVXQAb2M6h_wwGMc0hUeB7pxONw1yU-_2-LOG0RmVWamN2yUdtOgca4t2NaqMadXhv04iLeB4xcuN2YV7pAIEpKzHqouE25PItX3cbus9FEuBZ9o7bx8GFImHjUHRNutbzefExwnBISVGeq4huGMyIPaV-JaDTN2VMHqlYfU-c-COjfJt9C6hEuiD4R8Zg97eCx3lnszlwzgRFCXEB5BFr61VO0VQB16_gfWDbv-DESFSUQVSAOEjGgX7Skh0oOt0d" />
+                <div
+                    class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-background-light dark:to-background-dark">
+                </div>
+            </div>
+            <!-- Content -->
+            <div class="relative z-10 max-w-7xl mx-auto px-6 text-center lg:text-left w-full mt-20">
+                <div class="max-w-3xl">
+                    <div
+                        class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-md mb-6">
+                        <span class="size-2 rounded-full bg-secondary-gold animate-pulse"></span>
+                        <span class="text-xs font-medium text-white tracking-wide uppercase">Admissions Open for Fall
+                            2024</span>
+                    </div>
+                    <h1
+                        class="text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[1.1] mb-6 tracking-tight drop-shadow-sm">
+                        Empowering Minds,<br />
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/70">Shaping
+                            Futures</span>
+                    </h1>
+                    <p class="text-lg md:text-xl text-gray-200 font-light mb-10 max-w-2xl leading-relaxed">
+                        Experience excellence in education and community. Join a diverse network of innovators, leaders,
+                        and thinkers at Diaz College.
+                    </p>
+                    <div class="flex flex-col sm:flex-row items-center gap-4">
+                        <button
+                            class="w-full sm:w-auto bg-white text-primary hover:bg-gray-100 font-bold text-base py-3.5 px-8 rounded-lg transition-colors flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined">videocam</span>
+                            Take a Virtual Tour
+                        </button>
+                        <button
+                            class="w-full sm:w-auto bg-transparent border border-white/30 text-white hover:bg-white/10 font-medium text-base py-3.5 px-8 rounded-lg transition-colors backdrop-blur-sm">
+                            Explore Programs
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Achievements Section -->
+        <section class="py-24 px-6 relative">
+            <div class="max-w-7xl mx-auto">
+                <!-- Section Header -->
+                <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+                    <div class="max-w-xl">
+                        <h2 class="text-secondary-gold font-medium uppercase tracking-widest text-sm mb-2">Excellence in
+                            Action</h2>
+                        <h3 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white tracking-tight">Latest
+                            Achievements</h3>
+                        <p class="mt-4 text-gray-600 dark:text-gray-400 leading-relaxed">
+                            Discover how our students and faculty are making headlines and pushing the boundaries of
+                            innovation and research.
+                        </p>
+                    </div>
+                    <a class="group flex items-center gap-2 text-primary font-bold hover:underline decoration-2 underline-offset-4 transition-all"
+                        href="#">
+                        View All News
+                        <span
+                            class="material-symbols-outlined text-lg transition-transform group-hover:translate-x-1">arrow_forward</span>
+                    </a>
+                </div>
+                <!-- Grid Layout -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Card 1 -->
+                    <div
+                        class="group flex flex-col bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 h-full">
+                        <div class="relative h-64 overflow-hidden">
+                            <img alt="Students working on a complex robot in a lab setting"
+                                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                data-alt="Students working on a complex robot in a lab setting"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqWm3BqZoCsU2XXQxPEZwBcuCEhFB1xlmbG2tkdxlWn-Xt_bt4fxFcAkEE_wugF71eaprlmch-ZCDN2us5AZOZ6W8j9Z-XCxmLxkbrSeX4ce5BwbaLzehzSMGYiET0XCKJEgDjhIaB_DQdLZ8vUWc0Q09acWlowXZZC3LZgOOGsAZ_Im0KovE4RWkBJ-F5alPEoPOnUEOyqa5lNkUCsdNujcXkNw2ZKce4A26fpEu6WP8x0Pcn578A70ouxLU7o6URNruZQEmQZtod" />
+                            <div
+                                class="absolute top-4 left-4 bg-primary text-white text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-lg">
+                                Innovation
+                            </div>
+                        </div>
+                        <div class="p-6 flex flex-col flex-1">
+                            <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm mb-3">
+                                <span class="material-symbols-outlined text-base">calendar_today</span>
+                                <span>March 15, 2024</span>
+                            </div>
+                            <h4
+                                class="text-xl font-bold text-gray-900 dark:text-white mb-3 leading-snug group-hover:text-primary transition-colors">
+                                Robotics Team Wins National Championship
+                            </h4>
+                            <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-6 flex-1">
+                                The Diaz College robotics team secured first place at the National Innovation Summit,
+                                showcasing their autonomous rescue drone technology.
+                            </p>
+                            <div
+                                class="mt-auto border-t border-gray-100 dark:border-gray-700 pt-4 flex items-center justify-between">
+                                <span class="text-primary text-sm font-semibold group-hover:underline">Read Story</span>
+                                <span
+                                    class="material-symbols-outlined text-gray-400 group-hover:text-primary transition-colors">arrow_outward</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Card 2 -->
+                    <div
+                        class="group flex flex-col bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 h-full">
+                        <div class="relative h-64 overflow-hidden">
+                            <img alt="Scientific research laboratory with microscope and test tubes"
+                                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                data-alt="Scientific research laboratory with microscope and test tubes"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbOfLbA3SVJwrGitbc5HgyT-9ZNksn_RJO5WXgr-YsUpPxcLKr8zwjTl1Tqhy4KrcsAfOlV9gzrT_uUApbir0Mmgt7bVDEYjHcCwN_AzEInpc6t0Ql4JA2ExAou48weHbyQrWMSJf3WV1Gak_JfVi2GJh58CRrsMYWMI68IuTg2onsjmltM1-hcBbEeX-kHi5KN6ezY-rptiyEMYeNIyRYgCgjTCbi-cFyKt4xqDP5fxynVw5v-8m_f4iLait6_WWTmKu-oOuNp-zn" />
+                            <div
+                                class="absolute top-4 left-4 bg-secondary-gold text-white text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-lg">
+                                Faculty
+                            </div>
+                        </div>
+                        <div class="p-6 flex flex-col flex-1">
+                            <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm mb-3">
+                                <span class="material-symbols-outlined text-base">calendar_today</span>
+                                <span>March 10, 2024</span>
+                            </div>
+                            <h4
+                                class="text-xl font-bold text-gray-900 dark:text-white mb-3 leading-snug group-hover:text-primary transition-colors">
+                                Dr. Smith Published in Nature Journal
+                            </h4>
+                            <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-6 flex-1">
+                                Professor Smith's groundbreaking research on sustainable energy solutions has been
+                                featured in the latest issue of Nature, marking a significant milestone for our science
+                                department.
+                            </p>
+                            <div
+                                class="mt-auto border-t border-gray-100 dark:border-gray-700 pt-4 flex items-center justify-between">
+                                <span class="text-primary text-sm font-semibold group-hover:underline">Read Story</span>
+                                <span
+                                    class="material-symbols-outlined text-gray-400 group-hover:text-primary transition-colors">arrow_outward</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Card 3 -->
+                    <div
+                        class="group flex flex-col bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 h-full">
+                        <div class="relative h-64 overflow-hidden">
+                            <img alt="Diverse group of students studying outdoors on campus lawn"
+                                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                data-alt="Diverse group of students studying outdoors on campus lawn"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuB5Z9o27L7h13yLH_yE94tqu5L3hPrTwr_Nngx9i6cZ6x1sf0jVNrsfws0EY4Z8EJau49Ynd2_wQ_6dFvopQPWchNZb6QWWk5aN6nuDEMeuuUT71JmwcjOgpUJ5MHd_wOT2LXyGwe5UckstYOtQOfajGMX5yd1x8x4w8eNUoOFU4oW-m2wonJL5Sn41my4dbWc0R8Fs5YYgMsuDHFYPFcAvXdBNN-ghnuXifUKTEQRJ3iRNUNVlIU5lYOOvFD6xYcddMjfHep0t7NuC" />
+                            <div
+                                class="absolute top-4 left-4 bg-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-lg">
+                                Campus Life
+                            </div>
+                        </div>
+                        <div class="p-6 flex flex-col flex-1">
+                            <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm mb-3">
+                                <span class="material-symbols-outlined text-base">calendar_today</span>
+                                <span>February 28, 2024</span>
+                            </div>
+                            <h4
+                                class="text-xl font-bold text-gray-900 dark:text-white mb-3 leading-snug group-hover:text-primary transition-colors">
+                                Student Center Renovation Complete
+                            </h4>
+                            <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-6 flex-1">
+                                The highly anticipated renovation of the main student center is finally complete,
+                                featuring new study lounges, a tech hub, and expanded dining options.
+                            </p>
+                            <div
+                                class="mt-auto border-t border-gray-100 dark:border-gray-700 pt-4 flex items-center justify-between">
+                                <span class="text-primary text-sm font-semibold group-hover:underline">Read Story</span>
+                                <span
+                                    class="material-symbols-outlined text-gray-400 group-hover:text-primary transition-colors">arrow_outward</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Secondary Highlight Grid (Smaller Items) -->
+                <div class="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div
+                        class="bg-primary/5 p-6 rounded-lg border border-primary/10 flex items-start gap-4 hover:bg-primary/10 transition-colors cursor-pointer">
+                        <div class="bg-primary/10 text-primary p-2 rounded-lg">
+                            <span class="material-symbols-outlined">emoji_events</span>
+                        </div>
+                        <div>
+                            <h5 class="font-bold text-gray-900 dark:text-white text-sm">Best Value 2024</h5>
+                            <p class="text-xs text-gray-500 mt-1">Ranked #1 for value in the region.</p>
+                        </div>
+                    </div>
+                    <div
+                        class="bg-secondary-gold/10 p-6 rounded-lg border border-secondary-gold/20 flex items-start gap-4 hover:bg-secondary-gold/20 transition-colors cursor-pointer">
+                        <div class="bg-secondary-gold/10 text-secondary-gold p-2 rounded-lg">
+                            <span class="material-symbols-outlined">school</span>
+                        </div>
+                        <div>
+                            <h5 class="font-bold text-gray-900 dark:text-white text-sm">Top Research</h5>
+                            <p class="text-xs text-gray-500 mt-1">Leading innovation in science.</p>
+                        </div>
+                    </div>
+                    <div
+                        class="bg-green-500/5 p-6 rounded-lg border border-green-500/10 flex items-start gap-4 hover:bg-green-500/10 transition-colors cursor-pointer">
+                        <div class="bg-green-500/10 text-green-600 p-2 rounded-lg">
+                            <span class="material-symbols-outlined">eco</span>
+                        </div>
+                        <div>
+                            <h5 class="font-bold text-gray-900 dark:text-white text-sm">Green Campus</h5>
+                            <p class="text-xs text-gray-500 mt-1">Awarded for sustainability efforts.</p>
+                        </div>
+                    </div>
+                    <div
+                        class="bg-purple-500/5 p-6 rounded-lg border border-purple-500/10 flex items-start gap-4 hover:bg-purple-500/10 transition-colors cursor-pointer">
+                        <div class="bg-purple-500/10 text-purple-600 p-2 rounded-lg">
+                            <span class="material-symbols-outlined">diversity_3</span>
+                        </div>
+                        <div>
+                            <h5 class="font-bold text-gray-900 dark:text-white text-sm">Diverse Community</h5>
+                            <p class="text-xs text-gray-500 mt-1">Students from 80+ countries.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</body>
+
+</html>

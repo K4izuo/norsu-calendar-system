@@ -97,9 +97,9 @@ export function EventRequestorTab({ requestor, onChange, error, onClearError }: 
             type="button"
             onClick={() => handleTypeSelect('student')}
             disabled={!!selectedType && selectedType !== 'student'}
-            className={`flex flex-col items-center justify-center gap-2 py-6 px-4 rounded-xl border-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed ${selectedType === 'student'
-                ? 'border-blue-500 bg-blue-50'
-                : 'border-gray-200 bg-white enabled:hover:border-blue-300 enabled:hover:bg-blue-50/50'
+            className={`flex flex-col cursor-pointer items-center justify-center gap-2 py-6 px-4 rounded-xl border-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed ${selectedType === 'student'
+              ? 'border-blue-500 bg-blue-50'
+              : 'border-gray-200 bg-white enabled:hover:border-blue-300 enabled:hover:bg-blue-50/50'
               }`}
           >
             <Users
@@ -115,9 +115,9 @@ export function EventRequestorTab({ requestor, onChange, error, onClearError }: 
             type="button"
             onClick={() => handleTypeSelect('faculty')}
             disabled={!!selectedType && selectedType !== 'faculty'}
-            className={`flex flex-col items-center justify-center gap-2 py-6 px-4 rounded-xl border-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed ${selectedType === 'faculty'
-                ? 'border-green-500 bg-green-50'
-                : 'border-gray-200 bg-white enabled:hover:border-green-300 enabled:hover:bg-green-50/50'
+            className={`flex flex-col cursor-pointer items-center justify-center gap-2 py-6 px-4 rounded-xl border-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed ${selectedType === 'faculty'
+              ? 'border-green-500 bg-green-50'
+              : 'border-gray-200 bg-white enabled:hover:border-green-300 enabled:hover:bg-green-50/50'
               }`}
           >
             <GraduationCap
@@ -133,9 +133,9 @@ export function EventRequestorTab({ requestor, onChange, error, onClearError }: 
             type="button"
             onClick={() => handleTypeSelect('office')}
             disabled={!!selectedType && selectedType !== 'office'}
-            className={`flex flex-col items-center justify-center gap-2 py-6 px-4 rounded-xl border-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed ${selectedType === 'office'
-                ? 'border-amber-500 bg-amber-50'
-                : 'border-gray-200 bg-white enabled:hover:border-amber-300 enabled:hover:bg-amber-50/50'
+            className={`flex flex-col cursor-pointer items-center justify-center gap-2 py-6 px-4 rounded-xl border-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed ${selectedType === 'office'
+              ? 'border-amber-500 bg-amber-50'
+              : 'border-gray-200 bg-white enabled:hover:border-amber-300 enabled:hover:bg-amber-50/50'
               }`}
           >
             <Building2
@@ -207,11 +207,10 @@ export function EventRequestorTab({ requestor, onChange, error, onClearError }: 
                             onClearError?.("");
                           }
                         }}
-                        className={`h-11 border text-base ${
-                          error === INPUT_FIELD_ERRORS[key]
-                            ? 'border-red-500 focus:border-red-500'
-                            : 'border-gray-200 focus:border-blue-500'
-                        }`}
+                        className={`h-11 border text-base ${error === INPUT_FIELD_ERRORS[key]
+                          ? 'border-red-500 focus:border-red-500'
+                          : 'border-gray-200 focus:border-blue-500'
+                          }`}
                       />
                       {error === INPUT_FIELD_ERRORS[key] && (
                         <p className="flex items-center gap-1 text-red-500 text-sm">

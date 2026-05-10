@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/shared/components/ui/select"
 import { ReserveEventModal } from "@/features/reservations/components/reserve-event-modal"
+import { ReservationSuccessModal } from "@/features/reservations/components/reservation-success-modal"
 import type { EventsListModalProps, EventDetails, ReservationAPIPayload, Reservation } from "@/interface/user-props"
 import { Input } from "../../../shared/components/ui/input"
 import { EventCardsList } from "@/features/calendar/components/events-list-card"
@@ -85,6 +86,7 @@ export function EventsListModal({
 }) {
   const contentRef = useRef<HTMLDivElement>(null)
   const [reserveModalOpen, setReserveModalOpen] = useState(false)
+  const [reservationSuccessOpen, setReservationSuccessOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
 
   const roleLoadingColors = useMemo(() => getRoleColors(), []);
@@ -152,6 +154,9 @@ export function EventsListModal({
     setReserveModalOpen(false)
     onReserve?.(formData)
   }, [onReserve])
+  const handleReservationSuccess = useCallback(() => {
+    setReservationSuccessOpen(true)
+  }, [])
 
   const handleEventClick = useCallback((event: EventDetails) => {
     onEventClick?.(event, showRecent === "moved")
@@ -314,12 +319,18 @@ export function EventsListModal({
           isOpen={reserveModalOpen}
           onClose={() => setReserveModalOpen(false)}
           onSubmit={handleSubmitReservation}
+          onReservationSuccess={handleReservationSuccess}
           eventDate={eventDate}
           onNewReservation={onNewReservation}
           userRole={userRole}
           userOffice={userOffice}
         />
       )}
+
+      <ReservationSuccessModal
+        isOpen={reservationSuccessOpen}
+        onClose={() => setReservationSuccessOpen(false)}
+      />
     </>
   )
 }

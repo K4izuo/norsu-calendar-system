@@ -35,6 +35,7 @@ import { ReservationSuccessModal } from "@/features/reservations/components/rese
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onReservationSuccess?: () => void;
   onSubmit?: (data: ReservationAPIPayload) => void;
   eventDate?: string | undefined;
   onNewReservation?: (reservation: Reservation) => void;
@@ -48,6 +49,7 @@ interface ModalProps {
 export function ReserveEventModal({
   isOpen,
   onClose,
+  onReservationSuccess,
   onSubmit,
   eventDate,
   onNewReservation,
@@ -122,6 +124,7 @@ export function ReserveEventModal({
     eventDate,
     onSubmit,
     onClose,
+    onReservationSuccess,
     isOpen,
     onNewReservation,
     editMode,
@@ -279,6 +282,7 @@ export function ReserveEventModal({
                       watch={watch}
                       setValue={setValue}
                       register={register}
+                      studentInvolvementLocked={requestor?.type === "student"}
                     />
                   )}
                 </TabsContent>

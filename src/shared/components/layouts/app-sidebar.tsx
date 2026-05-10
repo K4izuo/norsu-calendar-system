@@ -75,6 +75,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   let navMain: typeof allNavItems;
   if (role === "admin") {
     navMain = allNavItems;
+  } else if (role === "campus-director") {
+    navMain = allNavItems.filter(i => ["Dashboard", "Calendar", "Reservations"].includes(i.title));
   } else if (role === "university-president") {
     navMain = allNavItems.filter(i => ["Dashboard", "Calendar", "Reservations", "Assets"].includes(i.title));
   } else {

@@ -8,6 +8,7 @@ interface Props {
   watch: UseFormWatch<ReservationFormData>;
   setValue: UseFormSetValue<ReservationFormData>;
   register: UseFormRegister<ReservationFormData>;
+  studentInvolvementLocked?: boolean;
 }
 
 const VP_ITEMS: { label: string; field: keyof Pick<ReservationFormData, "requires_vpaa" | "requires_vpsas" | "requires_vpaf" | "requires_vprde"> }[] = [
@@ -27,10 +28,11 @@ const toChecked = (value: unknown): boolean => {
   return false;
 };
 
-export function VpSignatoriesSection({ watch, setValue, register }: Props) {
+export function VpSignatoriesSection({ watch, setValue, register, studentInvolvementLocked = false }: Props) {
   const involvesStudents = toChecked(watch("involves_students"));
 
   const toggleStudents = () => {
+    if (studentInvolvementLocked) return;
     setValue("involves_students", !involvesStudents, { shouldDirty: true });
   };
 
@@ -42,7 +44,9 @@ export function VpSignatoriesSection({ watch, setValue, register }: Props) {
         <button
           type="button"
           onClick={toggleStudents}
-          className={`flex items-center gap-3 rounded-lg border p-4 w-full transition-colors cursor-pointer ${involvesStudents ? "border-gray-800 bg-gray-100" : "border-border bg-white hover:bg-muted"
+          disabled={studentInvolvementLocked}
+          title={studentInvolvementLocked ? "Student requestors require student involvement" : undefined}
+          className={`flex items-center gap-3 rounded-lg border p-4 w-full transition-colors ${studentInvolvementLocked ? "cursor-not-allowed" : "cursor-pointer"} ${involvesStudents ? "border-gray-800 bg-gray-100" : "border-border bg-white hover:bg-muted"
             }`}
         >
           <span
@@ -88,8 +92,10 @@ export function VpSignatoriesSection({ watch, setValue, register }: Props) {
 
       {/* Proof of Approval/Decline */}
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="proof_of_approval" className="text-sm">
-          Proof of Approval/Decline <span className="text-muted-foreground">(optional)</span>
+        <Label htmlFor="proof_of_approval" className="inline-flex text-sm pointer-events-none">
+          <span className="pointer-events-auto">
+            Proof of Approval/Decline <span className="text-muted-foreground">(optional)</span>
+          </span>
         </Label>
         <Input
           {...register("proof_of_approval")}

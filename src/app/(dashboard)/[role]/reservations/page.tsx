@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { ReservationsTable } from "@/shared/components/user-dashboard-ui/reservations/reservation-table";
 import { ReserveEventModal } from "@/features/reservations/components/reserve-event-modal";
+import { ReservationSuccessModal } from "@/features/reservations/components/reservation-success-modal";
 import { EventDetails } from "@/interface/user-props";
 import {
   useReservations,
@@ -40,6 +41,7 @@ export default function ReservationsPage() {
 
   const [statusFilter, setStatusFilter] = useState("pending");
   const [resubmitEvent, setResubmitEvent] = useState<EventDetails | undefined>();
+  const [reservationSuccessOpen, setReservationSuccessOpen] = useState(false);
 
   // Admin and Multimedia see all reservations; every other role uses the queue
   const isAdmin = userRoleNumber === 3 || userRoleNumber === 11;
@@ -114,6 +116,9 @@ export default function ReservationsPage() {
   }, [sourceList, assets]);
 
   const isInitialLoading = loading && sourceList.length === 0;
+  const handleReservationSuccess = useCallback(() => {
+    setReservationSuccessOpen(true);
+  }, []);
 
   return (
     <div className="flex flex-col items-start self-stretch h-full">
@@ -158,12 +163,18 @@ export default function ReservationsPage() {
         <ReserveEventModal
           isOpen={!!resubmitEvent}
           onClose={() => setResubmitEvent(undefined)}
+          onReservationSuccess={handleReservationSuccess}
           resubmitMode={true}
           eventData={resubmitEvent}
           userRole={userRoleNumber}
           userOffice={userOffice}
         />
       )}
+
+      <ReservationSuccessModal
+        isOpen={reservationSuccessOpen}
+        onClose={() => setReservationSuccessOpen(false)}
+      />
     </div>
   );
 }

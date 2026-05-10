@@ -34,6 +34,13 @@ function formatRequestorLabel(r: RequestorInfo): string {
   return 'Office';
 }
 
+function isLsoOrSgdcRequestor(r: RequestorInfo): boolean {
+  return (
+    r.type === 'student' &&
+    (r.student_sub_type === 'lso' || r.student_sub_type === 'sgdc')
+  );
+}
+
 export function ReserveEventSummaryTab({
   formData,
   categories,
@@ -42,6 +49,9 @@ export function ReserveEventSummaryTab({
   requestorInfo,
 }: Props) {
   const asset = formData.asset;
+  const showLsoSgdcProofLayout = requestorInfo
+    ? isLsoOrSgdcRequestor(requestorInfo)
+    : false;
 
   const formatTime = (time: string) => {
     if (!time) return "Not specified";
@@ -99,7 +109,9 @@ export function ReserveEventSummaryTab({
               </div>
             )}
             {formData.proof_of_request && (
-              <div className="md:col-start-2">
+              <div
+                className={showLsoSgdcProofLayout ? "md:col-start-1" : "md:col-start-2"}
+              >
                 <p className="text-sm text-gray-500">Proof of Request</p>
                 <a
                   href={formData.proof_of_request}
@@ -113,7 +125,9 @@ export function ReserveEventSummaryTab({
               </div>
             )}
             {formData.proof_of_approval && (
-              <div className="md:col-start-1">
+              <div
+                className={showLsoSgdcProofLayout ? "md:col-start-2" : "md:col-start-1"}
+              >
                 <p className="text-sm text-gray-500">Proof of Approval/Decline</p>
                 <a
                   href={formData.proof_of_approval}

@@ -107,7 +107,10 @@ const HeroSection = () => {
         className="absolute inset-0 w-full h-full object-cover z-0"
         src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260319_015952_e1deeb12-8fb7-4071-a42a-60779fc64ab6.mp4"
       />
-
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-36 bg-gradient-to-b from-transparent via-background/45 to-background md:h-45"
+      />
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center w-full pt-12 md:pt-16 px-4">
         {/* Badge */}
@@ -153,7 +156,7 @@ const HeroSection = () => {
         {/* Calendar Preview */}
         <motion.div
           {...fadeUp(0.5, 30, 0.8)}
-          className="mt-4 w-full max-w-355 pb-16"
+          className="mt-4 w-full max-w-355 pb-24"
           style={revealLayerStyle}
         >
           <div

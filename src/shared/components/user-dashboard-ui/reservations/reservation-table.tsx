@@ -5,7 +5,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/shared/components/ui/input"
 import { Search, MoreVertical, CircleCheckBig, Clock, XCircle } from "lucide-react"
 import { EventInfoModal } from "@/features/calendar/components/event-info-modal"
-import { EventDetails } from "@/interface/user-props"
+import { getPhilippineDateTime } from "@/features/calendar/utils/timezone-utils"
+import type { EventDetails } from "@/interface/user-props"
 import { formatTime } from "@/core/lib/utils"
 import {
   Select,
@@ -17,6 +18,21 @@ import {
 
 // Roles that can approve/decline reservations
 const APPROVER_ROLE_NUMBERS = new Set([3, 4, 5, 6, 7, 8, 9, 12]);
+const STATUS_ORDER: Record<EventDetails["registration_status"], number> = {
+  PENDING: 0,
+  APPROVED: 1,
+  DECLINED: 2,
+};
+
+const getPhilippineTodayString = () => {
+  const { year, month, day } = getPhilippineDateTime();
+  return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+};
+
+const getTimeSortValue = (time: string) => {
+  const [hours = "0", minutes = "0", seconds = "0"] = time.split(":");
+  return Number(hours) * 3600 + Number(minutes) * 60 + Number(seconds);
+};
 
 interface ReservationsTableProps {
   events: EventDetails[];
@@ -43,8 +59,10 @@ export function ReservationsTable({ events, isLoading, statusFilter, onStatusFil
     });
   };
 
-  // Filter and sort reservations based on search query, status filter, and date
+  // Filter and sort reservations based on search query, status filter, and event schedule
   const filteredEvents = useMemo(() => {
+    const today = getPhilippineTodayString();
+
     // First, filter by search query and status
     const filtered = events.filter((event) => {
       const matchesSearch = event.title_name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -52,22 +70,30 @@ export function ReservationsTable({ events, isLoading, statusFilter, onStatusFil
       return matchesSearch && matchesStatus;
     });
 
-    // Then, sort by status first (PENDING first), then by date descending
     return filtered.sort((a, b) => {
-      // Priority order: PENDING > APPROVED > DECLINED
-      const statusOrder = { PENDING: 0, APPROVED: 1, DECLINED: 2 };
-      const statusA = statusOrder[a.registration_status];
-      const statusB = statusOrder[b.registration_status];
+      const statusA = STATUS_ORDER[a.registration_status];
+      const statusB = STATUS_ORDER[b.registration_status];
 
-      // If statuses are different, sort by status
       if (statusA !== statusB) {
         return statusA - statusB;
       }
 
-      // If statuses are the same, sort by date in descending order (future → now → past)
-      const dateA = new Date(a.date);
-      const dateB = new Date(b.date);
-      return dateB.getTime() - dateA.getTime();
+      const isUpcomingA = a.date >= today;
+      const isUpcomingB = b.date >= today;
+
+      if (isUpcomingA !== isUpcomingB) {
+        return isUpcomingA ? -1 : 1;
+      }
+
+      const dateCompare = isUpcomingA
+        ? a.date.localeCompare(b.date)
+        : b.date.localeCompare(a.date);
+
+      if (dateCompare !== 0) {
+        return dateCompare;
+      }
+
+      return getTimeSortValue(a.time_start) - getTimeSortValue(b.time_start);
     });
   }, [events, searchQuery, statusFilter]);
 

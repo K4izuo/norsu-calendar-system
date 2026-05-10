@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getRolePathFromNumber } from '@/core/lib/role-utils';
+import { getDefaultPageForRole, getRolePathFromNumber } from '@/core/lib/role-utils';
 
 const PUBLIC_ROUTES = [
   '/',
@@ -70,11 +70,12 @@ export function proxy(request: NextRequest) {
   // If it's a public route, allow access
   if (isPublic) {
     // If user is logged in and tries to access auth pages, redirect to their dashboard
-    if (cookies.token && cookies.roleStr && !isTokenExpired && (pathname.startsWith('/auth') || pathname.startsWith('/login') || pathname.startsWith('/dean') || pathname.startsWith('/staff') || pathname.startsWith('/admin/login'))) {
+    if (cookies.token && cookies.roleStr && !isTokenExpired && (pathname === '/' || pathname.startsWith('/auth') || pathname.startsWith('/login') || pathname.startsWith('/dean') || pathname.startsWith('/staff') || pathname.startsWith('/admin/login'))) {
       const roleNum = parseInt(cookies.roleStr, 10);
       // ⚡ PERFORMANCE: Use cached role path lookup
       const rolePath = getCachedRolePath(roleNum);
-      return NextResponse.redirect(new URL(`/${rolePath}/dashboard`, request.url));
+      const defaultPage = getDefaultPageForRole(roleNum);
+      return NextResponse.redirect(new URL(`/${rolePath}/${defaultPage}`, request.url));
     }
     return NextResponse.next();
   }
@@ -122,6 +123,7 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
+    '/',
     '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).+)',
   ],
 };
