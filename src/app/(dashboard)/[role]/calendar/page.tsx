@@ -21,6 +21,7 @@ import {
   getPhilippineYear,
 } from "@/features/calendar/utils/timezone-utils";
 import { canMoveApprovedReservation } from "@/features/calendar/utils/move-permissions";
+import { buildSpanEventsByDate } from "@/features/calendar/utils/calendar-span-utils";
 import { PageBreadcrumb } from "@/shared/components/ui/page-breadcrumb";
 import { useParams } from "next/navigation";
 import toast from "react-hot-toast";
@@ -176,37 +177,18 @@ export default function CalendarPage() {
   }, [allEvents]);
 
   const calendarEventsByDate = useMemo(() => {
-    const map = new Map<string, EventDetails[]>();
-
-    for (const event of calendarEvents) {
-      const existing = map.get(event.date);
-      if (existing) {
-        existing.push(event);
-      } else {
-        map.set(event.date, [event]);
-      }
-    }
-
-    return map;
+    return buildSpanEventsByDate(calendarEvents);
   }, [calendarEvents]);
 
   const allEventsByDate = useMemo(() => {
-    const map = new Map<string, EventDetails[]>();
+    const map = buildSpanEventsByDate(allEvents);
 
+    // Also index moved events under their original_date for the "Moved Events" tab
     for (const event of allEvents) {
-      // Index by current date
-      const existing = map.get(event.date);
-      if (existing) {
-        existing.push(event);
-      } else {
-        map.set(event.date, [event]);
-      }
-
-      // Also index moved events under their original_date so they appear on the original date's "Moved Events" tab
       if (event.is_moved && event.original_date && event.original_date !== event.date) {
-        const existingOriginal = map.get(event.original_date);
-        if (existingOriginal) {
-          existingOriginal.push(event);
+        const existing = map.get(event.original_date);
+        if (existing) {
+          existing.push(event);
         } else {
           map.set(event.original_date, [event]);
         }

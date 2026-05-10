@@ -4,6 +4,7 @@ import { useMemo, useCallback } from "react";
 import type { EventDetails, CalendarDayType } from "@/interface/user-props";
 import { usePublicReservations, usePublicAssets } from "@/features/calendar/services/reservation-service";
 import { getPhilippineYear, getPhilippineMonth, getPhilippineDay } from "@/features/calendar/utils/timezone-utils";
+import { buildSpanEventsByDate } from "@/features/calendar/utils/calendar-span-utils";
 
 const EMPTY_EVENTS: EventDetails[] = [];
 
@@ -128,19 +129,7 @@ export default function usePublicCalendarData({
   }, [allEvents]);
 
   const calendarEventsByDate = useMemo(() => {
-    const eventsByDate = new Map<string, EventDetails[]>();
-
-    for (const event of calendarEvents) {
-      const eventsForDate = eventsByDate.get(event.date);
-
-      if (eventsForDate) {
-        eventsForDate.push(event);
-      } else {
-        eventsByDate.set(event.date, [event]);
-      }
-    }
-
-    return eventsByDate;
+    return buildSpanEventsByDate(calendarEvents);
   }, [calendarEvents]);
 
   // Get events for a particular day
@@ -156,8 +145,8 @@ export default function usePublicCalendarData({
     };
   }, [calendarEventsByDate]);
 
-  // Selected day events - includes ALL events (past and upcoming) for modal filtering
-  // Also includes moved events indexed by their original_date
+  // Selected day events - includes ALL events (past and upcoming) for modal filtering.
+  // Covers events that start on the day, span through it, or were moved from it.
   const selectedDayEvents = useMemo(() => {
     if (!selectedDay || !selectedDay.currentMonth) return [];
 
@@ -166,11 +155,21 @@ export default function usePublicCalendarData({
     const dayEvents: typeof allEvents = [];
 
     for (const event of allEvents) {
-      if (event.date === dateStr || (event.is_moved && event.original_date === dateStr)) {
-        if (!seen.has(event.id)) {
-          seen.add(event.id);
-          dayEvents.push(event);
-        }
+      const range = Math.max(1, event.range || 1);
+      const endDateStr = range > 1
+        ? (() => {
+            const d = new Date(event.date + "T00:00:00");
+            d.setDate(d.getDate() + range - 1);
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+          })()
+        : event.date;
+
+      const spansDay = event.date <= dateStr && dateStr <= endDateStr;
+      const isMovedOriginal = event.is_moved && event.original_date === dateStr;
+
+      if ((spansDay || isMovedOriginal) && !seen.has(event.id)) {
+        seen.add(event.id);
+        dayEvents.push(event);
       }
     }
 

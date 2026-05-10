@@ -69,19 +69,17 @@ export function EventDetailsBody({
             requestor={event.requestor}
             proofOfRequest={event.proof_of_request}
             proofOfApproval={event.proof_of_approval}
+            role={role}
+            status={status}
+            canMoveReservation={canMoveReservation}
+            onMoveReservation={onMoveReservation}
+            onPrintReceipt={onPrintReceipt}
+            onShowQR={onShowQR}
+            isPrinting={isPrinting}
           />
         )}
 
-        <EventSummaryCard
-          event={event}
-          role={role}
-          status={status}
-          canMoveReservation={canMoveReservation}
-          onMoveReservation={onMoveReservation}
-          onPrintReceipt={onPrintReceipt}
-          onShowQR={onShowQR}
-          isPrinting={isPrinting}
-        />
+        <EventSummaryCard event={event} />
 
         <ReservationDetailsCard event={event} status={status} />
 

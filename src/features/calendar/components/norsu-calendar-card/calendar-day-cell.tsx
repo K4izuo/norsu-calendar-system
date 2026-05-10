@@ -85,6 +85,79 @@ const DraggableEventPill = React.memo(function DraggableEventPill({
       e.dataTransfer.effectAllowed = "move";
       e.dataTransfer.setData("text/plain", String(eventId));
 
+      // Measure the actual rendered cell width and grid gap so the ghost
+      // spans the exact same width as the combined multi-day pill on screen.
+      const cellEl = pillRef.current?.closest("[data-idx]") as HTMLElement | null;
+      const range = Math.max(1, event.range || 1);
+      let ghostWidth = pillRef.current?.offsetWidth ?? 120;
+
+      if (cellEl) {
+        const cellWidth = cellEl.getBoundingClientRect().width;
+        const parentGrid = cellEl.parentElement;
+        const gap = parentGrid
+          ? parseFloat(window.getComputedStyle(parentGrid).columnGap) || 4
+          : 4;
+        ghostWidth = Math.round(cellWidth * range + gap * (range - 1));
+      }
+
+      // Position cursor inside the ghost relative to which span-day was grabbed.
+      const xOffset =
+        event.spanPosition === "end"
+          ? Math.max(ghostWidth - 18, Math.round(ghostWidth / 2))
+          : event.spanPosition === "middle"
+          ? Math.round(ghostWidth / 2)
+          : 18;
+
+      // Canvas ghost — drawing is synchronous so pixels are immediately in the
+      // backing store. setDragImage on a canvas element reads that buffer directly,
+      // bypassing the async CSS paint cycle that makes DOM-clone ghosts transparent.
+      const pillEl = pillRef.current!;
+      const pillHeight = pillEl.offsetHeight || 32;
+      const dpr = window.devicePixelRatio || 1;
+
+      const rawBg = window.getComputedStyle(pillEl).backgroundColor;
+      const bgColor =
+        rawBg && rawBg !== "rgba(0, 0, 0, 0)" && rawBg !== "transparent"
+          ? rawBg
+          : "rgb(244, 244, 244)"; // ≈ Tailwind v4 gray-100
+
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(ghostWidth * dpr);
+      canvas.height = Math.round(pillHeight * dpr);
+      canvas.style.cssText = "position:fixed;left:-9999px;top:-9999px;pointer-events:none;";
+
+      const ctx = canvas.getContext("2d")!;
+      ctx.scale(dpr, dpr);
+
+      // Pill background — rounded-l-sm (2px) + rounded-r-md (6px)
+      ctx.fillStyle = bgColor;
+      ctx.beginPath();
+      ctx.roundRect(0, 0, ghostWidth, pillHeight, [2, 6, 6, 2]);
+      ctx.fill();
+
+      // Left accent border (gray-500)
+      ctx.fillStyle = "rgb(107, 114, 128)";
+      ctx.fillRect(0, 0, 1, pillHeight);
+
+      // Title
+      const titleText = event.title_name || "Event";
+      ctx.fillStyle = "rgb(31, 41, 55)";
+      ctx.font = `600 10px ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,sans-serif`;
+      ctx.textBaseline = "top";
+      ctx.fillText(titleText, 8, 4, ghostWidth - 12);
+
+      // Time
+      const timeText = formatEventTimeRange(event.time_start, event.time_end);
+      if (timeText) {
+        ctx.fillStyle = "rgb(107, 114, 128)";
+        ctx.font = `500 9px ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,sans-serif`;
+        ctx.fillText(timeText, 8, 16, ghostWidth - 12);
+      }
+
+      document.body.appendChild(canvas);
+      e.dataTransfer.setDragImage(canvas, xOffset, Math.floor(pillHeight / 2));
+      requestAnimationFrame(() => { canvas.parentNode?.removeChild(canvas); });
+
       document.body.classList.add("dragging-pill");
       pillRef.current?.setAttribute("data-dragging", "1");
       onPillDragStart?.(event);
@@ -101,6 +174,17 @@ const DraggableEventPill = React.memo(function DraggableEventPill({
     clearDragVisualState();
     onPillDragEnd?.();
   }, [clearDragVisualState, onPillDragEnd]);
+
+  const isContinuation = event.spanPosition === "middle" || event.spanPosition === "end";
+
+  const spanRadiusClass =
+    event.spanPosition === "start" ? "rounded-l-sm rounded-r-none" :
+    event.spanPosition === "middle" ? "rounded-none" :
+    event.spanPosition === "end" ? "rounded-l-none rounded-r-md" :
+    "rounded-r-md rounded-l-sm";
+
+  const pillBgClass = roleColors.pillBg;
+  const pillBorderClass = isContinuation ? "" : `border-l ${roleColors.pillBorder}`;
 
   return (
     <div
@@ -120,18 +204,27 @@ const DraggableEventPill = React.memo(function DraggableEventPill({
           }
           : undefined
       }
-      className={`w-full flex flex-col p-1.5 ${roleColors.pillBg} border-l ${roleColors.pillBorder} rounded-r-md rounded-l-sm overflow-hidden select-none
+      className={`w-full flex flex-col p-1.5 ${pillBgClass} ${pillBorderClass} ${spanRadiusClass} overflow-hidden select-none
         ${onEventSelect ? "cursor-pointer hover:brightness-95" : ""}
         ${isDraggable ? "cursor-grab active:cursor-grabbing" : ""}`}
     >
-      <span className="text-[10px] sm:text-xs font-semibold text-gray-800 truncate leading-tight">
-        {title}
-      </span>
-      {time && (
-        <span className="flex items-center mt-px text-[9px] sm:text-[10px] text-gray-500 font-medium leading-tight">
-          <Clock className="w-[9px] text-gray-500 h-[9px] sm:w-[10px] sm:h-[10px] mr-1 shrink-0" />
-          {time}
-        </span>
+      {isContinuation ? (
+        <>
+          <span className="text-[10px] sm:text-xs leading-tight invisible select-none" aria-hidden="true">{title}</span>
+          {time && <span className="mt-px text-[9px] sm:text-[10px] leading-tight invisible select-none" aria-hidden="true">{time}</span>}
+        </>
+      ) : (
+        <>
+          <span className="text-[10px] sm:text-xs font-semibold text-gray-800 truncate leading-tight">
+            {title}
+          </span>
+          {time && (
+            <span className="flex items-center mt-px text-[9px] sm:text-[10px] text-gray-500 font-medium leading-tight">
+              <Clock className="w-[9px] text-gray-500 h-[9px] sm:w-[10px] sm:h-[10px] mr-1 shrink-0" />
+              {time}
+            </span>
+          )}
+        </>
       )}
     </div>
   );

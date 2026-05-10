@@ -72,6 +72,7 @@ export interface EventDetails {
   csg_name?: string
   requested_by?: string
   requestor_tagged?: { id: number; name: string }[] | string
+  spanPosition?: "single" | "start" | "middle" | "end"
 }
 
 /**

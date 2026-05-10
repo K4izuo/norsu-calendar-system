@@ -1,34 +1,13 @@
-"use client";
-
-import React, { useState } from "react";
-import { MapPin, MoreVertical, MoveRight, Printer, QrCode } from "lucide-react";
+import React from "react";
+import { MapPin } from "lucide-react";
 import { EventDetails } from "@/interface/user-props";
-import { UserRole } from "@/shared/components/utils/role-colors";
 import { getStartedAgo, formatDate } from "./helpers";
 
 interface EventSummaryCardProps {
   event: EventDetails;
-  role?: UserRole;
-  status: "PENDING" | "APPROVED" | "DECLINED";
-  canMoveReservation?: boolean;
-  onMoveReservation: () => void;
-  onPrintReceipt: () => void;
-  onShowQR: () => void;
-  isPrinting?: boolean;
 }
 
-export function EventSummaryCard({
-  event,
-  role,
-  status,
-  canMoveReservation = false,
-  onMoveReservation,
-  onPrintReceipt,
-  onShowQR,
-  isPrinting = false,
-}: EventSummaryCardProps) {
-  const [showDotsMenu, setShowDotsMenu] = useState(false);
-
+export function EventSummaryCard({ event }: EventSummaryCardProps) {
   const asset = event.asset;
   const assetName = asset?.asset_name || "Not specified";
   const assetCapacity = asset?.capacity || "N/A";
@@ -38,59 +17,15 @@ export function EventSummaryCard({
   return (
     <div className="bg-white text-card-foreground border border-border rounded-lg">
       <div className="p-6">
-        <div className="flex items-start justify-between">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="text-lg capitalize font-medium">{event.title_name || "Event Title"}</h3>
-            </div>
-            <p className="text-sm text-gray-500 flex items-center gap-1.5 mt-1">
-              <MapPin className="h-4 w-4" />
-              {assetName}
-              {startedAgoText && ` - ${startedAgoText}`}
-            </p>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className="text-lg capitalize font-medium">{event.title_name || "Event Title"}</h3>
           </div>
-          {role && role !== "public" && status === "APPROVED" && (
-            <div className="relative ml-2">
-              <button
-                onClick={() => setShowDotsMenu(prev => !prev)}
-                className="p-1.5 cursor-pointer rounded-lg hover:bg-gray-100 transition-colors focus:outline-none"
-                aria-label="More options"
-              >
-                <MoreVertical className="h-5 w-5 text-gray-500" />
-              </button>
-              {showDotsMenu && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={() => setShowDotsMenu(false)} />
-                  <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
-                    {canMoveReservation && (
-                      <button
-                        onClick={() => { setShowDotsMenu(false); onMoveReservation(); }}
-                        className="flex cursor-pointer items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
-                      >
-                        <MoveRight className="h-4 w-4" />
-                        Move Reservation
-                      </button>
-                    )}
-                    <button
-                      onClick={() => { setShowDotsMenu(false); onPrintReceipt(); }}
-                      disabled={isPrinting}
-                      className="flex cursor-pointer items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Printer className="h-4 w-4" />
-                      {isPrinting ? "Generating…" : "Print Receipt"}
-                    </button>
-                    <button
-                      onClick={() => { setShowDotsMenu(false); onShowQR(); }}
-                      className="flex cursor-pointer items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
-                    >
-                      <QrCode className="h-4 w-4" />
-                      Show QR Code
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
+          <p className="text-sm text-gray-500 flex items-center gap-1.5 mt-1">
+            <MapPin className="h-4 w-4" />
+            {assetName}
+            {startedAgoText && ` - ${startedAgoText}`}
+          </p>
         </div>
       </div>
 

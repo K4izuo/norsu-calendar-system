@@ -87,6 +87,7 @@ export interface EventDetails {
   multimedia_comment?: string | null
   proof_of_request?: string
   proof_of_approval?: string
+  spanPosition?: "single" | "start" | "middle" | "end"
 }
 
 // Add this new interface for API payload

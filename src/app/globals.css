@@ -251,6 +251,5 @@ body.dragging-pill * {
 
 .move-picker-input::-webkit-calendar-picker-indicator,
 .reserve-time-input::-webkit-calendar-picker-indicator {
-  opacity: 0;
-  cursor: pointer;
+  display: none;
 }
