@@ -64,6 +64,14 @@ export function EventDetailsBody({
           </div>
         )}
 
+        {event.requestor && (
+          <RequestorCard
+            requestor={event.requestor}
+            proofOfRequest={event.proof_of_request}
+            proofOfApproval={event.proof_of_approval}
+          />
+        )}
+
         <EventSummaryCard
           event={event}
           role={role}
@@ -74,14 +82,6 @@ export function EventDetailsBody({
           onShowQR={onShowQR}
           isPrinting={isPrinting}
         />
-
-        {event.requestor && (
-          <RequestorCard
-            requestor={event.requestor}
-            proofOfRequest={event.proof_of_request}
-            proofOfApproval={event.proof_of_approval}
-          />
-        )}
 
         <ReservationDetailsCard event={event} status={status} />
 

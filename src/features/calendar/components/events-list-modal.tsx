@@ -86,6 +86,7 @@ export function EventsListModal({
 }) {
   const contentRef = useRef<HTMLDivElement>(null)
   const [reserveModalOpen, setReserveModalOpen] = useState(false)
+  const [hasOpenedReserveModal, setHasOpenedReserveModal] = useState(false)
   const [reservationSuccessOpen, setReservationSuccessOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
 
@@ -149,7 +150,10 @@ export function EventsListModal({
     return status === "pending" || status === "approved" || status === "declined" ? (status as EventStatus) : "pending"
   }, [])
 
-  const handleReserve = useCallback(() => setReserveModalOpen(true), [])
+  const handleReserve = useCallback(() => {
+    setHasOpenedReserveModal(true)
+    setReserveModalOpen(true)
+  }, [])
   const handleSubmitReservation = useCallback((formData: ReservationAPIPayload) => {
     setReserveModalOpen(false)
     onReserve?.(formData)
@@ -314,7 +318,7 @@ export function EventsListModal({
         </div>
       )}
 
-      {reserveModalOpen && (
+      {hasOpenedReserveModal && (
         <ReserveEventModal
           isOpen={reserveModalOpen}
           onClose={() => setReserveModalOpen(false)}

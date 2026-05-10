@@ -1,11 +1,19 @@
 import { useState, useEffect } from "react"
 import type { ZodType } from "zod"
 
-export function useReservationFieldValidation(value: string | number, schema: ZodType): string {
+interface ReservationFieldValidationOptions {
+  validateEmpty?: boolean
+}
+
+export function useReservationFieldValidation(
+  value: string | number,
+  schema: ZodType,
+  options?: ReservationFieldValidationOptions,
+): string {
   const [error, setError] = useState<string>("")
 
   useEffect(() => {
-    if (!value && value !== 0) {
+    if (!options?.validateEmpty && !value && value !== 0) {
       setError("")
       return
     }
@@ -23,12 +31,17 @@ export function useReservationFieldValidation(value: string | number, schema: Zo
       return
     }
 
+    if (options?.validateEmpty && !value && value !== 0) {
+      setError(errorMessage)
+      return
+    }
+
     const timeoutId = setTimeout(() => {
       setError(errorMessage)
     }, 400)
 
     return () => clearTimeout(timeoutId)
-  }, [value, schema])
+  }, [value, schema, options?.validateEmpty])
 
   return error
 }

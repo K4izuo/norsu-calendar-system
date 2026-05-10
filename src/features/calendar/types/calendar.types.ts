@@ -70,6 +70,7 @@ export interface EventDetails {
   student_sub_type?: RequestorInfo["student_sub_type"]
   student_org_name?: string
   csg_name?: string
+  requested_by?: string
   requestor_tagged?: { id: number; name: string }[] | string
 }
 

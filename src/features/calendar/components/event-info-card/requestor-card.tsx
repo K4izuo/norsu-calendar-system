@@ -7,6 +7,40 @@ interface RequestorCardProps {
   proofOfApproval?: string;
 }
 
+function formatRequestorCategory(requestor: NonNullable<EventDetails["requestor"]>): string {
+  if (requestor.type === 'student') {
+    const labels: Record<string, string> = {
+      student_org: 'Student Organization/Society',
+      csg: 'College Student Government',
+      lso: 'LSO',
+      sgdc: 'SGDC',
+    };
+    return labels[requestor.student_sub_type ?? ''] ?? 'Student';
+  }
+  if (requestor.type === 'faculty') return 'Faculty';
+  return 'Office';
+}
+
+function requestorNameLabel(requestor: NonNullable<EventDetails["requestor"]>): string {
+  if (requestor.type === 'student') {
+    if (requestor.student_sub_type === 'student_org') return 'Organization / Society Name';
+    if (requestor.student_sub_type === 'csg') return 'College Student Government Name';
+    if (requestor.student_sub_type === 'lso' || requestor.student_sub_type === 'sgdc') return 'Student Group';
+    return 'Student Category';
+  }
+  return requestor.type === 'faculty' ? 'Degree Course' : 'Office';
+}
+
+function requestorNameValue(requestor: NonNullable<EventDetails["requestor"]>): string {
+  if (requestor.type === 'student') {
+    if (requestor.student_sub_type === 'student_org') return requestor.student_org_name || 'Not provided';
+    if (requestor.student_sub_type === 'csg') return requestor.csg_name || 'Not provided';
+    return formatRequestorCategory(requestor);
+  }
+
+  return requestor.tagged?.map(item => item.name).join(', ') || 'Not provided';
+}
+
 export function RequestorCard({ requestor, proofOfRequest, proofOfApproval }: RequestorCardProps) {
   return (
     <div className="bg-white text-card-foreground border border-border rounded-lg">
@@ -24,44 +58,18 @@ export function RequestorCard({ requestor, proofOfRequest, proofOfApproval }: Re
         </div>
         <div>
           <p className="text-sm text-gray-500">Category</p>
-          <p className="font-medium text-base">
-            {requestor.type === 'student' && (() => {
-              const labels: Record<string, string> = { student_org: 'Student Organization/Society', csg: 'College Student Government', lso: 'LSO', sgdc: 'SGDC' };
-              return labels[requestor.student_sub_type ?? ''] ?? 'Student';
-            })()}
-            {requestor.type === 'faculty' && 'Faculty'}
-            {requestor.type === 'office' && 'Office'}
-          </p>
+          <p className="font-medium text-base">{formatRequestorCategory(requestor)}</p>
         </div>
-        {requestor.type === 'student' && requestor.student_sub_type === 'student_org' && requestor.student_org_name && (
-          <div className="md:col-start-1">
-            <p className="text-sm text-gray-500">Organization / Society Name</p>
-            <p className="font-medium text-base">{requestor.student_org_name}</p>
-          </div>
-        )}
-        {requestor.type === 'student' && requestor.student_sub_type === 'csg' && requestor.csg_name && (
-          <div className="md:col-start-1">
-            <p className="text-sm text-gray-500">College Student Government Name</p>
-            <p className="font-medium text-base">{requestor.csg_name}</p>
-          </div>
-        )}
-        {(requestor.type === 'faculty' || requestor.type === 'office') && requestor.tagged && requestor.tagged.length > 0 && (
-          <div className="md:col-start-1">
-            <p className="text-sm text-gray-500">{requestor.type === 'faculty' ? 'Degree Course' : 'Office'}</p>
-            <div className="flex flex-wrap gap-2 mt-1">
-              {requestor.tagged.map((item) => (
-                <span key={item.id} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-                  {requestor.type === 'faculty'
-                    ? <GraduationCap className="w-3.5 h-3.5 text-green-600" />
-                    : <Building2 className="w-3.5 h-3.5 text-amber-600" />}
-                  {item.name}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
+        <div className="md:col-start-1">
+          <p className="text-sm text-gray-500">{requestorNameLabel(requestor)}</p>
+          <p className="font-medium text-base">{requestorNameValue(requestor)}</p>
+        </div>
+        <div className="md:col-start-2">
+          <p className="text-sm text-gray-500">Requested by</p>
+          <p className="font-medium text-base">{requestor.requested_by || "Not provided"}</p>
+        </div>
         {proofOfRequest && (
-          <div className="md:col-start-2">
+          <div className="md:col-start-1">
             <p className="text-sm text-gray-500">Proof of Request</p>
             <a
               href={proofOfRequest}
@@ -75,7 +83,7 @@ export function RequestorCard({ requestor, proofOfRequest, proofOfApproval }: Re
           </div>
         )}
         {proofOfApproval && (
-          <div className="md:col-start-1">
+          <div className="md:col-start-2">
             <p className="text-sm text-gray-500">Proof of Approval/Decline</p>
             <a
               href={proofOfApproval}

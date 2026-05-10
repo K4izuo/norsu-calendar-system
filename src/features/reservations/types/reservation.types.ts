@@ -22,6 +22,7 @@ export interface RequestorInfo {
   student_sub_type?: 'student_org' | 'csg' | 'lso' | 'sgdc'
   student_org_name?: string
   csg_name?: string
+  requested_by?: string
   tagged?: { id: number; name: string }[]
 }
 
@@ -64,6 +65,7 @@ export interface Reservation {
   student_sub_type?: RequestorInfo["student_sub_type"]
   student_org_name?: string
   csg_name?: string
+  requested_by?: string
   requestor_tagged?: { id: number; name: string }[] | string
 }
 
@@ -122,6 +124,7 @@ export interface ReservationAPIPayload {
   student_sub_type?: RequestorInfo["student_sub_type"]
   student_org_name?: string
   csg_name?: string
+  requested_by?: string
   requestor_tagged?: { id: number; name: string }[]
   proof_of_request?: string
   proof_of_approval?: string

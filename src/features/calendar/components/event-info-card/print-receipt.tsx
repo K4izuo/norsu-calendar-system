@@ -79,7 +79,16 @@ function fmtDateTime(iso: string): string {
 
 function requestorThrough(event: EventDetails): string {
   const t = event.requestor?.type ?? event.requestor_type;
-  if (t === "student") return "Student Organization / CSG";
+  const studentSubType = event.requestor?.student_sub_type ?? event.student_sub_type;
+  if (t === "student") {
+    const labels: Record<string, string> = {
+      student_org: "Student Organization/Society",
+      csg: "College Student Government",
+      lso: "LSO",
+      sgdc: "SGDC",
+    };
+    return labels[studentSubType ?? ""] ?? "Student";
+  }
   if (t === "faculty") return "Faculty";
   if (t === "office") return "Head of Office / Dean";
   return "N/A";
@@ -463,7 +472,9 @@ export async function printEventReceipt(
   cv.gap(LINE_H); // blank line before Requested By
 
   // ── Requestor ─────────────────────────────────────────────────────────────
-  const requestedBy = event.reserve_by_user
+  const requestedBy = event.requestor?.requested_by
+    || event.requested_by
+    || event.reserve_by_user
     || (event.reserved_by_user
       ? `${event.reserved_by_user.first_name} ${event.reserved_by_user.last_name}`
       : "N/A");

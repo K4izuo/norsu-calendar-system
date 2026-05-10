@@ -159,11 +159,14 @@ export default function CalendarPage() {
           student_sub_type: reservation.student_sub_type,
           student_org_name: reservation.student_org_name,
           csg_name: reservation.csg_name,
+          requested_by: reservation.requested_by,
           requestor_tagged: reservation.requestor_tagged,
           current_stage: reservation.current_stage,
           declined_at_stage: reservation.declined_at_stage,
           campus_director_action: reservation.campus_director_action,
           approvals: reservation.approvals,
+          proof_of_request: reservation.proof_of_request,
+          proof_of_approval: reservation.proof_of_approval,
         };
       });
   }, [reservations, assets]);

@@ -34,11 +34,24 @@ function formatRequestorLabel(r: RequestorInfo): string {
   return 'Office';
 }
 
-function isLsoOrSgdcRequestor(r: RequestorInfo): boolean {
-  return (
-    r.type === 'student' &&
-    (r.student_sub_type === 'lso' || r.student_sub_type === 'sgdc')
-  );
+function requestorNameLabel(r: RequestorInfo): string {
+  if (r.type === 'student') {
+    if (r.student_sub_type === 'student_org') return 'Organization / Society Name';
+    if (r.student_sub_type === 'csg') return 'College Student Government Name';
+    if (r.student_sub_type === 'lso' || r.student_sub_type === 'sgdc') return 'Student Group';
+    return 'Student Category';
+  }
+  return r.type === 'faculty' ? 'Degree Course' : 'Office';
+}
+
+function requestorNameValue(r: RequestorInfo): string {
+  if (r.type === 'student') {
+    if (r.student_sub_type === 'student_org') return r.student_org_name || 'Not provided';
+    if (r.student_sub_type === 'csg') return r.csg_name || 'Not provided';
+    return formatRequestorLabel(r);
+  }
+
+  return r.tagged?.map(item => item.name).join(', ') || 'Not provided';
 }
 
 export function ReserveEventSummaryTab({
@@ -49,9 +62,9 @@ export function ReserveEventSummaryTab({
   requestorInfo,
 }: Props) {
   const asset = formData.asset;
-  const showLsoSgdcProofLayout = requestorInfo
-    ? isLsoOrSgdcRequestor(requestorInfo)
-    : false;
+  const requestorDisplayName = requestorInfo
+    ? requestorNameValue(requestorInfo)
+    : "";
 
   const formatTime = (time: string) => {
     if (!time) return "Not specified";
@@ -81,37 +94,16 @@ export function ReserveEventSummaryTab({
               <p className="text-sm text-gray-500">Category</p>
               <p className="font-medium text-base">{formatRequestorLabel(requestorInfo)}</p>
             </div>
-            {requestorInfo.type === 'student' && requestorInfo.student_sub_type === 'student_org' && requestorInfo.student_org_name && (
-              <div className="md:col-start-1">
-                <p className="text-sm text-gray-500">Organization / Society Name</p>
-                <p className="font-medium text-base">{requestorInfo.student_org_name}</p>
-              </div>
-            )}
-            {requestorInfo.type === 'student' && requestorInfo.student_sub_type === 'csg' && requestorInfo.csg_name && (
-              <div className="md:col-start-1">
-                <p className="text-sm text-gray-500">College Student Government Name</p>
-                <p className="font-medium text-base">{requestorInfo.csg_name}</p>
-              </div>
-            )}
-            {(requestorInfo.type === 'faculty' || requestorInfo.type === 'office') && requestorInfo.tagged && requestorInfo.tagged.length > 0 && (
-              <div className="md:col-start-1">
-                <p className="text-sm text-gray-500">{requestorInfo.type === 'faculty' ? 'Degree Course' : 'Office'}</p>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {requestorInfo.tagged.map((item) => (
-                    <span key={item.id} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-                      {requestorInfo.type === 'faculty'
-                        ? <GraduationCap className="w-3.5 h-3.5 text-green-600" />
-                        : <Building2 className="w-3.5 h-3.5 text-amber-600" />}
-                      {item.name}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
+            <div className="md:col-start-1">
+              <p className="text-sm text-gray-500">{requestorNameLabel(requestorInfo)}</p>
+              <p className="font-medium text-base">{requestorDisplayName}</p>
+            </div>
+            <div className="md:col-start-2">
+              <p className="text-sm text-gray-500">Requested by</p>
+              <p className="font-medium text-base">{requestorInfo.requested_by || "Not provided"}</p>
+            </div>
             {formData.proof_of_request && (
-              <div
-                className={showLsoSgdcProofLayout ? "md:col-start-1" : "md:col-start-2"}
-              >
+              <div className="md:col-start-1">
                 <p className="text-sm text-gray-500">Proof of Request</p>
                 <a
                   href={formData.proof_of_request}
@@ -125,9 +117,7 @@ export function ReserveEventSummaryTab({
               </div>
             )}
             {formData.proof_of_approval && (
-              <div
-                className={showLsoSgdcProofLayout ? "md:col-start-2" : "md:col-start-1"}
-              >
+              <div className="md:col-start-2">
                 <p className="text-sm text-gray-500">Proof of Approval/Decline</p>
                 <a
                   href={formData.proof_of_approval}

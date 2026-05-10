@@ -1,38 +1,68 @@
 "use client";
 
 import { useState } from "react";
+import { z } from "zod";
 import { Users, GraduationCap, Building2, X, Check, AlertCircle } from "lucide-react";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { useCourses, useOffices } from "@/features/calendar/services/academicDataService";
+import { useReservationFieldValidation } from "@/features/reservations/utils/reservation-field-validation";
 import { RequestorInfo } from "@/interface/user-props";
 
 interface Props {
   requestor: RequestorInfo | null;
   onChange: (info: RequestorInfo | null) => void;
   error?: string;
+  validationAttempted?: boolean;
   onClearError?: (error: string) => void;
 }
 
 const STUDENT_CHECKBOXES: {
   key: 'student_org' | 'csg' | 'lso' | 'sgdc';
   label: string;
-  hasInput: boolean;
-  inputPlaceholder?: string;
 }[] = [
-    { key: 'student_org', label: 'Student Organization/Society', hasInput: true, inputPlaceholder: 'Enter organization/society name...' },
-    { key: 'csg', label: 'College Student Government', hasInput: true, inputPlaceholder: 'Enter college student government name...' },
-    { key: 'lso', label: 'LSO', hasInput: false },
-    { key: 'sgdc', label: 'SGDC', hasInput: false },
+    { key: 'student_org', label: 'Student Organization/Society' },
+    { key: 'csg', label: 'College Student Government' },
+    { key: 'lso', label: 'LSO' },
+    { key: 'sgdc', label: 'SGDC' },
   ];
 
-const INPUT_FIELD_ERRORS: Record<'student_org' | 'csg' | 'student_category', string> = {
+const STUDENT_NAME_FIELDS: Partial<Record<'student_org' | 'csg' | 'lso' | 'sgdc', {
+  label: string;
+  placeholder: string;
+  valueKey: 'student_org_name' | 'csg_name';
+}>> = {
+  student_org: {
+    label: "Student Organization/Society Name",
+    placeholder: "Enter organization/society name",
+    valueKey: "student_org_name",
+  },
+  csg: {
+    label: "College Student Government Name",
+    placeholder: "Enter college student government name",
+    valueKey: "csg_name",
+  },
+};
+
+const INPUT_FIELD_ERRORS: Record<'student_org' | 'csg' | 'student_category' | 'requested_by', string> = {
   student_org: "Please enter the student organization/society name.",
   csg: "Please enter the college student government name.",
   student_category: "Please select a student category.",
+  requested_by: "Please enter the requested by name.",
 };
 
-export function EventRequestorTab({ requestor, onChange, error, onClearError }: Props) {
+const REQUESTED_BY_SCHEMA = z
+  .string()
+  .trim()
+  .min(1, INPUT_FIELD_ERRORS.requested_by);
+
+export function EventRequestorTab({
+  requestor,
+  onChange,
+  error,
+  validationAttempted = false,
+  onClearError,
+}: Props) {
   const [facultyInput, setFacultyInput] = useState("");
   const [showFacultyDropdown, setShowFacultyDropdown] = useState(false);
   const [officeInput, setOfficeInput] = useState("");
@@ -55,9 +85,15 @@ export function EventRequestorTab({ requestor, onChange, error, onClearError }: 
 
   const handleStudentSubTypeSelect = (subType: 'student_org' | 'csg' | 'lso' | 'sgdc') => {
     if (requestor?.student_sub_type === subType) {
-      onChange({ type: 'student' });
+      onChange({ type: 'student', requested_by: requestor.requested_by });
     } else {
-      onChange({ type: 'student', student_sub_type: subType });
+      onChange({
+        type: 'student',
+        student_sub_type: subType,
+        requested_by: requestor?.requested_by,
+        student_org_name: subType === 'student_org' ? requestor?.student_org_name : undefined,
+        csg_name: subType === 'csg' ? requestor?.csg_name : undefined,
+      });
       if (error === INPUT_FIELD_ERRORS.student_category) {
         onClearError?.("");
       }
@@ -69,7 +105,7 @@ export function EventRequestorTab({ requestor, onChange, error, onClearError }: 
     : [];
 
   const handleFacultySelect = (item: { value: string; label: string }) => {
-    onChange({ type: 'faculty', tagged: [{ id: parseInt(item.value), name: item.label }] });
+    onChange({ ...(requestor ?? {}), type: 'faculty', tagged: [{ id: parseInt(item.value), name: item.label }] });
     setFacultyInput("");
     setShowFacultyDropdown(false);
   };
@@ -79,13 +115,35 @@ export function EventRequestorTab({ requestor, onChange, error, onClearError }: 
     : [];
 
   const handleOfficeSelect = (item: { value: string; label: string }) => {
-    onChange({ type: 'office', tagged: [{ id: parseInt(item.value), name: item.label }] });
+    onChange({ ...(requestor ?? {}), type: 'office', tagged: [{ id: parseInt(item.value), name: item.label }] });
     setOfficeInput("");
     setShowOfficeDropdown(false);
   };
 
   const hasFacultyTag = requestor?.tagged && requestor.tagged.length > 0;
   const hasOfficeTag = requestor?.tagged && requestor.tagged.length > 0;
+  const selectedStudentCategory = requestor?.type === 'student' ? requestor.student_sub_type : undefined;
+  const selectedStudentNameField = selectedStudentCategory
+    ? STUDENT_NAME_FIELDS[selectedStudentCategory]
+    : undefined;
+  const selectedStudentNameError =
+    selectedStudentCategory === 'student_org' || selectedStudentCategory === 'csg'
+      ? INPUT_FIELD_ERRORS[selectedStudentCategory]
+      : undefined;
+  const requestedByValue = requestor?.requested_by ?? "";
+  const hasRequestedByRequiredError = error === INPUT_FIELD_ERRORS.requested_by;
+  const requestedByValidationError = useReservationFieldValidation(
+    requestedByValue,
+    REQUESTED_BY_SCHEMA,
+    { validateEmpty: validationAttempted },
+  );
+  const requestedByRequiredError = validationAttempted && !requestedByValue.trim()
+    ? INPUT_FIELD_ERRORS.requested_by
+    : "";
+  const requestedByDisplayError = requestedByRequiredError || (hasRequestedByRequiredError
+    ? INPUT_FIELD_ERRORS.requested_by
+    : requestedByValidationError);
+  const hasRequestedByError = Boolean(requestedByDisplayError);
 
   return (
     <div className="space-y-6">
@@ -161,65 +219,31 @@ export function EventRequestorTab({ requestor, onChange, error, onClearError }: 
         <div className="flex flex-col gap-1.5">
           <Label>Select Student Category <span className="text-red-500">*</span></Label>
           <div className="grid grid-cols-2 gap-3">
-            {STUDENT_CHECKBOXES.map(({ key, label, hasInput, inputPlaceholder }) => {
+            {STUDENT_CHECKBOXES.map(({ key, label }) => {
               const isChecked = requestor?.student_sub_type === key;
               const isDisabled = !!requestor?.student_sub_type && !isChecked;
               return (
-                <div key={key} className="space-y-2">
-                  <div
-                    className={`flex items-center gap-3 rounded-lg border p-4 transition-colors ${isChecked ? "border-gray-800 bg-gray-100" : isDisabled ? "border-border bg-white" : error === INPUT_FIELD_ERRORS.student_category ? "border-red-500 bg-white hover:bg-muted" : "border-border bg-white hover:bg-muted"
-                      } ${isDisabled ? "cursor-not-allowed opacity-40" : "cursor-pointer"}`}
+                <div
+                  key={key}
+                  className={`flex items-center gap-3 rounded-lg border p-4 transition-colors ${isChecked ? "border-gray-800 bg-gray-100" : isDisabled ? "border-border bg-white" : error === INPUT_FIELD_ERRORS.student_category ? "border-red-500 bg-white hover:bg-muted" : "border-border bg-white hover:bg-muted"
+                    } ${isDisabled ? "cursor-not-allowed opacity-40" : "cursor-pointer"}`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => !isDisabled && handleStudentSubTypeSelect(key)}
+                    disabled={isDisabled}
+                    className="flex items-center gap-3 flex-1 text-left cursor-pointer disabled:cursor-not-allowed"
                   >
-                    <button
-                      type="button"
-                      onClick={() => !isDisabled && handleStudentSubTypeSelect(key)}
-                      disabled={isDisabled}
-                      className="flex items-center gap-3 flex-1 text-left cursor-pointer disabled:cursor-not-allowed"
+                    <span
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${isChecked ? "border-gray-800 bg-gray-800" : "border-gray-300 bg-white"
+                        }`}
                     >
-                      <span
-                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${isChecked ? "border-gray-800 bg-gray-800" : "border-gray-300 bg-white"
-                          }`}
-                      >
-                        {isChecked && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
-                      </span>
-                      <span className={`text-sm font-medium ${isChecked ? "text-gray-800" : "text-gray-700"}`}>
-                        {label}
-                      </span>
-                    </button>
-                  </div>
-                  {isChecked && hasInput && (key === 'student_org' || key === 'csg') && (
-                    <div className="space-y-1">
-                      <Input
-                        type="text"
-                        placeholder={inputPlaceholder}
-                        value={
-                          key === 'student_org'
-                            ? (requestor?.student_org_name ?? '')
-                            : (requestor?.csg_name ?? '')
-                        }
-                        onChange={(e) => {
-                          if (key === 'student_org') {
-                            onChange({ ...requestor!, student_org_name: e.target.value });
-                          } else {
-                            onChange({ ...requestor!, csg_name: e.target.value });
-                          }
-                          if (e.target.value.trim() && error === INPUT_FIELD_ERRORS[key]) {
-                            onClearError?.("");
-                          }
-                        }}
-                        className={`h-11 border text-base ${error === INPUT_FIELD_ERRORS[key]
-                          ? 'border-red-500 focus:border-red-500'
-                          : 'border-gray-200 focus:border-blue-500'
-                          }`}
-                      />
-                      {error === INPUT_FIELD_ERRORS[key] && (
-                        <p className="flex items-center gap-1 text-red-500 text-sm">
-                          <AlertCircle className="w-4 h-4 shrink-0" />
-                          {INPUT_FIELD_ERRORS[key]}
-                        </p>
-                      )}
-                    </div>
-                  )}
+                      {isChecked && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
+                    </span>
+                    <span className={`text-sm font-medium ${isChecked ? "text-gray-800" : "text-gray-700"}`}>
+                      {label}
+                    </span>
+                  </button>
                 </div>
               );
             })}
@@ -229,6 +253,66 @@ export function EventRequestorTab({ requestor, onChange, error, onClearError }: 
               <AlertCircle className="w-4 h-4 shrink-0" />
               {INPUT_FIELD_ERRORS.student_category}
             </p>
+          )}
+          {selectedStudentCategory && (
+            <div className="mt-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {selectedStudentNameField && (
+                  <div className="space-y-1.5">
+                    <Label className="text-sm text-gray-700">
+                      {selectedStudentNameField.label} <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      type="text"
+                      placeholder={selectedStudentNameField.placeholder}
+                      value={requestor?.[selectedStudentNameField.valueKey] ?? ""}
+                      onChange={(e) => {
+                        onChange({ ...requestor!, [selectedStudentNameField.valueKey]: e.target.value });
+                        if (e.target.value.trim() && error === selectedStudentNameError) {
+                          onClearError?.("");
+                        }
+                      }}
+                      className={`h-11 border text-base ${error === selectedStudentNameError
+                        ? "border-red-500 focus:border-red-500"
+                        : "border-gray-200 focus:border-blue-500"
+                        }`}
+                    />
+                    {error === selectedStudentNameError && (
+                      <p className="flex items-center gap-1 text-red-500 text-sm">
+                        <AlertCircle className="w-4 h-4 shrink-0" />
+                        {selectedStudentNameError}
+                      </p>
+                    )}
+                  </div>
+                )}
+                <div className={`space-y-1.5 ${selectedStudentNameField ? "" : "md:col-span-2"}`}>
+                  <Label className="text-sm text-gray-700">
+                    Requested by <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    type="text"
+                    placeholder="Enter requester name"
+                    value={requestor?.requested_by ?? ""}
+                    onChange={(e) => {
+                      onChange({ ...requestor!, requested_by: e.target.value });
+                      if (e.target.value.trim() && hasRequestedByRequiredError) {
+                        onClearError?.("");
+                      }
+                    }}
+                    className={`h-11 border text-base ${hasRequestedByError
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-gray-200 focus:border-blue-500"
+                      }`}
+                  />
+                  {hasRequestedByError && (
+                    <p className="flex items-center gap-1 text-red-500 text-sm">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      {requestedByDisplayError}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
           )}
         </div>
       )}
@@ -251,7 +335,7 @@ export function EventRequestorTab({ requestor, onChange, error, onClearError }: 
                   {item.name}
                   <button
                     type="button"
-                    onClick={() => onChange({ type: 'faculty', tagged: [] })}
+                    onClick={() => onChange({ type: 'faculty', requested_by: requestor?.requested_by, tagged: [] })}
                     className="ml-0.5 hover:text-green-950 cursor-pointer"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -295,6 +379,32 @@ export function EventRequestorTab({ requestor, onChange, error, onClearError }: 
               )}
             </div>
           )}
+          <div className="space-y-1.5">
+            <Label className="text-sm text-gray-700">
+              Requested by <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              type="text"
+              placeholder="Enter requester name"
+              value={requestor?.requested_by ?? ""}
+              onChange={(e) => {
+                onChange({ ...(requestor ?? { type: 'faculty' }), type: 'faculty', requested_by: e.target.value });
+                if (e.target.value.trim() && hasRequestedByRequiredError) {
+                  onClearError?.("");
+                }
+              }}
+              className={`h-11 border text-base ${hasRequestedByError
+                ? "border-red-500 focus:border-red-500"
+                : "border-gray-200 focus:border-green-500"
+                }`}
+            />
+            {hasRequestedByError && (
+              <p className="flex items-center gap-1 text-red-500 text-sm">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                {requestedByDisplayError}
+              </p>
+            )}
+          </div>
         </div>
       )}
 
@@ -316,7 +426,7 @@ export function EventRequestorTab({ requestor, onChange, error, onClearError }: 
                   {item.name}
                   <button
                     type="button"
-                    onClick={() => onChange({ type: 'office', tagged: [] })}
+                    onClick={() => onChange({ type: 'office', requested_by: requestor?.requested_by, tagged: [] })}
                     className="ml-0.5 hover:text-amber-950 cursor-pointer"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -360,6 +470,32 @@ export function EventRequestorTab({ requestor, onChange, error, onClearError }: 
               )}
             </div>
           )}
+          <div className="space-y-1.5">
+            <Label className="text-sm text-gray-700">
+              Requested by <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              type="text"
+              placeholder="Enter requester name"
+              value={requestor?.requested_by ?? ""}
+              onChange={(e) => {
+                onChange({ ...(requestor ?? { type: 'office' }), type: 'office', requested_by: e.target.value });
+                if (e.target.value.trim() && hasRequestedByRequiredError) {
+                  onClearError?.("");
+                }
+              }}
+              className={`h-11 border text-base ${hasRequestedByError
+                ? "border-red-500 focus:border-red-500"
+                : "border-gray-200 focus:border-amber-500"
+                }`}
+            />
+            {hasRequestedByError && (
+              <p className="flex items-center gap-1 text-red-500 text-sm">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                {requestedByDisplayError}
+              </p>
+            )}
+          </div>
         </div>
       )}
     </div>

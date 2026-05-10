@@ -41,6 +41,7 @@ export default function ReservationsPage() {
 
   const [statusFilter, setStatusFilter] = useState("pending");
   const [resubmitEvent, setResubmitEvent] = useState<EventDetails | undefined>();
+  const [resubmitModalOpen, setResubmitModalOpen] = useState(false);
   const [reservationSuccessOpen, setReservationSuccessOpen] = useState(false);
 
   // Admin and Multimedia see all reservations; every other role uses the queue
@@ -105,12 +106,15 @@ export default function ReservationsPage() {
         student_sub_type: reservation.student_sub_type,
         student_org_name: reservation.student_org_name,
         csg_name: reservation.csg_name,
+        requested_by: reservation.requested_by,
         requestor_tagged: reservation.requestor_tagged,
         current_stage: reservation.current_stage,
         declined_at_stage: reservation.declined_at_stage,
         campus_director_action: reservation.campus_director_action,
         approvals: reservation.approvals,
         multimedia_comment: reservation.multimedia_comment,
+        proof_of_request: reservation.proof_of_request,
+        proof_of_approval: reservation.proof_of_approval,
       };
     });
   }, [sourceList, assets]);
@@ -118,6 +122,11 @@ export default function ReservationsPage() {
   const isInitialLoading = loading && sourceList.length === 0;
   const handleReservationSuccess = useCallback(() => {
     setReservationSuccessOpen(true);
+  }, []);
+
+  const handleResubmit = useCallback((event: EventDetails) => {
+    setResubmitEvent(event);
+    setResubmitModalOpen(true);
   }, []);
 
   return (
@@ -153,7 +162,7 @@ export default function ReservationsPage() {
             statusFilter={statusFilter}
             onStatusFilterChange={setStatusFilter}
             userRoleNumber={userRoleNumber}
-            onResubmit={(event) => setResubmitEvent(event)}
+            onResubmit={handleResubmit}
           />
         </div>
       </div>
@@ -161,8 +170,8 @@ export default function ReservationsPage() {
       {/* Resubmit modal — opens pre-filled for Dean/HO on declined reservations */}
       {resubmitEvent && (
         <ReserveEventModal
-          isOpen={!!resubmitEvent}
-          onClose={() => setResubmitEvent(undefined)}
+          isOpen={resubmitModalOpen}
+          onClose={() => setResubmitModalOpen(false)}
           onReservationSuccess={handleReservationSuccess}
           resubmitMode={true}
           eventData={resubmitEvent}

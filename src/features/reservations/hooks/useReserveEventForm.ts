@@ -72,6 +72,7 @@ const getEventRequestor = (eventData: EventDetails): RequestorInfo | undefined =
     student_sub_type: eventData.student_sub_type,
     student_org_name: eventData.student_org_name,
     csg_name: eventData.csg_name,
+    requested_by: eventData.requested_by,
     requestor_tagged: eventData.requestor_tagged,
   });
 };
@@ -83,6 +84,7 @@ export const useReserveEventForm = ({ eventDate, onClose, onReservationSuccess, 
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [requestor, setRequestor] = useState<RequestorInfo | null>(null);
   const [requestorError, setRequestorError] = useState<string>("");
+  const [requestorValidationAttempted, setRequestorValidationAttempted] = useState(false);
   const [showOutsource, setShowOutsource] = useState(false);
   const [showGuest, setShowGuest] = useState(false);
   const [guestNameInput, setGuestNameInput] = useState("");
@@ -161,6 +163,61 @@ export const useReserveEventForm = ({ eventDate, onClose, onReservationSuccess, 
     handleAssetItemSelect,
   } = useAssetSelection(setValue);
 
+  const clearDraftState = useCallback(() => {
+    const currentTime = getCurrentTime();
+
+    reset(
+      {
+        title_name: "",
+        asset: undefined,
+        time_start: currentTime,
+        time_end: currentTime,
+        description: "",
+        range: 1,
+        people_tag: "",
+        info_type: "",
+        category: "",
+        other_category: "",
+        date: eventDate || "",
+        equipment: [],
+        outsource: "",
+        guests: [],
+        involves_students: false,
+        requires_vpaa: isDean,
+        requires_vpsas: false,
+        requires_vpaf: false,
+        requires_vprde: false,
+        requestor: undefined,
+        proof_of_request: "",
+        proof_of_approval: "",
+      },
+      {
+        keepErrors: false,
+        keepDirty: false,
+        keepIsSubmitted: false,
+        keepTouched: false,
+        keepIsValid: false,
+        keepSubmitCount: false,
+      }
+    );
+
+    setTaggedPeople([]);
+    setTagInput("");
+    setActiveTab("requestor");
+    setIsCheckingConflict(false);
+    setEquipmentTouched(false);
+    setShowOutsource(false);
+    setShowGuest(false);
+    setGuestNameInput("");
+    setGuestDetailsInput("");
+    setOutsourceError(null);
+    setGuestNameError(null);
+    setGuestDetailsError(null);
+    setRequestor(null);
+    setRequestorError("");
+    setRequestorValidationAttempted(false);
+  }, [eventDate, isDean, reset, setTaggedPeople, setTagInput]);
+
   useEffect(() => {
     if (eventDate) {
       setValue("date", eventDate);
@@ -211,59 +268,18 @@ export const useReserveEventForm = ({ eventDate, onClose, onReservationSuccess, 
   }, [taggedPeople, setValue, form.formState.touchedFields.people_tag]);
 
   useEffect(() => {
-    if (isOpen) {
-      setActiveTab("requestor");
-      setRequestorError("");
-      if (!editMode && !resubmitMode) {
-        const currentTime = getCurrentTime();
-        setValue("time_start", currentTime);
-        setValue("time_end", currentTime);
-        setValue("equipment", []);
-        setEquipmentTouched(false);
-        setRequestor(null);
-      }
-    } else if (!isOpen) {
-      const currentTime = getCurrentTime();
-      reset({
-        title_name: "",
-        asset: undefined,
-        time_start: currentTime,
-        time_end: currentTime,
-        description: "",
-        range: 1,
-        people_tag: "",
-        info_type: "",
-        category: "",
-        date: eventDate || "",
-        equipment: [],
-        involves_students: false,
-        requires_vpaa: isDean,
-        requires_vpsas: false,
-        requires_vpaf: false,
-        requires_vprde: false,
-      }, {
-        keepErrors: false,
-        keepDirty: false,
-        keepIsSubmitted: false,
-        keepTouched: false,
-        keepIsValid: false,
-        keepSubmitCount: false,
-      });
-      setTaggedPeople([]);
-      setTagInput("");
-      setIsCheckingConflict(false);
-      setEquipmentTouched(false);
-      setShowOutsource(false);
-      setShowGuest(false);
-      setGuestNameInput("");
-      setGuestDetailsInput("");
-      setOutsourceError(null);
-      setGuestNameError(null);
-      setGuestDetailsError(null);
-      setRequestor(null);
-      setRequestorError("");
+    if (!isOpen) {
+      setShowDropdown(false);
+      setShowVenueModal(false);
+      setShowVehicleModal(false);
+      return;
     }
-  }, [isOpen, setValue, reset, eventDate, editMode, resubmitMode, setTaggedPeople, setTagInput, isDean]);
+
+    setActiveTab("requestor");
+    setRequestorError("");
+    setRequestorValidationAttempted(false);
+    setIsCheckingConflict(false);
+  }, [isOpen, setShowDropdown, setShowVenueModal, setShowVehicleModal]);
 
   // Pre-populate extra fields that useEditModePopulate doesn't cover
   useEffect(() => {
@@ -273,6 +289,7 @@ export const useReserveEventForm = ({ eventDate, onClose, onReservationSuccess, 
     setRequestor(eventRequestor ?? null);
     setValue("requestor", eventRequestor);
     setRequestorError("");
+    setRequestorValidationAttempted(false);
 
     setValue("other_category", eventData.other_category ?? "");
     setValue("involves_students", toFormBoolean(eventData.involves_students));
@@ -340,6 +357,7 @@ export const useReserveEventForm = ({ eventDate, onClose, onReservationSuccess, 
           student_sub_type: requestor?.student_sub_type,
           student_org_name: requestor?.student_org_name,
           csg_name: requestor?.csg_name,
+          requested_by: requestor?.requested_by,
           requestor_tagged: requestor?.tagged,
         };
 
@@ -369,12 +387,14 @@ export const useReserveEventForm = ({ eventDate, onClose, onReservationSuccess, 
             student_sub_type: formDataWithPeople.student_sub_type,
             student_org_name: formDataWithPeople.student_org_name,
             csg_name: formDataWithPeople.csg_name,
+            requested_by: formDataWithPeople.requested_by,
             requestor_tagged: formDataWithPeople.requestor_tagged,
             proof_of_request: formDataWithPeople.proof_of_request,
             proof_of_approval: formDataWithPeople.proof_of_approval,
           };
           try {
             await resubmit({ reservationId: eventData.id, payload });
+            clearDraftState();
             handleReservationSuccess();
           } catch {
             // onError in useResubmitReservation already shows the error toast
@@ -431,59 +451,19 @@ export const useReserveEventForm = ({ eventDate, onClose, onReservationSuccess, 
         queryClient.invalidateQueries({ queryKey: ['notifications-unread', user?.id] });
         queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] });
 
-        const currentTime = getCurrentTime();
-
-        reset(
-          {
-            title_name: "",
-            asset: undefined,
-            time_start: currentTime,
-            time_end: currentTime,
-            description: "",
-            range: 1,
-            people_tag: "",
-            info_type: "",
-            category: "",
-            date: eventDate || "",
-            equipment: [],
-            involves_students: false,
-            requires_vpaa: isDean,
-            requires_vpsas: false,
-            requires_vpaf: false,
-            requires_vprde: false,
-          },
-          {
-            keepErrors: false,
-            keepDirty: false,
-            keepIsSubmitted: false,
-            keepTouched: false,
-            keepIsValid: false,
-            keepSubmitCount: false,
-          }
-        );
-
-        setTaggedPeople([]);
-        setTagInput("");
-        setActiveTab("requestor");
-        setRequestor(null);
-        setRequestorError("");
-        setShowOutsource(false);
-        setShowGuest(false);
-        setGuestNameInput("");
-        setGuestDetailsInput("");
-        setOutsourceError(null);
-        setGuestNameError(null);
-        setGuestDetailsError(null);
+        clearDraftState();
         onClose();
 
       } catch {
         toast.error(editMode ? "Failed to update event. Please try again." : "Failed to reserve event. Please try again.");
       }
     },
-    [reset, onClose, taggedPeople, eventDate, onNewReservation, editMode, resubmitMode, resubmit, eventData, user?.id, queryClient, setTaggedPeople, setTagInput, isDean, requestor, handleReservationSuccess]
+    [onClose, taggedPeople, onNewReservation, editMode, resubmitMode, resubmit, eventData, user?.id, queryClient, requestor, handleReservationSuccess, clearDraftState]
   );
 
   const handleRequestorTabNext = useCallback(() => {
+    setRequestorValidationAttempted(true);
+
     if (!requestor?.type) {
       setRequestorError("Please select a requestor type to continue.");
       return;
@@ -502,6 +482,10 @@ export const useReserveEventForm = ({ eventDate, onClose, onReservationSuccess, 
         return;
       }
     }
+    if (!requestor.requested_by?.trim()) {
+      setRequestorError("Please enter the requested by name.");
+      return;
+    }
     if (requestor.type === 'faculty' && (!requestor.tagged || requestor.tagged.length === 0)) {
       setRequestorError("Please tag a faculty / degree course.");
       return;
@@ -511,6 +495,7 @@ export const useReserveEventForm = ({ eventDate, onClose, onReservationSuccess, 
       return;
     }
     setRequestorError("");
+    setRequestorValidationAttempted(false);
     setActiveTab("form");
   }, [requestor]);
 
@@ -701,13 +686,8 @@ export const useReserveEventForm = ({ eventDate, onClose, onReservationSuccess, 
   };
 
   const resetForm = useCallback(() => {
-    reset();
-    setTaggedPeople([]);
-    setTagInput("");
-    setActiveTab("requestor");
-    setRequestor(null);
-    setRequestorError("");
-  }, [reset, setTaggedPeople, setTagInput]);
+    clearDraftState();
+  }, [clearDraftState]);
 
   return {
     form,
@@ -741,6 +721,7 @@ export const useReserveEventForm = ({ eventDate, onClose, onReservationSuccess, 
     setRequestor,
     requestorError,
     setRequestorError,
+    requestorValidationAttempted,
     handleRequestorTabNext,
     handleFormTabNext,
     handleEquipmentTabNext,

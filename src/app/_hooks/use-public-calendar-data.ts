@@ -31,7 +31,7 @@ interface UsePublicCalendarDataResult {
   error: string | null;
   assets: ReturnType<typeof usePublicAssets>["assets"];
   allEvents: EventDetails[];
-  upcomingEvents: { title: string; date: string }[];
+  upcomingEvents: EventDetails[];
   calendarEvents: EventDetails[];
   getEventsForDate: (year: number, month: number, day: number) => { hasEvent: boolean; count: number; eventsList?: EventDetails[] };
   selectedDayEvents: EventDetails[];
@@ -97,7 +97,10 @@ export default function usePublicCalendarData({
           student_sub_type: reservation.student_sub_type,
           student_org_name: reservation.student_org_name,
           csg_name: reservation.csg_name,
+          requested_by: reservation.requested_by,
           requestor_tagged: reservation.requestor_tagged,
+          proof_of_request: reservation.proof_of_request,
+          proof_of_approval: reservation.proof_of_approval,
         };
       });
   }, [reservations, assets]);
@@ -116,12 +119,7 @@ export default function usePublicCalendarData({
         const dateCompare = a.date.localeCompare(b.date);
         if (dateCompare !== 0) return dateCompare;
         return a.time_start.localeCompare(b.time_start);
-      })
-      // .slice(0, 5)
-      .map(event => ({
-        title: event.title_name,
-        date: event.date
-      }));
+      });
   }, [allEvents]);
 
   // Get events for calendar - only show upcoming/current events on the calendar

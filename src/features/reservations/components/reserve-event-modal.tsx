@@ -92,6 +92,7 @@ export function ReserveEventModal({
     setRequestor,
     requestorError,
     setRequestorError,
+    requestorValidationAttempted,
     handleRequestorTabNext,
     handleFormTabNext,
     handleEquipmentTabNext,
@@ -221,6 +222,7 @@ export function ReserveEventModal({
                     requestor={requestor}
                     onChange={setRequestor}
                     error={requestorError}
+                    validationAttempted={requestorValidationAttempted}
                     onClearError={setRequestorError}
                   />
                 </TabsContent>

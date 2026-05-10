@@ -79,6 +79,7 @@ export function NorsuOfficialCalendar() {
           loading={loading}
           error={error}
           upcomingEvents={upcomingEvents}
+          onEventClick={handleEventClick}
         />
 
         <div className="flex-1 flex flex-col items-start min-h-0 lg:h-full">

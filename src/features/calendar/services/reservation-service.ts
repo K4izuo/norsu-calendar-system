@@ -107,12 +107,14 @@ export const normalizeRequestor = (value: unknown): RequestorInfo | undefined =>
     : rawStudentSubType ?? nestedRequestor?.student_sub_type;
   const studentOrgName = record.student_org_name ?? record.studentOrgName ?? record.requestor_student_org_name ?? record.requestorStudentOrgName;
   const csgName = record.csg_name ?? record.csgName ?? record.requestor_csg_name ?? record.requestorCsgName;
+  const requestedBy = record.requested_by ?? record.requestedBy ?? record.requestor_requested_by ?? record.requestorRequestedBy;
 
   return {
     type,
     student_sub_type: studentSubType as RequestorInfo["student_sub_type"],
     student_org_name: typeof studentOrgName === "string" ? studentOrgName : nestedRequestor?.student_org_name,
     csg_name: typeof csgName === "string" ? csgName : nestedRequestor?.csg_name,
+    requested_by: typeof requestedBy === "string" ? requestedBy : nestedRequestor?.requested_by,
     tagged,
   };
 };
