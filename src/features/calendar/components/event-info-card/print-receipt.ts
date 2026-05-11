@@ -440,13 +440,23 @@ export async function printEventReceipt(
 
   drawLongBondFooter(page, footerBold, footerItalic);
 
-  // 5. Open filled PDF in a new tab and trigger browser print dialog
+  // 5. Wrap PDF in HTML with @page size locked to Long Bond so Chrome's print
+  //    dialog always pre-selects 8.5"×13" regardless of browser defaults.
+  //    CSS @page is the only reliable way to force paper size in Chrome.
   const pdfBytes = await pdfDoc.save();
-  const blob = new Blob([pdfBytes as BlobPart], { type: "application/pdf" });
-  const blobUrl = URL.createObjectURL(blob);
-  const win = window.open(blobUrl, "_blank");
+  const pdfBlob = new Blob([pdfBytes as BlobPart], { type: "application/pdf" });
+  const pdfBlobUrl = URL.createObjectURL(pdfBlob);
+
+  const printHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>@page{size:8.5in 13in;margin:0}html,body{margin:0;padding:0}embed{display:block;width:8.5in;height:13in}</style></head><body><embed src="${pdfBlobUrl}" type="application/pdf" width="8.5in" height="13in"></body></html>`;
+  const htmlBlob = new Blob([printHtml], { type: "text/html" });
+  const htmlBlobUrl = URL.createObjectURL(htmlBlob);
+  const win = window.open(htmlBlobUrl, "_blank");
   if (win) {
-    win.addEventListener("load", () => win.print());
+    // Delay print() so the embedded PDF has time to render before the dialog opens.
+    win.addEventListener("load", () => setTimeout(() => win.print(), 800));
   }
-  setTimeout(() => URL.revokeObjectURL(blobUrl), 120_000);
+  setTimeout(() => {
+    URL.revokeObjectURL(pdfBlobUrl);
+    URL.revokeObjectURL(htmlBlobUrl);
+  }, 120_000);
 }

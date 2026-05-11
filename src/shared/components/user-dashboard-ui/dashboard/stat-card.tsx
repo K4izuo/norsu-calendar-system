@@ -17,6 +17,7 @@ interface DashboardStatCardProps {
   value: string | number;
   badge: string;
   badgePositive: boolean;
+  sparklineData?: number[];
 }
 
 const positiveSparkline = [
@@ -92,11 +93,16 @@ const DashboardStatCard: React.FC<DashboardStatCardProps> = ({
   value,
   badge,
   badgePositive,
+  sparklineData,
 }) => {
   const TrendIcon = badgePositive ? TrendingUp : TrendingDown;
   const StatIcon = getStatIcon(title);
   const gradientId = useId().replace(/:/g, "");
-  const sparklineData = badgePositive ? positiveSparkline : negativeSparkline;
+  const chartData = sparklineData
+    ? sparklineData.map((v) => ({ value: v }))
+    : badgePositive
+    ? positiveSparkline
+    : negativeSparkline;
   const trendColor = getStatAccentColor(title);
   const trendClasses = badgePositive ? "text-emerald-600" : "text-red-600";
   const iconClasses = getStatIconClasses(title);
@@ -143,7 +149,7 @@ const DashboardStatCard: React.FC<DashboardStatCardProps> = ({
       <div className="mt-auto h-16 w-full" aria-label={`${title} trend chart`}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
-            data={sparklineData}
+            data={chartData}
             margin={{ top: 8, right: 0, bottom: 0, left: 0 }}
           >
             <defs>

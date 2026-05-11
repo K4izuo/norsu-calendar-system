@@ -50,6 +50,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   const Icon = config.icon;
   const [countdown, setCountdown] = useState(3);
   const [reason, setReason] = useState("");
+  const [reasonError, setReasonError] = useState("");
   const [approvalReason, setApprovalReason] = useState("");
   const [conflictingReservations, setConflictingReservations] = useState<EventDetails[]>([]);
   const [isLoadingConflicts, setIsLoadingConflicts] = useState(false);
@@ -120,6 +121,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     if (isOpen) {
       setCountdown(3);
       setReason("");
+      setReasonError("");
       setApprovalReason("");
       setConflictingReservations([]);
       const interval = setInterval(() => {
@@ -137,9 +139,13 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
 
   const handleConfirm = () => {
     if (type === "DECLINE") {
+      if (reason.trim().length < 10) {
+        setReasonError("Please provide a reason of at least 10 characters.");
+        return;
+      }
       onConfirm(reason);
     } else {
-      onConfirm(approvalReason);
+      onConfirm(approvalReason || undefined);
     }
   };
 
@@ -269,19 +275,19 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                   </div>
                 )}
 
-                {hasConflicts && !isLoadingConflicts && (
+                {type === "APPROVE" && !isLoadingConflicts && (
                   <div>
                     <Label
                       htmlFor="approval-reason"
-                      className="inline-block text-sm font-medium text-gray-700 mb-1"
+                      className="inline-flex text-sm pointer-events-none mb-1"
                     >
-                      Reason for Approval (Optional)
+                      Note<span className="text-muted-foreground"> (optional)</span>
                     </Label>
                     <Textarea
                       id="approval-reason"
                       value={approvalReason}
                       onChange={(e) => setApprovalReason(e.target.value)}
-                      placeholder="Provide a reason for approving this reservation..."
+                      placeholder="Add a note for this approval..."
                       className="w-full bg-white min-h-25 text-base border-2 rounded-lg focus:border-ring transition-all duration-150"
                       rows={3}
                     />
@@ -292,18 +298,24 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                   <div>
                     <Label
                       htmlFor="decline-reason"
-                      className="inline-block text-sm font-medium text-gray-700 mb-1"
+                      className="inline-flex text-sm pointer-events-none mb-1"
                     >
-                      Reason for Declining (Optional)
+                      Reason for Declining<span className="text-rose-500"> *</span>
                     </Label>
                     <Textarea
                       id="decline-reason"
                       value={reason}
-                      onChange={(e) => setReason(e.target.value)}
+                      onChange={(e) => {
+                        setReason(e.target.value);
+                        if (reasonError) setReasonError("");
+                      }}
                       placeholder="Provide a reason for declining this reservation..."
-                      className="w-full min-h-30 text-base border-2 rounded-lg focus:border-ring transition-all duration-150"
+                      className={`w-full min-h-30 text-base border-2 rounded-lg focus:border-ring transition-all duration-150 ${reasonError ? "border-rose-400" : ""}`}
                       rows={4}
                     />
+                    {reasonError && (
+                      <p className="mt-1 text-sm text-rose-500">{reasonError}</p>
+                    )}
                   </div>
                 )}
               </div>

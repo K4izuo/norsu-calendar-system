@@ -6,6 +6,11 @@ import { formatEventTimeRange } from "@/features/calendar/utils/timezone-utils";
 import { CalendarDayType, EventDetails } from "@/interface/user-props";
 import { getRoleColors } from "@/shared/components/utils/role-colors";
 
+// Shared drag state — set on mousedown/dragstart, read by every CalendarDayCell.
+let _activeDragRange = 1;
+// Which cell idx is currently highlighted as the drop target (-1 = none).
+let _activeDragHoverIdx = -1;
+
 // ─── Draggable pill sub-component ────────────────────────────────────────────
 
 interface DraggableEventPillProps {
@@ -43,6 +48,7 @@ const DraggableEventPill = React.memo(function DraggableEventPill({
 
   const clearDragVisualState = useCallback(() => {
     document.body.classList.remove("dragging-pill");
+    _activeDragRange = 1;
 
     const el = pillRef.current;
     if (el) {
@@ -70,7 +76,8 @@ const DraggableEventPill = React.memo(function DraggableEventPill({
   const handleMouseDown = useCallback(() => {
     if (!isDraggable) return;
     document.body.classList.add("dragging-pill");
-  }, [isDraggable]);
+    _activeDragRange = Math.max(1, event.range || 1);
+  }, [isDraggable, event]);
 
   const handleMouseUp = useCallback(() => {
     const el = pillRef.current;
@@ -85,78 +92,11 @@ const DraggableEventPill = React.memo(function DraggableEventPill({
       e.dataTransfer.effectAllowed = "move";
       e.dataTransfer.setData("text/plain", String(eventId));
 
-      // Measure the actual rendered cell width and grid gap so the ghost
-      // spans the exact same width as the combined multi-day pill on screen.
-      const cellEl = pillRef.current?.closest("[data-idx]") as HTMLElement | null;
-      const range = Math.max(1, event.range || 1);
-      let ghostWidth = pillRef.current?.offsetWidth ?? 120;
+      _activeDragRange = Math.max(1, event.range || 1);
 
-      if (cellEl) {
-        const cellWidth = cellEl.getBoundingClientRect().width;
-        const parentGrid = cellEl.parentElement;
-        const gap = parentGrid
-          ? parseFloat(window.getComputedStyle(parentGrid).columnGap) || 4
-          : 4;
-        ghostWidth = Math.round(cellWidth * range + gap * (range - 1));
-      }
-
-      // Position cursor inside the ghost relative to which span-day was grabbed.
-      const xOffset =
-        event.spanPosition === "end"
-          ? Math.max(ghostWidth - 18, Math.round(ghostWidth / 2))
-          : event.spanPosition === "middle"
-          ? Math.round(ghostWidth / 2)
-          : 18;
-
-      // Canvas ghost — drawing is synchronous so pixels are immediately in the
-      // backing store. setDragImage on a canvas element reads that buffer directly,
-      // bypassing the async CSS paint cycle that makes DOM-clone ghosts transparent.
-      const pillEl = pillRef.current!;
-      const pillHeight = pillEl.offsetHeight || 32;
-      const dpr = window.devicePixelRatio || 1;
-
-      const rawBg = window.getComputedStyle(pillEl).backgroundColor;
-      const bgColor =
-        rawBg && rawBg !== "rgba(0, 0, 0, 0)" && rawBg !== "transparent"
-          ? rawBg
-          : "rgb(244, 244, 244)"; // ≈ Tailwind v4 gray-100
-
-      const canvas = document.createElement("canvas");
-      canvas.width = Math.round(ghostWidth * dpr);
-      canvas.height = Math.round(pillHeight * dpr);
-      canvas.style.cssText = "position:fixed;left:-9999px;top:-9999px;pointer-events:none;";
-
-      const ctx = canvas.getContext("2d")!;
-      ctx.scale(dpr, dpr);
-
-      // Pill background — rounded-l-sm (2px) + rounded-r-md (6px)
-      ctx.fillStyle = bgColor;
-      ctx.beginPath();
-      ctx.roundRect(0, 0, ghostWidth, pillHeight, [2, 6, 6, 2]);
-      ctx.fill();
-
-      // Left accent border (gray-500)
-      ctx.fillStyle = "rgb(107, 114, 128)";
-      ctx.fillRect(0, 0, 1, pillHeight);
-
-      // Title
-      const titleText = event.title_name || "Event";
-      ctx.fillStyle = "rgb(31, 41, 55)";
-      ctx.font = `600 10px ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,sans-serif`;
-      ctx.textBaseline = "top";
-      ctx.fillText(titleText, 8, 4, ghostWidth - 12);
-
-      // Time
-      const timeText = formatEventTimeRange(event.time_start, event.time_end);
-      if (timeText) {
-        ctx.fillStyle = "rgb(107, 114, 128)";
-        ctx.font = `500 9px ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,sans-serif`;
-        ctx.fillText(timeText, 8, 16, ghostWidth - 12);
-      }
-
-      document.body.appendChild(canvas);
-      e.dataTransfer.setDragImage(canvas, xOffset, Math.floor(pillHeight / 2));
-      requestAnimationFrame(() => { canvas.parentNode?.removeChild(canvas); });
+      // No setDragImage — Chrome uses the already-composited texture of the pill
+      // which correctly includes the background color. setDragImage triggers a
+      // fresh paint pass that fails to resolve Tailwind v4 CSS custom properties.
 
       document.body.classList.add("dragging-pill");
       pillRef.current?.setAttribute("data-dragging", "1");
@@ -276,53 +216,72 @@ export const CalendarDayCell = React.memo(function CalendarDayCell<T>({
   const canDrop = !!day.currentMonth && !isPastDate;
 
   const cellRef = useRef<HTMLDivElement | null>(null);
-  const dragCounterRef = useRef(0);
   const bgColor = roleColors.dragBgRaw ?? "rgba(107, 114, 128, 0.10)";
 
+  // Clear this cell's highlight when the drag operation ends for any reason.
+  useEffect(() => {
+    const clearOnDragEnd = () => {
+      if (cellRef.current) cellRef.current.style.backgroundColor = "";
+      _activeDragHoverIdx = -1;
+    };
+    window.addEventListener("dragend", clearOnDragEnd);
+    return () => window.removeEventListener("dragend", clearOnDragEnd);
+  }, []);
+
+  const clearRangeHighlight = useCallback((grid: HTMLElement, anchorIdx: number) => {
+    for (let i = 0; i < _activeDragRange; i++) {
+      const el = grid.querySelector(`[data-idx="${anchorIdx + i}"]`) as HTMLElement | null;
+      if (el) el.style.backgroundColor = "";
+    }
+  }, []);
+
+  const applyRangeHighlight = useCallback((grid: HTMLElement, anchorIdx: number) => {
+    for (let i = 0; i < _activeDragRange; i++) {
+      const el = grid.querySelector(`[data-idx="${anchorIdx + i}"]`) as HTMLElement | null;
+      if (el) el.style.backgroundColor = bgColor;
+    }
+  }, [bgColor]);
+
+  // dragOver fires continuously and reliably on every frame the cursor is over a
+  // cell — unlike dragEnter/Leave which break on fast movement due to child-element
+  // bubbling. We update the range highlight only when the hovered cell changes.
   const handleDragOver = useCallback(
     (e: React.DragEvent) => {
-      if (day.currentMonth && day.dateString) {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
-      }
-    },
-    [day.currentMonth, day.dateString],
-  );
-
-  const handleDragEnter = useCallback(
-    (e: React.DragEvent) => {
+      if (!day.currentMonth || !day.dateString) return;
       e.preventDefault();
-      dragCounterRef.current++;
-      if (dragCounterRef.current === 1 && canDrop && cellRef.current) {
-        cellRef.current.style.backgroundColor = bgColor;
-      }
+      e.dataTransfer.dropEffect = "move";
+
+      if (idx === _activeDragHoverIdx) return;
+
+      const grid = cellRef.current?.parentElement;
+      if (!grid) return;
+
+      if (_activeDragHoverIdx >= 0) clearRangeHighlight(grid, _activeDragHoverIdx);
+
+      _activeDragHoverIdx = idx;
+      if (canDrop) applyRangeHighlight(grid, idx);
     },
-    [canDrop, bgColor],
+    [day.currentMonth, day.dateString, idx, canDrop, clearRangeHighlight, applyRangeHighlight],
   );
 
-  const handleDragLeave = useCallback(() => {
-    dragCounterRef.current--;
-    if (dragCounterRef.current === 0 && cellRef.current) {
-      cellRef.current.style.backgroundColor = "";
-    }
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
   }, []);
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
-
       document.body.classList.remove("dragging-pill");
-      dragCounterRef.current = 0;
 
-      if (cellRef.current) {
-        cellRef.current.style.backgroundColor = "";
-      }
+      const grid = cellRef.current?.parentElement;
+      if (grid && _activeDragHoverIdx >= 0) clearRangeHighlight(grid, _activeDragHoverIdx);
+      _activeDragHoverIdx = -1;
 
       if (day.dateString && onNativeDrop) {
         onNativeDrop(day.dateString);
       }
     },
-    [day.dateString, onNativeDrop],
+    [day.dateString, onNativeDrop, clearRangeHighlight],
   );
 
   const baseClassName = `relative border rounded-md flex flex-col p-1.5 sm:p-2 text-sm xs:text-base sm:text-lg md:text-xl font-medium ${isActiveDrag ? "" : "transition-colors"
@@ -340,7 +299,6 @@ export const CalendarDayCell = React.memo(function CalendarDayCell<T>({
       onClick={day.currentMonth ? () => onDaySelect(day) : undefined}
       onDragOver={handleDragOver}
       onDragEnter={handleDragEnter}
-      onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
       <div className="flex justify-end items-start w-full">

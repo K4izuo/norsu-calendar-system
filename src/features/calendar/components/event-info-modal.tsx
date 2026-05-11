@@ -90,10 +90,10 @@ export const EventInfoModal = React.memo(function EventInfoModal({
   const isCdStage = currentStage === "campus_director" && isCampusDirectorRole;
   const isSubmitterDeclined = status === "DECLINED" && [1, 10, 12].includes(userRoleNumber ?? 0);
 
-  const handleApproveConfirm = () => {
+  const handleApproveConfirm = (note?: string) => {
     if (!event) return;
     setShowApproveConfirm(false);
-    approveReservation({ reservationId: event.id }, {
+    approveReservation({ reservationId: event.id, note }, {
       onSuccess: () => { onApprove?.(); onClose(); },
     });
   };

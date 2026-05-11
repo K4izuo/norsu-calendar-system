@@ -167,14 +167,17 @@ const approveReservation = async ({
   reservationId,
   userId,
   action = "APPROVED",
+  note,
 }: {
   reservationId: number;
   userId: string | number;
   action?: "APPROVED" | "APPROVE" | "ENDORSE";
+  note?: string;
 }): Promise<void> => {
   const response = await apiClient.put(`/reservations/${reservationId}`, {
     action,
     approved_by_user: userId,
+    ...(note ? { reason: note } : {}),
   });
   if (response.error) throw new Error(response.error);
 };
@@ -441,12 +444,14 @@ export const useApproveReservation = () => {
     mutationFn: ({
       reservationId,
       action = "APPROVED",
+      note,
     }: {
       reservationId: number;
       action?: "APPROVED" | "APPROVE" | "ENDORSE";
+      note?: string;
     }) => {
       if (!user?.id) throw new Error("User not authenticated. Please login again.");
-      return approveReservation({ reservationId, userId: user.id, action });
+      return approveReservation({ reservationId, userId: user.id, action, note });
     },
     onSuccess: (_data, variables) => {
       removeReservationFromQueueQueries(queryClient, variables.reservationId);

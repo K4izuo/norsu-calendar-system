@@ -11,7 +11,6 @@ export function EventSummaryCard({ event }: EventSummaryCardProps) {
   const asset = event.asset;
   const assetName = asset?.asset_name || "Not specified";
   const assetCapacity = asset?.capacity || "N/A";
-  const assetAminities = asset?.aminities;
   const startedAgoText = getStartedAgo(event.date, event.time_start);
 
   return (
@@ -51,18 +50,6 @@ export function EventSummaryCard({ event }: EventSummaryCardProps) {
               {event.category === "other" && event.other_category ? event.other_category : event.category}
             </p>
           </div>
-          {assetAminities && assetAminities.length > 0 && (
-            <div className="col-span-1 md:col-span-2 lg:col-span-4">
-              <p className="text-sm text-gray-500 mb-2">Venue Facilities</p>
-              <div className="flex flex-wrap gap-2">
-                {assetAminities.map((facility, index) => (
-                  <span key={index} className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium border border-gray-300 text-gray-800 bg-transparent">
-                    {facility}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

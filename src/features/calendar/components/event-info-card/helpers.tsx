@@ -60,6 +60,25 @@ export const formatDate = (dateStr: string | undefined): string => {
   }
 };
 
+export const formatDateTime = (dateStr: string | undefined): string => {
+  if (!dateStr) return "";
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+
+    const formattedDate = formatDate(dateStr);
+    const formattedTime = date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+
+    return `${formattedDate} - ${formattedTime}`;
+  } catch {
+    return dateStr;
+  }
+};
+
 export function getApprovalBadge(approval?: ReservationApproval) {
   if (!approval) {
     return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pending</span>;
@@ -74,7 +93,7 @@ export function getApprovalBadge(approval?: ReservationApproval) {
       <div className="flex items-center gap-2 flex-wrap">
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">{label}</span>
         {approverName && <span className="text-xs text-gray-500">by {approverName}</span>}
-        <span className="text-xs text-gray-400">{new Date(approval.created_at).toLocaleDateString()}</span>
+        <span className="text-xs text-gray-400">{formatDateTime(approval.created_at)}</span>
       </div>
     );
   }
@@ -87,6 +106,7 @@ export function getApprovalBadge(approval?: ReservationApproval) {
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Declined</span>
           {approverName && <span className="text-xs text-gray-500">by {approverName}</span>}
+          <span className="text-xs text-gray-400">{formatDateTime(approval.created_at)}</span>
         </div>
         {approval.reason && <span className="text-xs text-gray-500 pl-1">Reason: {approval.reason}</span>}
       </div>
