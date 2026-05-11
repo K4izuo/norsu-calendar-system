@@ -36,7 +36,7 @@ export const usePeople = () => {
 
   return {
     people: data || [],
-    loading: isAuthLoading || isLoading || isFetching,
+    loading: isAuthLoading || isLoading,
     isFetching,
     isStale,
     error: error?.message || null,

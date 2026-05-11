@@ -57,7 +57,7 @@ export function ReservationDetailsCard({ event, status }: ReservationDetailsCard
             <p className="font-medium text-base">{`${formatTime(event.time_start)} - ${formatTime(event.time_end)}`}</p>
           </div>
           {event.people_tag && event.people_tag.length > 0 && (
-            <div className="md:col-span-2">
+            <div className="min-w-0">
               <p className="text-sm text-gray-500">Required Attendees</p>
               <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
                 {event.people_tag.map((person, idx) => (

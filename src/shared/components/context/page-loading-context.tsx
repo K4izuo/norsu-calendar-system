@@ -9,14 +9,6 @@ interface PageLoadingContextValue {
 
 export const PageLoadingContext = createContext<PageLoadingContextValue | null>(null)
 
-let _pendingOverlay = false
-export const scheduleNavigationOverlay = () => { _pendingOverlay = true }
-export const consumeNavigationOverlay = () => {
-  const pending = _pendingOverlay
-  _pendingOverlay = false
-  return pending
-}
-
 export function usePageLoading() {
   const ctx = useContext(PageLoadingContext)
   if (!ctx) throw new Error("usePageLoading must be used within RoleLayout")

@@ -23,7 +23,7 @@ import { getDefaultPageForRole, getRoleLabelFromNumber, getRolePathFromNumber } 
 import { Separator } from "@/shared/components/ui/separator";
 import { usePathname, useParams } from "next/navigation";
 import Loading from "@/app/(dashboard)/[role]/loading";
-import { PageLoadingContext, consumeNavigationOverlay, scheduleNavigationOverlay } from "@/shared/components/context/page-loading-context";
+import { PageLoadingContext } from "@/shared/components/context/page-loading-context";
 import { QueryClient, useQueryClient } from "@tanstack/react-query";
 import { RESERVATIONS_STALE_TIME, QUEUE_STALE_TIME } from "@/features/calendar/services/reservation-service";
 import { USERS_STALE_TIME } from "@/features/accounts/services/account-service";
@@ -220,17 +220,15 @@ export default function RoleLayout({
   }, [isAuthLoading, user, roleSegment, pathname, router]);
 
   // Show overlay on navigation; skip it when the destination page has fresh cached data.
-  // consumeNavigationOverlay() forces the overlay after mutations even if data exists.
   useLayoutEffect(() => {
     if (prevPathname.current !== null && prevPathname.current !== pathname) {
-      const forceOverlay = consumeNavigationOverlay();
       const pageSegment = pathname.split('/')[2] ?? '';
       const currentUser = userRef.current;
       const userId = currentUser?.id;
       const role = typeof currentUser?.role === 'string'
         ? parseInt(currentUser.role, 10) || pathRoleRef.current
         : Number(currentUser?.role) || pathRoleRef.current;
-      const fresh = !forceOverlay && hasCachedFreshData(queryClient, pageSegment, userId, role);
+      const fresh = hasCachedFreshData(queryClient, pageSegment, userId, role);
       if (fresh) {
         setOverlayVisible(false);
         setFadeOut(false);
@@ -284,7 +282,6 @@ export default function RoleLayout({
         : Number(currentUser?.role) || pathRoleRef.current;
       const fresh = hasCachedFreshData(queryClient, pageSegment, userId, role);
       if (!fresh) {
-        scheduleNavigationOverlay();
         showOverlay();
       }
     };

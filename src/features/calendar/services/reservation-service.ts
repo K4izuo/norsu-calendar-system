@@ -1,12 +1,11 @@
 import { apiClient } from "@/core/api/api-client";
-import { scheduleNavigationOverlay } from "@/shared/components/context/page-loading-context";
 import { QueryClient, useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/shared/components/context/auth-context";
 import { ReservationWithRelations, MoveReservationPayload, ReservationAPIPayload, RequestorInfo } from "@/interface/user-props";
 import toast from "react-hot-toast";
 
 export const RESERVATIONS_STALE_TIME = 60 * 1000;
-export const QUEUE_STALE_TIME = 10 * 1000;
+export const QUEUE_STALE_TIME = 60 * 1000;
 
 export type Asset = {
   id: number;
@@ -254,7 +253,7 @@ export const useReservations = () => {
 
   return {
     reservations: data || [],
-    loading: isAuthLoading || isLoading || isFetching,
+    loading: isAuthLoading || isLoading,
     isFetching,
     isStale,
     hasData: hasValidData,
@@ -311,7 +310,7 @@ export const useGetQueue = () => {
 
   return {
     queue: data || [],
-    loading: isAuthLoading || isLoading || isFetching,
+    loading: isAuthLoading || isLoading,
     isFetching,
     isStale,
     error: error?.message || null,
@@ -420,7 +419,6 @@ export const useAsset = (id: number) => {
 };
 
 const invalidateReservationQueries = (queryClient: ReturnType<typeof useQueryClient>) => {
-  scheduleNavigationOverlay();
   queryClient.invalidateQueries({ queryKey: ["reservations"], refetchType: "all" });
   queryClient.invalidateQueries({ queryKey: ["public-reservations"], refetchType: "all" });
   queryClient.invalidateQueries({ queryKey: ["reservation-queue"], refetchType: "all" });

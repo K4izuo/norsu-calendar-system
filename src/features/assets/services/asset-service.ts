@@ -71,7 +71,7 @@ export const useAssets = () => {
 
   return {
     assets: data || [],
-    loading: isAuthLoading || isLoading || isFetching,
+    loading: isAuthLoading || isLoading,
     isFetching,
     isStale,
     error: error?.message || null,
