@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from "react";
 import dynamic from "next/dynamic";
-import { Search, SlidersHorizontal, Plus, ChevronRight } from "lucide-react";
+import { Search, SlidersHorizontal, Plus, ChevronRight, ArrowLeft } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { PageBreadcrumb } from "@/shared/components/ui/page-breadcrumb";
@@ -13,7 +13,7 @@ import {
 } from "@/features/calendar/services/reservation-service";
 import { useAuth } from "@/shared/components/context/auth-context";
 import { usePageReady } from "@/shared/components/context/page-loading-context";
-import { useParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { ReserveEventModal } from "@/features/reservations/components/reserve-event-modal";
 import { ReservationSuccessModal } from "@/features/reservations/components/reservation-success-modal";
 import type { VenueData } from "@/features/calendar/components/campus-map";
@@ -135,10 +135,14 @@ function TimelineItem({
 
 export default function ReservationTrackingPage() {
   const params = useParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const role = params.role as string;
   const userRoleNumber = PATH_ROLE_MAP[role] ?? 3;
   const { user } = useAuth();
   const userOffice = user?.office;
+
+  const focusedId = searchParams.get("id") ? Number(searchParams.get("id")) : null;
 
   const [search, setSearch] = useState("");
   const [newReservationOpen, setNewReservationOpen] = useState(false);
@@ -200,15 +204,20 @@ export default function ReservationTrackingPage() {
   }, [reservations]);
 
   const filteredEvents = useMemo(() => {
-    if (!search.trim()) return allEvents;
-    const q = search.toLowerCase();
-    return allEvents.filter(
-      (e) =>
-        e.reservationTitle.toLowerCase().includes(q) ||
-        (STAGE_LABELS[e.stage.toLowerCase()] ?? e.stage).toLowerCase().includes(q) ||
-        e.actor.toLowerCase().includes(q),
-    );
-  }, [allEvents, search]);
+    let events = focusedId
+      ? allEvents.filter((e) => e.reservationId === focusedId)
+      : allEvents;
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      events = events.filter(
+        (e) =>
+          e.reservationTitle.toLowerCase().includes(q) ||
+          (STAGE_LABELS[e.stage.toLowerCase()] ?? e.stage).toLowerCase().includes(q) ||
+          e.actor.toLowerCase().includes(q),
+      );
+    }
+    return events;
+  }, [allEvents, focusedId, search]);
 
   const handleReservationSuccess = useCallback(() => {
     setNewReservationOpen(false);
@@ -258,6 +267,22 @@ export default function ReservationTrackingPage() {
           </Button>
         </div>
       </div>
+
+      {focusedId && (
+        <div className="flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+          <button
+            onClick={() => router.push(`/${role}/reservation-tracking`)}
+            className="flex items-center gap-1.5 text-sm font-medium text-blue-700 hover:text-blue-900 transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            All reservations
+          </button>
+          <span className="text-blue-300">|</span>
+          <p className="text-sm text-blue-700">
+            Showing tracking for reservation <span className="font-semibold">#{focusedId}</span>
+          </p>
+        </div>
+      )}
 
       {error && (
         <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">

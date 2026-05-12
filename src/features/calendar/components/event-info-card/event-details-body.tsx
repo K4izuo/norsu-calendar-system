@@ -70,6 +70,7 @@ export function EventDetailsBody({
             proofOfApproval={event.proof_of_approval}
             role={role}
             status={status}
+            eventId={event.id}
             canMoveReservation={canMoveReservation}
             onMoveReservation={onMoveReservation}
             onPrintReceipt={onPrintReceipt}

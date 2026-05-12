@@ -20,6 +20,7 @@ const fadeUp = (delay: number, y: number = 16, duration: number = 0.6) => ({
 
 const HeroSection = () => {
   const [mounted, setMounted] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
   const [today, setToday] = useState<Date>(new Date());
   const [currentMonth, setCurrentMonth] = useState(0);
   const [currentYear, setCurrentYear] = useState(0);
@@ -63,11 +64,25 @@ const HeroSection = () => {
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
+    const handlePlaying = () => setVideoReady(true);
+    const handleNotPlaying = () => setVideoReady(false);
+    video.addEventListener("playing", handlePlaying);
+    video.addEventListener("waiting", handleNotPlaying);
+    video.addEventListener("pause", handleNotPlaying);
+    video.addEventListener("seeking", handleNotPlaying);
+    video.addEventListener("stalled", handleNotPlaying);
     const handleVisibility = () => {
       if (!document.hidden) video.play().catch(() => { });
     };
     document.addEventListener("visibilitychange", handleVisibility);
-    return () => document.removeEventListener("visibilitychange", handleVisibility);
+    return () => {
+      video.removeEventListener("playing", handlePlaying);
+      video.removeEventListener("waiting", handleNotPlaying);
+      video.removeEventListener("pause", handleNotPlaying);
+      video.removeEventListener("seeking", handleNotPlaying);
+      video.removeEventListener("stalled", handleNotPlaying);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
   }, []);
 
   useErrorToast();
@@ -95,21 +110,31 @@ const HeroSection = () => {
   }, [startEventInfoLoading]);
 
   return (
-    <section id="hero-section" className="relative overflow-hidden flex flex-col items-center">
-      {/* Background Video */}
+    <section id="hero-section" className="relative overflow-hidden flex flex-col items-center bg-black">
+      {/* Background Video — sits at the base of the stack */}
       <video
         ref={videoRef}
         autoPlay
         muted
         loop
         playsInline
-        poster="/hero-poster.jpg"
         className="absolute inset-0 w-full h-full object-cover z-0"
         src="/videos/hero-background.mp4"
       />
+      {/* Poster overlay — above the video so it covers any black frames.
+          Fades out once the video fires "playing", snaps back on pause/wait/seek. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-36 bg-gradient-to-b from-transparent via-background/45 to-background md:h-45"
+        className="absolute inset-0 w-full h-full bg-cover bg-center z-1 pointer-events-none"
+        style={{
+          backgroundImage: "url('/hero-poster.jpg')",
+          opacity: videoReady ? 0 : 1,
+          transition: videoReady ? "opacity 600ms ease" : "opacity 80ms ease",
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-2 h-36 bg-linear-to-b from-transparent via-background/45 to-background md:h-45"
       />
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center w-full pt-12 md:pt-16 px-4">

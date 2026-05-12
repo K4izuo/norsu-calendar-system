@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Users, GraduationCap, Building2, ExternalLink, MoreVertical, MoveRight, Printer, QrCode } from "lucide-react";
+import { Users, GraduationCap, Building2, ExternalLink, MoreVertical, MoveRight, Printer, QrCode, Activity } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
 import { EventDetails } from "@/interface/user-props";
 import { UserRole } from "@/shared/components/utils/role-colors";
 
@@ -11,6 +12,7 @@ interface RequestorCardProps {
   proofOfApproval?: string;
   role?: UserRole;
   status?: "PENDING" | "APPROVED" | "DECLINED";
+  eventId?: number;
   canMoveReservation?: boolean;
   onMoveReservation?: () => void;
   onPrintReceipt?: () => void;
@@ -58,6 +60,7 @@ export function RequestorCard({
   proofOfApproval,
   role,
   status,
+  eventId,
   canMoveReservation = false,
   onMoveReservation,
   onPrintReceipt,
@@ -65,7 +68,10 @@ export function RequestorCard({
   isPrinting = false,
 }: RequestorCardProps) {
   const [showDotsMenu, setShowDotsMenu] = useState(false);
-  const showMenu = role && role !== "public" && status === "APPROVED";
+  const params = useParams();
+  const router = useRouter();
+  const urlRole = params.role as string;
+  const showMenu = status === "PENDING" || (role && role !== "public" && status === "APPROVED");
 
   return (
     <div className="bg-white text-card-foreground border border-border rounded-lg">
@@ -88,8 +94,20 @@ export function RequestorCard({
             {showDotsMenu && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setShowDotsMenu(false)} />
-                <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
-                  {canMoveReservation && (
+                <div className="absolute right-0 mt-1 w-52 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
+                  {status === "PENDING" && (
+                    <button
+                      onClick={() => {
+                        setShowDotsMenu(false);
+                        router.push(`/${urlRole}/reservation-tracking?id=${eventId}`);
+                      }}
+                      className="flex cursor-pointer items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
+                    >
+                      <Activity className="h-4 w-4" />
+                      Reservation Tracking
+                    </button>
+                  )}
+                  {status === "APPROVED" && canMoveReservation && (
                     <button
                       onClick={() => { setShowDotsMenu(false); onMoveReservation?.(); }}
                       className="flex cursor-pointer items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
@@ -98,21 +116,25 @@ export function RequestorCard({
                       Move Reservation
                     </button>
                   )}
-                  <button
-                    onClick={() => { setShowDotsMenu(false); onPrintReceipt?.(); }}
-                    disabled={isPrinting}
-                    className="flex cursor-pointer items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Printer className="h-4 w-4" />
-                    {isPrinting ? "Generating…" : "Print Receipt"}
-                  </button>
-                  <button
-                    onClick={() => { setShowDotsMenu(false); onShowQR?.(); }}
-                    className="flex cursor-pointer items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
-                  >
-                    <QrCode className="h-4 w-4" />
-                    Show QR Code
-                  </button>
+                  {status === "APPROVED" && (
+                    <>
+                      <button
+                        onClick={() => { setShowDotsMenu(false); onPrintReceipt?.(); }}
+                        disabled={isPrinting}
+                        className="flex cursor-pointer items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <Printer className="h-4 w-4" />
+                        {isPrinting ? "Generating…" : "Print Receipt"}
+                      </button>
+                      <button
+                        onClick={() => { setShowDotsMenu(false); onShowQR?.(); }}
+                        className="flex cursor-pointer items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
+                      >
+                        <QrCode className="h-4 w-4" />
+                        Show QR Code
+                      </button>
+                    </>
+                  )}
                 </div>
               </>
             )}

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { z } from "zod";
-import { Users, GraduationCap, Building2, X, Check, AlertCircle } from "lucide-react";
+import { Users, GraduationCap, Building2, X, Check, AlertCircle, Loader2 } from "lucide-react";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { useCourses, useOffices } from "@/features/calendar/services/academicDataService";
@@ -68,8 +68,8 @@ export function EventRequestorTab({
   const [officeInput, setOfficeInput] = useState("");
   const [showOfficeDropdown, setShowOfficeDropdown] = useState(false);
 
-  const { courses } = useCourses();
-  const { offices } = useOffices();
+  const { courses, loading: coursesLoading, error: coursesError } = useCourses();
+  const { offices, loading: officesLoading, error: officesError } = useOffices();
 
   const selectedType = requestor?.type;
 
@@ -102,7 +102,7 @@ export function EventRequestorTab({
 
   const filteredCourses = facultyInput.length > 0
     ? courses.filter(c => c.label.toLowerCase().includes(facultyInput.toLowerCase()))
-    : [];
+    : courses;
 
   const handleFacultySelect = (item: { value: string; label: string }) => {
     onChange({ ...(requestor ?? {}), type: 'faculty', tagged: [{ id: parseInt(item.value), name: item.label }] });
@@ -112,7 +112,7 @@ export function EventRequestorTab({
 
   const filteredOffices = officeInput.length > 0
     ? offices.filter(o => o.label.toLowerCase().includes(officeInput.toLowerCase()))
-    : [];
+    : offices;
 
   const handleOfficeSelect = (item: { value: string; label: string }) => {
     onChange({ ...(requestor ?? {}), type: 'office', tagged: [{ id: parseInt(item.value), name: item.label }] });
@@ -354,13 +354,20 @@ export function EventRequestorTab({
                   setShowFacultyDropdown(e.target.value.length > 0);
                 }}
                 onBlur={() => setTimeout(() => setShowFacultyDropdown(false), 150)}
-                onFocus={() => setShowFacultyDropdown(facultyInput.length > 0)}
+                onFocus={() => setShowFacultyDropdown(true)}
                 className="h-11 border-2 border-gray-200 focus:border-green-500 text-base"
                 autoComplete="off"
               />
               {showFacultyDropdown && (
                 <div className="absolute z-10 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-auto">
-                  {filteredCourses.length > 0 ? (
+                  {coursesLoading ? (
+                    <div className="flex items-center gap-2 px-3 py-2.5 text-gray-400 text-sm">
+                      <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                      Loading courses…
+                    </div>
+                  ) : coursesError ? (
+                    <div className="px-3 py-2.5 text-red-400 text-sm">Failed to load courses</div>
+                  ) : filteredCourses.length > 0 ? (
                     filteredCourses.map((course) => (
                       <button
                         key={course.value}
@@ -445,13 +452,20 @@ export function EventRequestorTab({
                   setShowOfficeDropdown(e.target.value.length > 0);
                 }}
                 onBlur={() => setTimeout(() => setShowOfficeDropdown(false), 150)}
-                onFocus={() => setShowOfficeDropdown(officeInput.length > 0)}
+                onFocus={() => setShowOfficeDropdown(true)}
                 className="h-11 border-2 border-gray-200 focus:border-amber-500 text-base"
                 autoComplete="off"
               />
               {showOfficeDropdown && (
                 <div className="absolute z-10 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-auto">
-                  {filteredOffices.length > 0 ? (
+                  {officesLoading ? (
+                    <div className="flex items-center gap-2 px-3 py-2.5 text-gray-400 text-sm">
+                      <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                      Loading offices…
+                    </div>
+                  ) : officesError ? (
+                    <div className="px-3 py-2.5 text-red-400 text-sm">Failed to load offices</div>
+                  ) : filteredOffices.length > 0 ? (
                     filteredOffices.map((office) => (
                       <button
                         key={office.value}

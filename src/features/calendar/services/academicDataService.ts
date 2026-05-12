@@ -87,14 +87,14 @@ const fetchOffices = async (): Promise<OptionType[]> => {
 };
 
 const fetchCourses = async (): Promise<OptionType[]> => {
-  const response = await apiClient.get<Course[]>('courses/all');
+  const response = await apiClient.get<Course[]>('degreeCourse/all');
 
   if (response.error) {
     throw new Error(getErrorMessage(response.error, "Course"));
   }
 
   if (!response.data || response.data.length === 0) {
-    throw new Error("No courses found");
+    return [];
   }
 
   return mapToOptions(response.data, 'degree_name');
