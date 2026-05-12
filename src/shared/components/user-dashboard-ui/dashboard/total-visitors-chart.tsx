@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 import { useReservations } from "@/features/calendar/services/reservation-service";
+import { useAuth } from "@/shared/components/context/auth-context";
 import {
   ChartConfig,
   ChartContainer,
@@ -26,15 +27,16 @@ const chartConfig = {
 export default function ReservationActivityChart() {
   const [activeRange, setActiveRange] = React.useState<TimeRange>("7d");
   const { reservations } = useReservations();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 3;
 
   const chartData = React.useMemo(() => {
     const days = timeRangeConfig[activeRange].days;
+    const userId = user ? Number(user.id) : null;
 
-    // Format a Date as local YYYY-MM-DD (avoids UTC timezone shift)
     const toLocalDateStr = (d: Date) =>
       `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
-    // Build a map of all dates in the range (oldest → newest), seeded with 0
     const dateMap: Record<string, { approved: number; pending: number }> = {};
     for (let i = days - 1; i >= 0; i--) {
       const d = new Date();
@@ -42,8 +44,8 @@ export default function ReservationActivityChart() {
       dateMap[toLocalDateStr(d)] = { approved: 0, pending: 0 };
     }
 
-    // Tally reservations by created_at date within the range
     for (const r of reservations) {
+      if (!isAdmin && userId !== null && r.reserved_by_user?.id !== userId) continue;
       const dateStr = r.created_at ? toLocalDateStr(new Date(r.created_at)) : null;
       if (!dateStr || !(dateStr in dateMap)) continue;
       const status = r.status?.toUpperCase();
@@ -55,7 +57,7 @@ export default function ReservationActivityChart() {
     }
 
     return Object.entries(dateMap).map(([date, counts]) => ({ date, ...counts }));
-  }, [reservations, activeRange]);
+  }, [reservations, activeRange, isAdmin, user]);
 
   const subtitleMap: Record<TimeRange, string> = {
     "90d": "Total reservations for the last 3 months",

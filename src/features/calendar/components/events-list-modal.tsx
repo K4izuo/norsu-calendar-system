@@ -20,6 +20,7 @@ import { getRoleColors } from "@/shared/components/utils/role-colors"
 
 type EventStatus = "pending" | "approved" | "decline"
 type Role = "dean" | "staff" | "admin" | "public" | undefined
+const ADMIN_ROLE_NUMBER = 3;
 
 const getStartedAgo = (eventDate: string, eventTime: string): string | null => {
   if (!eventDate || !eventTime) return null;
@@ -131,6 +132,8 @@ export function EventsListModal({
     return checkDate < today;
   }, [eventDate]);
 
+  const canReserveEvent = Boolean(role && role !== "public" && !isPastDate && userRole !== ADMIN_ROLE_NUMBER);
+
   const getStatusColor = useCallback((status: EventStatus) => {
     const colors = {
       pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
@@ -151,9 +154,10 @@ export function EventsListModal({
   }, [])
 
   const handleReserve = useCallback(() => {
+    if (!canReserveEvent) return;
     setHasOpenedReserveModal(true)
     setReserveModalOpen(true)
-  }, [])
+  }, [canReserveEvent])
   const handleSubmitReservation = useCallback((formData: ReservationAPIPayload) => {
     setReserveModalOpen(false)
     onReserve?.(formData)
@@ -235,7 +239,7 @@ export function EventsListModal({
                   />
                 </div>
                 <div className="flex gap-3">
-                  {role && role !== 'public' && !isPastDate && (
+                  {canReserveEvent && (
                     <Button
                       onClick={handleReserve}
                       className="h-11 cursor-pointer px-6 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
@@ -318,7 +322,7 @@ export function EventsListModal({
         </div>
       )}
 
-      {hasOpenedReserveModal && (
+      {hasOpenedReserveModal && userRole !== ADMIN_ROLE_NUMBER && (
         <ReserveEventModal
           isOpen={reserveModalOpen}
           onClose={() => setReserveModalOpen(false)}

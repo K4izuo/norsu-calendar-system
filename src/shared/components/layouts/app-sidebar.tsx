@@ -17,6 +17,7 @@ import {
   Briefcase,
   Video,
   Crown,
+  Activity,
 } from "lucide-react"
 
 import { NavMain } from "@/shared/components/layouts/nav-main"
@@ -64,23 +65,26 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const role = (params.role as string) || "admin"
 
   const allNavItems = [
-    { title: "Dashboard",    url: `/${role}/dashboard`,        icon: House },
-    { title: "Calendar",     url: `/${role}/calendar`,         icon: Calendar },
-    { title: "Reservations", url: `/${role}/reservations`,     icon: CalendarClock },
-    { title: "Accounts",     url: `/${role}/accounts`,         icon: UserCog },
-    { title: "People",       url: `/${role}/people`,           icon: BookUser },
-    { title: "Assets",       url: `/${role}/asset-management`, icon: Archive },
+    { title: "Dashboard",    url: `/${role}/dashboard`,              icon: House },
+    { title: "Calendar",     url: `/${role}/calendar`,               icon: Calendar },
+    { title: "Reservations", url: `/${role}/reservations`,           icon: CalendarClock },
+    { title: "Tracking",     url: `/${role}/reservation-tracking`,   icon: Activity },
+    { title: "Accounts",     url: `/${role}/accounts`,               icon: UserCog },
+    { title: "People",       url: `/${role}/people`,                 icon: BookUser },
+    { title: "Assets",       url: `/${role}/asset-management`,       icon: Archive },
   ]
 
   let navMain: typeof allNavItems;
   if (role === "admin") {
     navMain = allNavItems;
   } else if (role === "campus-director") {
-    navMain = allNavItems.filter(i => ["Dashboard", "Calendar", "Reservations"].includes(i.title));
+    navMain = allNavItems.filter(i => ["Dashboard", "Calendar", "Reservations", "Tracking"].includes(i.title));
   } else if (role === "university-president") {
-    navMain = allNavItems.filter(i => ["Dashboard", "Calendar", "Reservations", "Assets"].includes(i.title));
+    navMain = allNavItems.filter(i => ["Dashboard", "Calendar", "Reservations", "Tracking", "Assets"].includes(i.title));
+  } else if (role === "multimedia") {
+    navMain = allNavItems.filter(i => ["Calendar", "Reservations"].includes(i.title));
   } else {
-    navMain = allNavItems.filter(i => i.title === "Calendar" || i.title === "Reservations");
+    navMain = allNavItems.filter(i => ["Calendar", "Reservations", "Tracking"].includes(i.title));
   }
 
   const teamName = PATH_TO_TEAM_NAME[role] ?? "Admin"

@@ -113,7 +113,11 @@ const isProtectedEndpoint = (endpoint: string): boolean => {
       return false;
     }
     // Otherwise it's a single reservation by ID, which is protected
-    return /^reservations\/\d+$/.test(normalizedEndpoint)
+    return normalizedEndpoint === 'reservations/internal'
+      || normalizedEndpoint === 'reservations/queue'
+      || /^reservations\/\d+$/.test(normalizedEndpoint)
+      || /^reservations\/\d+\/equipment$/.test(normalizedEndpoint)
+      || /^reservations\/\d+\/multimedia-comment$/.test(normalizedEndpoint)
       || /^reservations\/\d+\/move$/.test(normalizedEndpoint)
       || /^reservations\/\d+\/resubmit$/.test(normalizedEndpoint);
   }

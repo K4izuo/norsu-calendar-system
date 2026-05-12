@@ -1,9 +1,9 @@
 "use client"
 
-import { useCallback } from "react"
+import { useCallback, type MouseEvent } from "react"
 import { type LucideIcon } from "lucide-react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query"
 import { triggerTokenUpdate } from "@/core/auth/token-refresh"
 import { prefetchDashboardReservations } from "@/features/calendar/services/reservation-service"
@@ -15,7 +15,11 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/shared/components/ui/sidebar"
+
+const MOBILE_SIDEBAR_CLOSE_MS = 300
+const MOBILE_TOKEN_UPDATE_DELAY_MS = 420
 
 export function NavMain({
   items,
@@ -32,8 +36,10 @@ export function NavMain({
   }[]
 }) {
   const pathname = usePathname()
+  const router = useRouter()
   const queryClient = useQueryClient()
   const { user, isAuthenticated, isLoading } = useAuth()
+  const { isMobile, setOpenMobile } = useSidebar()
 
   const prefetchCalendarData = useCallback(() => {
     if (isLoading || !isAuthenticated || !user?.id) return
@@ -43,6 +49,52 @@ export function NavMain({
   const handleNavigationIntent = useCallback((title: string) => {
     if (title === "Calendar") prefetchCalendarData()
   }, [prefetchCalendarData])
+
+  const scheduleTokenUpdate = useCallback(() => {
+    if (!isMobile) {
+      triggerTokenUpdate()
+      return
+    }
+
+    window.setTimeout(() => {
+      triggerTokenUpdate()
+    }, MOBILE_TOKEN_UPDATE_DELAY_MS)
+  }, [isMobile])
+
+  const handleNavItemClick = useCallback((
+    event: MouseEvent<HTMLAnchorElement>,
+    title: string,
+    url: string,
+  ) => {
+    if (!isMobile) {
+      handleNavigationIntent(title)
+      scheduleTokenUpdate()
+      return
+    }
+
+    if (
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return
+    }
+
+    event.preventDefault()
+    setOpenMobile(false)
+
+    if (pathname !== url) {
+      window.setTimeout(() => {
+        router.push(url)
+      }, MOBILE_SIDEBAR_CLOSE_MS)
+    }
+
+    // Trigger debounced, non-blocking token update.
+    scheduleTokenUpdate()
+  }, [handleNavigationIntent, isMobile, pathname, router, scheduleTokenUpdate, setOpenMobile])
 
   return (
     <SidebarGroup>
@@ -58,13 +110,13 @@ export function NavMain({
               <Link 
                 href={item.url}
                 onMouseEnter={() => handleNavigationIntent(item.title)}
-                onFocus={() => handleNavigationIntent(item.title)}
-                onPointerDown={() => handleNavigationIntent(item.title)}
-                onClick={() => {
-                  handleNavigationIntent(item.title)
-                  // Trigger debounced, non-blocking token update
-                  triggerTokenUpdate();
+                onFocus={() => {
+                  if (!isMobile) handleNavigationIntent(item.title)
                 }}
+                onPointerDown={() => {
+                  if (!isMobile) handleNavigationIntent(item.title)
+                }}
+                onClick={(event) => handleNavItemClick(event, item.title, item.url)}
               >
                 {item.icon && <item.icon />}
                 <span>{item.title}</span>

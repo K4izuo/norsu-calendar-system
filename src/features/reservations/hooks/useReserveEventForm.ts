@@ -55,6 +55,8 @@ const getCurrentTime = () => {
   return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 };
 
+const ADMIN_ROLE_NUMBER = 3;
+
 const toFormBoolean = (value: unknown): boolean => {
   if (typeof value === "boolean") return value;
   if (typeof value === "number") return value === 1;
@@ -113,8 +115,10 @@ export const useReserveEventForm = ({ eventDate, onClose, onReservationSuccess, 
     handleRemoveTag,
   } = usePeopleTagging();
 
-  const isDean = userRole === 1
-  const isHeadOfOffice = userRole === 10
+  const currentUserRole = userRole ?? user?.role
+  const isAdmin = currentUserRole === ADMIN_ROLE_NUMBER
+  const isDean = currentUserRole === 1
+  const isHeadOfOffice = currentUserRole === 10
   const oversightVpId = userOffice?.oversight_vp_id ?? null
 
   const handleReservationSuccess = useCallback(() => {
@@ -331,6 +335,11 @@ export const useReserveEventForm = ({ eventDate, onClose, onReservationSuccess, 
 
   const onSubmitForm = useCallback(
     async (data: ReservationFormData) => {
+      if (isAdmin && !editMode && !resubmitMode) {
+        toast.error("Admin accounts cannot create reservations.");
+        return;
+      }
+
       try {
         const { asset, ...rest } = data;
 
@@ -458,7 +467,7 @@ export const useReserveEventForm = ({ eventDate, onClose, onReservationSuccess, 
         toast.error(editMode ? "Failed to update event. Please try again." : "Failed to reserve event. Please try again.");
       }
     },
-    [onClose, taggedPeople, onNewReservation, editMode, resubmitMode, resubmit, eventData, user?.id, queryClient, requestor, handleReservationSuccess, clearDraftState]
+    [onClose, taggedPeople, onNewReservation, editMode, resubmitMode, resubmit, eventData, user?.id, queryClient, requestor, handleReservationSuccess, clearDraftState, isAdmin]
   );
 
   const handleRequestorTabNext = useCallback(() => {

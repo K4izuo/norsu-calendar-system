@@ -19,6 +19,9 @@ import { ModalLoadingSkeleton } from "@/features/calendar/components/event-info-
 import { EventDetailsBody } from "@/features/calendar/components/event-info-card/event-details-body";
 import { useAuth } from "@/shared/components/context/auth-context";
 import { canMoveApprovedReservation } from "@/features/calendar/utils/move-permissions";
+import { getReviewStageForRole, getLatestStageApproval } from "@/features/reservations/utils/reservation-review";
+
+const ADMIN_ROLE_NUMBER = 3;
 
 export const EventInfoModal = React.memo(function EventInfoModal({
   isOpen,
@@ -50,6 +53,26 @@ export const EventInfoModal = React.memo(function EventInfoModal({
   const [isPrinting, setIsPrinting] = useState(false);
 
   const status = event ? getStatus(event) : "PENDING";
+  const isAdminRole = userRoleNumber === ADMIN_ROLE_NUMBER || user?.role === ADMIN_ROLE_NUMBER;
+  const currentStage = event?.current_stage;
+  const reviewerStage = getReviewStageForRole(userRoleNumber);
+  // The backend sets current_stage="vp_approval" for all VP roles (6-9).
+  // Each VP is identified by the requires_* flag; confirm they haven't acted yet.
+  const isVpApprovalActive = Boolean(
+    currentStage === "vp_approval" &&
+    reviewerStage &&
+    event && (
+      (userRoleNumber === 6 && event.requires_vpaa) ||
+      (userRoleNumber === 7 && event.requires_vpsas) ||
+      (userRoleNumber === 8 && event.requires_vpaf) ||
+      (userRoleNumber === 9 && event.requires_vprde)
+    ) &&
+    !getLatestStageApproval(event.approvals, reviewerStage),
+  );
+  const isCurrentReviewerStage = Boolean(reviewerStage && (currentStage === reviewerStage || isVpApprovalActive));
+  const canReviewReservation = Boolean(
+    role && role !== "public" && !isAdminRole && userRoleNumber !== 11 && isCurrentReviewerStage,
+  );
   const currentUserId = user?.id ? Number(user.id) : undefined;
   const canMoveReservation = useMemo(
     () => canMoveApprovedReservation(event, userRoleNumber, currentUserId),
@@ -86,12 +109,14 @@ export const EventInfoModal = React.memo(function EventInfoModal({
   }, [isOpen, onClose]);
 
   const isCampusDirectorRole = userRoleNumber === 5;
-  const currentStage = event?.current_stage;
   const isCdStage = currentStage === "campus_director" && isCampusDirectorRole;
   const isSubmitterDeclined = status === "DECLINED" && [1, 10, 12].includes(userRoleNumber ?? 0);
 
   const handleApproveConfirm = (note?: string) => {
-    if (!event) return;
+    if (!event || !canReviewReservation) {
+      setShowApproveConfirm(false);
+      return;
+    }
     setShowApproveConfirm(false);
     approveReservation({ reservationId: event.id, note }, {
       onSuccess: () => { onApprove?.(); onClose(); },
@@ -99,7 +124,10 @@ export const EventInfoModal = React.memo(function EventInfoModal({
   };
 
   const handleDeclineConfirm = (reason?: string) => {
-    if (!event) return;
+    if (!event || !canReviewReservation) {
+      setShowDeclineConfirm(false);
+      return;
+    }
     setShowDeclineConfirm(false);
     declineReservation({ reservationId: event.id, reason }, {
       onSuccess: () => { onDecline?.(); onClose(); },
@@ -107,7 +135,10 @@ export const EventInfoModal = React.memo(function EventInfoModal({
   };
 
   const handleCdConfirm = (action: "APPROVE" | "ENDORSE") => {
-    if (!event) return;
+    if (!event || !canReviewReservation) {
+      setShowCdModal(false);
+      return;
+    }
     setShowCdModal(false);
     approveReservation({ reservationId: event.id, action }, {
       onSuccess: () => { onApprove?.(); onClose(); },
@@ -132,18 +163,18 @@ export const EventInfoModal = React.memo(function EventInfoModal({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.96 }}
             transition={{ type: "tween", duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-            className="relative w-full max-w-4xl max-h-[90vh] bg-white rounded-xl shadow-2xl flex flex-col transform-gpu"
+            className="relative w-full max-w-4xl max-h-[calc(100dvh-0.75rem)] sm:max-h-[90vh] bg-white rounded-xl shadow-2xl flex flex-col transform-gpu"
             onClick={e => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="sticky top-0 bg-white z-10 p-4 sm:p-6 border-b border-gray-200 flex justify-between items-center rounded-t-xl">
-              <div className="flex items-center gap-2">
-                <CalendarClock className="text-gray-800 h-6 w-6" strokeWidth={2.5} />
-                <h2 className="text-xl font-semibold text-gray-800">Event Details</h2>
+            <div className="sticky top-0 bg-white z-10 p-3 sm:p-6 border-b border-gray-200 flex justify-between items-center rounded-t-xl">
+              <div className="flex min-w-0 items-center gap-2">
+                <CalendarClock className="text-gray-800 h-5 w-5 sm:h-6 sm:w-6 shrink-0" strokeWidth={2.5} />
+                <h2 className="truncate text-lg sm:text-xl font-semibold text-gray-800">Event Details</h2>
               </div>
               <Button
                 onClick={onClose}
-                className="p-2 cursor-pointer shadow-none bg-white rounded-full hover:bg-gray-100 focus:outline-none"
+                className="p-2 cursor-pointer shadow-none bg-white rounded-full hover:bg-gray-100 focus:outline-none shrink-0"
                 aria-label="Close"
               >
                 <X className="w-6 h-6 text-gray-600" />
@@ -168,7 +199,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
             )}
 
             {/* Footer — PENDING, Campus Director stage */}
-            {!loading && event && status === "PENDING" && isCdStage && (
+            {!loading && event && status === "PENDING" && isCdStage && canReviewReservation && (
               <div className="sticky bottom-0 bg-white z-10 p-4 sm:p-6 border-t border-gray-200 flex justify-center gap-3 rounded-b-xl">
                 <Button
                   onClick={() => setShowCdModal(true)}
@@ -189,8 +220,7 @@ export const EventInfoModal = React.memo(function EventInfoModal({
             )}
 
             {/* Footer — PENDING, non-CD approver (excludes admin and multimedia) */}
-            {!loading && event && status === "PENDING" && role && role !== "public"
-              && !isCdStage && userRoleNumber !== 3 && userRoleNumber !== 11 && (
+            {!loading && event && status === "PENDING" && !isCdStage && canReviewReservation && (
                 <div className="sticky bottom-0 bg-white z-10 p-4 sm:p-6 border-t border-gray-200 flex justify-center gap-3 rounded-b-xl">
                   <Button
                     onClick={() => setShowApproveConfirm(true)}

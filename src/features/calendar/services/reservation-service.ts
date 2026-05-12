@@ -1,16 +1,33 @@
 import { apiClient } from "@/core/api/api-client";
 import { QueryClient, useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/shared/components/context/auth-context";
-import { ReservationWithRelations, MoveReservationPayload, ReservationAPIPayload, RequestorInfo } from "@/interface/user-props";
+import {
+  ReservationWithRelations,
+  MoveReservationPayload,
+  ReservationAPIPayload,
+  RequestorInfo,
+  ReservationEquipmentItem,
+} from "@/interface/user-props";
 import toast from "react-hot-toast";
 
 export const RESERVATIONS_STALE_TIME = 60 * 1000;
 export const QUEUE_STALE_TIME = 60 * 1000;
+const ADMIN_ROLE_NUMBER = 3;
 
 export type Asset = {
   id: number;
   asset_name: string;
   capacity: number;
+};
+
+export type UpdateReservationEquipmentPayload = {
+  reservationId: number;
+  equipment: Array<{
+    id: number;
+    quantity: number;
+    note?: string | null;
+  }>;
+  multimediaComment?: string | null;
 };
 
 const toNumber = (value: unknown): number => {
@@ -118,6 +135,33 @@ export const normalizeRequestor = (value: unknown): RequestorInfo | undefined =>
   };
 };
 
+const normalizeEquipment = (value: unknown): ReservationEquipmentItem[] | undefined => {
+  if (!Array.isArray(value)) return undefined;
+
+  const equipment: ReservationEquipmentItem[] = [];
+
+  for (const item of value) {
+    if (!item || typeof item !== "object") continue;
+
+    const record = item as Record<string, unknown>;
+    const name = typeof record.name === "string" ? record.name.trim() : "";
+    if (!name) continue;
+
+    const id = toNumber(record.id);
+    const quantity = Math.max(1, toNumber(record.quantity) || 1);
+    const note = typeof record.note === "string" ? record.note : null;
+
+    equipment.push({
+      ...(id > 0 ? { id } : {}),
+      name,
+      quantity,
+      note,
+    });
+  }
+
+  return equipment.length > 0 ? equipment : undefined;
+};
+
 export const normalizeReservation = (
   reservation: ReservationWithRelations,
 ): ReservationWithRelations => ({
@@ -132,10 +176,19 @@ export const normalizeReservation = (
   requires_vprde: toBoolean(reservation.requires_vprde),
   is_moved: toBoolean(reservation.is_moved),
   requestor: normalizeRequestor(reservation),
+  equipment: normalizeEquipment(reservation.equipment) as ReservationWithRelations["equipment"],
 });
 
-// Fetch all reservations with relations (PUBLIC endpoint)
+// Fetch all reservations with internal account-only fields.
 export const fetchReservations = async (): Promise<ReservationWithRelations[]> => {
+  const response = await apiClient.get<ReservationWithRelations[]>("/reservations/internal");
+  if (response.error) throw new Error(response.error);
+  if (!response.data) return [];
+  return response.data.map(normalizeReservation);
+};
+
+// Fetch public-safe reservations without internal multimedia remarks.
+export const fetchPublicReservations = async (): Promise<ReservationWithRelations[]> => {
   const response = await apiClient.get<ReservationWithRelations[]>("/reservations/all");
   if (response.error) throw new Error(response.error);
   if (!response.data) return [];
@@ -223,6 +276,28 @@ const resubmitReservation = async ({
   if (response.error) throw new Error(response.error);
 };
 
+const updateReservationEquipment = async ({
+  reservationId,
+  equipment,
+  multimediaComment,
+}: UpdateReservationEquipmentPayload): Promise<ReservationWithRelations> => {
+  const response = await apiClient.put<
+    { reservation: ReservationWithRelations; message: string },
+    {
+      equipment: UpdateReservationEquipmentPayload["equipment"];
+      multimedia_comment: string | null;
+    }
+  >(`/reservations/${reservationId}/equipment`, {
+    equipment,
+    multimedia_comment: multimediaComment ?? null,
+  });
+
+  if (response.error) throw new Error(response.error);
+  if (!response.data?.reservation) throw new Error("Equipment update did not return a reservation.");
+
+  return normalizeReservation(response.data.reservation);
+};
+
 // Fetch the approval queue for the current user's role
 export const fetchQueue = async (): Promise<ReservationWithRelations[]> => {
   const response = await apiClient.get<ReservationWithRelations[]>("/reservations/queue", { cache: "no-store" });
@@ -279,7 +354,7 @@ export const prefetchDashboardReservations = (
 export const usePublicReservations = () => {
   const { data, isFetching, error, refetch } = useQuery({
     queryKey: ["public-reservations"],
-    queryFn: fetchReservations,
+    queryFn: fetchPublicReservations,
     staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnMount: true,
@@ -449,6 +524,7 @@ export const useApproveReservation = () => {
       note?: string;
     }) => {
       if (!user?.id) throw new Error("User not authenticated. Please login again.");
+      if (user.role === ADMIN_ROLE_NUMBER) throw new Error("Admin accounts cannot approve reservations.");
       return approveReservation({ reservationId, userId: user.id, action, note });
     },
     onSuccess: (_data, variables) => {
@@ -458,7 +534,7 @@ export const useApproveReservation = () => {
     },
     onError: (err) => {
       console.error("Approve error:", err);
-      toast.error("Failed to approve reservation");
+      toast.error(err instanceof Error ? err.message : "Failed to approve reservation");
     },
   });
 };
@@ -470,6 +546,7 @@ export const useDeclineReservation = () => {
   return useMutation({
     mutationFn: ({ reservationId, reason }: { reservationId: number; reason?: string }) => {
       if (!user?.id) throw new Error("User not authenticated. Please login again.");
+      if (user.role === ADMIN_ROLE_NUMBER) throw new Error("Admin accounts cannot decline reservations.");
       return declineReservation({ reservationId, userId: user.id, reason });
     },
     onSuccess: (_data, variables) => {
@@ -479,7 +556,7 @@ export const useDeclineReservation = () => {
     },
     onError: (err) => {
       console.error("Decline error:", err);
-      toast.error("Failed to decline reservation");
+      toast.error(err instanceof Error ? err.message : "Failed to decline reservation");
     },
   });
 };
@@ -521,6 +598,21 @@ export const useUpdateMultimediaComment = () => {
     onError: (err) => {
       console.error("Multimedia comment error:", err);
       toast.error("Failed to save comment");
+    },
+  });
+};
+
+export const useUpdateReservationEquipment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateReservationEquipment,
+    onSuccess: () => {
+      invalidateReservationQueries(queryClient);
+    },
+    onError: (err) => {
+      console.error("Equipment update error:", err);
+      toast.error(err instanceof Error ? err.message : "Failed to save equipment changes");
     },
   });
 };

@@ -56,7 +56,6 @@ function CalendarComponent<T>({
 
   const {
     direction,
-    setDirection,
     goToPreviousMonth,
     goToNextMonth,
     goToToday,
@@ -146,16 +145,11 @@ function CalendarComponent<T>({
   return (
     <div className="flex flex-col w-full flex-1">
       <CalendarHeader
-        currentMonth={currentMonth}
-        currentYear={currentYear}
         currentMonthYear={currentMonthYear}
-        monthNames={monthNames}
         direction={direction}
         onPreviousMonth={goToPreviousMonth}
         onNextMonth={goToNextMonth}
         onToday={goToToday}
-        onMonthYearChange={onMonthYearChange}
-        setDirection={setDirection}
       />
 
       <CalendarGrid

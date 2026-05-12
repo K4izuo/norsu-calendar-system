@@ -28,7 +28,7 @@ export function PageBreadcrumb({ items }: PageBreadcrumbProps) {
   };
 
   return (
-    <Breadcrumb className="mb-6">
+    <Breadcrumb className="mb-3 sm:mb-6">
       <BreadcrumbList>
         {items.map((item, index) => {
           const isLast = index === items.length - 1;

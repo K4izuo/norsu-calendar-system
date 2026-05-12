@@ -19,11 +19,18 @@ export const EventCardsList = React.memo(function EventCardsList({
         const formattedStartTime = formatTime(event.time_start);
         const formattedEndTime = formatTime(event.time_end);
         const reservation_time = `${formattedStartTime} - ${formattedEndTime}`
+        const venueName = event.asset?.asset_name || "Not specified"
         const startedAgo = getStartedAgo(event.date, event.time_start, event.time_end)
         const status = getStatus(event)
         const reservedBy = event.reserve_by_user || "Unknown"
         const approvedBy = event.approved_by_user || "Unknown"
         const declinedBy = event.declined_by_user || "Unknown"
+        const detailItems = [
+          { label: "Venue", icon: MapPin, value: venueName },
+          { label: "Time", icon: Clock, value: reservation_time },
+          { label: "Category", icon: Tag, value: event.category || "Uncategorized", className: "capitalize" },
+          { label: "Reserved By", icon: User, value: reservedBy },
+        ]
 
         let tooltipText = ""
         if (status === "pending") tooltipText = `Reserved by: ${reservedBy}`
@@ -105,48 +112,23 @@ export const EventCardsList = React.memo(function EventCardsList({
               </div>
 
               {/* Event Details Grid */}
-              <div className="flex justify-between items-start gap-4">
-                {/* Venue */}
-                <div className="flex flex-col">
-                  <span className="text-xs text-gray-400 uppercase mb-1.5">Venue</span>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-gray-600 shrink-0" />
-                    <span className="text-sm font-medium text-gray-900" title={event.asset?.asset_name}>
-                      {event.asset?.asset_name
-                        ? event.asset.asset_name.length > 16
-                          ? `${event.asset.asset_name.substring(0, 16)}...`
-                          : event.asset.asset_name
-                        : "Not specified"}
+              <div className="grid grid-cols-2 gap-x-4 gap-y-4 sm:grid-cols-4">
+                {detailItems.map(({ label, icon: Icon, value, className }) => (
+                  <div key={label} className="min-w-0">
+                    <span className="mb-1.5 block text-xs uppercase text-gray-400">
+                      {label}
                     </span>
+                    <div className="flex min-w-0 items-center gap-2">
+                      <Icon className="h-4 w-4 shrink-0 text-gray-600" />
+                      <span
+                        className={`min-w-0 truncate text-sm font-medium text-gray-900 ${className || ""}`}
+                        title={value}
+                      >
+                        {value}
+                      </span>
+                    </div>
                   </div>
-                </div>
-
-                {/* Time */}
-                <div className="flex flex-col">
-                  <span className="text-xs text-gray-400 uppercase mb-1.5">Time</span>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-gray-600 shrink-0" />
-                    <span className="text-sm font-medium text-gray-900">{reservation_time}</span>
-                  </div>
-                </div>
-
-                {/* Category */}
-                <div className="flex flex-col">
-                  <span className="text-xs text-gray-400 uppercase mb-1.5">Category</span>
-                  <div className="flex items-center gap-2">
-                    <Tag className="h-4 w-4 text-gray-600 shrink-0" />
-                    <span className="text-sm capitalize font-medium text-gray-900">{event.category || "Uncategorized"}</span>
-                  </div>
-                </div>
-
-                {/* Reserved By */}
-                <div className="flex flex-col">
-                  <span className="text-xs text-gray-400 uppercase mb-1.5">Reserved By</span>
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-gray-600 shrink-0" />
-                    <span className="text-sm font-medium text-gray-900">{reservedBy}</span>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           </div>

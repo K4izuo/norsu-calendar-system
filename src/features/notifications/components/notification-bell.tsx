@@ -118,6 +118,7 @@ export function NotificationBell() {
         declined_at_stage: reservation.declined_at_stage,
         campus_director_action: reservation.campus_director_action,
         approvals: reservation.approvals,
+        multimedia_comment: reservation.multimedia_comment,
         equipment: reservation.equipment,
         outsource: reservation.outsource,
         guests: reservation.guests,
@@ -138,12 +139,12 @@ export function NotificationBell() {
         <Button
           variant="ghost"
           size="icon"
-          className="relative cursor-pointer bg-white h-12 w-12 rounded-full border border-transparent hover:border-gray-300 hover:bg-white"
+          className="relative h-9 w-9 cursor-pointer rounded-full border border-transparent bg-white hover:border-gray-300 hover:bg-white sm:h-12 sm:w-12"
           aria-label="Notifications"
         >
-          <Bell className="size-6 text-gray-600" />
+          <Bell className="size-5 text-gray-600 sm:size-6" />
           {unreadCount > 0 && (
-            <span className="absolute top-2 right-2 min-w-[18px] h-[18px] bg-red-500 rounded-full text-[10px] text-white font-semibold flex items-center justify-center px-1 leading-none">
+            <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-semibold leading-none text-white sm:right-2 sm:top-2 sm:h-[18px] sm:min-w-[18px] sm:text-[10px]">
               {unreadCount > 99 ? "99+" : unreadCount}
             </span>
           )}
@@ -153,7 +154,7 @@ export function NotificationBell() {
       <DropdownMenuContent
         align="end"
         sideOffset={8}
-        className="w-80 sm:w-96 bg-white border border-border rounded-lg shadow-lg p-0"
+        className="w-[calc(100vw-1rem)] max-w-80 rounded-lg border border-border bg-white p-0 shadow-lg sm:w-96 sm:max-w-none"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">

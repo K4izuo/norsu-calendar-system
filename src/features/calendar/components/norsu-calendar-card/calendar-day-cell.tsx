@@ -119,9 +119,9 @@ const DraggableEventPill = React.memo(function DraggableEventPill({
 
   const spanRadiusClass =
     event.spanPosition === "start" ? "rounded-l-sm rounded-r-none" :
-    event.spanPosition === "middle" ? "rounded-none" :
-    event.spanPosition === "end" ? "rounded-l-none rounded-r-md" :
-    "rounded-r-md rounded-l-sm";
+      event.spanPosition === "middle" ? "rounded-none" :
+        event.spanPosition === "end" ? "rounded-l-none rounded-r-md" :
+          "rounded-r-md rounded-l-sm";
 
   const pillBgClass = roleColors.pillBg;
   const pillBorderClass = isContinuation ? "" : `border-l ${roleColors.pillBorder}`;
@@ -318,40 +318,40 @@ export const CalendarDayCell = React.memo(function CalendarDayCell<T>({
         day.hasEvent &&
         day.eventCount &&
         day.eventCount > 0 && (
-          <div className="flex mt-1 flex-col flex-1 w-full gap-0.5 sm:gap-1 overflow-hidden">
-            {day.dayEvents &&
-              day.dayEvents.slice(0, 1).map((event, eventIdx) => (
-                <DraggableEventPill
-                  key={`pill-${idx}-${eventIdx}`}
-                  event={event as unknown as EventDetails}
-                  roleColors={roleColors}
-                  onEventSelect={
-                    onEventSelect ? (e: EventDetails) => onEventSelect(e as T) : undefined
-                  }
-                  getTitle={getEventTitle}
-                  getTime={getEventTime}
-                  onPillDragStart={onPillDragStart}
-                  onPillDragEnd={onPillDragEnd}
-                  canMoveEvent={canMoveEvent}
-                />
-              ))}
-
-            {day.eventCount > 1 && (
-              <div className="hidden sm:inline-flex items-center text-gray-700 px-1 py-1 rounded-xl text-[10px] sm:text-xs md:text-sm font-semibold absolute top-1.5 left-1">
-                <CalendarClock size={12} className="mr-0.5 sm:mr-1 shrink-0" />
-                <span>{day.eventCount}</span>
+          <>
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center sm:hidden">
+              <div className="inline-flex min-w-8 items-center justify-center rounded-md border border-gray-200 bg-white/90 px-1.5 py-1 text-xs font-semibold leading-none text-gray-700 shadow-xs xs:text-[10px]">
+                <CalendarClock size={10} className="mr-0.5 shrink-0" />
+                <span className="relative -top-0.5">{day.eventCount}</span>
               </div>
-            )}
+            </div>
 
-            {day.eventCount > 1 && (
-              <div className="sm:hidden absolute top-1 left-1">
-                <div className="inline-flex items-center text-gray-700 px-1 py-0.5 rounded-xl text-xs xs:text-[10px]">
-                  <CalendarClock size={10} className="mr-0.5 shrink-0" />
+            <div className="hidden mt-1 flex-col flex-1 w-full gap-0.5 sm:flex sm:gap-1 overflow-hidden">
+              {day.dayEvents &&
+                day.dayEvents.slice(0, 1).map((event, eventIdx) => (
+                  <DraggableEventPill
+                    key={`pill-${idx}-${eventIdx}`}
+                    event={event as unknown as EventDetails}
+                    roleColors={roleColors}
+                    onEventSelect={
+                      onEventSelect ? (e: EventDetails) => onEventSelect(e as T) : undefined
+                    }
+                    getTitle={getEventTitle}
+                    getTime={getEventTime}
+                    onPillDragStart={onPillDragStart}
+                    onPillDragEnd={onPillDragEnd}
+                    canMoveEvent={canMoveEvent}
+                  />
+                ))}
+
+              {day.eventCount > 1 && (
+                <div className="hidden sm:inline-flex items-center text-gray-700 px-1 py-1 rounded-xl text-[10px] sm:text-xs md:text-sm font-semibold absolute top-1.5 left-1">
+                  <CalendarClock size={12} className="mr-0.5 sm:mr-1 shrink-0" />
                   <span>{day.eventCount}</span>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          </>
         )}
     </div>
   );

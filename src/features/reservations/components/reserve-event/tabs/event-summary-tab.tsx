@@ -143,28 +143,46 @@ export function ReserveEventSummaryTab({
           </h3>
         </div>
         <div className="border-t border-gray-200" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-6 py-4">
-          <div>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-5 px-4 sm:px-6 py-4">
+          <div className="col-span-2 min-w-0">
             <p className="text-sm text-gray-500">Event Title</p>
-            <p className="font-medium text-base">
+            <p className="font-medium text-sm sm:text-base leading-snug break-words">
               {formData.title_name || "Not provided"}
             </p>
           </div>
-          <div>
+          <div className="min-w-0">
+            <p className="text-sm text-gray-500">Selected Date</p>
+            <p className="font-medium text-sm sm:text-base leading-snug break-words">
+              {formatDisplayDate(formData.date) || "Not selected"}
+            </p>
+          </div>
+          <div className="min-w-0">
             <p className="text-sm text-gray-500">Information Type</p>
-            <p className="font-medium text-base">
+            <p className="font-medium text-sm sm:text-base leading-snug break-words">
               {infoTypes.find((type) => type.value === formData.info_type)
                 ?.label || "Not provided"}
             </p>
           </div>
-          <div>
+          <div className="min-w-0">
+            <p className="text-sm text-gray-500">Capacity</p>
+            <p className="font-medium text-sm sm:text-base leading-snug break-words">{asset?.capacity || "N/A"}</p>
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm text-gray-500">Category</p>
+            <p className="font-medium text-sm sm:text-base leading-snug break-words">
+              {formData.category === "other" && formData.other_category
+                ? formData.other_category
+                : categories.find((cat) => cat.value === formData.category)?.label || "Not provided"}
+            </p>
+          </div>
+          <div className="col-span-2 min-w-0">
             <p className="text-sm text-gray-500">Required Attendees</p>
             <div className="flex flex-wrap gap-2 mt-1">
               {taggedPeople.length > 0 ? (
                 taggedPeople.map((person) => (
                   <span
                     key={person.id}
-                    className="inline-flex text-base font-medium text-gray-800"
+                    className="inline-flex text-sm sm:text-base font-medium text-gray-800"
                   >
                     {/* <User className="w-3 h-3 mr-1.5 text-gray-800" /> */}
                     {person.name}
@@ -174,14 +192,6 @@ export function ReserveEventSummaryTab({
                 <span className="text-gray-400 text-sm">None</span>
               )}
             </div>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">Category</p>
-            <p className="font-medium text-base">
-              {formData.category === "other" && formData.other_category
-                ? formData.other_category
-                : categories.find((cat) => cat.value === formData.category)?.label || "Not provided"}
-            </p>
           </div>
         </div>
       </div>
@@ -193,25 +203,15 @@ export function ReserveEventSummaryTab({
           </h3>
         </div>
         <div className="border-t border-gray-200" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-6 py-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4 sm:px-6 py-4">
           {/* <div>
             <p className="text-base text-gray-500">Asset Type</p>
             <p className="font-medium text-base">{asset?.asset_type || "Not selected"}</p>
           </div> */}
-          <div>
+          <div className="min-w-0">
             <p className="text-sm text-gray-500">Asset Name</p>
-            <p className="font-medium text-base">
+            <p className="font-medium text-sm sm:text-base leading-snug break-words">
               {asset?.asset_name || "Not selected"}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">Capacity</p>
-            <p className="font-medium text-base">{asset?.capacity || "N/A"}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">Selected Date</p>
-            <p className="font-medium text-base">
-              {formatDisplayDate(formData.date) || "Not selected"}
             </p>
           </div>
         </div>

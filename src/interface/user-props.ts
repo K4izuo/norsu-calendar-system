@@ -21,6 +21,13 @@ export interface ReservationApproval {
   user?: { first_name: string; last_name: string }
 }
 
+export interface ReservationEquipmentItem {
+  id?: number
+  name: string
+  quantity: number
+  note?: string | null
+}
+
 export interface EventDetails {
   id: number
   title_name: string
@@ -65,7 +72,7 @@ export interface EventDetails {
   is_moved?: boolean
   original_date?: string
   move_reason?: string
-  equipment?: { name: string; quantity: number }[]
+  equipment?: ReservationEquipmentItem[]
   outsource?: string
   guests?: { name: string; details: string }[]
   involves_students?: boolean
@@ -178,7 +185,7 @@ export interface ReservationWithRelations extends Reservation {
     first_name: string
     last_name: string
   }
-  equipment?: { id: number; name: string; quantity: number }[]
+  equipment?: (ReservationEquipmentItem & { id: number })[]
   outsource?: string
   guests?: { name: string; details: string }[]
   approvals?: ReservationApproval[]
@@ -248,7 +255,7 @@ export interface ReservationFormData {
   category: string
   other_category?: string
   date: string
-  equipment?: { name: string; quantity: number }[]
+  equipment?: ReservationEquipmentItem[]
   outsource?: string
   guests?: { name: string; details: string }[]
   involves_students?: boolean

@@ -7,8 +7,9 @@ import {
   startTokenRefresh,
   stopTokenRefresh,
 } from "@/core/auth/token-refresh";
-import { Search, Mail } from "lucide-react";
-import { Button } from "@/shared/components/ui/button";
+import { Search } from "lucide-react";
+// import { Mail } from "lucide-react";
+// import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { useAuth } from "@/shared/components/context/auth-context";
 import {
@@ -26,10 +27,12 @@ import Loading from "@/app/(dashboard)/[role]/loading";
 import { PageLoadingContext } from "@/shared/components/context/page-loading-context";
 import { QueryClient, useQueryClient } from "@tanstack/react-query";
 import { RESERVATIONS_STALE_TIME, QUEUE_STALE_TIME } from "@/features/calendar/services/reservation-service";
+import { DASHBOARD_STATS_STALE_TIME } from "@/features/dashboard/services/dashboard-service";
 import { USERS_STALE_TIME } from "@/features/accounts/services/account-service";
 import { PEOPLE_STALE_TIME } from "@/features/people/services/people-service";
 import { ASSETS_STALE_TIME } from "@/features/assets/services/asset-service";
 import { ACTIVITY_LOGS_STALE_TIME } from "@/features/activity-logs/services/activity-log-service";
+import { isReviewRole } from "@/features/reservations/utils/reservation-review";
 import Image from "next/image";
 import { AppSidebar } from "@/shared/components/layouts/app-sidebar";
 import {
@@ -62,11 +65,26 @@ const SEGMENT_QUERY_STALE: Record<string, {
   keys: (uid: string | number, role: number) => unknown[][]
   staleMs: (role: number) => number
 }> = {
-  dashboard: { keys: (uid) => [['reservations', uid]], staleMs: () => RESERVATIONS_STALE_TIME },
+  dashboard: {
+    keys: (uid) => [['reservations', uid], ['dashboard-stats', uid]],
+    staleMs: () => Math.min(RESERVATIONS_STALE_TIME, DASHBOARD_STATS_STALE_TIME),
+  },
   calendar: { keys: (uid) => [['reservations', uid]], staleMs: () => RESERVATIONS_STALE_TIME },
   reservations: {
-    keys: (uid, role) => (role === 3 || role === 11) ? [['reservations', uid]] : [['reservation-queue', uid]],
-    staleMs: (role) => (role === 3 || role === 11) ? RESERVATIONS_STALE_TIME : QUEUE_STALE_TIME,
+    keys: (uid, role) => {
+      if (role === 3 || role === 11) return [['reservations', uid]];
+      if (isReviewRole(role)) return [['reservation-queue', uid], ['reservations', uid]];
+      return [['reservation-queue', uid]];
+    },
+    staleMs: (role) => {
+      if (role === 3 || role === 11) return RESERVATIONS_STALE_TIME;
+      if (isReviewRole(role)) return Math.min(QUEUE_STALE_TIME, RESERVATIONS_STALE_TIME);
+      return QUEUE_STALE_TIME;
+    },
+  },
+  'reservation-tracking': {
+    keys: (uid) => [['reservations', uid]],
+    staleMs: () => RESERVATIONS_STALE_TIME,
   },
   accounts: { keys: (uid) => [['users', uid]], staleMs: () => USERS_STALE_TIME },
   people: { keys: (uid) => [['people', uid]], staleMs: () => PEOPLE_STALE_TIME },
@@ -111,6 +129,7 @@ export default function RoleLayout({
   const [minTimerDone, setMinTimerDone] = useState(true);
   const [readySignal, setReadySignal] = useState(0);
   const prevPathname = useRef<string | null>(null);
+  const forceNextNavigationOverlay = useRef(false);
   const userRef = useRef(user);
   userRef.current = user;
 
@@ -203,12 +222,12 @@ export default function RoleLayout({
 
     const universalPages = ['profile', 'settings', 'activity-logs'];
     const allowedPages: Record<number, string[]> = {
-      3: ['dashboard', 'calendar', 'reservations', 'accounts', 'people', 'asset-management'],
-      5: ['dashboard', 'calendar', 'reservations'],
+      3:  ['dashboard', 'calendar', 'reservations', 'reservation-tracking', 'accounts', 'people', 'asset-management'],
+      5:  ['dashboard', 'calendar', 'reservations', 'reservation-tracking'],
       11: ['calendar', 'reservations'],
-      12: ['dashboard', 'calendar', 'reservations', 'asset-management'],
+      12: ['dashboard', 'calendar', 'reservations', 'reservation-tracking', 'asset-management'],
     };
-    const roleAllowed = allowedPages[actualRole] ?? ['calendar', 'reservations'];
+    const roleAllowed = allowedPages[actualRole] ?? ['calendar', 'reservations', 'reservation-tracking'];
     const pageSegment = pathname.split('/')[2];
     if (pageSegment && !universalPages.includes(pageSegment) && !roleAllowed.includes(pageSegment)) {
       const defaultPage = getDefaultPageForRole(actualRole);
@@ -222,13 +241,15 @@ export default function RoleLayout({
   // Show overlay on navigation; skip it when the destination page has fresh cached data.
   useLayoutEffect(() => {
     if (prevPathname.current !== null && prevPathname.current !== pathname) {
+      const forceOverlay = forceNextNavigationOverlay.current;
+      forceNextNavigationOverlay.current = false;
       const pageSegment = pathname.split('/')[2] ?? '';
       const currentUser = userRef.current;
       const userId = currentUser?.id;
       const role = typeof currentUser?.role === 'string'
         ? parseInt(currentUser.role, 10) || pathRoleRef.current
         : Number(currentUser?.role) || pathRoleRef.current;
-      const fresh = hasCachedFreshData(queryClient, pageSegment, userId, role);
+      const fresh = !forceOverlay && hasCachedFreshData(queryClient, pageSegment, userId, role);
       if (fresh) {
         setOverlayVisible(false);
         setFadeOut(false);
@@ -282,6 +303,7 @@ export default function RoleLayout({
         : Number(currentUser?.role) || pathRoleRef.current;
       const fresh = hasCachedFreshData(queryClient, pageSegment, userId, role);
       if (!fresh) {
+        forceNextNavigationOverlay.current = true;
         showOverlay();
       }
     };
@@ -293,36 +315,38 @@ export default function RoleLayout({
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset className="overflow-hidden">
-        <header className="flex shadow-xs h-18 shrink-0 items-center justify-between gap-2 border-b bg-white px-4">
-          <div className="flex items-center">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-1 h-4" />
+        <header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b bg-white px-2 shadow-xs sm:h-18 sm:px-4">
+          <div className="flex min-w-0 flex-1 items-center gap-0 sm:gap-1">
+            <SidebarTrigger className="-ml-1 size-9 shrink-0" />
+            <Separator orientation="vertical" className="mx-0.5 h-4 shrink-0 sm:mx-1" />
 
-            <div className="flex items-center ml-2">
-              <div className="relative w-80">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <Search size={18} className="text-gray-400" />
+            <div className="flex min-w-0 flex-1 items-center sm:ml-1">
+              <div className="relative w-full max-w-[13rem] sm:max-w-64 lg:max-w-80">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5 sm:pl-3">
+                  <Search className="size-4 text-gray-400 sm:size-[18px]" />
                 </div>
                 <Input
                   type="search"
                   id="search"
-                  className="block h-10 w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:ring-gray-500 focus:border-gray-500 text-sm"
+                  className="block h-9 w-full rounded-lg border border-gray-300 bg-gray-50 py-1.5 pl-9 pr-3 text-sm focus:border-gray-500 focus:ring-gray-500 sm:h-10 sm:pl-10"
                   placeholder="Search..."
                 />
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-1 sm:gap-2">
+              {/*
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative cursor-pointer bg-white h-12 w-12 rounded-full border border-transparent hover:border-gray-300 hover:bg-white"
+                className="relative h-9 w-9 cursor-pointer rounded-full border border-transparent bg-white hover:border-gray-300 hover:bg-white sm:h-12 sm:w-12"
               >
-                <Mail className="size-6 text-gray-600" />
-                <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-green-500 rounded-full"></span>
+                <Mail className="size-5 text-gray-600 sm:size-6" />
+                <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-green-500 sm:right-2.5 sm:top-2.5 sm:h-2.5 sm:w-2.5"></span>
               </Button>
+              */}
 
               <NotificationBell />
             </div>
@@ -333,17 +357,17 @@ export default function RoleLayout({
                   <Image
                     src="/images/avatar.jpg"
                     alt="Name"
-                    width={30}
-                    height={30}
-                    className="rounded-full cursor-pointer ring-4 ring-white dark:ring-zinc-900 object-cover"
+                    width={32}
+                    height={32}
+                    className="size-8 cursor-pointer rounded-full object-cover ring-2 ring-white dark:ring-zinc-900 sm:ring-4"
                   />
-                  <div className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-900" />
+                  <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-900 sm:h-2.5 sm:w-2.5" />
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
                 sideOffset={8}
-                className="w-70 sm:w-80 bg-background border-border rounded-lg shadow-lg"
+                className="w-[calc(100vw-1rem)] max-w-80 rounded-lg border-border bg-background shadow-lg sm:w-80"
               >
                 <UserProfile
                   name={userData.name}

@@ -166,6 +166,7 @@ export default function CalendarPage() {
           declined_at_stage: reservation.declined_at_stage,
           campus_director_action: reservation.campus_director_action,
           approvals: reservation.approvals,
+          multimedia_comment: reservation.multimedia_comment,
           proof_of_request: reservation.proof_of_request,
           proof_of_approval: reservation.proof_of_approval,
         };

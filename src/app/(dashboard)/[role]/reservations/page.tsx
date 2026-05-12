@@ -4,12 +4,17 @@ import { useState, useMemo, useCallback } from "react";
 import { ReservationsTable } from "@/shared/components/user-dashboard-ui/reservations/reservation-table";
 import { ReserveEventModal } from "@/features/reservations/components/reserve-event-modal";
 import { ReservationSuccessModal } from "@/features/reservations/components/reservation-success-modal";
-import { EventDetails } from "@/interface/user-props";
+import type { EventDetails, ReservationWithRelations } from "@/interface/user-props";
 import {
   useReservations,
   useAssets,
   useGetQueue,
 } from "@/features/calendar/services/reservation-service";
+import {
+  getReviewStatusForReservation,
+  isReservationReviewRelevant,
+  isReviewRole,
+} from "@/features/reservations/utils/reservation-review";
 import { PageBreadcrumb } from "@/shared/components/ui/page-breadcrumb";
 import { PageStatCard } from "@/shared/components/ui/page-stat-card";
 import { CalendarDays, Clock, CircleCheck, XCircle } from "lucide-react";
@@ -36,6 +41,7 @@ export default function ReservationsPage() {
   const params = useParams();
   const role = params.role as string;
   const userRoleNumber = PATH_ROLE_MAP[role] ?? 3;
+  const isReviewUser = isReviewRole(userRoleNumber);
   const { user } = useAuth();
   const userOffice = user?.office;
 
@@ -44,23 +50,43 @@ export default function ReservationsPage() {
   const [resubmitModalOpen, setResubmitModalOpen] = useState(false);
   const [reservationSuccessOpen, setReservationSuccessOpen] = useState(false);
 
-  // Admin and Multimedia see all reservations; every other role uses the queue
+  // Admin and Multimedia see all reservations; reviewers see their queue plus their past decisions.
   const isAdmin = userRoleNumber === 3 || userRoleNumber === 11;
 
   const { reservations, error: resError, loading: resLoading, isFetching: resFetching } = useReservations();
   const { queue, error: queueError, loading: queueLoading, isFetching: queueFetching } = useGetQueue();
 
-  const sourceList = isAdmin ? reservations : queue;
-  const loading = isAdmin ? resLoading : queueLoading;
-  const isFetching = isAdmin ? resFetching : queueFetching;
-  const error = isAdmin ? resError : queueError;
+  const sourceList = useMemo<ReservationWithRelations[]>(() => {
+    if (isAdmin) return reservations;
+    if (!isReviewUser) return queue;
+
+    const merged = new Map<number, ReservationWithRelations>();
+    for (const reservation of queue) merged.set(reservation.id, reservation);
+    for (const reservation of reservations) {
+      if (isReservationReviewRelevant(reservation, userRoleNumber)) {
+        merged.set(reservation.id, reservation);
+      }
+    }
+
+    return Array.from(merged.values());
+  }, [isAdmin, isReviewUser, queue, reservations, userRoleNumber]);
+
+  const loading = isAdmin ? resLoading : isReviewUser ? queueLoading || resLoading : queueLoading;
+  const isFetching = isAdmin ? resFetching : isReviewUser ? queueFetching || resFetching : queueFetching;
+  const error = isAdmin ? resError : isReviewUser ? queueError ?? resError : queueError;
 
   usePageReady(loading, isFetching);
 
-  const total    = sourceList.length;
-  const pending  = sourceList.filter(r => r.status.toUpperCase() === "PENDING").length;
-  const approved = sourceList.filter(r => r.status.toUpperCase() === "APPROVED").length;
-  const declined = sourceList.filter(r => r.status.toUpperCase() === "DECLINED").length;
+  const total = sourceList.length;
+  const pending = sourceList.filter(r =>
+    (isReviewUser ? getReviewStatusForReservation(r, userRoleNumber) : r.status.toUpperCase()) === "PENDING"
+  ).length;
+  const approved = sourceList.filter(r =>
+    (isReviewUser ? getReviewStatusForReservation(r, userRoleNumber) : r.status.toUpperCase()) === "APPROVED"
+  ).length;
+  const declined = sourceList.filter(r =>
+    (isReviewUser ? getReviewStatusForReservation(r, userRoleNumber) : r.status.toUpperCase()) === "DECLINED"
+  ).length;
 
   const assetIds = useMemo(() => [...new Set(sourceList.map(r => r.asset_id))], [sourceList]);
   const { assets } = useAssets(assetIds);
@@ -162,6 +188,7 @@ export default function ReservationsPage() {
             statusFilter={statusFilter}
             onStatusFilterChange={setStatusFilter}
             userRoleNumber={userRoleNumber}
+            showReviewStatus={isReviewUser}
             onResubmit={handleResubmit}
           />
         </div>

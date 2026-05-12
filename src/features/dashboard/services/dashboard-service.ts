@@ -2,11 +2,14 @@ import { apiClient } from "@/core/api/api-client";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/shared/components/context/auth-context";
 
-const DASHBOARD_STATS_STALE_TIME = 5 * 60 * 1000;
+export const DASHBOARD_STATS_STALE_TIME = 60 * 1000;
 
 export type DashboardStats = {
-  total_users: number;
-  total_users_change: number;
+  is_admin: boolean;
+  total_users: number | null;
+  total_users_change: number | null;
+  approved_events: number | null;
+  approved_events_change: number | null;
   total_events: number;
   total_events_change: number;
   upcoming_events: number;
@@ -14,8 +17,9 @@ export type DashboardStats = {
   pending_requests: number;
   pending_requests_change: number;
   sparklines: {
-    users: number[];
+    users: number[] | null;
     events: number[];
+    approved: number[] | null;
     upcoming: number[];
     pending: number[];
   };

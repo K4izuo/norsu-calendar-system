@@ -8,6 +8,7 @@ import { EventInfoModal } from "@/features/calendar/components/event-info-modal"
 import { getPhilippineDateTime } from "@/features/calendar/utils/timezone-utils"
 import type { EventDetails } from "@/interface/user-props"
 import { formatTime } from "@/core/lib/utils"
+import { getReviewStatusForEvent } from "@/features/reservations/utils/reservation-review"
 import {
   Select,
   SelectContent,
@@ -16,8 +17,7 @@ import {
   SelectValue,
 } from "@/shared/components/ui/select"
 
-// Roles that can approve/decline reservations
-const APPROVER_ROLE_NUMBERS = new Set([3, 4, 5, 6, 7, 8, 9, 12]);
+const INTERNAL_RESERVATION_ROLE_NUMBERS = new Set([3, 4, 5, 6, 7, 8, 9, 12]);
 const STATUS_ORDER: Record<EventDetails["registration_status"], number> = {
   PENDING: 0,
   APPROVED: 1,
@@ -40,10 +40,19 @@ interface ReservationsTableProps {
   statusFilter: string;
   onStatusFilterChange: (value: string) => void;
   userRoleNumber?: number;
+  showReviewStatus?: boolean;
   onResubmit?: (event: EventDetails) => void;
 }
 
-export function ReservationsTable({ events, isLoading, statusFilter, onStatusFilterChange, userRoleNumber, onResubmit }: ReservationsTableProps) {
+export function ReservationsTable({
+  events,
+  isLoading,
+  statusFilter,
+  onStatusFilterChange,
+  userRoleNumber,
+  showReviewStatus = false,
+  onResubmit,
+}: ReservationsTableProps) {
   const [searchQuery, setSearchQuery] = useState("")
 
   const [eventInfoModalOpen, setEventInfoModalOpen] = useState(false)
@@ -65,14 +74,17 @@ export function ReservationsTable({ events, isLoading, statusFilter, onStatusFil
 
     // First, filter by search query and status
     const filtered = events.filter((event) => {
+      const eventStatus = showReviewStatus
+        ? getReviewStatusForEvent(event, userRoleNumber)
+        : event.registration_status;
       const matchesSearch = event.title_name.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesStatus = statusFilter === "all" || event.registration_status === statusFilter.toUpperCase();
+      const matchesStatus = statusFilter === "all" || eventStatus === statusFilter.toUpperCase();
       return matchesSearch && matchesStatus;
     });
 
     return filtered.sort((a, b) => {
-      const statusA = STATUS_ORDER[a.registration_status];
-      const statusB = STATUS_ORDER[b.registration_status];
+      const statusA = STATUS_ORDER[showReviewStatus ? getReviewStatusForEvent(a, userRoleNumber) : a.registration_status];
+      const statusB = STATUS_ORDER[showReviewStatus ? getReviewStatusForEvent(b, userRoleNumber) : b.registration_status];
 
       if (statusA !== statusB) {
         return statusA - statusB;
@@ -95,7 +107,7 @@ export function ReservationsTable({ events, isLoading, statusFilter, onStatusFil
 
       return getTimeSortValue(a.time_start) - getTimeSortValue(b.time_start);
     });
-  }, [events, searchQuery, statusFilter]);
+  }, [events, searchQuery, showReviewStatus, statusFilter, userRoleNumber]);
 
   const handleRowClick = (event: EventDetails) => {
     setSelectedEvent(event)
@@ -167,7 +179,7 @@ export function ReservationsTable({ events, isLoading, statusFilter, onStatusFil
                       Time end
                     </TableHead>
                     <TableHead className="h-12 px-6 py-3 text-sm font-medium text-muted-foreground text-left">
-                      Status
+                      {showReviewStatus ? "My action" : "Status"}
                     </TableHead>
                     <TableHead className="h-12 px-6 py-3 text-sm font-medium text-muted-foreground text-left">
                       Asset name
@@ -178,52 +190,58 @@ export function ReservationsTable({ events, isLoading, statusFilter, onStatusFil
                   </TableRow>
                 </TableHeader>
                 <TableBody className="bg-white">
-                  {filteredEvents.map((event) => (
-                    <TableRow
-                      key={event.id}
-                      onClick={() => handleRowClick(event)}
-                      className="cursor-pointer hover:bg-gray-50 transition-colors"
-                    >
-                      <TableCell className="px-6 py-4 text-sm font-medium text-foreground">
-                        {event.title_name
-                          ? event.title_name.length > 50
-                            ? `${event.title_name.slice(0, 50)}...`
-                            : event.title_name
-                          : "Untitled Event"}
-                      </TableCell>
-                      <TableCell className="px-6 py-4 text-sm text-foreground">
-                        {formatDate(event.date)}
-                      </TableCell>
-                      <TableCell className="px-6 py-4 text-sm text-foreground">
-                        {formatTime(event.time_start)}
-                      </TableCell>
-                      <TableCell className="px-6 py-4 text-sm text-foreground">
-                        {formatTime(event.time_end)}
-                      </TableCell>
-                      <TableCell className="px-6 py-4 text-sm text-foreground">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          event.registration_status === 'APPROVED' ? 'bg-green-100 text-green-800 border border-green-400' :
-                          event.registration_status === 'PENDING'  ? 'bg-yellow-100 text-yellow-800 border border-yellow-400' :
-                                                                      'bg-red-100 text-red-800 border border-red-400'
-                        }`}>
-                          {event.registration_status === 'APPROVED' && <CircleCheckBig className="h-3.5 w-3.5" />}
-                          {event.registration_status === 'PENDING'  && <Clock className="h-3.5 w-3.5" />}
-                          {event.registration_status === 'DECLINED' && <XCircle className="h-3.5 w-3.5" />}
-                          {event.registration_status}
-                        </span>
-                      </TableCell>
-                      <TableCell className="px-6 py-4 text-sm text-foreground">
-                        {event.asset.asset_name
-                          ? event.asset.asset_name.length > 30
-                            ? `${event.asset.asset_name.slice(0, 30)}...`
-                            : event.asset.asset_name
-                          : "Not specified"}
-                      </TableCell>
-                      {/* <TableCell className="px-6 py-4 text-center text-sm text-foreground">
-                        {event.people_tag.length}
-                      </TableCell> */}
-                    </TableRow>
-                  ))}
+                  {filteredEvents.map((event) => {
+                    const displayStatus = showReviewStatus
+                      ? getReviewStatusForEvent(event, userRoleNumber)
+                      : event.registration_status;
+
+                    return (
+                      <TableRow
+                        key={event.id}
+                        onClick={() => handleRowClick(event)}
+                        className="cursor-pointer hover:bg-gray-50 transition-colors"
+                      >
+                        <TableCell className="px-6 py-4 text-sm font-medium text-foreground">
+                          {event.title_name
+                            ? event.title_name.length > 50
+                              ? `${event.title_name.slice(0, 50)}...`
+                              : event.title_name
+                            : "Untitled Event"}
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-sm text-foreground">
+                          {formatDate(event.date)}
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-sm text-foreground">
+                          {formatTime(event.time_start)}
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-sm text-foreground">
+                          {formatTime(event.time_end)}
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-sm text-foreground">
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            displayStatus === 'APPROVED' ? 'bg-green-100 text-green-800 border border-green-400' :
+                            displayStatus === 'PENDING'  ? 'bg-yellow-100 text-yellow-800 border border-yellow-400' :
+                                                            'bg-red-100 text-red-800 border border-red-400'
+                          }`}>
+                            {displayStatus === 'APPROVED' && <CircleCheckBig className="h-3.5 w-3.5" />}
+                            {displayStatus === 'PENDING'  && <Clock className="h-3.5 w-3.5" />}
+                            {displayStatus === 'DECLINED' && <XCircle className="h-3.5 w-3.5" />}
+                            {displayStatus}
+                          </span>
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-sm text-foreground">
+                          {event.asset.asset_name
+                            ? event.asset.asset_name.length > 30
+                              ? `${event.asset.asset_name.slice(0, 30)}...`
+                              : event.asset.asset_name
+                            : "Not specified"}
+                        </TableCell>
+                        {/* <TableCell className="px-6 py-4 text-center text-sm text-foreground">
+                          {event.people_tag.length}
+                        </TableCell> */}
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             )}
@@ -232,7 +250,7 @@ export function ReservationsTable({ events, isLoading, statusFilter, onStatusFil
       </div>
 
       <EventInfoModal
-        role={APPROVER_ROLE_NUMBERS.has(userRoleNumber ?? 0) ? "admin" : "public"}
+        role={INTERNAL_RESERVATION_ROLE_NUMBERS.has(userRoleNumber ?? 0) ? "admin" : "public"}
         userRoleNumber={userRoleNumber}
         isOpen={eventInfoModalOpen}
         onClose={() => setEventInfoModalOpen(false)}

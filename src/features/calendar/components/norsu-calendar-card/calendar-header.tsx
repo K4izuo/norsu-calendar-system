@@ -3,39 +3,22 @@
 import React, { useCallback, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-  SelectValue,
-} from "@/shared/components/ui/select";
 import { headerVariants } from "@/features/calendar/utils/calendar-animations";
 
 interface CalendarHeaderProps {
-  currentMonth: number;
-  currentYear: number;
   currentMonthYear: string;
-  monthNames: string[];
   direction: number;
   onPreviousMonth: () => void;
   onNextMonth: () => void;
   onToday: () => void;
-  onMonthYearChange: (month: number, year: number) => void;
-  setDirection: (d: number) => void;
 }
 
 export function CalendarHeader({
-  currentMonth,
-  currentYear,
   currentMonthYear,
-  monthNames,
   direction,
   onPreviousMonth,
   onNextMonth,
   onToday,
-  onMonthYearChange,
-  setDirection,
 }: CalendarHeaderProps) {
   // ── Native DnD: drag-to-navigate by hovering arrows during drag ───────────
   const prevTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -91,7 +74,7 @@ export function CalendarHeader({
 
   return (
     <div className="w-full grid grid-cols-3 items-center mb-5 sm:mb-7 relative">
-      {/* Left: arrow, today, select */}
+      {/* Left: arrow and today */}
       <div className="flex items-center gap-1.5 sm:gap-2.5 justify-start relative">
         {/* Arrow buttons group for desktop/tablet */}
         <div className="hidden text-card-foreground border shadow sm:flex items-center bg-white rounded-sm px-2 h-9 w-max">
@@ -147,49 +130,6 @@ export function CalendarHeader({
         >
           Today
         </motion.button>
-
-        {/* Month/Year selector - for mobile */}
-        <div className="sm:hidden">
-          <Select
-            value={`${currentMonth}-${currentYear}`}
-            onValueChange={(value) => {
-              const [monthStr, yearStr] = value.split("-");
-              const newMonth = parseInt(monthStr);
-              const newYear = parseInt(yearStr);
-
-              const currentMonthYear = new Date(currentYear, currentMonth);
-              const targetMonthYear = new Date(newYear, newMonth);
-              setDirection(
-                targetMonthYear > currentMonthYear
-                  ? 1
-                  : targetMonthYear < currentMonthYear
-                    ? -1
-                    : 0
-              );
-
-              setTimeout(() => {
-                onMonthYearChange(newMonth, newYear);
-              }, 200);
-            }}
-          >
-            <SelectTrigger className="w-22 h-9 sm:w-auto bg-white text-xs xs:text-sm border-gray-300">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="max-h-60">
-              {Array.from({ length: 10 }, (_, i) => {
-                const year = new Date().getFullYear() - 2 + i;
-                return monthNames.map((monthName, monthIndex) => {
-                  const value = `${monthIndex}-${year}`;
-                  return (
-                    <SelectItem key={value} value={value} className="text-sm">
-                      {monthName.substring(0, 3)} {year}
-                    </SelectItem>
-                  );
-                });
-              })}
-            </SelectContent>
-          </Select>
-        </div>
       </div>
 
       {/* Center: month/year text */}

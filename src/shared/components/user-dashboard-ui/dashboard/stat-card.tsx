@@ -2,6 +2,7 @@
 
 import React, { useId } from "react";
 import {
+  CalendarCheck2,
   CalendarDays,
   ClipboardList,
   Clock3,
@@ -51,40 +52,29 @@ const negativeSparkline = [
 ];
 
 const getStatIcon = (title: string) => {
-  const normalizedTitle = title.toLowerCase();
-
-  if (normalizedTitle.includes("user")) return Users;
-  if (normalizedTitle.includes("upcoming")) return Clock3;
-  if (normalizedTitle.includes("request")) return ClipboardList;
-
+  const t = title.toLowerCase();
+  if (t.includes("user")) return Users;
+  if (t.includes("approved")) return CalendarCheck2;
+  if (t.includes("upcoming")) return Clock3;
+  if (t.includes("request")) return ClipboardList;
   return CalendarDays;
 };
 
 const getStatIconClasses = (title: string) => {
-  const normalizedTitle = title.toLowerCase();
-
-  if (normalizedTitle.includes("user")) {
-    return "bg-blue-50 text-blue-600";
-  }
-
-  if (normalizedTitle.includes("upcoming")) {
-    return "bg-amber-50 text-amber-600";
-  }
-
-  if (normalizedTitle.includes("request")) {
-    return "bg-rose-50 text-rose-600";
-  }
-
+  const t = title.toLowerCase();
+  if (t.includes("user")) return "bg-blue-50 text-blue-600";
+  if (t.includes("approved")) return "bg-emerald-50 text-emerald-600";
+  if (t.includes("upcoming")) return "bg-amber-50 text-amber-600";
+  if (t.includes("request")) return "bg-rose-50 text-rose-600";
   return "bg-violet-50 text-violet-600";
 };
 
 const getStatAccentColor = (title: string) => {
-  const normalizedTitle = title.toLowerCase();
-
-  if (normalizedTitle.includes("user")) return "#2563eb";
-  if (normalizedTitle.includes("upcoming")) return "#d97706";
-  if (normalizedTitle.includes("request")) return "#e11d48";
-
+  const t = title.toLowerCase();
+  if (t.includes("user")) return "#2563eb";
+  if (t.includes("approved")) return "#059669";
+  if (t.includes("upcoming")) return "#d97706";
+  if (t.includes("request")) return "#e11d48";
   return "#7c3aed";
 };
 
