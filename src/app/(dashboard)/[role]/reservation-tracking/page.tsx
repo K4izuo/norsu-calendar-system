@@ -1,24 +1,18 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useMemo } from "react";
 import dynamic from "next/dynamic";
-import { Search, SlidersHorizontal, Plus, ChevronRight, ArrowLeft } from "lucide-react";
-import { Button } from "@/shared/components/ui/button";
-import { Input } from "@/shared/components/ui/input";
+import { ArrowLeft, Building2, ChevronRight, Landmark } from "lucide-react";
 import { PageBreadcrumb } from "@/shared/components/ui/page-breadcrumb";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import {
   useReservations,
   useAssets,
 } from "@/features/calendar/services/reservation-service";
-import { useAuth } from "@/shared/components/context/auth-context";
 import { usePageReady } from "@/shared/components/context/page-loading-context";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { ReserveEventModal } from "@/features/reservations/components/reserve-event-modal";
-import { ReservationSuccessModal } from "@/features/reservations/components/reservation-success-modal";
-import type { VenueData } from "@/features/calendar/components/campus-map";
 
-// Leaflet uses the browser window — must be loaded client-side only
+// MapLibre uses the browser window, so load the map client-side only.
 const CampusMap = dynamic(
   () => import("@/features/calendar/components/campus-map"),
   {
@@ -26,21 +20,6 @@ const CampusMap = dynamic(
     loading: () => <Skeleton className="w-full h-full rounded-lg" />,
   },
 );
-
-const PATH_ROLE_MAP: Record<string, number> = {
-  dean: 1,
-  staff: 2,
-  admin: 3,
-  "student-director": 4,
-  "campus-director": 5,
-  vpaa: 6,
-  vpsas: 7,
-  vpaf: 8,
-  vprde: 9,
-  head: 10,
-  multimedia: 11,
-  "university-president": 12,
-};
 
 const STAGE_LABELS: Record<string, string> = {
   "student-director": "Student Director",
@@ -138,15 +117,8 @@ export default function ReservationTrackingPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const role = params.role as string;
-  const userRoleNumber = PATH_ROLE_MAP[role] ?? 3;
-  const { user } = useAuth();
-  const userOffice = user?.office;
 
   const focusedId = searchParams.get("id") ? Number(searchParams.get("id")) : null;
-
-  const [search, setSearch] = useState("");
-  const [newReservationOpen, setNewReservationOpen] = useState(false);
-  const [successOpen, setSuccessOpen] = useState(false);
 
   const { reservations, loading, isFetching, error } = useReservations();
   usePageReady(loading, isFetching);
@@ -156,25 +128,6 @@ export default function ReservationTrackingPage() {
     [reservations],
   );
   const { assets } = useAssets(assetIds);
-
-  // Build per-venue reservation counts for the map markers
-  const venueData = useMemo<VenueData[]>(() => {
-    const map = new Map<number, VenueData>();
-
-    for (const [id, asset] of assets) {
-      map.set(id, { asset, activeCount: 0, pendingCount: 0 });
-    }
-
-    for (const res of reservations) {
-      const venue = map.get(res.asset_id);
-      if (!venue) continue;
-      const status = res.status?.toLowerCase();
-      if (status === "approved") venue.activeCount++;
-      else if (status === "pending") venue.pendingCount++;
-    }
-
-    return Array.from(map.values());
-  }, [assets, reservations]);
 
   // Flatten all approval records into a sorted timeline
   const allEvents = useMemo<FlatApprovalEvent[]>(() => {
@@ -204,28 +157,13 @@ export default function ReservationTrackingPage() {
   }, [reservations]);
 
   const filteredEvents = useMemo(() => {
-    let events = focusedId
+    return focusedId
       ? allEvents.filter((e) => e.reservationId === focusedId)
       : allEvents;
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      events = events.filter(
-        (e) =>
-          e.reservationTitle.toLowerCase().includes(q) ||
-          (STAGE_LABELS[e.stage.toLowerCase()] ?? e.stage).toLowerCase().includes(q) ||
-          e.actor.toLowerCase().includes(q),
-      );
-    }
-    return events;
-  }, [allEvents, focusedId, search]);
-
-  const handleReservationSuccess = useCallback(() => {
-    setNewReservationOpen(false);
-    setSuccessOpen(true);
-  }, []);
+  }, [allEvents, focusedId]);
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col">
       <PageBreadcrumb
         items={[
           { label: "Dashboard", href: `/${role}/dashboard` },
@@ -233,43 +171,8 @@ export default function ReservationTrackingPage() {
         ]}
       />
 
-      {/* Page header */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
-            Event Reservation Tracking
-          </h1>
-          <p className="text-sm text-gray-500 mt-0.5">
-            Live venue map, approval chain, and reservation flow
-          </p>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 size-4 pointer-events-none" />
-            <Input
-              className="pl-9 h-9 w-56 text-sm bg-white"
-              placeholder="Search reservation or guest"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-          <Button variant="outline" size="sm" className="h-9 gap-1.5">
-            <SlidersHorizontal className="size-3.5" />
-            Filters
-          </Button>
-          <Button
-            size="sm"
-            className="h-9 gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
-            onClick={() => setNewReservationOpen(true)}
-          >
-            <Plus className="size-3.5" />
-            New Reservation
-          </Button>
-        </div>
-      </div>
-
       {focusedId && (
-        <div className="flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+        <div className="mb-5 flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
           <button
             onClick={() => router.push(`/${role}/reservation-tracking`)}
             className="flex items-center gap-1.5 text-sm font-medium text-blue-700 hover:text-blue-900 transition-colors"
@@ -285,37 +188,33 @@ export default function ReservationTrackingPage() {
       )}
 
       {error && (
-        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+        <div className="mb-5 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
           {error}
         </div>
       )}
 
-      {/* Live Venue Tracking */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="flex items-center justify-between px-5 pt-4 pb-3">
+      {/* Campus Office Locations */}
+      <div className="mb-5 bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="flex flex-col gap-2 px-5 pt-4 pb-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-sm font-semibold text-gray-800">Live Venue Tracking</span>
+            <Building2 className="size-4 text-blue-600" />
+            <span className="text-sm font-semibold text-gray-800">Campus Office Locations</span>
           </div>
-          <div className="flex items-center gap-3 text-xs text-gray-400">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-400">
             <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
-              Active
+              <Building2 className="size-3.5 text-blue-600" />
+              Office
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-amber-500 inline-block" />
-              Pending
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-gray-400 inline-block" />
-              Available
+              <Landmark className="size-3.5 text-blue-600" />
+              Executive Office
             </span>
           </div>
         </div>
 
-        {/* Map container — explicit height required by Leaflet */}
-        <div className="mx-4 mb-4 rounded-lg overflow-hidden" style={{ height: "320px" }}>
-          <CampusMap venues={venueData} />
+        {/* Map container — explicit height required by MapLibre */}
+        <div className="mx-4 mb-4 rounded-lg overflow-hidden" style={{ height: "380px" }}>
+          <CampusMap />
         </div>
       </div>
 
@@ -343,9 +242,7 @@ export default function ReservationTrackingPage() {
             ))
           ) : filteredEvents.length === 0 ? (
             <div className="py-12 text-center text-sm text-gray-400">
-              {search
-                ? "No matching approval events found."
-                : "No approval events yet."}
+              No approval events yet.
             </div>
           ) : (
             filteredEvents.slice(0, 8).map((event) => (
@@ -358,20 +255,6 @@ export default function ReservationTrackingPage() {
           )}
         </div>
       </div>
-
-      {/* Modals */}
-      <ReserveEventModal
-        isOpen={newReservationOpen}
-        onClose={() => setNewReservationOpen(false)}
-        onReservationSuccess={handleReservationSuccess}
-        userRole={userRoleNumber}
-        userOffice={userOffice}
-      />
-
-      <ReservationSuccessModal
-        isOpen={successOpen}
-        onClose={() => setSuccessOpen(false)}
-      />
     </div>
   );
 }

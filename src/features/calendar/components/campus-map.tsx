@@ -1,135 +1,202 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-import type { Asset } from "@/features/calendar/services/reservation-service";
+import maplibregl from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
 
-const CAMPUS_CENTER: L.LatLngTuple = [9.3108, 123.3082];
-const DEFAULT_ZOOM = 18;
+const CAMPUS_CENTER = { lat: 9.31196, lng: 123.30341 };
+const DEFAULT_ZOOM = 17;
+const OPENFREEMAP_BRIGHT_STYLE = "https://tiles.openfreemap.org/styles/bright";
+const OFFICE_MARKER_COLOR = "#2563eb";
 
-const createDotIcon = (color: string) =>
-  L.divIcon({
-    className: "",
-    html: `<div style="width:14px;height:14px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 8px rgba(0,0,0,.3)"></div>`,
-    iconSize: [14, 14],
-    iconAnchor: [7, 7],
-    popupAnchor: [0, -12],
-  });
+type Coordinate = [number, number];
+type LucideIconNode = [
+  tag: string,
+  attrs: Record<string, string | number>,
+][];
+type OfficeIcon = "office" | "executive";
 
-const createPinIcon = () =>
-  L.divIcon({
-    className: "",
-    html: `<svg width="24" height="36" viewBox="0 0 24 36" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 0C5.4 0 0 5.4 0 12c0 10.5 12 24 12 24s12-13.5 12-24C24 5.4 18.6 0 12 0z" fill="#ef4444"/>
-      <circle cx="12" cy="12" r="5" fill="white"/>
-    </svg>`,
-    iconSize: [24, 36],
-    iconAnchor: [12, 36],
-    popupAnchor: [0, -36],
-  });
-
-const getVenuePosition = (index: number, total: number): L.LatLngTuple => {
-  if (total <= 1) return [CAMPUS_CENTER[0] + 0.0002, CAMPUS_CENTER[1] + 0.0002];
-  const angle = (index / total) * 2 * Math.PI - Math.PI / 4;
-  const radius = 0.00042;
-  return [
-    CAMPUS_CENTER[0] + radius * Math.cos(angle),
-    CAMPUS_CENTER[1] + radius * Math.sin(angle),
-  ];
+type OfficeMarker = {
+  name: string;
+  coordinates: Coordinate;
+  icon: OfficeIcon;
 };
 
-export type VenueData = {
-  asset: Asset;
-  activeCount: number;
-  pendingCount: number;
+const OFFICE_ICON_NODE: LucideIconNode = [
+  [
+    "path",
+    {
+      d: "M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z",
+    },
+  ],
+  ["path", { d: "M6 12H4a2 2 0 0 0-2 2v8h20v-8a2 2 0 0 0-2-2h-2" }],
+  ["path", { d: "M10 6h4" }],
+  ["path", { d: "M10 10h4" }],
+  ["path", { d: "M10 14h4" }],
+  ["path", { d: "M10 18h4" }],
+];
+
+const EXECUTIVE_ICON_NODE: LucideIconNode = [
+  ["line", { x1: "3", x2: "21", y1: "22", y2: "22" }],
+  ["line", { x1: "6", x2: "6", y1: "18", y2: "11" }],
+  ["line", { x1: "10", x2: "10", y1: "18", y2: "11" }],
+  ["line", { x1: "14", x2: "14", y1: "18", y2: "11" }],
+  ["line", { x1: "18", x2: "18", y1: "18", y2: "11" }],
+  ["polygon", { points: "12 2 20 7 4 7" }],
+];
+
+const OFFICE_ICON_NODES: Record<OfficeIcon, LucideIconNode> = {
+  office: OFFICE_ICON_NODE,
+  executive: EXECUTIVE_ICON_NODE,
 };
 
-interface CampusMapProps {
-  venues: VenueData[];
-}
+const OFFICE_MARKERS: OfficeMarker[] = [
+  {
+    name: "Student Director",
+    coordinates: [123.30398850703229, 9.3113711420119],
+    icon: "office",
+  },
+  {
+    name: "Vice President for Academic Affairs",
+    coordinates: [123.3041304, 9.3116859],
+    icon: "office",
+  },
+  {
+    name: "Vice President for Student Affairs and Services",
+    coordinates: [123.303428, 9.312699],
+    icon: "office",
+  },
+  {
+    name: "Vice President for Administration and Finance",
+    coordinates: [123.302958, 9.31228],
+    icon: "office",
+  },
+  {
+    name: "Vice President for Research, Development and Extension",
+    coordinates: [123.3037066, 9.3124115],
+    icon: "office",
+  },
+  {
+    name: "Campus Director",
+    coordinates: [123.302491, 9.312067],
+    icon: "executive",
+  },
+  {
+    name: "University President",
+    coordinates: [123.3027185, 9.3115999],
+    icon: "executive",
+  },
+];
 
-export default function CampusMap({ venues }: CampusMapProps) {
+const escapeHtml = (value: string | number | null | undefined) =>
+  String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+
+const createSvgIcon = (icon: OfficeIcon) => {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("width", "20");
+  svg.setAttribute("height", "20");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("fill", "none");
+  svg.setAttribute("stroke", OFFICE_MARKER_COLOR);
+  svg.setAttribute("stroke-width", "2.25");
+  svg.setAttribute("stroke-linecap", "round");
+  svg.setAttribute("stroke-linejoin", "round");
+  svg.setAttribute("aria-hidden", "true");
+  svg.classList.add("lucide");
+
+  for (const [tag, attrs] of OFFICE_ICON_NODES[icon]) {
+    const child = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (const [name, value] of Object.entries(attrs)) {
+      child.setAttribute(name, String(value));
+    }
+    svg.appendChild(child);
+  }
+
+  return svg;
+};
+
+const createOfficeMarkerElement = ({ icon, name }: OfficeMarker) => {
+  const marker = document.createElement("div");
+  marker.style.width = "34px";
+  marker.style.height = "34px";
+  marker.style.display = "flex";
+  marker.style.alignItems = "center";
+  marker.style.justifyContent = "center";
+  marker.style.borderRadius = "9999px";
+  marker.style.border = `2px solid ${OFFICE_MARKER_COLOR}`;
+  marker.style.backgroundColor = "white";
+  marker.style.boxShadow = "0 8px 18px rgba(15, 23, 42, 0.22)";
+  marker.style.cursor = "pointer";
+  marker.setAttribute("title", name);
+  marker.setAttribute("aria-label", name);
+
+  marker.appendChild(createSvgIcon(icon));
+
+  return marker;
+};
+
+export default function CampusMap() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<L.Map | null>(null);
+  const mapRef = useRef<maplibregl.Map | null>(null);
 
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
 
-    // Clean up any stale Leaflet instance — handles React StrictMode double-mount
-    if (mapRef.current) {
-      mapRef.current.remove();
-      mapRef.current = null;
-    }
-    delete (el as HTMLDivElement & { _leaflet_id?: number })._leaflet_id;
+    mapRef.current?.remove();
 
-    const map = L.map(el, {
-      center: CAMPUS_CENTER,
+    const map = new maplibregl.Map({
+      container: el,
+      style: OPENFREEMAP_BRIGHT_STYLE,
+      center: [CAMPUS_CENTER.lng, CAMPUS_CENTER.lat],
       zoom: DEFAULT_ZOOM,
-      scrollWheelZoom: false,
+      attributionControl: {
+        compact: true,
+      },
     });
 
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      subdomains: "abcd",
-      maxZoom: 20,
-    }).addTo(map);
+    map.addControl(
+      new maplibregl.NavigationControl({
+        showCompass: false,
+        showZoom: true,
+      }),
+      "top-left",
+    );
 
-    // Campus boundary circle
-    L.circle(CAMPUS_CENTER, {
-      radius: 100,
-      color: "#3b82f6",
-      fillColor: "#3b82f6",
-      fillOpacity: 0.05,
-      weight: 1.5,
-      dashArray: "5 5",
-    }).addTo(map);
+    map.scrollZoom.disable();
+    mapRef.current = map;
 
-    // Main campus pin
-    L.marker(CAMPUS_CENTER, { icon: createPinIcon() })
-      .bindPopup(
-        `<div style="min-width:150px">
-          <p style="font-weight:600;font-size:13px;margin:0">NORSU Campus</p>
-          <p style="font-size:11px;color:#6b7280;margin:2px 0 0">Dumaguete City, Negros Oriental</p>
-        </div>`,
-      )
-      .addTo(map);
-
-    // Venue markers
-    venues.forEach((venue, i) => {
-      const pos = getVenuePosition(i, venues.length);
-      const dotColor =
-        venue.activeCount > 0 ? "#22c55e" :
-          venue.pendingCount > 0 ? "#f59e0b" :
-            "#94a3b8";
-
-      const statusLine =
-        venue.activeCount > 0
-          ? `<p style="font-size:11px;color:#16a34a;margin:5px 0 0;font-weight:500">${venue.activeCount} active reservation${venue.activeCount !== 1 ? "s" : ""}</p>`
-          : venue.pendingCount > 0
-            ? `<p style="font-size:11px;color:#d97706;margin:5px 0 0;font-weight:500">${venue.pendingCount} pending</p>`
-            : `<p style="font-size:11px;color:#9ca3af;margin:5px 0 0">No active reservations</p>`;
-
-      L.marker(pos, { icon: createDotIcon(dotColor) })
-        .bindPopup(
-          `<div style="min-width:155px">
-            <p style="font-weight:600;font-size:13px;margin:0">${venue.asset.asset_name}</p>
-            <p style="font-size:11px;color:#6b7280;margin:2px 0 0">Capacity: ${venue.asset.capacity}</p>
-            ${statusLine}
-          </div>`,
+    OFFICE_MARKERS.forEach((office) => {
+      new maplibregl.Marker({
+        element: createOfficeMarkerElement(office),
+        anchor: "bottom",
+      })
+        .setLngLat(office.coordinates)
+        .setPopup(
+          new maplibregl.Popup({ offset: 20 }).setHTML(
+            `<div style="min-width:170px">
+              <p style="font-weight:600;font-size:13px;margin:0;color:#111827">${escapeHtml(office.name)}</p>
+            </div>`,
+          ),
         )
         .addTo(map);
     });
-
-    mapRef.current = map;
 
     return () => {
       map.remove();
       mapRef.current = null;
     };
-  }, [venues]);
+  }, []);
 
-  return <div ref={containerRef} style={{ height: "100%", width: "100%" }} />;
+  return (
+    <div
+      ref={containerRef}
+      className="relative isolate z-0 h-full w-full overflow-hidden"
+    />
+  );
 }
