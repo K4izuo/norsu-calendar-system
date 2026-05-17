@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
+import type { GeoJSONSource } from "maplibre-gl";
+import type { Feature, FeatureCollection, LineString } from "geojson";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 const CAMPUS_CENTER = { lat: 9.31196, lng: 123.30341 };
@@ -20,6 +22,14 @@ type OfficeMarker = {
   name: string;
   coordinates: Coordinate;
   icon: OfficeIcon;
+};
+
+export type ApprovalSegmentStatus = "completed" | "active" | "pending" | "declined";
+
+export type ApprovalMapSegment = {
+  fromStage: string;
+  toStage: string;
+  status: ApprovalSegmentStatus;
 };
 
 const OFFICE_ICON_NODE: LucideIconNode = [
@@ -51,6 +61,12 @@ const OFFICE_ICON_NODES: Record<OfficeIcon, LucideIconNode> = {
 };
 
 const OFFICE_MARKERS: OfficeMarker[] = [
+  {
+    name: "Dean's Office",
+    // approximate — adjust coordinates to exact location
+    coordinates: [123.30450, 9.31100],
+    icon: "executive",
+  },
   {
     name: "Student Director",
     coordinates: [123.30398850703229, 9.3113711420119],
@@ -87,6 +103,60 @@ const OFFICE_MARKERS: OfficeMarker[] = [
     icon: "executive",
   },
 ];
+
+// Maps normalized stage keys to their map coordinates [lng, lat].
+const STAGE_COORDS: Record<string, Coordinate> = {
+  dean: [123.30450, 9.31100],
+  student_director: [123.30398850703229, 9.3113711420119],
+  vpaa: [123.3041304, 9.3116859],
+  vpsas: [123.303428, 9.312699],
+  vpaf: [123.302958, 9.31228],
+  vprde: [123.3037066, 9.3124115],
+  campus_director: [123.302491, 9.312067],
+  university_president: [123.3027185, 9.3115999],
+};
+
+const STATUS_COLORS: Record<ApprovalSegmentStatus, string> = {
+  completed: "#16a34a",
+  active: "#d97706",
+  pending: "#9ca3af",
+  declined: "#dc2626",
+};
+
+// Cycles through these dasharray frames to produce a flowing animation on the active segment.
+const DASH_ANIM_SEQUENCE: number[][] = [
+  [0, 4, 3],
+  [0.5, 4, 2.5],
+  [1, 4, 2],
+  [1.5, 4, 1.5],
+  [2, 4, 1],
+  [2.5, 4, 0.5],
+  [3, 4, 0],
+  [0, 0.5, 3, 3.5],
+];
+
+function normalizeStageKey(stage: string): string {
+  return stage.toLowerCase().replace(/-/g, "_");
+}
+
+function buildGeoJSONFeatures(
+  segments: ApprovalMapSegment[],
+): FeatureCollection<LineString> {
+  const features = segments
+    .map((seg): Feature<LineString> | null => {
+      const from = STAGE_COORDS[normalizeStageKey(seg.fromStage)];
+      const to = STAGE_COORDS[normalizeStageKey(seg.toStage)];
+      if (!from || !to) return null;
+      return {
+        type: "Feature",
+        properties: { status: seg.status },
+        geometry: { type: "LineString", coordinates: [from, to] },
+      };
+    })
+    .filter((f): f is Feature<LineString> => f !== null);
+
+  return { type: "FeatureCollection", features };
+}
 
 const escapeHtml = (value: string | number | null | undefined) =>
   String(value ?? "")
@@ -140,14 +210,39 @@ const createOfficeMarkerElement = ({ icon, name }: OfficeMarker) => {
   return marker;
 };
 
-export default function CampusMap() {
+export default function CampusMap({
+  approvalSegments = [],
+}: {
+  approvalSegments?: ApprovalMapSegment[];
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
+  const animFrameRef = useRef<number | null>(null);
+  const mapLoadedRef = useRef(false);
+  // Holds the latest segments so the map `load` handler can read the current value.
+  const segmentsRef = useRef(approvalSegments);
 
+  useEffect(() => {
+    segmentsRef.current = approvalSegments;
+  }, [approvalSegments]);
+
+  // Update the GeoJSON source whenever the segments prop changes after the map has loaded.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoadedRef.current) return;
+    const source = map.getSource("approval-path") as GeoJSONSource | undefined;
+    source?.setData(buildGeoJSONFeatures(approvalSegments));
+  }, [approvalSegments]);
+
+  // Initialise the map once on mount.
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
 
+    if (animFrameRef.current !== null) {
+      cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = null;
+    }
     mapRef.current?.remove();
 
     const map = new maplibregl.Map({
@@ -187,9 +282,129 @@ export default function CampusMap() {
         .addTo(map);
     });
 
+    map.on("load", () => {
+      mapLoadedRef.current = true;
+
+      map.addSource("approval-path", {
+        type: "geojson",
+        data: buildGeoJSONFeatures(segmentsRef.current),
+      });
+
+      // Solid coloured lines for completed, active, and declined segments.
+      map.addLayer({
+        id: "approval-line-solid",
+        type: "line",
+        source: "approval-path",
+        filter: [
+          "in",
+          ["get", "status"],
+          ["literal", ["completed", "active", "declined"]],
+        ],
+        paint: {
+          "line-color": [
+            "match",
+            ["get", "status"],
+            "completed",
+            STATUS_COLORS.completed,
+            "active",
+            STATUS_COLORS.active,
+            "declined",
+            STATUS_COLORS.declined,
+            STATUS_COLORS.pending,
+          ],
+          "line-width": 2.5,
+          "line-opacity": 0.9,
+        },
+        layout: { "line-cap": "round", "line-join": "round" },
+      });
+
+      // Dashed grey lines for segments not yet reached.
+      map.addLayer({
+        id: "approval-line-pending",
+        type: "line",
+        source: "approval-path",
+        filter: ["==", ["get", "status"], "pending"],
+        paint: {
+          "line-color": STATUS_COLORS.pending,
+          "line-width": 1.5,
+          "line-opacity": 0.45,
+          "line-dasharray": [3, 3],
+        },
+        layout: { "line-cap": "butt", "line-join": "round" },
+      });
+
+      // White animated dashes overlaid on the active segment to show flow direction.
+      map.addLayer({
+        id: "approval-line-active",
+        type: "line",
+        source: "approval-path",
+        filter: ["==", ["get", "status"], "active"],
+        paint: {
+          "line-color": "#ffffff",
+          "line-width": 2.5,
+          "line-opacity": 0.75,
+          "line-dasharray": DASH_ANIM_SEQUENCE[0],
+        },
+        layout: { "line-cap": "butt", "line-join": "round" },
+      });
+
+      // Arrow symbols placed along each non-pending line to show direction of travel.
+      map.addLayer({
+        id: "approval-arrows",
+        type: "symbol",
+        source: "approval-path",
+        filter: ["!=", ["get", "status"], "pending"],
+        layout: {
+          "symbol-placement": "line",
+          "symbol-spacing": 80,
+          "text-field": "▶",
+          "text-size": 10,
+          "text-allow-overlap": true,
+          "text-ignore-placement": true,
+          "text-keep-upright": false,
+        },
+        paint: {
+          "text-color": [
+            "match",
+            ["get", "status"],
+            "completed",
+            STATUS_COLORS.completed,
+            "active",
+            "#ffffff",
+            "declined",
+            STATUS_COLORS.declined,
+            STATUS_COLORS.pending,
+          ],
+          "text-opacity": 0.9,
+        },
+      });
+
+      // Animate the active segment by cycling through dasharray frames.
+      let step = 0;
+      const animate = (timestamp: number) => {
+        const newStep =
+          Math.floor((timestamp / 50) % DASH_ANIM_SEQUENCE.length);
+        if (newStep !== step) {
+          step = newStep;
+          map.setPaintProperty(
+            "approval-line-active",
+            "line-dasharray",
+            DASH_ANIM_SEQUENCE[step],
+          );
+        }
+        animFrameRef.current = requestAnimationFrame(animate);
+      };
+      animFrameRef.current = requestAnimationFrame(animate);
+    });
+
     return () => {
+      if (animFrameRef.current !== null) {
+        cancelAnimationFrame(animFrameRef.current);
+        animFrameRef.current = null;
+      }
       map.remove();
       mapRef.current = null;
+      mapLoadedRef.current = false;
     };
   }, []);
 

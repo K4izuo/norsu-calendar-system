@@ -11,6 +11,11 @@ import {
 } from "@/features/calendar/services/reservation-service";
 import { usePageReady } from "@/shared/components/context/page-loading-context";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import type {
+  ApprovalMapSegment,
+  ApprovalSegmentStatus,
+} from "@/features/calendar/components/campus-map";
+import type { ReservationWithRelations } from "@/features/reservations/types/reservation.types";
 
 // MapLibre uses the browser window, so load the map client-side only.
 const CampusMap = dynamic(
@@ -110,6 +115,77 @@ function TimelineItem({
   );
 }
 
+function normalizeStage(stage: string): string {
+  return stage.toLowerCase().replace(/-/g, "_");
+}
+
+function buildApprovalSegments(
+  reservation: ReservationWithRelations,
+): ApprovalMapSegment[] {
+  const approvals = reservation.approvals ?? [];
+  const currentStage = normalizeStage(reservation.current_stage ?? "");
+
+  // Build the expected stage chain based on the reservation's signatory flags.
+  const stages: string[] = ["dean"];
+  if (reservation.involves_students) stages.push("student_director");
+  if (reservation.requires_vpaa) stages.push("vpaa");
+  if (reservation.requires_vpsas) stages.push("vpsas");
+  if (reservation.requires_vpaf) stages.push("vpaf");
+  if (reservation.requires_vprde) stages.push("vprde");
+  stages.push("campus_director");
+  // Only show the line to University President if the Campus Director chose to endorse.
+  if (reservation.campus_director_action === "endorse") {
+    stages.push("university_president");
+  }
+
+  const getNodeStatus = (
+    stage: string,
+  ): "completed" | "active" | "pending" | "declined" => {
+    if (stage === "dean") return "completed"; // dean always submitted
+    const approval = approvals.find(
+      (a) => normalizeStage(a.stage) === stage,
+    );
+    if (approval) {
+      return approval.action === "DECLINED" ? "declined" : "completed";
+    }
+    if (stage === currentStage) return "active";
+    return "pending";
+  };
+
+  const segments: ApprovalMapSegment[] = [];
+  let foundDeclined = false;
+
+  for (let i = 0; i < stages.length - 1; i++) {
+    if (foundDeclined) {
+      segments.push({
+        fromStage: stages[i],
+        toStage: stages[i + 1],
+        status: "pending",
+      });
+      continue;
+    }
+
+    const fromStatus = getNodeStatus(stages[i]);
+    const toStatus = getNodeStatus(stages[i + 1]);
+
+    let status: ApprovalSegmentStatus;
+    if (toStatus === "declined") {
+      status = "declined";
+      foundDeclined = true;
+    } else if (fromStatus === "completed" && toStatus === "active") {
+      status = "active";
+    } else if (fromStatus === "completed" && toStatus === "completed") {
+      status = "completed";
+    } else {
+      status = "pending";
+    }
+
+    segments.push({ fromStage: stages[i], toStage: stages[i + 1], status });
+  }
+
+  return segments;
+}
+
 export default function ReservationTrackingPage() {
   const params = useParams();
   const router = useRouter();
@@ -121,16 +197,25 @@ export default function ReservationTrackingPage() {
   const { reservations, loading, isFetching, error } = useReservations();
   usePageReady(loading, isFetching);
 
-  const focusedTitle = useMemo(
-    () => reservations.find((r) => r.id === focusedId)?.title_name ?? `#${focusedId}`,
+  const focusedReservation = useMemo(
+    () => reservations.find((r) => r.id === focusedId) as ReservationWithRelations | undefined,
     [reservations, focusedId],
   );
+
+  const focusedTitle = focusedReservation?.title_name ?? `#${focusedId}`;
 
   const assetIds = useMemo(
     () => [...new Set(reservations.map((r) => r.asset_id).filter(Boolean))],
     [reservations],
   );
   const { assets } = useAssets(assetIds);
+
+  // Compute the approval path segments for the focused reservation so the
+  // campus map can draw the animated track line between offices.
+  const approvalSegments = useMemo<ApprovalMapSegment[]>(() => {
+    if (!focusedReservation) return [];
+    return buildApprovalSegments(focusedReservation);
+  }, [focusedReservation]);
 
   // Flatten all approval records into a sorted timeline
   const allEvents = useMemo<FlatApprovalEvent[]>(() => {
@@ -204,6 +289,26 @@ export default function ReservationTrackingPage() {
             <span className="text-sm font-semibold text-gray-800">Campus Office Locations</span>
           </div>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-400">
+            {focusedId && approvalSegments.length > 0 && (
+              <span className="flex items-center gap-2 mr-1">
+                <span className="flex items-center gap-1">
+                  <span className="inline-block w-4 h-0.5 bg-green-500 rounded" />
+                  <span>Approved</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block w-4 h-0.5 bg-amber-500 rounded" />
+                  <span>Active</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block w-4 h-0.5 bg-gray-300 rounded border-dashed border" />
+                  <span>Pending</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block w-4 h-0.5 bg-red-500 rounded" />
+                  <span>Declined</span>
+                </span>
+              </span>
+            )}
             <span className="flex items-center gap-1">
               <Building2 className="size-3.5 text-blue-600" />
               Office
@@ -217,7 +322,7 @@ export default function ReservationTrackingPage() {
 
         {/* Map container — explicit height required by MapLibre */}
         <div className="mx-4 mb-4 rounded-lg overflow-hidden" style={{ height: "380px" }}>
-          <CampusMap />
+          <CampusMap approvalSegments={approvalSegments} />
         </div>
       </div>
 
