@@ -40,10 +40,10 @@ const STAGE_LABELS: Record<string, string> = {
 type ActionType = "APPROVED" | "DECLINED" | "APPROVE" | "ENDORSE";
 
 const ACTION_CONFIG: Record<ActionType, { dotClass: string; bgClass: string; label: string }> = {
-  APPROVED: { dotClass: "bg-green-500",  bgClass: "bg-green-50",  label: "Approved"  },
-  ENDORSE:  { dotClass: "bg-amber-500",  bgClass: "bg-amber-50",  label: "Endorsed"  },
-  APPROVE:  { dotClass: "bg-blue-500",   bgClass: "bg-blue-50",   label: "Forwarded" },
-  DECLINED: { dotClass: "bg-red-500",    bgClass: "bg-red-50",    label: "Declined"  },
+  APPROVED: { dotClass: "bg-green-500", bgClass: "bg-green-50", label: "Approved" },
+  ENDORSE: { dotClass: "bg-amber-500", bgClass: "bg-amber-50", label: "Endorsed" },
+  APPROVE: { dotClass: "bg-blue-500", bgClass: "bg-blue-50", label: "Forwarded" },
+  DECLINED: { dotClass: "bg-red-500", bgClass: "bg-red-50", label: "Declined" },
 };
 
 type FlatApprovalEvent = {
@@ -58,28 +58,23 @@ type FlatApprovalEvent = {
   timestamp: string;
 };
 
-function getRelativeTime(dateStr: string): string {
+function getFormattedDateTime(dateStr: string): string {
   const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMin = Math.floor(diffMs / 60000);
-  const diffHr = Math.floor(diffMin / 60);
-  const diffDay = Math.floor(diffHr / 24);
-
-  if (diffMin < 1) return "just now";
-  if (diffMin < 60) return `${diffMin} min ago`;
-  if (diffHr < 24) return `${diffHr} hr ago`;
-  if (diffDay === 1) return "yesterday";
-  if (diffDay < 7) return `${diffDay}d ago`;
-  return date.toLocaleDateString("en-PH", { month: "short", day: "numeric" });
+  const datePart = date.toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" });
+  const timePart = date.toLocaleTimeString("en-PH", { hour: "numeric", minute: "2-digit", hour12: true });
+  return `${datePart} at ${timePart}`;
 }
 
 function TimelineItem({
   event,
   venueName,
+  isFirst,
+  isLast,
 }: {
   event: FlatApprovalEvent;
   venueName: string;
+  isFirst: boolean;
+  isLast: boolean;
 }) {
   const config = ACTION_CONFIG[event.action] ?? ACTION_CONFIG.APPROVED;
   const stageLabel = STAGE_LABELS[event.stage.toLowerCase().trim()] ?? event.stage;
@@ -89,24 +84,27 @@ function TimelineItem({
     : event.reservationTitle;
 
   return (
-    <div className="flex items-start gap-3 py-3.5">
-      <div
-        className={`mt-0.5 w-9 h-9 rounded-full ${config.bgClass} flex items-center justify-center shrink-0`}
-      >
-        <div className={`w-3 h-3 rounded-full ${config.dotClass}`} />
+    <div className="flex gap-2">
+      <div className="flex flex-col items-center shrink-0">
+        {/* segment above the circle — matches the right column's top padding */}
+        <div className={`w-px h-3.5 ${isFirst ? "invisible" : "bg-gray-200"}`} />
+        <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0">
+          <div className={`w-2.5 h-2.5 rounded-full ${config.dotClass}`} />
+        </div>
+        {/* segment below the circle — fills to item bottom, or fixed to venue midpoint on last item */}
+        <div className={`w-px bg-gray-200 ${isLast ? "h-8" : "flex-1"}`} />
       </div>
-      <div className="flex-1 min-w-0">
+      <div className={`flex-1 min-w-0 ${isLast ? "pt-3.5" : "py-3.5"}`}>
         <p className="text-sm font-semibold text-gray-900 leading-snug">{title}</p>
         <p className="text-xs text-gray-500 mt-0.5 truncate">{description}</p>
-        {venueName && (
-          <p className="text-xs text-gray-400 mt-0.5">at {venueName}</p>
-        )}
         {event.reason && (
           <p className="text-xs text-gray-400 mt-0.5 italic truncate">
             &ldquo;{event.reason}&rdquo;
           </p>
         )}
-        <p className="text-xs text-gray-400 mt-1">{getRelativeTime(event.timestamp)}</p>
+        <p className="text-xs text-gray-400 mt-0.5">
+          {venueName ? `${venueName} on ` : ""}{getFormattedDateTime(event.timestamp)}
+        </p>
       </div>
     </div>
   );
@@ -122,6 +120,11 @@ export default function ReservationTrackingPage() {
 
   const { reservations, loading, isFetching, error } = useReservations();
   usePageReady(loading, isFetching);
+
+  const focusedTitle = useMemo(
+    () => reservations.find((r) => r.id === focusedId)?.title_name ?? `#${focusedId}`,
+    [reservations, focusedId],
+  );
 
   const assetIds = useMemo(
     () => [...new Set(reservations.map((r) => r.asset_id).filter(Boolean))],
@@ -182,7 +185,7 @@ export default function ReservationTrackingPage() {
           </button>
           <span className="text-blue-300">|</span>
           <p className="text-sm text-blue-700">
-            Showing tracking for reservation <span className="font-semibold">#{focusedId}</span>
+            Showing tracking for <span className="font-semibold">{focusedTitle}</span>
           </p>
         </div>
       )}
@@ -220,7 +223,7 @@ export default function ReservationTrackingPage() {
 
       {/* Reservation Timeline */}
       <div className="bg-white rounded-xl border border-gray-200">
-        <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-gray-100">
+        <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-input">
           <span className="text-sm font-semibold text-gray-800">Reservation Timeline</span>
           <button className="text-xs text-blue-600 hover:underline flex items-center gap-0.5">
             See all
@@ -228,7 +231,7 @@ export default function ReservationTrackingPage() {
           </button>
         </div>
 
-        <div className="px-5 divide-y divide-gray-50">
+        <div className="px-5 pb-4">
           {loading ? (
             Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="flex items-start gap-3 py-3.5">
@@ -245,11 +248,13 @@ export default function ReservationTrackingPage() {
               No approval events yet.
             </div>
           ) : (
-            filteredEvents.slice(0, 8).map((event) => (
+            filteredEvents.slice(0, 8).map((event, index, arr) => (
               <TimelineItem
                 key={event.key}
                 event={event}
                 venueName={assets.get(event.assetId)?.asset_name ?? ""}
+                isFirst={index === 0}
+                isLast={index === arr.length - 1}
               />
             ))
           )}
