@@ -25,6 +25,7 @@ import { buildSpanEventsByDate } from "@/features/calendar/utils/calendar-span-u
 import { PageBreadcrumb } from "@/shared/components/ui/page-breadcrumb";
 import { useParams } from "next/navigation";
 import toast from "react-hot-toast";
+import { getRouteParam } from "@/core/lib/route-params";
 
 const isEventFinished = (eventDate: string, timeEnd: string): boolean => {
   try {
@@ -46,7 +47,7 @@ const PATH_ROLE_MAP: Record<string, number> = {
 
 export default function CalendarPage() {
   const params = useParams();
-  const role = params.role as string;
+  const role = getRouteParam(params, "role");
   const { user } = useAuth();
   const userRoleNumber = PATH_ROLE_MAP[role] ?? (user?.role ? Number(user.role) : undefined);
   const userOffice = user?.office;

@@ -1,9 +1,20 @@
-import { getAuthToken, setAuthToken, setUserRole, removeAuthToken, setUserId, updateTokenExpiry } from '@/core/auth/auth';
+import {
+  ensureCsrfCookie,
+  invalidateCsrfCookie,
+  readXsrfToken,
+} from "@/core/auth/csrf";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-// http://127.0.0.1:8000
 
-type RequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+if (!API_BASE_URL && typeof window !== "undefined") {
+  console.error(
+    "[api-client] NEXT_PUBLIC_API_URL is not configured. " +
+      "Set it in .env.local (e.g. NEXT_PUBLIC_API_URL=http://localhost:8000/api). " +
+      "API requests will fail until this is configured."
+  );
+}
+
+type RequestMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
 type RequestOptions<D = unknown> = {
   headers?: Record<string, string>;
@@ -18,38 +29,33 @@ type ApiResponse<T> = {
   status: number;
 };
 
+const STATE_CHANGING_METHODS: ReadonlySet<RequestMethod> = new Set([
+  "POST",
+  "PUT",
+  "PATCH",
+  "DELETE",
+]);
+
 const buildUrl = (endpoint: string): string => {
-  const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const path = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
   return `${API_BASE_URL}${path}`;
 };
 
-// ⚡ PERFORMANCE: Memoized header construction to avoid recreating objects
-const headerCache = new Map<string, Record<string, string>>();
-
-const buildHeaders = (token: string | null, customHeaders?: Record<string, string>): Record<string, string> => {
-  const cacheKey = `${token || 'none'}-${JSON.stringify(customHeaders || {})}`;
-
-  if (headerCache.has(cacheKey)) {
-    return headerCache.get(cacheKey)!;
-  }
-
-  const headers = {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
-    // ⚡ PERFORMANCE: Keep connection alive for connection pooling
-    'Connection': 'keep-alive',
-    ...(token && { 'Authorization': `Bearer ${token}` }),
+const buildHeaders = (
+  method: RequestMethod,
+  customHeaders?: Record<string, string>
+): Record<string, string> => {
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+    Connection: "keep-alive",
     ...customHeaders,
   };
 
-  headerCache.set(cacheKey, headers);
-
-  // Clear cache periodically to prevent memory leaks
-  if (headerCache.size > 100) {
-    const keysIterator = headerCache.keys();
-    const firstKey = keysIterator.next().value;
-    if (firstKey) {
-      headerCache.delete(firstKey);
+  if (STATE_CHANGING_METHODS.has(method)) {
+    const xsrf = readXsrfToken();
+    if (xsrf) {
+      headers["X-XSRF-TOKEN"] = xsrf;
     }
   }
 
@@ -57,172 +63,136 @@ const buildHeaders = (token: string | null, customHeaders?: Record<string, strin
 };
 
 const handleUnauthorized = () => {
-  removeAuthToken();
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new Event('auth:unauthorized'));
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("auth:unauthorized"));
   }
 };
 
-const storeAuthData = (responseData: { token?: string; role?: number; user?: { id: number }; expires_at?: string } | null) => {
-  if (responseData?.token) setAuthToken(responseData.token, responseData.expires_at);
-  if (responseData?.role) setUserRole(responseData.role);
-  if (responseData?.user?.id) setUserId(responseData.user.id);
-  // Update token expiry if provided (for token refresh endpoint responses)
-  if (responseData?.expires_at && !responseData?.token) {
-    updateTokenExpiry(responseData.expires_at);
-  }
-};
-
-// Define public endpoints that don't require authentication
-const isPublicEndpoint = (endpoint: string): boolean => {
-  const publicEndpoints = [
-    'users/login',
-    'users/store',
-    'verify-email',
-    'resend-verification',
-    'campuses/all',
-    'offices/all',
-    'degreeCourse/',
-    'reservations/all',
-    'reservations/assets/',
-  ];
-
-  return publicEndpoints.some(publicPath => endpoint.includes(publicPath));
-};
-
-// Define endpoints that definitely require authentication
-const isProtectedEndpoint = (endpoint: string): boolean => {
-  const normalizedEndpoint = endpoint.replace(/^\/+/, '');
-  const protectedPatterns = [
-    '/me',
-    'logout',
-    'assets/all',
-    'assets/store',
-    'assets/',
-    'event/reservation',
-    'users/all',
-    'people',
-    'notifications',
-    // Note: 'reservations/{id}' (single ID) is protected, but 'reservations/all' is public
-  ];
-
-  // Special case: reservations/{id} is protected, but reservations/all and reservations/assets/{id} are public
-  if (normalizedEndpoint.startsWith('reservations/')) {
-    // If it's /all or /assets/, it's public
-    if (normalizedEndpoint.includes('/all') || normalizedEndpoint.includes('/assets/')) {
-      return false;
-    }
-    // Otherwise it's a single reservation by ID, which is protected
-    return normalizedEndpoint === 'reservations/internal'
-      || normalizedEndpoint === 'reservations/queue'
-      || /^reservations\/\d+$/.test(normalizedEndpoint)
-      || /^reservations\/\d+\/equipment$/.test(normalizedEndpoint)
-      || /^reservations\/\d+\/multimedia-comment$/.test(normalizedEndpoint)
-      || /^reservations\/\d+\/move$/.test(normalizedEndpoint)
-      || /^reservations\/\d+\/resubmit$/.test(normalizedEndpoint);
+async function performRequest<T, D>(
+  endpoint: string,
+  method: RequestMethod,
+  data: D | undefined,
+  customOptions: Omit<RequestOptions, "body"> & { signal?: AbortSignal }
+): Promise<ApiResponse<T>> {
+  if (STATE_CHANGING_METHODS.has(method)) {
+    await ensureCsrfCookie();
   }
 
-  return protectedPatterns.some(pattern => endpoint.includes(pattern));
-};
+  const url = buildUrl(endpoint);
+  const options: RequestInit = {
+    method,
+    headers: buildHeaders(method, customOptions.headers),
+    credentials: customOptions.credentials || "include",
+    cache: customOptions.cache,
+    signal: customOptions.signal,
+    ...(data !== undefined && { body: JSON.stringify(data) }),
+  };
+
+  const response = await fetch(url, options);
+
+  if (response.status === 401) {
+    handleUnauthorized();
+    return {
+      data: null,
+      error: "Unauthorized. Please log in again.",
+      status: 401,
+    };
+  }
+
+  const responseData =
+    response.status !== 204
+      ? await response.json().catch(() => null)
+      : null;
+
+  if (!response.ok) {
+    return {
+      data: responseData as T,
+      error:
+        responseData?.message ||
+        `${response.status}: ${response.statusText}`,
+      status: response.status,
+    };
+  }
+
+  return { data: responseData, error: null, status: response.status };
+}
 
 export const apiClient = {
   async request<T, D = unknown>(
     endpoint: string,
-    method: RequestMethod = 'GET',
+    method: RequestMethod = "GET",
     data?: D,
-    customOptions: Omit<RequestOptions, 'body'> & { signal?: AbortSignal } = {}
+    customOptions: Omit<RequestOptions, "body"> & { signal?: AbortSignal } = {}
   ): Promise<ApiResponse<T>> {
-    const token = getAuthToken();
-    const url = buildUrl(endpoint);
-
-    // Only fail fast if it's a protected endpoint and token is missing
-    if (!token && !isPublicEndpoint(endpoint) && isProtectedEndpoint(endpoint)) {
-      return {
-        data: null,
-        error: 'Authentication required. Please log in.',
-        status: 401
-      };
-    }
-
-    const options: RequestInit = {
-      method,
-      headers: buildHeaders(token, customOptions.headers),
-      credentials: customOptions.credentials || 'include',
-      cache: customOptions.cache,
-      // ⚡ PERFORMANCE: Support AbortSignal for request cancellation
-      signal: customOptions.signal,
-      ...(data && { body: JSON.stringify(data) })
-    };
-
     try {
-      const response = await fetch(url, options);
+      let response = await performRequest<T, D>(
+        endpoint,
+        method,
+        data,
+        customOptions
+      );
 
-      if (response.status === 401) {
-        handleUnauthorized();
-        return {
-          data: null,
-          error: 'Unauthorized. Please log in again.',
-          status: 401
-        };
+      // CSRF token rotated between page load and this request — refresh and retry once.
+      if (response.status === 419) {
+        invalidateCsrfCookie();
+        await ensureCsrfCookie();
+        response = await performRequest<T, D>(
+          endpoint,
+          method,
+          data,
+          customOptions
+        );
       }
 
-      const responseData = response.status !== 204
-        ? await response.json().catch(() => null)
-        : null;
-
-      // Store auth data on successful login/auth/token-refresh responses
-      if (response.ok && (endpoint === 'users/login' || endpoint === '/me' || endpoint === '/update-token-expiration')) {
-        storeAuthData(responseData);
-      }
-
-      if (!response.ok) {
-        return {
-          data: responseData as T,
-          error: responseData?.message || `${response.status}: ${response.statusText}`,
-          status: response.status
-        };
-      }
-
-      return { data: responseData, error: null, status: response.status };
+      return response;
     } catch (error) {
-      // ⚡ PERFORMANCE: Don't treat AbortError as actual error
-      if (error instanceof Error && error.name === 'AbortError') {
-        return {
-          data: null,
-          error: 'Request cancelled',
-          status: 0
-        };
+      if (error instanceof Error && error.name === "AbortError") {
+        return { data: null, error: "Request cancelled", status: 0 };
       }
-
       return {
         data: null,
-        error: error instanceof Error ? error.message : 'Network error',
-        status: 0
+        error: error instanceof Error ? error.message : "Network error",
+        status: 0,
       };
     }
   },
 
   get<T>(endpoint: string, options?: RequestOptions): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, 'GET', undefined, options);
+    return this.request<T>(endpoint, "GET", undefined, options);
   },
 
-  post<T, D>(endpoint: string, data: D, options?: RequestOptions): Promise<ApiResponse<T>> {
-    return this.request<T, D>(endpoint, 'POST', data, options);
+  post<T, D>(
+    endpoint: string,
+    data: D,
+    options?: RequestOptions
+  ): Promise<ApiResponse<T>> {
+    return this.request<T, D>(endpoint, "POST", data, options);
   },
 
   logout<T>(endpoint: string): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, 'POST');
+    return this.request<T>(endpoint, "POST");
   },
 
-  put<T, D>(endpoint: string, data: D, options?: RequestOptions): Promise<ApiResponse<T>> {
-    return this.request<T, D>(endpoint, 'PUT', data, options);
+  put<T, D>(
+    endpoint: string,
+    data: D,
+    options?: RequestOptions
+  ): Promise<ApiResponse<T>> {
+    return this.request<T, D>(endpoint, "PUT", data, options);
   },
 
-  delete<T>(endpoint: string, options?: RequestOptions): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, 'DELETE', undefined, options);
+  delete<T>(
+    endpoint: string,
+    options?: RequestOptions
+  ): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, "DELETE", undefined, options);
   },
 
-  patch<T, D>(endpoint: string, data: D, options?: RequestOptions): Promise<ApiResponse<T>> {
-    return this.request<T, D>(endpoint, 'PATCH', data, options);
-  }
+  patch<T, D>(
+    endpoint: string,
+    data: D,
+    options?: RequestOptions
+  ): Promise<ApiResponse<T>> {
+    return this.request<T, D>(endpoint, "PATCH", data, options);
+  },
 };

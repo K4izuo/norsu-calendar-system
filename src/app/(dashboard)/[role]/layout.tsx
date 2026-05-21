@@ -7,6 +7,8 @@ import {
   startTokenRefresh,
   stopTokenRefresh,
 } from "@/core/auth/token-refresh";
+import { parseStoredUser } from "@/core/auth/stored-user-schema";
+import { getRouteParam } from "@/core/lib/route-params";
 import { Search } from "lucide-react";
 // import { Mail } from "lucide-react";
 // import { Button } from "@/shared/components/ui/button";
@@ -119,7 +121,7 @@ export default function RoleLayout({
   const { user, isLoading: isAuthLoading } = useAuth();
   const queryClient = useQueryClient();
   const params = useParams();
-  const roleSegment = (params.role as string) ?? "";
+  const roleSegment = getRouteParam(params, "role");
   const pathname = usePathname();
   const router = useRouter();
 
@@ -173,9 +175,9 @@ export default function RoleLayout({
 
       const storedUser = localStorage.getItem("user");
       const storedRole = localStorage.getItem("user-role");
+      const parsedUser = parseStoredUser(storedUser);
 
-      if (storedUser) {
-        const parsedUser = JSON.parse(storedUser);
+      if (parsedUser) {
         const parsedRole = storedRole ? Number(storedRole) : 3;
 
         setUserData({

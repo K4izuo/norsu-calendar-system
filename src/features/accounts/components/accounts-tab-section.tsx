@@ -39,6 +39,7 @@ import type { UserAccount } from "../types/account.types";
 import { RoleChooseModal } from "./role-choose-modal";
 import { DeanRegisterModal } from "./dean-register/dean-register-modal";
 import { StaffRegisterModal } from "./staff-register/staff-register-modal";
+import { getRouteParam } from "@/core/lib/route-params";
 
 function EmptyState({
   icon: Icon,
@@ -226,7 +227,7 @@ export function AccountsTabSection() {
   const { user: currentUser } = useAuth();
   const router = useRouter();
   const params = useParams();
-  const role = params.role as string;
+  const role = getRouteParam(params, "role");
   const queryClient = useQueryClient();
 
   const navigateToAccount = (userId: number) => {

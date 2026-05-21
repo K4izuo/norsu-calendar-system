@@ -26,6 +26,7 @@ import {
   SidebarContent,
   SidebarHeader,
 } from "@/shared/components/ui/sidebar"
+import { getRouteParam } from "@/core/lib/route-params"
 
 const data = {
   teams: [
@@ -61,7 +62,7 @@ const PATH_TO_TEAM_NAME: Record<string, string> = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const params = useParams()
-  const role = (params.role as string) || "admin"
+  const role = getRouteParam(params, "role", "admin")
 
   const allNavItems = [
     { title: "Dashboard",    url: `/${role}/dashboard`,              icon: House },

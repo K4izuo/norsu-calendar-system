@@ -101,25 +101,26 @@ export const authService = {
   },
 
   /**
-   * Refresh authentication token
-   * @returns Promise with new token and expiry
+   * Touch the SPA session to extend its expiry.
+   *
+   * Returns the fresh `expires_at` from the backend. Cookie session is sent
+   * automatically by the api-client via credentials: 'include'.
    */
   refreshToken: async () => {
-    return apiClient.post<TokenRefreshResponse, undefined>(
-      '/refresh-token',
-      undefined
+    return apiClient.post<TokenRefreshResponse, Record<string, never>>(
+      '/session/touch',
+      {}
     );
   },
 
   /**
-   * Update token expiration time
-   * @param expiresAt - New expiration timestamp
-   * @returns Promise with update response
+   * Legacy alias kept temporarily so callers using updateTokenExpiration still work.
+   * Both /update-token-expiration and /session/touch behave identically on the backend.
    */
-  updateTokenExpiration: async (expiresAt: string) => {
-    return apiClient.post<{ expires_at: string }, { expires_at: string }>(
-      '/update-token-expiration',
-      { expires_at: expiresAt }
+  updateTokenExpiration: async () => {
+    return apiClient.post<TokenRefreshResponse, Record<string, never>>(
+      '/session/touch',
+      {}
     );
   },
 

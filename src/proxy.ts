@@ -1,121 +1,63 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { getDefaultPageForRole, getRolePathFromNumber } from '@/core/lib/role-utils';
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-const PUBLIC_ROUTES = [
-  '/',
-  '/info',
-  '/demo',
-  '/dashboard',
-  '/about',
-  '/login',
-  '/register',
-  '/dean/login',
-  '/dean/register',
-  '/staff/login',
-  '/staff/register',
-  '/admin/login',
-  '/auth/dean/register',
-  '/auth/staff/register',
-  '/auth/dean/login',
-  '/auth/staff/login',
-  '/auth/admin/login',
+/**
+ * Next.js 16 proxy (the file formerly known as middleware.ts).
+ *
+ * Thin first-line guard for dashboard routes. If there's no Laravel session
+ * cookie at all, redirect to /login before rendering anything. Real auth is
+ * still enforced in two places:
+ *  - The auth-context's /me call on mount (catches expired sessions)
+ *  - The backend's `auth:sanctum` + `role:*` middleware (catches forged sessions)
+ *
+ * The proxy does NOT call /me from here — that would add a server round-trip
+ * to every page navigation. It only checks cookie presence.
+ */
+
+const ROLE_SEGMENTS = [
+  "admin",
+  "dean",
+  "staff",
+  "student-director",
+  "campus-director",
+  "vpaa",
+  "vpsas",
+  "vpaf",
+  "vprde",
+  "head",
+  "multimedia",
+  "university-president",
 ];
 
-// ⚡ PERFORMANCE: Cache role path lookups to avoid repeated parsing
-const rolePathCache = new Map<number, string>();
+// Laravel 12's default session cookie name uses hyphens (e.g. `laravel-session`).
+// Older defaults / custom APP_NAMEs may produce underscores. Accept both so the
+// frontend doesn't need to redeploy if the backend renames itself.
+const SESSION_COOKIE_PATTERN = /[-_]session$/;
 
-const getCachedRolePath = (roleNum: number): string => {
-  if (!rolePathCache.has(roleNum)) {
-    rolePathCache.set(roleNum, getRolePathFromNumber(roleNum));
+function hasSessionCookie(request: NextRequest): boolean {
+  for (const cookie of request.cookies.getAll()) {
+    if (SESSION_COOKIE_PATTERN.test(cookie.name) && cookie.value.length > 0) {
+      return true;
+    }
   }
-  return rolePathCache.get(roleNum)!;
-};
+  return false;
+}
+
+function isProtectedPath(pathname: string): boolean {
+  const first = pathname.split("/").filter(Boolean)[0];
+  return first !== undefined && ROLE_SEGMENTS.includes(first);
+}
 
 export function proxy(request: NextRequest) {
-  // ⚡ PERFORMANCE: Cache cookie access (read once instead of multiple times)
-  const cookies = {
-    token: request.cookies.get('auth-token')?.value,
-    roleStr: request.cookies.get('user-role')?.value,
-    tokenExpiry: request.cookies.get('token-expiry')?.value,
-  };
-
   const { pathname } = request.nextUrl;
 
-  // Check if the route is public
-  const isPublic = PUBLIC_ROUTES.some(route => {
-    if (route === '/') {
-      return pathname === '/';
-    }
-    return pathname === route || pathname.startsWith(route + '/');
-  });
-
-  // Check if token has expired
-  const isTokenExpired = cookies.tokenExpiry ? new Date(cookies.tokenExpiry) <= new Date() : false;
-
-  // If token is expired, clear it and redirect to main page with error flag
-  if (isTokenExpired && !isPublic) {
-    // ⚡ PERFORMANCE: Reuse URL object instead of creating multiple
-    const url = new URL('/', request.url);
-    url.searchParams.set('error', 'session_expired');
-
-    const response = NextResponse.redirect(url);
-    response.cookies.delete('auth-token');
-    response.cookies.delete('user-role');
-    response.cookies.delete('token-expiry');
-    response.cookies.delete('user-id');
-    return response;
-  }
-
-  // If it's a public route, allow access
-  if (isPublic) {
-    // If user is logged in and tries to access auth pages, redirect to their dashboard
-    if (cookies.token && cookies.roleStr && !isTokenExpired && (pathname === '/' || pathname.startsWith('/auth') || pathname.startsWith('/login') || pathname.startsWith('/dean') || pathname.startsWith('/staff') || pathname.startsWith('/admin/login'))) {
-      const roleNum = parseInt(cookies.roleStr, 10);
-      // ⚡ PERFORMANCE: Use cached role path lookup
-      const rolePath = getCachedRolePath(roleNum);
-      const defaultPage = getDefaultPageForRole(roleNum);
-      return NextResponse.redirect(new URL(`/${rolePath}/${defaultPage}`, request.url));
-    }
+  if (!isProtectedPath(pathname)) {
     return NextResponse.next();
   }
 
-  // If the path doesn't match any known role prefix, it's an unknown route — let Next.js render not-found
-  const ROLE_PREFIXES = ['/dean/', '/staff/', '/admin/'];
-  const isKnownProtectedRoute = ROLE_PREFIXES.some(prefix => pathname.startsWith(prefix));
-  if (!isKnownProtectedRoute) {
-    return NextResponse.next();
-  }
-
-  // Protected routes - require valid authentication
-  if (!cookies.token || !cookies.roleStr || isTokenExpired) {
-    // ⚡ PERFORMANCE: Reuse URL object
-    const url = new URL('/', request.url);
-    url.searchParams.set('error', 'unauthorized');
-
-    const response = NextResponse.redirect(url);
-    response.cookies.delete('auth-token');
-    response.cookies.delete('user-role');
-    response.cookies.delete('token-expiry');
-    response.cookies.delete('user-id');
-    return response;
-  }
-
-  // Check if user is accessing their allowed role path
-  const roleNum = parseInt(cookies.roleStr, 10);
-  // ⚡ PERFORMANCE: Use cached role path lookup
-  const userRolePath = getCachedRolePath(roleNum);
-
-  // Extract role from pathname (e.g., /admin/dashboard -> admin)
-  const pathMatch = pathname.match(/^\/([^\/]+)/);
-  const pathRole = pathMatch?.[1];
-
-  // If accessing wrong role path, redirect to correct one
-  if (pathRole && pathRole !== userRolePath && ['dean', 'staff', 'admin'].includes(pathRole)) {
-    // Extract the page they're trying to access (e.g., dashboard, calendar)
-    const pageMatch = pathname.match(/^\/[^\/]+\/(.+)/);
-    const page = pageMatch?.[1] || 'dashboard';
-    return NextResponse.redirect(new URL(`/${userRolePath}/${page}`, request.url));
+  if (!hasSessionCookie(request)) {
+    const loginUrl = new URL("/login", request.url);
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();
@@ -123,7 +65,6 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/',
-    '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).+)',
+    "/((?!_next/static|_next/image|favicon.ico|api-proxy|sanctum|login|register|about|$).*)",
   ],
 };

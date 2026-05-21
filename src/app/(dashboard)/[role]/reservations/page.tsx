@@ -21,6 +21,7 @@ import { CalendarDays, Clock, CircleCheck, XCircle } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useAuth } from "@/shared/components/context/auth-context";
 import { usePageReady } from "@/shared/components/context/page-loading-context";
+import { getRouteParam } from "@/core/lib/route-params";
 
 const PATH_ROLE_MAP: Record<string, number> = {
   dean:                   1,
@@ -39,7 +40,7 @@ const PATH_ROLE_MAP: Record<string, number> = {
 
 export default function ReservationsPage() {
   const params = useParams();
-  const role = params.role as string;
+  const role = getRouteParam(params, "role");
   const userRoleNumber = PATH_ROLE_MAP[role] ?? 3;
   const isReviewUser = isReviewRole(userRoleNumber);
   const { user } = useAuth();

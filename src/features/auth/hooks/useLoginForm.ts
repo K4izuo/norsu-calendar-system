@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import toast from "react-hot-toast"
 import { LoginFormData, loginSchema } from "@/features/auth/utils/login/login-validation-rules"
 import { apiClient } from "@/core/api/api-client"
-import { setAuthToken, setUserRole, setUserId } from "@/core/auth/auth"
+import { cacheLoginIdentity, setSessionExpiresAt } from "@/core/auth/auth"
 import { useQueryClient } from "@tanstack/react-query"
 import { getRolePathFromNumber, getDefaultPageForRole } from "@/core/lib/role-utils"
 
@@ -25,7 +25,6 @@ interface User {
 }
 
 interface LoginResponse {
-  token: string;
   user: User;
   role?: number;
   expires_at?: string;
@@ -107,23 +106,17 @@ const queryClient = useQueryClient();
         return;
       }
 
-      // Store auth data with expiry
-      if (response.data?.token && response.data?.expires_at) {
-        setAuthToken(response.data.token, response.data.expires_at);
-      }
-
-      if (response.data?.role) {
-        setUserRole(response.data.role);
-      }
-
-      if (response.data?.user?.id) {
-        setUserId(response.data.user.id);
-      }
-
-      // Store user data in localStorage
+      // SPA cookie auth: session is established by Set-Cookie on this response.
+      // We only cache non-sensitive identity for fast UI access; /me is the source of truth.
       if (response.data?.user) {
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        localStorage.setItem('role', JSON.stringify(response.data.role));
+        cacheLoginIdentity({
+          user: response.data.user,
+          role: response.data.role,
+        });
+      }
+
+      if (response.data?.expires_at) {
+        setSessionExpiresAt(response.data.expires_at);
       }
 
       // Stop loading spinner but keep button disabled

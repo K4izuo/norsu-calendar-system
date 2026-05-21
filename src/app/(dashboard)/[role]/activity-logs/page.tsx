@@ -7,6 +7,7 @@ import { usePageReady } from "@/shared/components/context/page-loading-context";
 import { useActivityLogs } from "@/features/activity-logs/services/activity-log-service";
 import { useAuth } from "@/shared/components/context/auth-context";
 import type { ActivityLog, ActivityLogGroup, ActivityLogType } from "@/features/activity-logs/types/activity-log.types";
+import { getRouteParam } from "@/core/lib/route-params";
 
 const TYPE_CIRCLE: Record<ActivityLogType, string> = {
   reservation_created: "bg-blue-500",
@@ -95,7 +96,7 @@ function TimelineItem({ item, isLast }: { item: ActivityLog; isLast: boolean }) 
 
 export default function ActivityLogsPage() {
   const params = useParams();
-  const role = params.role as string;
+  const role = getRouteParam(params, "role");
 
   const { isLoading: isAuthLoading } = useAuth();
   const { logs, loading, isFetching, error } = useActivityLogs();

@@ -16,6 +16,7 @@ import type {
   ApprovalSegmentStatus,
 } from "@/features/calendar/components/campus-map";
 import type { ReservationWithRelations } from "@/features/reservations/types/reservation.types";
+import { getRouteParam } from "@/core/lib/route-params";
 
 // MapLibre uses the browser window, so load the map client-side only.
 const CampusMap = dynamic(
@@ -190,7 +191,7 @@ export default function ReservationTrackingPage() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const role = params.role as string;
+  const role = getRouteParam(params, "role");
 
   const focusedId = searchParams.get("id") ? Number(searchParams.get("id")) : null;
 

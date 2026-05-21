@@ -11,7 +11,7 @@ import React, {
 } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { apiClient } from "@/core/api/api-client";
-import { getAuthToken, removeAuthToken } from "@/core/auth/auth";
+import { clearAuthCaches, cacheLoginIdentity, setSessionExpiresAt } from "@/core/auth/auth";
 import { getDefaultPageForRole, getRolePathFromNumber } from "@/core/lib/role-utils";
 
 export interface User {
@@ -55,48 +55,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ⚡ PERFORMANCE: Memoize actions to prevent re-renders
   const login = useCallback((userData: User) => {
     setUser(userData);
-    localStorage.setItem("user", JSON.stringify(userData));
+    cacheLoginIdentity({ user: { ...userData, id: Number(userData.id) }, role: userData.role });
   }, []);
 
   const logout = useCallback(() => {
     setUser(null);
-    localStorage.removeItem("user");
-    removeAuthToken();
+    clearAuthCaches();
     router.replace("/login");
   }, [router]);
 
-  // Fetch user data from backend if token exists
+  // SPA cookie auth: /me is the source of truth. We always ask the server who
+  // the current user is — if there's no session cookie or it's expired, the
+  // backend returns 401 and we leave `user` as null.
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const token = getAuthToken();
+        const response = await apiClient.get<{
+          user: Omit<User, "role">;
+          role: number;
+          expires_at?: string;
+        }>("/me");
 
-        if (!token) {
-          setIsLoading(false);
+        if (response.status === 401) {
+          clearAuthCaches();
+          setUser(null);
           return;
         }
 
-        // ⚡ PERFORMANCE: /me endpoint is now cached via React Query in api-client
-        // Fetch fresh user data from backend
-        const response = await apiClient.get<{ user: Omit<User, "role">; role: number }>(
-          "/me",
-        );
-
         if (response.error || !response.data) {
-          // Token invalid, clear everything
-          removeAuthToken();
-          localStorage.removeItem("user");
+          clearAuthCaches();
           setUser(null);
-        } else {
-          // Merge role (top-level in response) into the user object
-          const userData: User = { ...response.data.user, role: response.data.role };
-          localStorage.setItem("user", JSON.stringify(userData));
-          setUser(userData);
+          return;
         }
+
+        const userData: User = {
+          ...response.data.user,
+          role: response.data.role,
+        };
+        cacheLoginIdentity({ user: { ...userData, id: Number(userData.id) }, role: userData.role });
+        if (response.data.expires_at) {
+          setSessionExpiresAt(response.data.expires_at);
+        }
+        setUser(userData);
       } catch (error) {
         console.error("Error fetching user data:", error);
-        removeAuthToken();
-        localStorage.removeItem("user");
+        clearAuthCaches();
         setUser(null);
       } finally {
         setIsLoading(false);
@@ -110,8 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const handleUnauthorized = () => {
       setUser(null);
-      localStorage.removeItem("user");
-      removeAuthToken();
+      clearAuthCaches();
       // Optional: Redirect to login or home if needed, but the 401 source might handle it
       // router.replace('/auth/login');
     };

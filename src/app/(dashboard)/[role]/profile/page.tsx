@@ -15,6 +15,7 @@ import { useCampuses } from "@/features/calendar/services/academicDataService";
 import { MyProfileContent } from "@/features/user-profile/components/my-profile-content";
 import { getRoleLabelFromNumber } from "@/core/lib/role-utils";
 import { usePageReady } from "@/shared/components/context/page-loading-context";
+import { getRouteParam } from "@/core/lib/route-params";
 
 function formatMemberSince(dateStr?: string): string {
   if (!dateStr) return "—";
@@ -63,7 +64,7 @@ function InfoRow({
 
 export default function ProfilePage() {
   const params = useParams();
-  const role = params.role as string;
+  const role = getRouteParam(params, "role");
 
   const { user, isLoading } = useAuth();
   const { user: currentUser, loading: userLoading } = useCurrentUser();

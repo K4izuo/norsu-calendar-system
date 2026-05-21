@@ -8,10 +8,11 @@ import { useParams } from "next/navigation";
 import { useUsers } from "@/features/accounts/services/account-service";
 import { usePageReady } from "@/shared/components/context/page-loading-context";
 import { Skeleton, TableSkeleton } from "@/shared/components/ui/skeleton";
+import { getRouteParam } from "@/core/lib/route-params";
 
 export default function AccountsPage() {
   const params = useParams();
-  const role = params.role as string;
+  const role = getRouteParam(params, "role");
 
   // React Query deduplicates this — no extra network request vs AccountsTabSection
   const { users, loading, isFetching } = useUsers();

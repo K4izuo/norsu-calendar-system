@@ -5,6 +5,7 @@ import { Users, GraduationCap, Building2, ExternalLink, MoreVertical, MoveRight,
 import { useParams, useRouter } from "next/navigation";
 import { EventDetails } from "@/interface/user-props";
 import { UserRole } from "@/shared/components/utils/role-colors";
+import { getRouteParam } from "@/core/lib/route-params";
 
 interface RequestorCardProps {
   requestor: NonNullable<EventDetails["requestor"]>;
@@ -70,7 +71,7 @@ export function RequestorCard({
   const [showDotsMenu, setShowDotsMenu] = useState(false);
   const params = useParams();
   const router = useRouter();
-  const urlRole = params.role as string;
+  const urlRole = getRouteParam(params, "role");
   const showMenu = status === "PENDING" || (role && role !== "public" && status === "APPROVED");
 
   return (

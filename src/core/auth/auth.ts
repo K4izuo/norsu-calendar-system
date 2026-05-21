@@ -1,112 +1,92 @@
-export const setAuthToken = (token: string, expiresAt?: string) => {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('auth-token', token);
-    
-    // Set cookie with expiry
-    const expires = expiresAt ? new Date(expiresAt) : new Date(Date.now() + 15 * 60 * 1000);
-    document.cookie = `auth-token=${token}; path=/; expires=${expires.toUTCString()}; SameSite=Strict`;
-    
-    // Store expiry timestamp
-    document.cookie = `token-expiry=${expires.toISOString()}; path=/; expires=${expires.toUTCString()}; SameSite=Strict`;
-  }
-};
+/**
+ * Local auth caches for SPA cookie session.
+ *
+ * The actual session lives in an HttpOnly cookie set by the backend (Sanctum
+ * SPA mode). JavaScript can't read it, and that's the point.
+ *
+ * What we DO cache here is non-sensitive identity (user metadata, role number,
+ * session expiry) so the UI can render without an extra /me round-trip on every
+ * mount. The source of truth is still the server — /me re-validates on every
+ * page load through the auth context.
+ */
 
-export const setUserRole = (role: number) => {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('user-role', role.toString());
-    
-    // Set cookie without expiry (will expire with token)
-    const expires = new Date(Date.now() + 15 * 60 * 1000);
-    document.cookie = `user-role=${role}; path=/; expires=${expires.toUTCString()}; SameSite=Strict`;
-  }
-};
+const USER_KEY = "user";
+const USER_ROLE_KEY = "user-role";
+const USER_ID_KEY = "user-id";
+const SESSION_EXPIRES_KEY = "session-expires-at";
 
-export const getAuthToken = (): string | null => {
-  if (typeof window !== 'undefined') {
-    // Check localStorage first
-    const token = localStorage.getItem('auth-token');
-    
-    // Verify token hasn't expired
-    const cookies = document.cookie.split(';');
-    const expiryCookie = cookies.find(c => c.trim().startsWith('token-expiry='));
-    
-    if (expiryCookie) {
-      const expiryValue = expiryCookie.split('=')[1];
-      const expiryDate = new Date(expiryValue);
-      
-      if (expiryDate <= new Date()) {
-        // Token expired, clear everything
-        removeAuthToken();
-        return null;
-      }
+interface CachedIdentityUser {
+  id: number;
+  username?: string;
+  email?: string;
+  first_name?: string;
+  last_name?: string;
+}
+
+interface CachedIdentity {
+  user: CachedIdentityUser;
+  role?: number;
+}
+
+export function cacheLoginIdentity(identity: CachedIdentity): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(USER_KEY, JSON.stringify(identity.user));
+    if (identity.role !== undefined) {
+      localStorage.setItem(USER_ROLE_KEY, String(identity.role));
     }
-    
-    return token;
-  }
-  return null;
-};
-
-export const getUserRole = (): string | null => {
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem('user-role');
-  }
-  return null;
-};
-
-export const getUserId = (): number | null => {
-  if (typeof window !== 'undefined') {
-    const userId = localStorage.getItem('user-id');
-    return userId ? parseInt(userId, 10) : null;
-  }
-  return null;
-};
-
-export const setUserId = (userId: number) => {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('user-id', userId.toString());
-    
-    // Set cookie without expiry (will expire with token)
-    const expires = new Date(Date.now() + 15 * 60 * 1000);
-    document.cookie = `user-id=${userId}; path=/; expires=${expires.toUTCString()}; SameSite=Strict`;
-  }
-};
-
-export const updateTokenExpiry = (expiresAt: string) => {
-  if (typeof window !== 'undefined') {
-    const expires = new Date(expiresAt);
-    
-    // Update the token-expiry cookie with new expiration time
-    document.cookie = `token-expiry=${expires.toISOString()}; path=/; expires=${expires.toUTCString()}; SameSite=Strict`;
-    
-    // Also update the auth-token and user-role cookies to expire at the same time
-    const token = localStorage.getItem('auth-token');
-    const role = localStorage.getItem('user-role');
-    const userId = localStorage.getItem('user-id');
-    
-    if (token) {
-      document.cookie = `auth-token=${token}; path=/; expires=${expires.toUTCString()}; SameSite=Strict`;
+    if (identity.user.id !== undefined) {
+      localStorage.setItem(USER_ID_KEY, String(identity.user.id));
     }
-    if (role) {
-      document.cookie = `user-role=${role}; path=/; expires=${expires.toUTCString()}; SameSite=Strict`;
-    }
-    if (userId) {
-      document.cookie = `user-id=${userId}; path=/; expires=${expires.toUTCString()}; SameSite=Strict`;
-    }
+  } catch {
+    // localStorage can throw in private-browsing/quota-exceeded — ignore.
   }
-};
+}
 
-export const removeAuthToken = () => {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('auth-token');
-    localStorage.removeItem('user-role');
-    localStorage.removeItem('user');
-    localStorage.removeItem('role');
-    localStorage.removeItem('user-id');
-    
-    // Clear cookies
-    document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-    document.cookie = 'user-role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-    document.cookie = 'token-expiry=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-    document.cookie = 'user-id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+export function setSessionExpiresAt(expiresAt: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(SESSION_EXPIRES_KEY, expiresAt);
+  } catch {
+    // ignore
   }
-};
+}
+
+export function getSessionExpiresAt(): Date | null {
+  if (typeof window === "undefined") return null;
+  const raw = localStorage.getItem(SESSION_EXPIRES_KEY);
+  if (!raw) return null;
+  const date = new Date(raw);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+export function getUserRole(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(USER_ROLE_KEY);
+}
+
+export function getUserId(): number | null {
+  if (typeof window === "undefined") return null;
+  const raw = localStorage.getItem(USER_ID_KEY);
+  if (!raw) return null;
+  const parsed = parseInt(raw, 10);
+  return Number.isNaN(parsed) ? null : parsed;
+}
+
+export function clearAuthCaches(): void {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(USER_KEY);
+  localStorage.removeItem(USER_ROLE_KEY);
+  localStorage.removeItem(USER_ID_KEY);
+  localStorage.removeItem(SESSION_EXPIRES_KEY);
+  // Legacy keys from the bearer-token era — remove so old sessions don't linger.
+  localStorage.removeItem("auth-token");
+  localStorage.removeItem("role");
+}
+
+/**
+ * Legacy alias kept so existing logout call-sites continue to compile.
+ * The session itself is killed server-side via POST /logout; this only
+ * clears our local UI caches.
+ */
+export const removeAuthToken = clearAuthCaches;

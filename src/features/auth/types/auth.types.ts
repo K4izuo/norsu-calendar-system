@@ -49,9 +49,11 @@ export interface LoginFormData {
 
 /**
  * Login API response
+ *
+ * SPA cookie auth: no `token` in the body. The backend sets the session and
+ * XSRF-TOKEN cookies via Set-Cookie. We only get back identity + expiry.
  */
 export interface LoginResponse {
-  token: string;
   user: User;
   role?: UserRole;
   expires_at?: string;
@@ -165,10 +167,12 @@ export interface AuthContextValue extends AuthState {
 // ============================================================================
 
 /**
- * Token refresh response
+ * Session touch response (formerly token refresh)
+ *
+ * SPA cookie auth: there's no rotating bearer token. The endpoint exists so
+ * the frontend's idle-timeout UI can confirm and extend the session.
  */
 export interface TokenRefreshResponse {
-  token: string;
   expires_at: string;
 }
 

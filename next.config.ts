@@ -1,6 +1,12 @@
 import type { NextConfig } from 'next'
 
+const INTERNAL_API_URL =
+  process.env.INTERNAL_API_URL ?? 'http://127.0.0.1:8000'
+
 const config: NextConfig = {
+  // Produce a minimal standalone build for Docker / production deployment
+  output: 'standalone',
+
   images: {
     remotePatterns: [
       {
@@ -41,7 +47,13 @@ const config: NextConfig = {
     return [
       {
         source: '/api-proxy/:path*',
-        destination: 'http://127.0.0.1:8000/api/:path*',
+        destination: `${INTERNAL_API_URL}/api/:path*`,
+      },
+      // Sanctum's CSRF endpoint lives at the host root, NOT under /api.
+      // Forwarding it from the frontend origin keeps everything same-origin in dev.
+      {
+        source: '/sanctum/:path*',
+        destination: `${INTERNAL_API_URL}/sanctum/:path*`,
       },
     ]
   },

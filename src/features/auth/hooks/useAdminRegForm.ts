@@ -107,11 +107,10 @@ export function useAdminRegForm() {
 
       // Check for response data
       if (!response.data) {
-        toast.error("Registration could not be confirmed", { 
+        toast.error("Registration could not be confirmed", {
           id: toastId,
           duration: 5000 // Show error for 5 seconds
         });
-        console.log("Empty API response:", response);
         setIsSubmitting(false);
         return false;
       }

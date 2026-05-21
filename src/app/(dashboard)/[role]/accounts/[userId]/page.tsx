@@ -24,12 +24,13 @@ import { AccountUser } from "./_components/types";
 import { InfoRow, formatMemberSince, getFullName } from "./_components/info-row";
 import { ProfileTab } from "./_components/profile-tab";
 import { PasswordTab } from "./_components/password-tab";
+import { getRouteParam } from "@/core/lib/route-params";
 
 export default function AccountProfilePage() {
   const params = useParams();
   const router = useRouter();
-  const role = params.role as string;
-  const userId = Number(params.userId);
+  const role = getRouteParam(params, "role");
+  const userId = Number(getRouteParam(params, "userId"));
 
   const {
     campuses,

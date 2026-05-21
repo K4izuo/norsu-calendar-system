@@ -11,7 +11,7 @@ import {
   campusesQueryOptions,
   officesQueryOptions
 } from "@/features/calendar/services/academicDataService";
-import { useAssets, useCreateAsset, Asset } from "@/features/assets/services/asset-service";
+import { useAssets, useCreateAsset } from "@/features/assets/services/asset-service";
 import { usePageReady } from "@/shared/components/context/page-loading-context";
 import { Search, PackagePlus } from "lucide-react";
 import {
@@ -26,10 +26,11 @@ import { PageStatCard } from "@/shared/components/ui/page-stat-card";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { Package, CircleCheck, Activity, Wrench } from "lucide-react";
 import { useParams } from "next/navigation";
+import { getRouteParam } from "@/core/lib/route-params";
 
 export default function AssetsPage() {
   const params = useParams();
-  const role = params.role as string;
+  const role = getRouteParam(params, "role");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -74,10 +75,6 @@ export default function AssetsPage() {
     } catch (error) {
       console.error("Failed to create asset:", error);
     }
-  };
-
-  const handleAssetClick = (asset: Asset) => {
-    console.log("Asset clicked:", asset);
   };
 
   return (
@@ -164,7 +161,6 @@ export default function AssetsPage() {
           <AssetsTable
             assets={filteredAssets}
             isLoading={loading || isPending}
-            onAssetClick={handleAssetClick}
           />
         </div>
       </div>

@@ -19,10 +19,11 @@ import {
 import { PageBreadcrumb } from "@/shared/components/ui/page-breadcrumb";
 import { useParams } from "next/navigation";
 import type { Person } from "@/features/people/types/people.types";
+import { getRouteParam } from "@/core/lib/route-params";
 
 export default function PeoplePage() {
   const params = useParams();
-  const role = params.role as string;
+  const role = getRouteParam(params, "role");
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
