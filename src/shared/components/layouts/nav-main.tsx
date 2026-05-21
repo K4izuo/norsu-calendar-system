@@ -5,7 +5,6 @@ import { type LucideIcon } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query"
-import { triggerTokenUpdate } from "@/core/auth/token-refresh"
 import { prefetchDashboardReservations } from "@/features/calendar/services/reservation-service"
 import { useAuth } from "@/shared/components/context/auth-context"
 
@@ -19,7 +18,6 @@ import {
 } from "@/shared/components/ui/sidebar"
 
 const MOBILE_SIDEBAR_CLOSE_MS = 300
-const MOBILE_TOKEN_UPDATE_DELAY_MS = 420
 
 export function NavMain({
   items,
@@ -50,17 +48,6 @@ export function NavMain({
     if (title === "Calendar") prefetchCalendarData()
   }, [prefetchCalendarData])
 
-  const scheduleTokenUpdate = useCallback(() => {
-    if (!isMobile) {
-      triggerTokenUpdate()
-      return
-    }
-
-    window.setTimeout(() => {
-      triggerTokenUpdate()
-    }, MOBILE_TOKEN_UPDATE_DELAY_MS)
-  }, [isMobile])
-
   const handleNavItemClick = useCallback((
     event: MouseEvent<HTMLAnchorElement>,
     title: string,
@@ -68,7 +55,6 @@ export function NavMain({
   ) => {
     if (!isMobile) {
       handleNavigationIntent(title)
-      scheduleTokenUpdate()
       return
     }
 
@@ -91,10 +77,7 @@ export function NavMain({
         router.push(url)
       }, MOBILE_SIDEBAR_CLOSE_MS)
     }
-
-    // Trigger debounced, non-blocking token update.
-    scheduleTokenUpdate()
-  }, [handleNavigationIntent, isMobile, pathname, router, scheduleTokenUpdate, setOpenMobile])
+  }, [handleNavigationIntent, isMobile, pathname, router, setOpenMobile])
 
   return (
     <SidebarGroup>
