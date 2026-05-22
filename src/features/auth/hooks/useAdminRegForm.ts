@@ -39,8 +39,9 @@ export function useAdminRegForm() {
     setFormData(prev => ({ ...prev, [name]: value }));
     setMissingFields(prev => {
       if (!prev[name]) return prev;
-      const { [name]: _, ...rest } = prev;
-      return rest;
+      const next = { ...prev };
+      delete next[name];
+      return next;
     });
   }, []);
 

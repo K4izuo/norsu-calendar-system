@@ -162,8 +162,13 @@ export function ReserveEventModal({
 
   const displayDate = useMemo(() => formatDisplayDate(eventDate), [eventDate]);
 
-  // Roles that see the VP signatories section: Dean(1), Admin(3), CampusDirector(5), HeadOfOffice(10)
-  const showVpSection = userRole === 1 || userRole === 3 || userRole === 5 || userRole === 10;
+  // Roles allowed to create reservations and therefore see the VP signatories section:
+  //   Dean(1), CampusDirector(5), VPAA(6), VPSAS(7), VPAF(8), VPRDE(9),
+  //   HeadOfOffice(10), UniversityPresident(12).
+  // Admin(3) is intentionally excluded — admins manage accounts and view events but
+  // cannot reserve events themselves.
+  const RESERVER_ROLES = new Set([1, 5, 6, 7, 8, 9, 10, 12]);
+  const showVpSection = userRole !== undefined && RESERVER_ROLES.has(userRole);
 
   const tabOrder = ["requestor", "form", "equipment", "additional", "summary"];
   const tabLabels: Record<string, string> = {

@@ -7,6 +7,7 @@ import {
   Building2,
   ShieldCheck,
   CalendarDays,
+  Map,
 } from "lucide-react";
 import Image from "next/image";
 import { useAuth } from "@/shared/components/context/auth-context";
@@ -16,6 +17,7 @@ import { MyProfileContent } from "@/features/user-profile/components/my-profile-
 import { getRoleLabelFromNumber } from "@/core/lib/role-utils";
 import { usePageReady } from "@/shared/components/context/page-loading-context";
 import { getRouteParam } from "@/core/lib/route-params";
+import { useReservationMapSetting } from "@/shared/components/hooks/useReservationMapSetting";
 
 function formatMemberSince(dateStr?: string): string {
   if (!dateStr) return "—";
@@ -79,6 +81,9 @@ export default function ProfilePage() {
       : "—";
 
   const isCampusLoading = userLoading || campusesLoading;
+
+  const isAdmin = currentUser?.role === 3;
+  const { mapEnabled, toggle } = useReservationMapSetting();
 
   return (
     <div className="flex flex-col">
@@ -179,6 +184,45 @@ export default function ProfilePage() {
                 loading={userLoading}
               />
             </div>
+
+            {/* Admin-only: System Settings */}
+            {isAdmin && (
+              <div className="flex flex-col px-5 py-3 border-t">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">
+                  System Settings
+                </p>
+                <div className="flex items-center justify-between gap-3 py-2">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center shrink-0">
+                      <Map className="w-4 h-4 text-gray-500" />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-semibold text-gray-800 leading-snug">
+                        Reservation Map
+                      </span>
+                      <span className="text-[11px] text-gray-400 leading-snug">
+                        {mapEnabled ? "Showing map + timeline" : "Timeline only"}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={mapEnabled}
+                    onClick={() => toggle(!mapEnabled)}
+                    className={`relative shrink-0 inline-flex h-5 w-9 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${
+                      mapEnabled ? "bg-blue-600" : "bg-gray-200"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform ${
+                        mapEnabled ? "translate-x-4.5" : "translate-x-0.5"
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+            )}
 
           </div>
 

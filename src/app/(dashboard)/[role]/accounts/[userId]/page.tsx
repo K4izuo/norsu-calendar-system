@@ -10,6 +10,7 @@ import {
   ArrowLeft,
   User,
   Lock,
+  Shield,
 } from "lucide-react";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
@@ -20,10 +21,12 @@ import { useCampuses } from "@/features/calendar/services/academicDataService";
 import { usePageReady } from "@/shared/components/context/page-loading-context";
 import { ROLE_DISPLAY_NAMES } from "@/features/auth/types/auth.types";
 import { getRoleLabelFromNumber } from "@/core/lib/role-utils";
+import { useAuth } from "@/shared/components/context/auth-context";
 import { AccountUser } from "./_components/types";
 import { InfoRow, formatMemberSince, getFullName } from "./_components/info-row";
 import { ProfileTab } from "./_components/profile-tab";
 import { PasswordTab } from "./_components/password-tab";
+import { PrivilegeTab } from "./_components/privilege-tab";
 import { getRouteParam } from "@/core/lib/route-params";
 
 export default function AccountProfilePage() {
@@ -31,6 +34,7 @@ export default function AccountProfilePage() {
   const router = useRouter();
   const role = getRouteParam(params, "role");
   const userId = Number(getRouteParam(params, "userId"));
+  const { user: currentUser } = useAuth();
 
   const {
     campuses,
@@ -166,7 +170,7 @@ export default function AccountProfilePage() {
 
         {/* ── Right Panel ── */}
         <div className="flex-1 bg-white text-card-foreground border shadow-xs rounded-xl overflow-hidden">
-          <div className="p-8">
+          <div className="p-6">
             {isLoading ? (
               <div className="flex flex-col gap-4">
                 {[...Array(4)].map((_, i) => (
@@ -190,6 +194,15 @@ export default function AccountProfilePage() {
                     <Lock className="w-4 h-4" />
                     Reset Password
                   </TabsTrigger>
+                  {role === "admin" && (
+                    <TabsTrigger
+                      value="privilege"
+                      className="flex cursor-pointer items-center gap-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                    >
+                      <Shield className="w-4 h-4" />
+                      Privilege
+                    </TabsTrigger>
+                  )}
                 </TabsList>
 
                 <TabsContent value="profile">
@@ -206,6 +219,16 @@ export default function AccountProfilePage() {
                 <TabsContent value="password">
                   <PasswordTab userId={userId} />
                 </TabsContent>
+
+                {role === "admin" && currentUser && (
+                  <TabsContent value="privilege">
+                    <PrivilegeTab
+                      accountUser={accountUser}
+                      userId={userId}
+                      currentUserId={Number(currentUser.id)}
+                    />
+                  </TabsContent>
+                )}
               </Tabs>
             ) : (
               <div className="flex items-center justify-center h-40 text-gray-400 text-sm">

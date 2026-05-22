@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Linkedin, Twitter } from "lucide-react";
+import Image from "next/image";
 import { useAboutStats } from "@/features/calendar/services/stats-service";
 
 const fadeUp = (delay: number) => ({
@@ -146,12 +147,13 @@ const TeamSection = () => {
               style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
             >
               <div className="aspect-[4/5] overflow-hidden">
-                <img
+                <Image
                   src={member.img}
                   alt={member.name}
                   loading="lazy"
                   width={512}
                   height={640}
+                  sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                 />
               </div>

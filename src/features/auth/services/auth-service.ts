@@ -138,6 +138,19 @@ export const authService = {
   },
 
   /**
+   * Update a user's role
+   * @param userId - ID of user
+   * @param role - New role number
+   * @returns Promise with updated user data
+   */
+  updateUserRole: async (userId: number, role: number) => {
+    return apiClient.patch<User, { role: number }>(
+      `/users/${userId}/role`,
+      { role }
+    );
+  },
+
+  /**
    * Change user password
    * @param userId - ID of user
    * @param data - Password change data
@@ -223,6 +236,7 @@ export const {
   refreshToken,
   updateTokenExpiration,
   updateAccount,
+  updateUserRole,
   changePassword,
   verifyEmail,
   resendVerification,

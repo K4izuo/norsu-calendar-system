@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import dynamic from "next/dynamic";
-import { ArrowLeft, Building2, ChevronRight, Landmark } from "lucide-react";
+import { ArrowLeft, Building2, ChevronRight, Clock, Landmark } from "lucide-react";
 import { PageBreadcrumb } from "@/shared/components/ui/page-breadcrumb";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import {
@@ -17,6 +17,7 @@ import type {
 } from "@/features/calendar/components/campus-map";
 import type { ReservationWithRelations } from "@/features/reservations/types/reservation.types";
 import { getRouteParam } from "@/core/lib/route-params";
+import { useReservationMapSetting } from "@/shared/components/hooks/useReservationMapSetting";
 
 // MapLibre uses the browser window, so load the map client-side only.
 const CampusMap = dynamic(
@@ -62,13 +63,31 @@ type FlatApprovalEvent = {
   actor: string;
   reason?: string | null;
   timestamp: string;
+  date: string;
+  timeStart: string;
+  timeEnd: string;
 };
+
+function getFormattedDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" });
+}
 
 function getFormattedDateTime(dateStr: string): string {
   const date = new Date(dateStr);
   const datePart = date.toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" });
   const timePart = date.toLocaleTimeString("en-PH", { hour: "numeric", minute: "2-digit", hour12: true });
   return `${datePart} at ${timePart}`;
+}
+
+function formatTimeOnly(timeStr: string): string {
+  const parts = timeStr.split(":");
+  if (parts.length < 2) return timeStr;
+  const hours = parseInt(parts[0], 10);
+  if (isNaN(hours)) return timeStr;
+  const minutes = parts[1].padStart(2, "0");
+  const ampm = hours >= 12 ? "PM" : "AM";
+  const h = hours % 12 || 12;
+  return `${h}:${minutes} ${ampm}`;
 }
 
 function TimelineItem({
@@ -109,8 +128,15 @@ function TimelineItem({
           </p>
         )}
         <p className="text-xs text-gray-400 mt-0.5">
-          {venueName ? `${venueName} on ` : ""}{getFormattedDateTime(event.timestamp)}
+          {venueName ? `${venueName} on ` : ""}{getFormattedDate(event.date)}
+          {event.timeStart && event.timeEnd
+            ? ` at ${formatTimeOnly(event.timeStart)} – ${formatTimeOnly(event.timeEnd)}`
+            : ""}
         </p>
+        <span className="inline-flex items-center gap-1 mt-1.5 px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-400 text-xs">
+          <Clock className="size-3 shrink-0" />
+          {getFormattedDateTime(event.timestamp)}
+        </span>
       </div>
     </div>
   );
@@ -195,6 +221,7 @@ export default function ReservationTrackingPage() {
 
   const focusedId = searchParams.get("id") ? Number(searchParams.get("id")) : null;
 
+  const { mapEnabled } = useReservationMapSetting();
   const { reservations, loading, isFetching, error } = useReservations();
   usePageReady(loading, isFetching);
 
@@ -237,6 +264,9 @@ export default function ReservationTrackingPage() {
           actor,
           reason: approval.reason,
           timestamp: approval.created_at,
+          date: res.date,
+          timeStart: res.time_start,
+          timeEnd: res.time_end,
         });
       }
     }
@@ -282,50 +312,52 @@ export default function ReservationTrackingPage() {
         </div>
       )}
 
-      {/* Campus Office Locations */}
-      <div className="mb-5 bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="flex flex-col gap-2 px-5 pt-4 pb-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2">
-            <Building2 className="size-4 text-blue-600" />
-            <span className="text-sm font-semibold text-gray-800">Campus Office Locations</span>
-          </div>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-400">
-            {focusedId && approvalSegments.length > 0 && (
-              <span className="flex items-center gap-2 mr-1">
-                <span className="flex items-center gap-1">
-                  <span className="inline-block w-4 h-0.5 bg-green-500 rounded" />
-                  <span>Approved</span>
+      {/* Campus Office Locations — hidden when admin has disabled the map */}
+      {mapEnabled && (
+        <div className="mb-5 bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="flex flex-col gap-2 px-5 pt-4 pb-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2">
+              <Building2 className="size-4 text-blue-600" />
+              <span className="text-sm font-semibold text-gray-800">Campus Office Locations</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-400">
+              {focusedId && approvalSegments.length > 0 && (
+                <span className="flex items-center gap-2 mr-1">
+                  <span className="flex items-center gap-1">
+                    <span className="inline-block w-4 h-0.5 bg-green-500 rounded" />
+                    <span>Approved</span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="inline-block w-4 h-0.5 bg-amber-500 rounded" />
+                    <span>Active</span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="inline-block w-4 h-0.5 bg-gray-300 rounded border-dashed border" />
+                    <span>Pending</span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="inline-block w-4 h-0.5 bg-red-500 rounded" />
+                    <span>Declined</span>
+                  </span>
                 </span>
-                <span className="flex items-center gap-1">
-                  <span className="inline-block w-4 h-0.5 bg-amber-500 rounded" />
-                  <span>Active</span>
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="inline-block w-4 h-0.5 bg-gray-300 rounded border-dashed border" />
-                  <span>Pending</span>
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="inline-block w-4 h-0.5 bg-red-500 rounded" />
-                  <span>Declined</span>
-                </span>
+              )}
+              <span className="flex items-center gap-1">
+                <Building2 className="size-3.5 text-blue-600" />
+                Office
               </span>
-            )}
-            <span className="flex items-center gap-1">
-              <Building2 className="size-3.5 text-blue-600" />
-              Office
-            </span>
-            <span className="flex items-center gap-1">
-              <Landmark className="size-3.5 text-blue-600" />
-              Executive Office
-            </span>
+              <span className="flex items-center gap-1">
+                <Landmark className="size-3.5 text-blue-600" />
+                Executive Office
+              </span>
+            </div>
+          </div>
+
+          {/* Map container — explicit height required by MapLibre */}
+          <div className="mx-4 mb-4 rounded-lg overflow-hidden" style={{ height: "380px" }}>
+            <CampusMap approvalSegments={approvalSegments} />
           </div>
         </div>
-
-        {/* Map container — explicit height required by MapLibre */}
-        <div className="mx-4 mb-4 rounded-lg overflow-hidden" style={{ height: "380px" }}>
-          <CampusMap approvalSegments={approvalSegments} />
-        </div>
-      </div>
+      )}
 
       {/* Reservation Timeline */}
       <div className="bg-white rounded-xl border border-gray-200">

@@ -21,6 +21,10 @@ const config: NextConfig = {
         protocol: 'https',
         hostname: 'cdn.shadcnstudio.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'i.pravatar.cc',
+      },
     ],
     // Optimize images for faster loading
     formats: ['image/avif', 'image/webp'],

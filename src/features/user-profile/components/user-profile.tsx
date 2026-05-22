@@ -52,7 +52,7 @@ export default function UserProfile({
     },
     {
       label: "Settings",
-      href: `/${roleSlug}/settings`,
+      href: `/${roleSlug}/profile`,
       icon: <Settings className="size-5" />,
     },
   ];
