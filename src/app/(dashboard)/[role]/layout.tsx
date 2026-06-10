@@ -60,8 +60,14 @@ export default async function RoleLayout({
     expectedRoleNumber !== user.role
   ) {
     const correctPath = getRolePathFromNumber(user.role);
-    const defaultPage = getDefaultPageForRole(user.role);
-    redirect(`/${correctPath}/${defaultPage}`);
+    // Never redirect to the segment we're already on — if the "correct" path
+    // equals the current one, the mismatch is a data artifact (e.g. the
+    // backend serialized the role as a string) and redirecting would loop
+    // forever (ERR_TOO_MANY_REDIRECTS).
+    if (correctPath !== roleSegment) {
+      const defaultPage = getDefaultPageForRole(user.role);
+      redirect(`/${correctPath}/${defaultPage}`);
+    }
   }
 
   return (
