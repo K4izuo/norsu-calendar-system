@@ -42,7 +42,9 @@ interface ServerUserPayload {
 
 interface ServerUserResponse {
   user: ServerUserPayload;
-  role: number | null;
+  // Production MySQL/PDO setups may serialize numeric columns as strings
+  // (e.g. "3" instead of 3), so accept both and normalize before use.
+  role: number | string | null;
   expires_at?: string;
 }
 
@@ -83,9 +85,17 @@ export const getCurrentUserOnServer = cache(
         return null;
       }
 
+      // Strict equality against ROLE_CONFIG's numeric keys happens downstream
+      // (e.g. the [role] layout's mismatch redirect) — a string "3" there
+      // causes an infinite redirect-to-self loop, so coerce once here.
+      const role = Number(data.role);
+      if (!Number.isFinite(role)) {
+        return null;
+      }
+
       return {
         ...data.user,
-        role: data.role,
+        role,
         expires_at: data.expires_at,
       };
     } catch {
